@@ -39,7 +39,6 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "stm32f1xx_hal.h"
-#include "stm32f1xx_it.h"
 
 /* USER CODE BEGIN Includes */
 
@@ -67,7 +66,6 @@ static void MX_USART1_UART_Init(void);
 static void MX_TIM1_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_ADC2_Init(void);
-void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim);
 
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
                                 
@@ -119,19 +117,23 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
 
-  HAL_TIM_PWM_Start_IT(&htim1, TIM_CHANNEL_1|TIM_CHANNEL_2|TIM_CHANNEL_3|TIM_CHANNEL_4);
-  HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_1|TIM_CHANNEL_2|TIM_CHANNEL_3);
+ // Start Timer 1
+    if(HAL_TIM_Base_Start_IT(&htim1) != HAL_OK)
+      {
+        /* Counter Enable Error */
+        Error_Handler();
+      }
+    // Start injected ADC
+    if(HAL_ADCEx_InjectedStart(&hadc1) != HAL_OK)
+      {
+        /* Counter Enable Error */
+        Error_Handler();
+      }
+    HAL_TIM_PWM_Start_IT(&htim1, TIM_CHANNEL_1|TIM_CHANNEL_2|TIM_CHANNEL_3|TIM_CHANNEL_4);
+    HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_1|TIM_CHANNEL_2|TIM_CHANNEL_3);
 
-  if(HAL_TIM_Base_Start_IT(&htim1) != HAL_OK)
-    {
-      /* Counter Enable Error */
-      Error_Handler();
-    }
-  HAL_ADC_Start(&hadc1);
-  HAL_ADC_Start(&hadc2);
-
-  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 0);
-  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_4, 8000);
+    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 0);
+    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_4, 8000);
 
   /* USER CODE END 2 */
 
@@ -140,8 +142,10 @@ int main(void)
   while (1)
   {
 	  char buffer[] = "abcdefghij\r\n";
-	  buffer[0]=ui16_current_1;
-	  buffer[4]=ui16_current_2;
+	   //HAL_ADC_Start(&hadc1);
+
+	  //buffer[0]=ui16_current_1;
+	  //buffer[4]=ui16_current_2;
 	  	  //HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_2); //Toggle the state of pin PC9
 	  	  HAL_UART_Transmit(&huart1, (uint8_t *)&buffer, sizeof(buffer), 0xFFFF);
 
@@ -213,7 +217,6 @@ void SystemClock_Config(void)
 
   /* SysTick_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
-
 }
 
 /* ADC1 init function */
@@ -341,9 +344,7 @@ static void MX_TIM1_Init(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
-
-  sMasterConfig.MasterOutputTrigger = TIM_TRGO_OC4REF;
-
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
   sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
   if (HAL_TIMEx_MasterConfigSynchronization(&htim1, &sMasterConfig) != HAL_OK)
   {
@@ -357,7 +358,6 @@ static void MX_TIM1_Init(void)
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
   sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
   sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_RESET;
-
   if (HAL_TIM_OC_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
@@ -391,7 +391,6 @@ static void MX_TIM1_Init(void)
   }
 
   HAL_TIM_MspPostInit(&htim1);
-
 
 }
 

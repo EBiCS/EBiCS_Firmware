@@ -2771,8 +2771,7 @@ HAL_StatusTypeDef HAL_TIM_Encoder_Stop_DMA(TIM_HandleTypeDef *htim, uint32_t Cha
   */
 void HAL_TIM_IRQHandler(TIM_HandleTypeDef *htim)
 {
-
-	 /* Capture compare 1 event */
+  /* Capture compare 1 event */
   if(__HAL_TIM_GET_FLAG(htim, TIM_FLAG_CC1) != RESET)
   {
     if(__HAL_TIM_GET_IT_SOURCE(htim, TIM_IT_CC1) !=RESET)
@@ -2849,7 +2848,6 @@ void HAL_TIM_IRQHandler(TIM_HandleTypeDef *htim)
       if((htim->Instance->CCMR2 & TIM_CCMR2_CC4S) != 0x00U)
       {
         HAL_TIM_IC_CaptureCallback(htim);
-
       }
       /* Output compare event */
       else
@@ -2867,7 +2865,6 @@ void HAL_TIM_IRQHandler(TIM_HandleTypeDef *htim)
     {
       __HAL_TIM_CLEAR_IT(htim, TIM_IT_UPDATE);
       HAL_TIM_PeriodElapsedCallback(htim);
-
     }
   }
   /* TIM Break input event */
@@ -2886,8 +2883,6 @@ void HAL_TIM_IRQHandler(TIM_HandleTypeDef *htim)
     {
       __HAL_TIM_CLEAR_IT(htim, TIM_IT_TRIGGER);
       HAL_TIM_TriggerCallback(htim);
-
-
     }
   }
   /* TIM commutation event */
@@ -4320,7 +4315,6 @@ __weak void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 {
   /* Prevent unused argument(s) compilation warning */
   UNUSED(htim);
-
   /* NOTE : This function Should not be modified, when the callback is needed,
             the __HAL_TIM_IC_CaptureCallback could be implemented in the user file
    */
