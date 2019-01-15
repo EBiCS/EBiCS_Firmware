@@ -24,7 +24,8 @@ Src/main.o: ../Src/main.c C:/LishuiFOC/Generated/LishuiFOC_01/Inc/main.h \
  C:/LishuiFOC/Generated/LishuiFOC_01/Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_pwr.h \
  C:/LishuiFOC/Generated/LishuiFOC_01/Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h \
  C:/LishuiFOC/Generated/LishuiFOC_01/Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h \
- C:/LishuiFOC/Generated/LishuiFOC_01/Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h
+ C:/LishuiFOC/Generated/LishuiFOC_01/Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h \
+ C:/LishuiFOC/Generated/LishuiFOC_01/Inc/stm32f1xx_it.h
 
 C:/LishuiFOC/Generated/LishuiFOC_01/Inc/main.h:
 
@@ -79,3 +80,5 @@ C:/LishuiFOC/Generated/LishuiFOC_01/Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_h
 C:/LishuiFOC/Generated/LishuiFOC_01/Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h:
 
 C:/LishuiFOC/Generated/LishuiFOC_01/Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h:
+
+C:/LishuiFOC/Generated/LishuiFOC_01/Inc/stm32f1xx_it.h:

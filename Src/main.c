@@ -10,7 +10,7 @@
   * inserted by the user or by software development tools
   * are owned by their respective copyright owners.
   *
-  * COPYRIGHT(c) 2018 STMicroelectronics
+  * COPYRIGHT(c) 2019 STMicroelectronics
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -39,6 +39,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "stm32f1xx_hal.h"
+#include "stm32f1xx_it.h"
 
 /* USER CODE BEGIN Includes */
 
@@ -66,9 +67,9 @@ static void MX_USART1_UART_Init(void);
 static void MX_TIM1_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_ADC2_Init(void);
+void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim);
 
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
-
                                 
 
 /* USER CODE BEGIN PFP */
@@ -116,9 +117,21 @@ int main(void)
   MX_ADC1_Init();
   MX_ADC2_Init();
   /* USER CODE BEGIN 2 */
-  HAL_TIM_Base_Start(&htim1);
-  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1|TIM_CHANNEL_2|TIM_CHANNEL_3);
+
+
+  HAL_TIM_PWM_Start_IT(&htim1, TIM_CHANNEL_1|TIM_CHANNEL_2|TIM_CHANNEL_3|TIM_CHANNEL_4);
   HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_1|TIM_CHANNEL_2|TIM_CHANNEL_3);
+
+  if(HAL_TIM_Base_Start_IT(&htim1) != HAL_OK)
+    {
+      /* Counter Enable Error */
+      Error_Handler();
+    }
+  HAL_ADC_Start(&hadc1);
+  HAL_ADC_Start(&hadc2);
+
+  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 0);
+  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_4, 8000);
 
   /* USER CODE END 2 */
 
@@ -126,21 +139,24 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  char buffer[] = "test21\r\n";
-	  HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_2); //Toggle the state of pin PC9
-	  HAL_UART_Transmit(&huart1, (uint8_t *)&buffer, sizeof(buffer), 0xFFFF);
-	  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 0);
+	  char buffer[] = "abcdefghij\r\n";
+	  buffer[0]=ui16_current_1;
+	  buffer[4]=ui16_current_2;
+	  	  //HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_2); //Toggle the state of pin PC9
+	  	  HAL_UART_Transmit(&huart1, (uint8_t *)&buffer, sizeof(buffer), 0xFFFF);
 
-	  HAL_Delay(1000); //delay 100ms
+
+
+
+	  	  HAL_Delay(1000); //delay 100ms
+  /* USER CODE END WHILE */
+
+  /* USER CODE BEGIN 3 */
 
   }
   /* USER CODE END 3 */
 
 }
-
-
-
-
 
 /**
   * @brief System Clock Configuration
@@ -197,6 +213,7 @@ void SystemClock_Config(void)
 
   /* SysTick_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
+
 }
 
 /* ADC1 init function */
@@ -204,6 +221,7 @@ static void MX_ADC1_Init(void)
 {
 
   ADC_MultiModeTypeDef multimode;
+  ADC_InjectionConfTypeDef sConfigInjected;
   ADC_ChannelConfTypeDef sConfig;
 
     /**Common config 
@@ -212,7 +230,7 @@ static void MX_ADC1_Init(void)
   hadc1.Init.ScanConvMode = ADC_SCAN_DISABLE;
   hadc1.Init.ContinuousConvMode = DISABLE;
   hadc1.Init.DiscontinuousConvMode = DISABLE;
-  hadc1.Init.ExternalTrigConv = ADC_EXTERNALTRIGCONV_T1_CC3;
+  hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
   hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
   hadc1.Init.NbrOfConversion = 1;
   if (HAL_ADC_Init(&hadc1) != HAL_OK)
@@ -222,8 +240,23 @@ static void MX_ADC1_Init(void)
 
     /**Configure the ADC multi-mode 
     */
-  multimode.Mode = ADC_DUALMODE_REGSIMULT;
+  multimode.Mode = ADC_DUALMODE_REGSIMULT_INJECSIMULT;
   if (HAL_ADCEx_MultiModeConfigChannel(&hadc1, &multimode) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+    /**Configure Injected Channel 
+    */
+  sConfigInjected.InjectedChannel = ADC_CHANNEL_3;
+  sConfigInjected.InjectedRank = ADC_INJECTED_RANK_1;
+  sConfigInjected.InjectedNbrOfConversion = 1;
+  sConfigInjected.InjectedSamplingTime = ADC_SAMPLETIME_1CYCLE_5;
+  sConfigInjected.ExternalTrigInjecConv = ADC_EXTERNALTRIGINJECCONV_T1_CC4;
+  sConfigInjected.AutoInjectedConv = DISABLE;
+  sConfigInjected.InjectedDiscontinuousConvMode = DISABLE;
+  sConfigInjected.InjectedOffset = 0;
+  if (HAL_ADCEx_InjectedConfigChannel(&hadc1, &sConfigInjected) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
@@ -244,7 +277,7 @@ static void MX_ADC1_Init(void)
 static void MX_ADC2_Init(void)
 {
 
-  ADC_ChannelConfTypeDef sConfig;
+  ADC_InjectionConfTypeDef sConfigInjected;
 
     /**Common config 
     */
@@ -260,12 +293,16 @@ static void MX_ADC2_Init(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
-    /**Configure Regular Channel 
+    /**Configure Injected Channel 
     */
-  sConfig.Channel = ADC_CHANNEL_4;
-  sConfig.Rank = ADC_REGULAR_RANK_1;
-  sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
-  if (HAL_ADC_ConfigChannel(&hadc2, &sConfig) != HAL_OK)
+  sConfigInjected.InjectedChannel = ADC_CHANNEL_4;
+  sConfigInjected.InjectedRank = ADC_INJECTED_RANK_1;
+  sConfigInjected.InjectedNbrOfConversion = 1;
+  sConfigInjected.InjectedSamplingTime = ADC_SAMPLETIME_1CYCLE_5;
+  sConfigInjected.AutoInjectedConv = DISABLE;
+  sConfigInjected.InjectedDiscontinuousConvMode = DISABLE;
+  sConfigInjected.InjectedOffset = 0;
+  if (HAL_ADCEx_InjectedConfigChannel(&hadc2, &sConfigInjected) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
@@ -304,7 +341,9 @@ static void MX_TIM1_Init(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
-  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_OC4REF;
+
   sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
   if (HAL_TIMEx_MasterConfigSynchronization(&htim1, &sMasterConfig) != HAL_OK)
   {
@@ -318,6 +357,7 @@ static void MX_TIM1_Init(void)
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
   sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
   sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_RESET;
+
   if (HAL_TIM_OC_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
@@ -351,6 +391,7 @@ static void MX_TIM1_Init(void)
   }
 
   HAL_TIM_MspPostInit(&htim1);
+
 
 }
 
@@ -429,6 +470,12 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+//Timer1 CC Channel4
+void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
+{
+	//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_2);
+}
 
 /* USER CODE END 4 */
 
