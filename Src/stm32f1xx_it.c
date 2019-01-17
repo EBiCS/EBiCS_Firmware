@@ -234,7 +234,7 @@ void ADC1_2_IRQHandler(void)
   HAL_ADC_IRQHandler(&hadc1);
   HAL_ADC_IRQHandler(&hadc2);
   /* USER CODE BEGIN ADC1_2_IRQn 1 */
-  HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_2);
+  //HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_2);
   /* USER CODE END ADC1_2_IRQn 1 */
 }
 
@@ -248,7 +248,7 @@ void TIM1_UP_IRQHandler(void)
   /* USER CODE END TIM1_UP_IRQn 0 */
   HAL_TIM_IRQHandler(&htim1);
   /* USER CODE BEGIN TIM1_UP_IRQn 1 */
-
+  //HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_2);
   /* USER CODE END TIM1_UP_IRQn 1 */
 }
 
@@ -263,7 +263,7 @@ void TIM1_TRG_COM_IRQHandler(void)
   HAL_TIM_IRQHandler(&htim1);
 
   /* USER CODE BEGIN TIM1_TRG_COM_IRQn 1 */
-
+  //HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_2);
   /* USER CODE END TIM1_TRG_COM_IRQn 1 */
 }
 
@@ -277,7 +277,7 @@ void TIM1_CC_IRQHandler(void)
   /* USER CODE END TIM1_CC_IRQn 0 */
   HAL_TIM_IRQHandler(&htim1);
   /* USER CODE BEGIN TIM1_CC_IRQn 1 */
-
+  //HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_2);
   /* USER CODE END TIM1_CC_IRQn 1 */
 }
 

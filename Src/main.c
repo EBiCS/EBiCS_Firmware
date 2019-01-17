@@ -39,6 +39,8 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "stm32f1xx_hal.h"
+#include "stm32f103x6.h"
+#include "stdio.h"
 
 /* USER CODE BEGIN Includes */
 
@@ -123,17 +125,47 @@ int main(void)
         /* Counter Enable Error */
         Error_Handler();
       }
-    // Start injected ADC
-    if(HAL_ADCEx_InjectedStart(&hadc1) != HAL_OK)
+
+    // Start ADC1
+    if(HAL_ADC_Start_IT(&hadc1) != HAL_OK)
       {
         /* Counter Enable Error */
         Error_Handler();
       }
-    HAL_TIM_PWM_Start_IT(&htim1, TIM_CHANNEL_1|TIM_CHANNEL_2|TIM_CHANNEL_3|TIM_CHANNEL_4);
-    HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_1|TIM_CHANNEL_2|TIM_CHANNEL_3);
+    // Start ADC2
+    if(HAL_ADC_Start_IT(&hadc2) != HAL_OK)
+      {
+        /* Counter Enable Error */
+        Error_Handler();
+      }
+    // Start injected ADC1
+
+    if(HAL_ADCEx_InjectedStart_IT(&hadc1) != HAL_OK)
+      {
+        /* Counter Enable Error */
+        Error_Handler();
+      }
+    // Start injected ADC2
+
+    if(HAL_ADCEx_InjectedStart_IT(&hadc2) != HAL_OK)
+      {
+        /* Counter Enable Error */
+        Error_Handler();
+      }
+    HAL_TIM_PWM_Start_IT(&htim1, TIM_CHANNEL_1);
+    HAL_TIM_PWM_Start_IT(&htim1, TIM_CHANNEL_2);
+    HAL_TIM_PWM_Start_IT(&htim1, TIM_CHANNEL_3);
+    HAL_TIM_PWM_Start_IT(&htim1, TIM_CHANNEL_4);
+
+    HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_1);
+    HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_2);
+    HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_3);
+
 
     __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 0);
     __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_4, 8000);
+
+    printf("hello world!");
 
   /* USER CODE END 2 */
 
@@ -148,9 +180,6 @@ int main(void)
 	  //buffer[4]=ui16_current_2;
 	  	  //HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_2); //Toggle the state of pin PC9
 	  	  HAL_UART_Transmit(&huart1, (uint8_t *)&buffer, sizeof(buffer), 0xFFFF);
-
-
-
 
 	  	  HAL_Delay(1000); //delay 100ms
   /* USER CODE END WHILE */
@@ -255,7 +284,7 @@ static void MX_ADC1_Init(void)
   sConfigInjected.InjectedRank = ADC_INJECTED_RANK_1;
   sConfigInjected.InjectedNbrOfConversion = 1;
   sConfigInjected.InjectedSamplingTime = ADC_SAMPLETIME_1CYCLE_5;
-  sConfigInjected.ExternalTrigInjecConv = ADC_EXTERNALTRIGINJECCONV_T1_CC4;
+  sConfigInjected.ExternalTrigInjecConv = ADC_INJECTED_SOFTWARE_START;
   sConfigInjected.AutoInjectedConv = DISABLE;
   sConfigInjected.InjectedDiscontinuousConvMode = DISABLE;
   sConfigInjected.InjectedOffset = 0;
@@ -302,6 +331,7 @@ static void MX_ADC2_Init(void)
   sConfigInjected.InjectedRank = ADC_INJECTED_RANK_1;
   sConfigInjected.InjectedNbrOfConversion = 1;
   sConfigInjected.InjectedSamplingTime = ADC_SAMPLETIME_1CYCLE_5;
+
   sConfigInjected.AutoInjectedConv = DISABLE;
   sConfigInjected.InjectedDiscontinuousConvMode = DISABLE;
   sConfigInjected.InjectedOffset = 0;
@@ -344,7 +374,8 @@ static void MX_TIM1_Init(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
-  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  //sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_OC4REF;
   sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
   if (HAL_TIMEx_MasterConfigSynchronization(&htim1, &sMasterConfig) != HAL_OK)
   {
@@ -471,9 +502,18 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 
 //Timer1 CC Channel4
-void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
+//Timer1 CC Channel4
+void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
 {
-	//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_2);
+	  if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_4) {
+		  //HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_2);
+	  	  if(HAL_ADCEx_InjectedStart_IT(&hadc1) != HAL_OK)
+	        {
+	          /* Counter Enable Error */
+	          Error_Handler();
+	        }
+	  }
+
 }
 
 /* USER CODE END 4 */

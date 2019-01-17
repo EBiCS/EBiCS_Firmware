@@ -1496,6 +1496,7 @@ uint32_t HAL_ADC_GetValue(ADC_HandleTypeDef* hadc)
 void HAL_ADC_IRQHandler(ADC_HandleTypeDef* hadc)
 {
   /* Check the parameters */
+
   assert_param(IS_ADC_ALL_INSTANCE(hadc->Instance));
   assert_param(IS_FUNCTIONAL_STATE(hadc->Init.ContinuousConvMode));
   assert_param(IS_ADC_REGULAR_NB_CONV(hadc->Init.NbrOfConversion));
@@ -1539,11 +1540,13 @@ void HAL_ADC_IRQHandler(ADC_HandleTypeDef* hadc)
       /* Clear regular group conversion flag */
       __HAL_ADC_CLEAR_FLAG(hadc, ADC_FLAG_STRT | ADC_FLAG_EOC);
     }
+
   }
   
   /* ========== Check End of Conversion flag for injected group ========== */
   if(__HAL_ADC_GET_IT_SOURCE(hadc, ADC_IT_JEOC))
   {
+
     if(__HAL_ADC_GET_FLAG(hadc, ADC_FLAG_JEOC))
     {
       /* Update state machine on conversion status if not in error state */
@@ -1579,7 +1582,8 @@ void HAL_ADC_IRQHandler(ADC_HandleTypeDef* hadc)
 
       /* Conversion complete callback */ 
       HAL_ADCEx_InjectedConvCpltCallback(hadc);
-      
+      //HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_2);
+
       /* Clear injected group conversion flag */
       __HAL_ADC_CLEAR_FLAG(hadc, (ADC_FLAG_JSTRT | ADC_FLAG_JEOC));
     }

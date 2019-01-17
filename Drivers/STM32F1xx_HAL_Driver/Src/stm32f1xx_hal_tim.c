@@ -2842,18 +2842,21 @@ void HAL_TIM_IRQHandler(TIM_HandleTypeDef *htim)
   {
     if(__HAL_TIM_GET_IT_SOURCE(htim, TIM_IT_CC4) !=RESET)
     {
+
       __HAL_TIM_CLEAR_IT(htim, TIM_IT_CC4);
       htim->Channel = HAL_TIM_ACTIVE_CHANNEL_4;
       /* Input capture event */
       if((htim->Instance->CCMR2 & TIM_CCMR2_CC4S) != 0x00U)
       {
         HAL_TIM_IC_CaptureCallback(htim);
+
       }
       /* Output compare event */
       else
       {
         HAL_TIM_OC_DelayElapsedCallback(htim);
         HAL_TIM_PWM_PulseFinishedCallback(htim);
+        //HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_2);
       }
       htim->Channel = HAL_TIM_ACTIVE_CHANNEL_CLEARED;
     }
