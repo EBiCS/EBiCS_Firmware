@@ -57,7 +57,7 @@ UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
-
+uint32_t ADC_Data[2];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -502,17 +502,27 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 
 //Timer1 CC Channel4
-//Timer1 CC Channel4
 void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
 {
 	  if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_4) {
 		  //HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_2);
-	  	  if(HAL_ADCEx_InjectedStart_IT(&hadc1) != HAL_OK)
-	        {
+	  	//  if(HAL_ADCEx_InjectedStart_IT(&hadc1) != HAL_OK)
+	    //    {
 	          /* Counter Enable Error */
-	          Error_Handler();
-	        }
+	    //      Error_Handler();
+	    //    }
 	  }
+
+}
+
+//injected ADC
+
+void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
+{
+	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_2);
+	ADC_Data[0] = HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1);
+	ADC_Data[1] = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1);
+	ui32_counter++;
 
 }
 
