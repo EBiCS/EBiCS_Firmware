@@ -156,7 +156,11 @@ int main(void)
 	  char buffer[] = "abcdefghij\r\n";
 	   //HAL_ADC_Start(&hadc1);
 
-	  //buffer[0]=ui16_current_1;
+	  buffer[1]=ui32_counter>>16;
+	  buffer[2]=ui32_counter>>8;
+	  buffer[3]=ui32_counter;
+	  buffer[4]=0xFF;
+
 	  //buffer[4]=ui16_current_2;
 	  	  //HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_2); //Toggle the state of pin PC9
 	  	  HAL_UART_Transmit(&huart1, (uint8_t *)&buffer, sizeof(buffer), 0xFFFF);
@@ -269,7 +273,7 @@ static void MX_ADC1_Init(void)
   sConfigInjected.InjectedRank = ADC_INJECTED_RANK_1;
   sConfigInjected.InjectedNbrOfConversion = 1;
   sConfigInjected.InjectedSamplingTime = ADC_SAMPLETIME_1CYCLE_5;
-  sConfigInjected.ExternalTrigInjecConv = ADC_EXTERNALTRIGINJECCONV_T1_CC4;
+  sConfigInjected.ExternalTrigInjecConv = ADC_INJECTED_SOFTWARE_START;
   sConfigInjected.AutoInjectedConv = DISABLE;
   sConfigInjected.InjectedDiscontinuousConvMode = DISABLE;
   sConfigInjected.InjectedOffset = 0;
@@ -333,13 +337,14 @@ static void MX_TIM1_Init(void)
 
   TIM_ClockConfigTypeDef sClockSourceConfig;
   TIM_MasterConfigTypeDef sMasterConfig;
+  TIM_SlaveConfigTypeDef sSlaveConfig;
   TIM_OC_InitTypeDef sConfigOC;
   TIM_BreakDeadTimeConfigTypeDef sBreakDeadTimeConfig;
 
   htim1.Instance = TIM1;
   htim1.Init.Prescaler = 0;
   htim1.Init.CounterMode = TIM_COUNTERMODE_CENTERALIGNED1;
-  htim1.Init.Period = 65535;
+  htim1.Init.Period = 2000;
   htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim1.Init.RepetitionCounter = 0;
   htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
@@ -359,13 +364,20 @@ static void MX_TIM1_Init(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
-  //sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sSlaveConfig.SlaveMode = TIM_SLAVEMODE_TRIGGER;
+  sSlaveConfig.InputTrigger = TIM_TS_ITR1;
+  if (HAL_TIM_SlaveConfigSynchronization(&htim1, &sSlaveConfig) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
   sMasterConfig.MasterOutputTrigger = TIM_TRGO_OC4REF;
   sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
   if (HAL_TIMEx_MasterConfigSynchronization(&htim1, &sMasterConfig) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
+
 
   sConfigOC.OCMode = TIM_OCMODE_TIMING;
   sConfigOC.Pulse = 0;
@@ -491,11 +503,11 @@ void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
 {
 	  if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_4) {
 		  //HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_2);
-	  	//  if(HAL_ADCEx_InjectedStart_IT(&hadc1) != HAL_OK)
-	    //    {
+	  	  if(HAL_ADCEx_InjectedStart_IT(&hadc1) != HAL_OK)
+	       {
 	          /* Counter Enable Error */
-	    //      Error_Handler();
-	    //    }
+	          Error_Handler();
+	       }
 	  }
 
 }
