@@ -49,12 +49,15 @@
 
 /* Private define ------------------------------------------------------------*/
 
-#define Hall1_Pin GPIO_PIN_0
-#define Hall1_GPIO_Port GPIOA
-#define Hall2_Pin GPIO_PIN_1
-#define Hall2_GPIO_Port GPIOA
-#define Hall3_Pin GPIO_PIN_2
-#define Hall3_GPIO_Port GPIOA
+#define Hall_1_Pin GPIO_PIN_0
+#define Hall_1_GPIO_Port GPIOA
+#define Hall_1_EXTI_IRQn EXTI0_IRQn
+#define Hall_2_Pin GPIO_PIN_1
+#define Hall_2_GPIO_Port GPIOA
+#define Hall_2_EXTI_IRQn EXTI1_IRQn
+#define Hall_3_Pin GPIO_PIN_2
+#define Hall_3_GPIO_Port GPIOA
+#define Hall_3_EXTI_IRQn EXTI2_IRQn
 #define Throttle_Pin GPIO_PIN_3
 #define Throttle_GPIO_Port GPIOA
 #define Phase_Current1_Pin GPIO_PIN_4
