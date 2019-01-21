@@ -41,7 +41,7 @@
 #include "stm32f1xx_hal.h"
 
 /* USER CODE BEGIN Includes */
-
+#include "print.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -63,6 +63,7 @@ uint8_t ui8_hall_state=0;
 uint16_t ui16_tim2_old=0;
 uint16_t ui16_tim2_recent=0;
 uint16_t ui16_timertics=0;
+uint16_t i=0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -81,6 +82,7 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
 
+
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
@@ -95,6 +97,7 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
+
 
 
   /* USER CODE END 1 */
@@ -160,16 +163,16 @@ int main(void)
         /* Counter Enable Error */
         Error_Handler();
       }
-
+    printf_("Hello World \r\n");
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  char buffer[] = "0123456789\r\n";
+	  char buffer[100];
 	   //HAL_ADC_Start(&hadc1);
-
+/*
 	  buffer[1]=ui32_counter>>16;
 	  buffer[2]=ui32_counter>>8;
 	  buffer[3]=ui32_counter;
@@ -177,13 +180,17 @@ int main(void)
 	  buffer[5]=ui32_tim2_counter>>8;
 	  buffer[6]=ui32_tim2_counter;
 	  buffer[7]=ui8_hall_state;
-	  buffer[8]=ui16_tim2_old>>8;
-	  buffer[9]=ui16_tim2_old;
+	  buffer[8]=ui16_timertics>>8;
+	  buffer[9]=ui16_timertics;*/
 
 
-	  //buffer[4]=ui16_current_2;
+	  sprintf_(buffer, "Hello World %ld, %ld \r\n",ui32_counter, ui32_tim2_counter );
+	  i=0;
+	  while (buffer[i] != '\0')
+	  {i++;}
 	  	  //HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_2); //Toggle the state of pin PC9
-	  	  HAL_UART_Transmit(&huart1, (uint8_t *)&buffer, sizeof(buffer), 0xFFFF);
+	  	  HAL_UART_Transmit(&huart1, (uint8_t *)&buffer, i, 0xFFFF);
+
 	      // Start ADC1
 	      if(HAL_ADC_Start_IT(&hadc1) != HAL_OK)
 	        {

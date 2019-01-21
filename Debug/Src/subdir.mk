@@ -5,18 +5,21 @@
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
 ../Src/main.c \
+../Src/print.c \
 ../Src/stm32f1xx_hal_msp.c \
 ../Src/stm32f1xx_it.c \
 ../Src/system_stm32f1xx.c 
 
 OBJS += \
 ./Src/main.o \
+./Src/print.o \
 ./Src/stm32f1xx_hal_msp.o \
 ./Src/stm32f1xx_it.o \
 ./Src/system_stm32f1xx.o 
 
 C_DEPS += \
 ./Src/main.d \
+./Src/print.d \
 ./Src/stm32f1xx_hal_msp.d \
 ./Src/stm32f1xx_it.d \
 ./Src/system_stm32f1xx.d 
