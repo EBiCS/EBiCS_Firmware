@@ -59,6 +59,10 @@ UART_HandleTypeDef huart1;
 uint32_t ADC_Data[2];
 uint32_t ui32_counter=0;
 uint32_t ui32_tim2_counter=0;
+uint8_t ui8_hall_state=0;
+uint16_t ui16_tim2_old=0;
+uint16_t ui16_tim2_recent=0;
+uint16_t ui16_timertics=0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -163,7 +167,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  char buffer[] = "abcdefghij\r\n";
+	  char buffer[] = "0123456789\r\n";
 	   //HAL_ADC_Start(&hadc1);
 
 	  buffer[1]=ui32_counter>>16;
@@ -172,6 +176,9 @@ int main(void)
 	  buffer[4]=ui32_tim2_counter>>16;
 	  buffer[5]=ui32_tim2_counter>>8;
 	  buffer[6]=ui32_tim2_counter;
+	  buffer[7]=ui8_hall_state;
+	  buffer[8]=ui16_tim2_old>>8;
+	  buffer[9]=ui16_tim2_old;
 
 
 	  //buffer[4]=ui16_current_2;
@@ -575,7 +582,19 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 	ADC_Data[0] = HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1);
 	ADC_Data[1] = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1);
 	ui32_counter++;
+	}
 
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+	//Hall sensor event processing
+	if(GPIO_Pin == GPIO_PIN_0||GPIO_Pin == GPIO_PIN_1||GPIO_Pin == GPIO_PIN_2)
+	{
+	ui8_hall_state = GPIOA->IDR & 0b111; //Mask input register with Hall 1 - 3 bits
+
+	ui16_tim2_recent = __HAL_TIM_GET_COUNTER(&htim2);
+	ui16_timertics = ui16_tim2_recent - ui16_tim2_old;
+	ui16_tim2_old = ui16_tim2_recent;
+	}
 }
 
 /* USER CODE END 4 */
