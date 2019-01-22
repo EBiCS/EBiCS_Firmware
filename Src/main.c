@@ -42,6 +42,7 @@
 
 /* USER CODE BEGIN Includes */
 #include "print.h"
+#include "math.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -62,10 +63,16 @@ uint32_t ADC_Data[2];
 uint32_t ui32_counter=0;
 uint32_t ui32_tim2_counter=0;
 uint8_t ui8_hall_state=0;
-uint16_t ui16_tim2_old=0;
 uint16_t ui16_tim2_recent=0;
 uint16_t ui16_timertics=0;
 uint16_t i=0;
+uint8_t ui8_overflow_flag=0;
+float flt_rotorposition_absolute;
+float flt_rotorposition_hall;
+int16_t i16_sinus=0;
+int16_t i16_cosinus=0;
+char buffer[100];
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -165,33 +172,20 @@ int main(void)
         /* Counter Enable Error */
         Error_Handler();
       }
-    printf_("Hello World \r\n");
+    HAL_GPIO_EXTI_Callback(GPIO_PIN_0); //read in initial rotor position
+    flt_rotorposition_absolute = flt_rotorposition_hall; // set absolute position to corresponding hall pattern.
+
+    printf_("Lishui FOC v0.0 \r\n");
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  char buffer[100];
-	   //HAL_ADC_Start(&hadc1);
-/*
-	  buffer[1]=ui32_counter>>16;
-	  buffer[2]=ui32_counter>>8;
-	  buffer[3]=ui32_counter;
-	  buffer[4]=ui32_tim2_counter>>16;
-	  buffer[5]=ui32_tim2_counter>>8;
-	  buffer[6]=ui32_tim2_counter;
-	  buffer[7]=ui8_hall_state;
-	  buffer[8]=ui16_timertics>>8;
-	  buffer[9]=ui16_timertics;*/
+	  i16_sinus= flt_rotorposition_absolute*180/M_PI;
+	  i16_cosinus= flt_rotorposition_hall*180/M_PI;
 
 
-	  sprintf_(buffer, "Hello World %ld, %ld \r\n",ui32_counter, ui32_tim2_counter );
-	  i=0;
-	  while (buffer[i] != '\0')
-	  {i++;}
-	  	  //HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_2); //Toggle the state of pin PC9
-	  	  HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);
 
 	      // Start ADC1
 	      if(HAL_ADC_Start_IT(&hadc1) != HAL_OK)
@@ -200,6 +194,11 @@ int main(void)
 	          Error_Handler();
 	        }
 	  	  HAL_Delay(1000); //delay 100ms
+		  sprintf_(buffer, "sin %d, cos %d\r\n", i16_sinus, i16_cosinus );
+		  i=0;
+		  while (buffer[i] != '\0')
+		  {i++;}
+		  HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
@@ -449,9 +448,9 @@ static void MX_TIM2_Init(void)
   TIM_MasterConfigTypeDef sMasterConfig;
 
   htim2.Instance = TIM2;
-  htim2.Init.Prescaler = 0;
+  htim2.Init.Prescaler = 16;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim2.Init.Period = 4000;
+  htim2.Init.Period = 64000;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
@@ -596,20 +595,55 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 	//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_2);
 	ADC_Data[0] = HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1);
 	ADC_Data[1] = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1);
-	ui32_counter++;
+	ui32_counter++; //for debugging
+	ui16_tim2_recent = __HAL_TIM_GET_COUNTER(&htim2); // read in timertics since last event
+	if (ui16_tim2_recent < ui16_timertics && !ui8_overflow_flag){ //prevent angle running away at standstill
+	flt_rotorposition_absolute = flt_rotorposition_hall + ui16_tim2_recent*M_PI/180*60/ui16_timertics; //interpolate angle between two hallevents by scaling timer2 tics
 	}
+	else
+	{ui8_overflow_flag=1;
+	}
+}
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
 	//Hall sensor event processing
-	if(GPIO_Pin == GPIO_PIN_0||GPIO_Pin == GPIO_PIN_1||GPIO_Pin == GPIO_PIN_2)
+	if(GPIO_Pin == GPIO_PIN_0||GPIO_Pin == GPIO_PIN_1||GPIO_Pin == GPIO_PIN_2) //check for right interrupt source
 	{
 	ui8_hall_state = GPIOA->IDR & 0b111; //Mask input register with Hall 1 - 3 bits
 
-	ui16_tim2_recent = __HAL_TIM_GET_COUNTER(&htim2);
-	ui16_timertics = ui16_tim2_recent - ui16_tim2_old;
-	ui16_tim2_old = ui16_tim2_recent;
+	ui16_tim2_recent = __HAL_TIM_GET_COUNTER(&htim2); // read in timertics since last event
+
+	if(ui16_tim2_recent>100){
+		ui16_timertics = ui16_tim2_recent; //debounce
+	   __HAL_TIM_SET_COUNTER(&htim2,0); //reset tim2 counter
+	   ui8_overflow_flag=0;
 	}
+	switch (ui8_hall_state) //according to UM1052 Fig 57, Page 72, 120° setup
+	{
+	case 5: //0°
+		flt_rotorposition_hall = 0;
+		break;
+	case 1: //60°
+		flt_rotorposition_hall = 60*M_PI/180;
+		break;
+	case 3: //120°
+		flt_rotorposition_hall = 120*M_PI/180;
+		break;
+	case 2: //180°
+		flt_rotorposition_hall = 180*M_PI/180;
+		break;
+	case 6: //240°
+		flt_rotorposition_hall = 240*M_PI/180;
+		break;
+	case 4: //120°
+		flt_rotorposition_hall = 300*M_PI/180;
+		break;
+
+	} // end case
+
+	} //end if
+
 }
 
 /* USER CODE END 4 */
