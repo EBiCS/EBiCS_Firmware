@@ -53,6 +53,8 @@ TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
 
 UART_HandleTypeDef huart1;
+DMA_HandleTypeDef hdma_usart1_tx;
+DMA_HandleTypeDef hdma_usart1_rx;
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
@@ -189,7 +191,7 @@ int main(void)
 	  while (buffer[i] != '\0')
 	  {i++;}
 	  	  //HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_2); //Toggle the state of pin PC9
-	  	  HAL_UART_Transmit(&huart1, (uint8_t *)&buffer, i, 0xFFFF);
+	  	  HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);
 
 	      // Start ADC1
 	      if(HAL_ADC_Start_IT(&hadc1) != HAL_OK)
@@ -296,7 +298,7 @@ static void MX_ADC1_Init(void)
 
     /**Configure Injected Channel 
     */
-  sConfigInjected.InjectedChannel = ADC_CHANNEL_4;
+  sConfigInjected.InjectedChannel = ADC_CHANNEL_3;
   sConfigInjected.InjectedRank = ADC_INJECTED_RANK_1;
   sConfigInjected.InjectedNbrOfConversion = 1;
   sConfigInjected.InjectedSamplingTime = ADC_SAMPLETIME_1CYCLE_5;
@@ -343,7 +345,7 @@ static void MX_ADC2_Init(void)
 
     /**Configure Injected Channel 
     */
-  sConfigInjected.InjectedChannel = ADC_CHANNEL_5;
+  sConfigInjected.InjectedChannel = ADC_CHANNEL_4;
   sConfigInjected.InjectedRank = ADC_INJECTED_RANK_1;
   sConfigInjected.InjectedNbrOfConversion = 1;
   sConfigInjected.InjectedSamplingTime = ADC_SAMPLETIME_1CYCLE_5;
@@ -503,6 +505,12 @@ static void MX_DMA_Init(void)
   /* DMA1_Channel1_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Channel1_IRQn);
+  /* DMA1_Channel4_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel4_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel4_IRQn);
+  /* DMA1_Channel5_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel5_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel5_IRQn);
 
 }
 
