@@ -59,12 +59,19 @@ DMA_HandleTypeDef hdma_usart1_rx;
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
-uint32_t ADC_Data[2];
+
 uint32_t ui32_counter=0;
 uint32_t ui32_tim2_counter=0;
 uint8_t ui8_hall_state=0;
 uint16_t ui16_tim2_recent=0;
 uint16_t ui16_timertics=0;
+uint16_t ui16_reg_adc_value=5000;
+uint16_t ui16_ph1_offset=0;
+uint16_t ui16_ph2_offset=0;
+uint16_t ui16_ph3_offset=0;
+int16_t i16_ph1_current=0;
+int16_t i16_ph2_current=0;
+int16_t i16_ph3_current=0;
 uint16_t i=0;
 uint8_t ui8_overflow_flag=0;
 float flt_rotorposition_absolute;
@@ -90,7 +97,7 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
-
+static void Set_reg_channel(uint16_t ADC_Channel);
 
 /* USER CODE END PFP */
 
@@ -137,6 +144,55 @@ int main(void)
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
 
+  HAL_ADCEx_Calibration_Start(&hadc1);
+  HAL_ADCEx_Calibration_Start(&hadc2);
+
+  //Configure Regular Channel for reading Phase 1 current offset
+  Set_reg_channel(ADC_CHANNEL_4);
+    //Start ADC conversation
+  if(HAL_ADC_Start_IT(&hadc1) != HAL_OK)
+  	        {
+  	          /* Counter Enable Error */
+  	          Error_Handler();
+  	        }
+  //wait for end of conversion
+while(ui16_reg_adc_value>4096){
+}
+  ADC1->JOFR1 = ui16_reg_adc_value;
+ // ADC2->JOFR1 = ui16_reg_adc_value;
+  ui16_reg_adc_value=5000;
+
+  //Configure Regular Channel for reading Phase 2 current offset
+  Set_reg_channel(ADC_CHANNEL_5);
+    //Start ADC conversation
+  if(HAL_ADC_Start_IT(&hadc1) != HAL_OK)
+  	        {
+  	          /* Counter Enable Error */
+  	          Error_Handler();
+  	        }
+  //wait for end of conversion
+while(ui16_reg_adc_value>4096){
+}
+ // ADC1->JOFR2 = ui16_reg_adc_value;
+ // ADC2->JOFR1 = ui16_reg_adc_value;
+  //ui16_ph1_offset= ui16_reg_adc_value;
+  ui16_reg_adc_value=5000;
+
+  //Configure Regular Channel for reading Phase 3 current offset
+  Set_reg_channel(ADC_CHANNEL_6);
+    //Start ADC conversation
+  if(HAL_ADC_Start_IT(&hadc1) != HAL_OK)
+  	        {
+  	          /* Counter Enable Error */
+  	          Error_Handler();
+  	        }
+  //wait for end of conversion
+while(ui16_reg_adc_value>4096){
+}
+ // ADC1->JOFR3 = ui16_reg_adc_value;
+ // ADC2->JOFR3 = ui16_reg_adc_value;
+  //ui16_ph1_offset= ui16_reg_adc_value;
+  ui16_reg_adc_value=5000;
 
  // Start Timer 1
     if(HAL_TIM_Base_Start_IT(&htim1) != HAL_OK)
@@ -165,16 +221,17 @@ int main(void)
            Error_Handler();
          }
 
+       SET_BIT(TIM1->EGR, TIM_EGR_CC4G);//capture compare ch 4 event
+       SET_BIT(TIM1->EGR, TIM_EGR_TG);//Trigger generation
+       SET_BIT(ADC1->CR2, ADC_CR2_JEXTTRIG);//external trigger enable
 
-    // Start injected ADC1
-    if(HAL_ADCEx_InjectedStart_IT(&hadc1) != HAL_OK)
-      {
-        /* Counter Enable Error */
-        Error_Handler();
-      }
     HAL_GPIO_EXTI_Callback(GPIO_PIN_0); //read in initial rotor position
     flt_rotorposition_absolute = flt_rotorposition_hall; // set absolute position to corresponding hall pattern.
-
+    if (HAL_ADC_Start(&hadc2) != HAL_OK)
+      {
+        /* Start Error */
+        Error_Handler();
+      }
     printf_("Lishui FOC v0.0 \r\n");
   /* USER CODE END 2 */
 
@@ -182,8 +239,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  i16_sinus= flt_rotorposition_absolute*180/M_PI;
-	  i16_cosinus= flt_rotorposition_hall*180/M_PI;
+
 
 
 
@@ -194,7 +250,7 @@ int main(void)
 	          Error_Handler();
 	        }
 	  	  HAL_Delay(1000); //delay 100ms
-		  sprintf_(buffer, "sin %d, cos %d\r\n", i16_sinus, i16_cosinus );
+		  sprintf_(buffer, "current phase 1 %d, current phase 2 %d\r\n", i16_ph1_current , i16_ph2_current );
 		  i=0;
 		  while (buffer[i] != '\0')
 		  {i++;}
@@ -297,7 +353,7 @@ static void MX_ADC1_Init(void)
 
     /**Configure Injected Channel 
     */
-  sConfigInjected.InjectedChannel = ADC_CHANNEL_3;
+  sConfigInjected.InjectedChannel = ADC_CHANNEL_4;
   sConfigInjected.InjectedRank = ADC_INJECTED_RANK_1;
   sConfigInjected.InjectedNbrOfConversion = 1;
   sConfigInjected.InjectedSamplingTime = ADC_SAMPLETIME_1CYCLE_5;
@@ -344,10 +400,11 @@ static void MX_ADC2_Init(void)
 
     /**Configure Injected Channel 
     */
-  sConfigInjected.InjectedChannel = ADC_CHANNEL_4;
+  sConfigInjected.InjectedChannel = ADC_CHANNEL_5;
   sConfigInjected.InjectedRank = ADC_INJECTED_RANK_1;
   sConfigInjected.InjectedNbrOfConversion = 1;
   sConfigInjected.InjectedSamplingTime = ADC_SAMPLETIME_1CYCLE_5;
+  sConfigInjected.ExternalTrigInjecConv = ADC_INJECTED_SOFTWARE_START;
   sConfigInjected.AutoInjectedConv = DISABLE;
   sConfigInjected.InjectedDiscontinuousConvMode = DISABLE;
   sConfigInjected.InjectedOffset = 0;
@@ -565,6 +622,18 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
+static void Set_reg_channel(uint16_t ADC_Channel)
+{
+	ADC_ChannelConfTypeDef sConfig;
+	 sConfig.Channel = ADC_Channel;
+	  sConfig.Rank = ADC_REGULAR_RANK_1;
+	  sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
+	  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+	  {
+	    _Error_Handler(__FILE__, __LINE__);
+	  }
+	}
+
 //Timer1 CC Channel4
 void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
 {
@@ -575,11 +644,12 @@ void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
 	          /* Counter Enable Error */
 	          Error_Handler();
 	       }
+
 	  }
 
 }
 
-//Timer2 Commutation
+//Timer2 Counter for speed measurement, callback handling not necessary
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 	if (htim == &htim2) {
@@ -588,13 +658,19 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	}
 }
 
+// regular ADC callback
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
+{
+	ui16_reg_adc_value = HAL_ADC_GetValue(hadc);
+}
+
 //injected ADC
 
 void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 {
 	//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_2);
-	ADC_Data[0] = HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1);
-	ADC_Data[1] = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1);
+	i16_ph1_current = HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1);
+	i16_ph2_current = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1);
 	ui32_counter++; //for debugging
 	ui16_tim2_recent = __HAL_TIM_GET_COUNTER(&htim2); // read in timertics since last event
 	if (ui16_tim2_recent < ui16_timertics && !ui8_overflow_flag){ //prevent angle running away at standstill
