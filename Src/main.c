@@ -174,7 +174,7 @@ while(ui16_reg_adc_value>4096){
 while(ui16_reg_adc_value>4096){
 }
  // ADC1->JOFR2 = ui16_reg_adc_value;
- // ADC2->JOFR1 = ui16_reg_adc_value;
+  ADC2->JOFR1 = ui16_reg_adc_value;
   //ui16_ph1_offset= ui16_reg_adc_value;
   ui16_reg_adc_value=5000;
 
@@ -227,11 +227,11 @@ while(ui16_reg_adc_value>4096){
 
     HAL_GPIO_EXTI_Callback(GPIO_PIN_0); //read in initial rotor position
     flt_rotorposition_absolute = flt_rotorposition_hall; // set absolute position to corresponding hall pattern.
-    if (HAL_ADC_Start(&hadc2) != HAL_OK)
-      {
-        /* Start Error */
-        Error_Handler();
-      }
+	  if(HAL_ADCEx_InjectedStart_IT(&hadc2) != HAL_OK)
+   {
+      /* Counter Enable Error */
+      Error_Handler();
+   }
     printf_("Lishui FOC v0.0 \r\n");
   /* USER CODE END 2 */
 
@@ -249,6 +249,11 @@ while(ui16_reg_adc_value>4096){
 	          /* Counter Enable Error */
 	          Error_Handler();
 	        }
+	      if(HAL_ADCEx_InjectedStart_IT(&hadc1) != HAL_OK)
+	      	       {
+	      	          /* Counter Enable Error */
+	      	          Error_Handler();
+	      	       }
 	  	  HAL_Delay(1000); //delay 100ms
 		  sprintf_(buffer, "current phase 1 %d, current phase 2 %d\r\n", i16_ph1_current , i16_ph2_current );
 		  i=0;
@@ -639,11 +644,13 @@ void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
 {
 	  if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_4) {
 		  //HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_2);
-	  	  if(HAL_ADCEx_InjectedStart_IT(&hadc1) != HAL_OK)
-	       {
-	          /* Counter Enable Error */
-	          Error_Handler();
-	       }
+		  SET_BIT(ADC1->CR2, (ADC_CR2_JSWSTART | ADC_CR2_JEXTTRIG));
+		//  if(HAL_ADCEx_InjectedStart_IT(&hadc1) != HAL_OK)
+		  	      	       {
+		  	      	          /* Counter Enable Error */
+		  	   //   	          Error_Handler();
+		  	      	       }
+
 
 	  }
 
