@@ -1,21 +1,21 @@
 Archive member included to satisfy reference by file (symbol)
 
-c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m\libgcc.a(_arm_addsubdf3.o)
+c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m\libgcc.a(_arm_addsubdf3.o)
                               Src/main.o (__aeabi_dadd)
-c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m\libgcc.a(_arm_muldivdf3.o)
+c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m\libgcc.a(_arm_muldivdf3.o)
                               Src/main.o (__aeabi_dmul)
-c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m\libgcc.a(_arm_truncdfsf2.o)
+c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m\libgcc.a(_arm_truncdfsf2.o)
                               Src/main.o (__aeabi_d2f)
-c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-exit.o)
-                              c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/crt0.o (exit)
-c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-impure.o)
-                              c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-exit.o) (_global_impure_ptr)
-c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-init.o)
-                              c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/crt0.o (__libc_init_array)
-c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-memset.o)
-                              c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/crt0.o (memset)
-c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libnosys.a(_exit.o)
-                              c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-exit.o) (_exit)
+c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-exit.o)
+                              c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/crt0.o (exit)
+c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-impure.o)
+                              c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-exit.o) (_global_impure_ptr)
+c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-init.o)
+                              c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/crt0.o (__libc_init_array)
+c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-memset.o)
+                              c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/crt0.o (memset)
+c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libnosys.a(_exit.o)
+                              c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-exit.o) (_exit)
 
 Allocating common symbols
 Common symbol       size              file
@@ -39,17 +39,17 @@ SPRINTF_buffer      0x4               Src/print.o
 
 Discarded input sections
 
- .text          0x00000000        0x0 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crti.o
- .data          0x00000000        0x0 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crti.o
- .bss           0x00000000        0x0 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crti.o
- .data          0x00000000        0x4 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crtbegin.o
- .text          0x00000000       0x74 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/crt0.o
- .data          0x00000000        0x0 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/crt0.o
- .bss           0x00000000        0x0 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/crt0.o
- .ARM.extab     0x00000000        0x0 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/crt0.o
- .ARM.exidx     0x00000000        0x8 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/crt0.o
+ .text          0x00000000        0x0 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crti.o
+ .data          0x00000000        0x0 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crti.o
+ .bss           0x00000000        0x0 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crti.o
+ .data          0x00000000        0x4 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crtbegin.o
+ .text          0x00000000       0x74 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/crt0.o
+ .data          0x00000000        0x0 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/crt0.o
+ .bss           0x00000000        0x0 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/crt0.o
+ .ARM.extab     0x00000000        0x0 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/crt0.o
+ .ARM.exidx     0x00000000        0x8 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/crt0.o
  .ARM.attributes
-                0x00000000       0x1b c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/crt0.o
+                0x00000000       0x1b c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/crt0.o
  .group         0x00000000        0xc Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal.o
  .group         0x00000000        0xc Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal.o
  .group         0x00000000        0xc Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal.o
@@ -890,8 +890,8 @@ Discarded input sections
  .debug_macro   0x00000000       0x1f Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_flash.o
  .debug_macro   0x00000000      0x26b Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_flash.o
  .debug_macro   0x00000000       0x62 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_flash.o
- .debug_line    0x00000000      0x920 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_flash.o
- .debug_str     0x00000000    0x717e6 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_flash.o
+ .debug_line    0x00000000      0x908 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_flash.o
+ .debug_str     0x00000000    0x717de Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_flash.o
  .comment       0x00000000       0x7f Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_flash.o
  .debug_frame   0x00000000      0x134 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_flash.o
  .ARM.attributes
@@ -1061,8 +1061,8 @@ Discarded input sections
  .debug_macro   0x00000000       0x1f Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_flash_ex.o
  .debug_macro   0x00000000      0x26b Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_flash_ex.o
  .debug_macro   0x00000000       0x62 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_flash_ex.o
- .debug_line    0x00000000      0x960 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_flash_ex.o
- .debug_str     0x00000000    0x71976 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_flash_ex.o
+ .debug_line    0x00000000      0x948 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_flash_ex.o
+ .debug_str     0x00000000    0x7196e Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_flash_ex.o
  .comment       0x00000000       0x7f Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_flash_ex.o
  .debug_frame   0x00000000      0x184 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_flash_ex.o
  .ARM.attributes
@@ -1338,8 +1338,8 @@ Discarded input sections
  .debug_macro   0x00000000       0x1f Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_gpio_ex.o
  .debug_macro   0x00000000      0x26b Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_gpio_ex.o
  .debug_macro   0x00000000       0x62 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_gpio_ex.o
- .debug_line    0x00000000      0x757 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_gpio_ex.o
- .debug_str     0x00000000    0x71520 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_gpio_ex.o
+ .debug_line    0x00000000      0x73f Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_gpio_ex.o
+ .debug_str     0x00000000    0x71518 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_gpio_ex.o
  .comment       0x00000000       0x7f Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_gpio_ex.o
  .debug_frame   0x00000000       0x40 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_gpio_ex.o
  .ARM.attributes
@@ -1512,8 +1512,8 @@ Discarded input sections
  .debug_macro   0x00000000       0x1f Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_pwr.o
  .debug_macro   0x00000000      0x26b Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_pwr.o
  .debug_macro   0x00000000       0x62 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_pwr.o
- .debug_line    0x00000000      0x8c0 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_pwr.o
- .debug_str     0x00000000    0x71a54 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_pwr.o
+ .debug_line    0x00000000      0x8a8 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_pwr.o
+ .debug_str     0x00000000    0x71a4c Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_pwr.o
  .comment       0x00000000       0x7f Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_pwr.o
  .debug_frame   0x00000000      0x140 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_pwr.o
  .ARM.attributes
@@ -2467,6 +2467,147 @@ Discarded input sections
  .debug_macro   0x00000000       0x1f Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_uart.o
  .debug_macro   0x00000000      0x26b Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_uart.o
  .debug_macro   0x00000000       0x62 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_uart.o
+ .group         0x00000000        0xc Src/FOC.o
+ .group         0x00000000        0xc Src/FOC.o
+ .group         0x00000000        0xc Src/FOC.o
+ .group         0x00000000        0xc Src/FOC.o
+ .group         0x00000000        0xc Src/FOC.o
+ .group         0x00000000        0xc Src/FOC.o
+ .group         0x00000000        0xc Src/FOC.o
+ .group         0x00000000        0xc Src/FOC.o
+ .group         0x00000000        0xc Src/FOC.o
+ .group         0x00000000        0xc Src/FOC.o
+ .group         0x00000000        0xc Src/FOC.o
+ .group         0x00000000        0xc Src/FOC.o
+ .group         0x00000000        0xc Src/FOC.o
+ .group         0x00000000        0xc Src/FOC.o
+ .group         0x00000000        0xc Src/FOC.o
+ .group         0x00000000        0xc Src/FOC.o
+ .group         0x00000000        0xc Src/FOC.o
+ .group         0x00000000        0xc Src/FOC.o
+ .group         0x00000000        0xc Src/FOC.o
+ .group         0x00000000        0xc Src/FOC.o
+ .group         0x00000000        0xc Src/FOC.o
+ .group         0x00000000        0xc Src/FOC.o
+ .group         0x00000000        0xc Src/FOC.o
+ .group         0x00000000        0xc Src/FOC.o
+ .group         0x00000000        0xc Src/FOC.o
+ .group         0x00000000        0xc Src/FOC.o
+ .group         0x00000000        0xc Src/FOC.o
+ .group         0x00000000        0xc Src/FOC.o
+ .group         0x00000000        0xc Src/FOC.o
+ .group         0x00000000        0xc Src/FOC.o
+ .group         0x00000000        0xc Src/FOC.o
+ .group         0x00000000        0xc Src/FOC.o
+ .group         0x00000000        0xc Src/FOC.o
+ .group         0x00000000        0xc Src/FOC.o
+ .group         0x00000000        0xc Src/FOC.o
+ .group         0x00000000        0xc Src/FOC.o
+ .group         0x00000000        0xc Src/FOC.o
+ .group         0x00000000        0xc Src/FOC.o
+ .group         0x00000000        0xc Src/FOC.o
+ .group         0x00000000        0xc Src/FOC.o
+ .group         0x00000000        0xc Src/FOC.o
+ .group         0x00000000        0xc Src/FOC.o
+ .group         0x00000000        0xc Src/FOC.o
+ .group         0x00000000        0xc Src/FOC.o
+ .group         0x00000000        0xc Src/FOC.o
+ .group         0x00000000        0xc Src/FOC.o
+ .group         0x00000000        0xc Src/FOC.o
+ .group         0x00000000        0xc Src/FOC.o
+ .group         0x00000000        0xc Src/FOC.o
+ .group         0x00000000        0xc Src/FOC.o
+ .group         0x00000000        0xc Src/FOC.o
+ .group         0x00000000        0xc Src/FOC.o
+ .group         0x00000000        0xc Src/FOC.o
+ .group         0x00000000        0xc Src/FOC.o
+ .group         0x00000000        0xc Src/FOC.o
+ .group         0x00000000        0xc Src/FOC.o
+ .group         0x00000000        0xc Src/FOC.o
+ .group         0x00000000        0xc Src/FOC.o
+ .group         0x00000000        0xc Src/FOC.o
+ .group         0x00000000        0xc Src/FOC.o
+ .group         0x00000000        0xc Src/FOC.o
+ .group         0x00000000        0xc Src/FOC.o
+ .text          0x00000000        0x0 Src/FOC.o
+ .data          0x00000000        0x0 Src/FOC.o
+ .bss           0x00000000        0x0 Src/FOC.o
+ .text.FOC_calculation
+                0x00000000        0x2 Src/FOC.o
+ .debug_info    0x00000000      0xa35 Src/FOC.o
+ .debug_abbrev  0x00000000      0x201 Src/FOC.o
+ .debug_aranges
+                0x00000000       0x20 Src/FOC.o
+ .debug_ranges  0x00000000       0x10 Src/FOC.o
+ .debug_macro   0x00000000      0x312 Src/FOC.o
+ .debug_macro   0x00000000      0xa60 Src/FOC.o
+ .debug_macro   0x00000000       0x8e Src/FOC.o
+ .debug_macro   0x00000000       0x22 Src/FOC.o
+ .debug_macro   0x00000000       0x52 Src/FOC.o
+ .debug_macro   0x00000000       0x17 Src/FOC.o
+ .debug_macro   0x00000000       0x8d Src/FOC.o
+ .debug_macro   0x00000000       0x35 Src/FOC.o
+ .debug_macro   0x00000000       0x9c Src/FOC.o
+ .debug_macro   0x00000000      0x174 Src/FOC.o
+ .debug_macro   0x00000000       0x57 Src/FOC.o
+ .debug_macro   0x00000000       0x58 Src/FOC.o
+ .debug_macro   0x00000000       0x1f Src/FOC.o
+ .debug_macro   0x00000000       0x43 Src/FOC.o
+ .debug_macro   0x00000000       0x20 Src/FOC.o
+ .debug_macro   0x00000000      0x18e Src/FOC.o
+ .debug_macro   0x00000000      0x330 Src/FOC.o
+ .debug_macro   0x00000000      0x1e1 Src/FOC.o
+ .debug_macro   0x00000000      0x175 Src/FOC.o
+ .debug_macro   0x00000000       0x2e Src/FOC.o
+ .debug_macro   0x00000000       0x22 Src/FOC.o
+ .debug_macro   0x00000000       0xef Src/FOC.o
+ .debug_macro   0x00000000       0x6a Src/FOC.o
+ .debug_macro   0x00000000      0x1df Src/FOC.o
+ .debug_macro   0x00000000       0x34 Src/FOC.o
+ .debug_macro   0x00000000       0x34 Src/FOC.o
+ .debug_macro   0x00000000      0xb8e Src/FOC.o
+ .debug_macro   0x00000000     0xe6e1 Src/FOC.o
+ .debug_macro   0x00000000       0x43 Src/FOC.o
+ .debug_macro   0x00000000       0x1c Src/FOC.o
+ .debug_macro   0x00000000       0x35 Src/FOC.o
+ .debug_macro   0x00000000       0x10 Src/FOC.o
+ .debug_macro   0x00000000       0x10 Src/FOC.o
+ .debug_macro   0x00000000       0x1c Src/FOC.o
+ .debug_macro   0x00000000       0x52 Src/FOC.o
+ .debug_macro   0x00000000       0x40 Src/FOC.o
+ .debug_macro   0x00000000       0x10 Src/FOC.o
+ .debug_macro   0x00000000       0x40 Src/FOC.o
+ .debug_macro   0x00000000       0xd7 Src/FOC.o
+ .debug_macro   0x00000000       0x1c Src/FOC.o
+ .debug_macro   0x00000000       0x3d Src/FOC.o
+ .debug_macro   0x00000000       0x16 Src/FOC.o
+ .debug_macro   0x00000000      0x16f Src/FOC.o
+ .debug_macro   0x00000000       0x50 Src/FOC.o
+ .debug_macro   0x00000000      0x5c2 Src/FOC.o
+ .debug_macro   0x00000000      0x1b9 Src/FOC.o
+ .debug_macro   0x00000000      0x1cb Src/FOC.o
+ .debug_macro   0x00000000      0x11e Src/FOC.o
+ .debug_macro   0x00000000      0x197 Src/FOC.o
+ .debug_macro   0x00000000       0x27 Src/FOC.o
+ .debug_macro   0x00000000      0x1bc Src/FOC.o
+ .debug_macro   0x00000000       0x34 Src/FOC.o
+ .debug_macro   0x00000000       0x3c Src/FOC.o
+ .debug_macro   0x00000000       0x57 Src/FOC.o
+ .debug_macro   0x00000000      0x46a Src/FOC.o
+ .debug_macro   0x00000000      0x1b5 Src/FOC.o
+ .debug_macro   0x00000000       0x8c Src/FOC.o
+ .debug_macro   0x00000000      0x185 Src/FOC.o
+ .debug_macro   0x00000000      0x143 Src/FOC.o
+ .debug_macro   0x00000000      0x84c Src/FOC.o
+ .debug_macro   0x00000000       0x1f Src/FOC.o
+ .debug_macro   0x00000000      0x26b Src/FOC.o
+ .debug_macro   0x00000000       0x62 Src/FOC.o
+ .debug_line    0x00000000      0x6f6 Src/FOC.o
+ .debug_str     0x00000000    0x71d9b Src/FOC.o
+ .comment       0x00000000       0x7f Src/FOC.o
+ .debug_frame   0x00000000       0x20 Src/FOC.o
+ .ARM.attributes
+                0x00000000       0x33 Src/FOC.o
  .group         0x00000000        0xc Src/main.o
  .group         0x00000000        0xc Src/main.o
  .group         0x00000000        0xc Src/main.o
@@ -2591,6 +2732,7 @@ Discarded input sections
  .debug_macro   0x00000000       0x1f Src/main.o
  .debug_macro   0x00000000      0x26b Src/main.o
  .debug_macro   0x00000000       0x62 Src/main.o
+ .debug_macro   0x00000000      0x1e1 Src/main.o
  .group         0x00000000        0xc Src/print.o
  .group         0x00000000        0xc Src/print.o
  .group         0x00000000        0xc Src/print.o
@@ -3004,56 +3146,56 @@ Discarded input sections
  .text          0x00000000       0x14 startup/startup_stm32f103x6.o
  .data          0x00000000        0x0 startup/startup_stm32f103x6.o
  .bss           0x00000000        0x0 startup/startup_stm32f103x6.o
- .data          0x00000000        0x0 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m\libgcc.a(_arm_addsubdf3.o)
- .bss           0x00000000        0x0 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m\libgcc.a(_arm_addsubdf3.o)
- .data          0x00000000        0x0 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m\libgcc.a(_arm_muldivdf3.o)
- .bss           0x00000000        0x0 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m\libgcc.a(_arm_muldivdf3.o)
- .data          0x00000000        0x0 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m\libgcc.a(_arm_truncdfsf2.o)
- .bss           0x00000000        0x0 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m\libgcc.a(_arm_truncdfsf2.o)
- .text          0x00000000        0x0 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-exit.o)
- .data          0x00000000        0x0 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-exit.o)
- .bss           0x00000000        0x0 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-exit.o)
- .text.exit     0x00000000       0x28 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-exit.o)
- .debug_frame   0x00000000       0x28 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-exit.o)
+ .data          0x00000000        0x0 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m\libgcc.a(_arm_addsubdf3.o)
+ .bss           0x00000000        0x0 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m\libgcc.a(_arm_addsubdf3.o)
+ .data          0x00000000        0x0 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m\libgcc.a(_arm_muldivdf3.o)
+ .bss           0x00000000        0x0 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m\libgcc.a(_arm_muldivdf3.o)
+ .data          0x00000000        0x0 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m\libgcc.a(_arm_truncdfsf2.o)
+ .bss           0x00000000        0x0 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m\libgcc.a(_arm_truncdfsf2.o)
+ .text          0x00000000        0x0 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-exit.o)
+ .data          0x00000000        0x0 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-exit.o)
+ .bss           0x00000000        0x0 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-exit.o)
+ .text.exit     0x00000000       0x28 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-exit.o)
+ .debug_frame   0x00000000       0x28 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-exit.o)
  .ARM.attributes
-                0x00000000       0x2d c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-exit.o)
- .text          0x00000000        0x0 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-impure.o)
- .data          0x00000000        0x0 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-impure.o)
- .bss           0x00000000        0x0 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-impure.o)
+                0x00000000       0x2d c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-exit.o)
+ .text          0x00000000        0x0 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-impure.o)
+ .data          0x00000000        0x0 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-impure.o)
+ .bss           0x00000000        0x0 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-impure.o)
  .data._impure_ptr
-                0x00000000        0x4 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-impure.o)
+                0x00000000        0x4 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-impure.o)
  .data.impure_data
-                0x00000000       0x60 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-impure.o)
+                0x00000000       0x60 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-impure.o)
  .rodata._global_impure_ptr
-                0x00000000        0x4 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-impure.o)
+                0x00000000        0x4 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-impure.o)
  .ARM.attributes
-                0x00000000       0x2d c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-impure.o)
- .text          0x00000000        0x0 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-init.o)
- .data          0x00000000        0x0 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-init.o)
- .bss           0x00000000        0x0 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-init.o)
- .text          0x00000000        0x0 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-memset.o)
- .data          0x00000000        0x0 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-memset.o)
- .bss           0x00000000        0x0 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-memset.o)
- .text.memset   0x00000000       0x10 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-memset.o)
- .debug_frame   0x00000000       0x20 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-memset.o)
+                0x00000000       0x2d c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-impure.o)
+ .text          0x00000000        0x0 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-init.o)
+ .data          0x00000000        0x0 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-init.o)
+ .bss           0x00000000        0x0 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-init.o)
+ .text          0x00000000        0x0 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-memset.o)
+ .data          0x00000000        0x0 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-memset.o)
+ .bss           0x00000000        0x0 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-memset.o)
+ .text.memset   0x00000000       0x10 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-memset.o)
+ .debug_frame   0x00000000       0x20 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-memset.o)
  .ARM.attributes
-                0x00000000       0x2d c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-memset.o)
- .text          0x00000000        0x0 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libnosys.a(_exit.o)
- .data          0x00000000        0x0 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libnosys.a(_exit.o)
- .bss           0x00000000        0x0 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libnosys.a(_exit.o)
- .text._exit    0x00000000        0x4 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libnosys.a(_exit.o)
- .debug_frame   0x00000000       0x20 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libnosys.a(_exit.o)
+                0x00000000       0x2d c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-memset.o)
+ .text          0x00000000        0x0 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libnosys.a(_exit.o)
+ .data          0x00000000        0x0 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libnosys.a(_exit.o)
+ .bss           0x00000000        0x0 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libnosys.a(_exit.o)
+ .text._exit    0x00000000        0x4 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libnosys.a(_exit.o)
+ .debug_frame   0x00000000       0x20 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libnosys.a(_exit.o)
  .ARM.attributes
-                0x00000000       0x2d c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libnosys.a(_exit.o)
- .text          0x00000000        0x0 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crtend.o
- .data          0x00000000        0x0 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crtend.o
- .bss           0x00000000        0x0 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crtend.o
- .eh_frame      0x00000000        0x4 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crtend.o
+                0x00000000       0x2d c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libnosys.a(_exit.o)
+ .text          0x00000000        0x0 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crtend.o
+ .data          0x00000000        0x0 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crtend.o
+ .bss           0x00000000        0x0 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crtend.o
+ .eh_frame      0x00000000        0x4 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crtend.o
  .ARM.attributes
-                0x00000000       0x2d c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crtend.o
- .text          0x00000000        0x0 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crtn.o
- .data          0x00000000        0x0 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crtn.o
- .bss           0x00000000        0x0 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crtn.o
+                0x00000000       0x2d c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crtend.o
+ .text          0x00000000        0x0 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crtn.o
+ .data          0x00000000        0x0 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crtn.o
+ .bss           0x00000000        0x0 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crtn.o
 
 Memory Configuration
 
@@ -3064,9 +3206,9 @@ FLASH            0x08000000         0x00008000         xr
 
 Linker script and memory map
 
-LOAD c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crti.o
-LOAD c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crtbegin.o
-LOAD c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/crt0.o
+LOAD c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crti.o
+LOAD c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crtbegin.o
+LOAD c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m/crt0.o
 LOAD Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal.o
 LOAD Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_adc.o
 LOAD Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_adc_ex.o
@@ -3082,29 +3224,30 @@ LOAD Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_rcc_ex.o
 LOAD Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim.o
 LOAD Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim_ex.o
 LOAD Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_uart.o
+LOAD Src/FOC.o
 LOAD Src/main.o
 LOAD Src/print.o
 LOAD Src/stm32f1xx_hal_msp.o
 LOAD Src/stm32f1xx_it.o
 LOAD Src/system_stm32f1xx.o
 LOAD startup/startup_stm32f103x6.o
-LOAD c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libm.a
+LOAD c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libm.a
 START GROUP
-LOAD c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m\libgcc.a
-LOAD c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a
+LOAD c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m\libgcc.a
+LOAD c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a
 END GROUP
 START GROUP
-LOAD c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m\libgcc.a
-LOAD c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a
-LOAD c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libnosys.a
+LOAD c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m\libgcc.a
+LOAD c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a
+LOAD c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libnosys.a
 END GROUP
 START GROUP
-LOAD c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m\libgcc.a
-LOAD c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a
-LOAD c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libnosys.a
+LOAD c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m\libgcc.a
+LOAD c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a
+LOAD c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libnosys.a
 END GROUP
-LOAD c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crtend.o
-LOAD c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crtn.o
+LOAD c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crtend.o
+LOAD c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crtn.o
                 0x20002800                _estack = 0x20002800
                 0x00000200                _Min_Heap_Size = 0x200
                 0x00000400                _Min_Stack_Size = 0x400
@@ -3116,11 +3259,11 @@ LOAD c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.2
                 0x08000000                g_pfnVectors
                 0x0800010c                . = ALIGN (0x4)
 
-.text           0x08000110     0x3da8
+.text           0x08000110     0x3dac
                 0x08000110                . = ALIGN (0x4)
  *(.text)
- .text          0x08000110       0x40 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crtbegin.o
- .text          0x08000150      0x378 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m\libgcc.a(_arm_addsubdf3.o)
+ .text          0x08000110       0x40 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crtbegin.o
+ .text          0x08000150      0x378 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m\libgcc.a(_arm_addsubdf3.o)
                 0x08000150                __aeabi_drsub
                 0x08000158                __aeabi_dsub
                 0x08000158                __subdf3
@@ -3136,12 +3279,12 @@ LOAD c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.2
                 0x0800045c                __aeabi_ul2d
                 0x0800046c                __floatdidf
                 0x0800046c                __aeabi_l2d
- .text          0x080004c8      0x424 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m\libgcc.a(_arm_muldivdf3.o)
+ .text          0x080004c8      0x424 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m\libgcc.a(_arm_muldivdf3.o)
                 0x080004c8                __aeabi_dmul
                 0x080004c8                __muldf3
                 0x0800071c                __divdf3
                 0x0800071c                __aeabi_ddiv
- .text          0x080008ec       0xa0 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m\libgcc.a(_arm_truncdfsf2.o)
+ .text          0x080008ec       0xa0 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m\libgcc.a(_arm_truncdfsf2.o)
                 0x080008ec                __truncdfsf2
                 0x080008ec                __aeabi_d2f
  *(.text*)
@@ -3429,220 +3572,220 @@ LOAD c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.2
  .text.SystemClock_Config
                 0x08003474       0xa0 Src/main.o
                 0x08003474                SystemClock_Config
- .text.main     0x08003514      0x1fc Src/main.o
+ .text.main     0x08003514      0x200 Src/main.o
                 0x08003514                main
  .text.putc_UART1
-                0x08003710       0x2c Src/print.o
-                0x08003710                putc_UART1
+                0x08003714       0x2c Src/print.o
+                0x08003714                putc_UART1
  .text.putc_strg
-                0x0800373c       0x14 Src/print.o
-                0x0800373c                putc_strg
+                0x08003740       0x14 Src/print.o
+                0x08003740                putc_strg
  .text.long_itoa
-                0x08003750       0xbe Src/print.o
-                0x08003750                long_itoa
+                0x08003754       0xbe Src/print.o
+                0x08003754                long_itoa
  .text.vfprintf_
-                0x0800380e      0x126 Src/print.o
- .text.printf_  0x08003934       0x24 Src/print.o
-                0x08003934                printf_
+                0x08003812      0x126 Src/print.o
+ .text.printf_  0x08003938       0x24 Src/print.o
+                0x08003938                printf_
  .text.sprintf_
-                0x08003958       0x30 Src/print.o
-                0x08003958                sprintf_
+                0x0800395c       0x30 Src/print.o
+                0x0800395c                sprintf_
  .text.HAL_MspInit
-                0x08003988       0xb4 Src/stm32f1xx_hal_msp.o
-                0x08003988                HAL_MspInit
+                0x0800398c       0xb4 Src/stm32f1xx_hal_msp.o
+                0x0800398c                HAL_MspInit
  .text.HAL_ADC_MspInit
-                0x08003a3c       0xdc Src/stm32f1xx_hal_msp.o
-                0x08003a3c                HAL_ADC_MspInit
+                0x08003a40       0xdc Src/stm32f1xx_hal_msp.o
+                0x08003a40                HAL_ADC_MspInit
  .text.HAL_TIM_Base_MspInit
-                0x08003b18       0x90 Src/stm32f1xx_hal_msp.o
-                0x08003b18                HAL_TIM_Base_MspInit
+                0x08003b1c       0x90 Src/stm32f1xx_hal_msp.o
+                0x08003b1c                HAL_TIM_Base_MspInit
  .text.HAL_TIM_MspPostInit
-                0x08003ba8       0x58 Src/stm32f1xx_hal_msp.o
-                0x08003ba8                HAL_TIM_MspPostInit
+                0x08003bac       0x58 Src/stm32f1xx_hal_msp.o
+                0x08003bac                HAL_TIM_MspPostInit
  .text.HAL_UART_MspInit
-                0x08003c00       0xec Src/stm32f1xx_hal_msp.o
-                0x08003c00                HAL_UART_MspInit
+                0x08003c04       0xec Src/stm32f1xx_hal_msp.o
+                0x08003c04                HAL_UART_MspInit
  .text.NMI_Handler
-                0x08003cec        0x2 Src/stm32f1xx_it.o
-                0x08003cec                NMI_Handler
- .text.HardFault_Handler
-                0x08003cee        0x2 Src/stm32f1xx_it.o
-                0x08003cee                HardFault_Handler
- .text.MemManage_Handler
                 0x08003cf0        0x2 Src/stm32f1xx_it.o
-                0x08003cf0                MemManage_Handler
- .text.BusFault_Handler
+                0x08003cf0                NMI_Handler
+ .text.HardFault_Handler
                 0x08003cf2        0x2 Src/stm32f1xx_it.o
-                0x08003cf2                BusFault_Handler
- .text.UsageFault_Handler
+                0x08003cf2                HardFault_Handler
+ .text.MemManage_Handler
                 0x08003cf4        0x2 Src/stm32f1xx_it.o
-                0x08003cf4                UsageFault_Handler
- .text.SVC_Handler
+                0x08003cf4                MemManage_Handler
+ .text.BusFault_Handler
                 0x08003cf6        0x2 Src/stm32f1xx_it.o
-                0x08003cf6                SVC_Handler
- .text.DebugMon_Handler
+                0x08003cf6                BusFault_Handler
+ .text.UsageFault_Handler
                 0x08003cf8        0x2 Src/stm32f1xx_it.o
-                0x08003cf8                DebugMon_Handler
- .text.PendSV_Handler
+                0x08003cf8                UsageFault_Handler
+ .text.SVC_Handler
                 0x08003cfa        0x2 Src/stm32f1xx_it.o
-                0x08003cfa                PendSV_Handler
+                0x08003cfa                SVC_Handler
+ .text.DebugMon_Handler
+                0x08003cfc        0x2 Src/stm32f1xx_it.o
+                0x08003cfc                DebugMon_Handler
+ .text.PendSV_Handler
+                0x08003cfe        0x2 Src/stm32f1xx_it.o
+                0x08003cfe                PendSV_Handler
  .text.SysTick_Handler
-                0x08003cfc        0xc Src/stm32f1xx_it.o
-                0x08003cfc                SysTick_Handler
+                0x08003d00        0xc Src/stm32f1xx_it.o
+                0x08003d00                SysTick_Handler
  .text.RCC_IRQHandler
-                0x08003d08        0x2 Src/stm32f1xx_it.o
-                0x08003d08                RCC_IRQHandler
+                0x08003d0c        0x2 Src/stm32f1xx_it.o
+                0x08003d0c                RCC_IRQHandler
  .text.EXTI0_IRQHandler
-                0x08003d0a        0xa Src/stm32f1xx_it.o
-                0x08003d0a                EXTI0_IRQHandler
+                0x08003d0e        0xa Src/stm32f1xx_it.o
+                0x08003d0e                EXTI0_IRQHandler
  .text.EXTI1_IRQHandler
-                0x08003d14        0xa Src/stm32f1xx_it.o
-                0x08003d14                EXTI1_IRQHandler
+                0x08003d18        0xa Src/stm32f1xx_it.o
+                0x08003d18                EXTI1_IRQHandler
  .text.EXTI2_IRQHandler
-                0x08003d1e        0xa Src/stm32f1xx_it.o
-                0x08003d1e                EXTI2_IRQHandler
+                0x08003d22        0xa Src/stm32f1xx_it.o
+                0x08003d22                EXTI2_IRQHandler
  .text.DMA1_Channel1_IRQHandler
-                0x08003d28       0x10 Src/stm32f1xx_it.o
-                0x08003d28                DMA1_Channel1_IRQHandler
+                0x08003d2c       0x10 Src/stm32f1xx_it.o
+                0x08003d2c                DMA1_Channel1_IRQHandler
  .text.DMA1_Channel4_IRQHandler
-                0x08003d38       0x10 Src/stm32f1xx_it.o
-                0x08003d38                DMA1_Channel4_IRQHandler
+                0x08003d3c       0x10 Src/stm32f1xx_it.o
+                0x08003d3c                DMA1_Channel4_IRQHandler
  .text.DMA1_Channel5_IRQHandler
-                0x08003d48       0x10 Src/stm32f1xx_it.o
-                0x08003d48                DMA1_Channel5_IRQHandler
+                0x08003d4c       0x10 Src/stm32f1xx_it.o
+                0x08003d4c                DMA1_Channel5_IRQHandler
  .text.ADC1_2_IRQHandler
-                0x08003d58       0x18 Src/stm32f1xx_it.o
-                0x08003d58                ADC1_2_IRQHandler
+                0x08003d5c       0x18 Src/stm32f1xx_it.o
+                0x08003d5c                ADC1_2_IRQHandler
  .text.TIM1_UP_IRQHandler
-                0x08003d70       0x10 Src/stm32f1xx_it.o
-                0x08003d70                TIM1_UP_IRQHandler
+                0x08003d74       0x10 Src/stm32f1xx_it.o
+                0x08003d74                TIM1_UP_IRQHandler
  .text.TIM1_TRG_COM_IRQHandler
-                0x08003d80       0x10 Src/stm32f1xx_it.o
-                0x08003d80                TIM1_TRG_COM_IRQHandler
+                0x08003d84       0x10 Src/stm32f1xx_it.o
+                0x08003d84                TIM1_TRG_COM_IRQHandler
  .text.TIM1_CC_IRQHandler
-                0x08003d90       0x10 Src/stm32f1xx_it.o
-                0x08003d90                TIM1_CC_IRQHandler
+                0x08003d94       0x10 Src/stm32f1xx_it.o
+                0x08003d94                TIM1_CC_IRQHandler
  .text.TIM2_IRQHandler
-                0x08003da0       0x10 Src/stm32f1xx_it.o
-                0x08003da0                TIM2_IRQHandler
+                0x08003da4       0x10 Src/stm32f1xx_it.o
+                0x08003da4                TIM2_IRQHandler
  .text.USART1_IRQHandler
-                0x08003db0       0x10 Src/stm32f1xx_it.o
-                0x08003db0                USART1_IRQHandler
+                0x08003db4       0x10 Src/stm32f1xx_it.o
+                0x08003db4                USART1_IRQHandler
  .text.SystemInit
-                0x08003dc0       0x4c Src/system_stm32f1xx.o
-                0x08003dc0                SystemInit
+                0x08003dc4       0x4c Src/system_stm32f1xx.o
+                0x08003dc4                SystemInit
  .text.Reset_Handler
-                0x08003e0c       0x48 startup/startup_stm32f103x6.o
-                0x08003e0c                Reset_Handler
+                0x08003e10       0x48 startup/startup_stm32f103x6.o
+                0x08003e10                Reset_Handler
  .text.Default_Handler
-                0x08003e54        0x2 startup/startup_stm32f103x6.o
-                0x08003e54                RTC_Alarm_IRQHandler
-                0x08003e54                PVD_IRQHandler
-                0x08003e54                EXTI3_IRQHandler
-                0x08003e54                SPI1_IRQHandler
-                0x08003e54                TAMPER_IRQHandler
-                0x08003e54                RTC_IRQHandler
-                0x08003e54                DMA1_Channel7_IRQHandler
-                0x08003e54                CAN1_RX1_IRQHandler
-                0x08003e54                I2C1_EV_IRQHandler
-                0x08003e54                DMA1_Channel6_IRQHandler
-                0x08003e54                TIM3_IRQHandler
-                0x08003e54                Default_Handler
-                0x08003e54                EXTI15_10_IRQHandler
-                0x08003e54                EXTI9_5_IRQHandler
-                0x08003e54                EXTI4_IRQHandler
-                0x08003e54                USB_LP_CAN1_RX0_IRQHandler
-                0x08003e54                USB_HP_CAN1_TX_IRQHandler
-                0x08003e54                DMA1_Channel3_IRQHandler
-                0x08003e54                WWDG_IRQHandler
-                0x08003e54                TIM1_BRK_IRQHandler
-                0x08003e54                USART2_IRQHandler
-                0x08003e54                DMA1_Channel2_IRQHandler
-                0x08003e54                CAN1_SCE_IRQHandler
-                0x08003e54                FLASH_IRQHandler
-                0x08003e54                I2C1_ER_IRQHandler
-                0x08003e54                USBWakeUp_IRQHandler
- *fill*         0x08003e56        0x2 
+                0x08003e58        0x2 startup/startup_stm32f103x6.o
+                0x08003e58                RTC_Alarm_IRQHandler
+                0x08003e58                PVD_IRQHandler
+                0x08003e58                EXTI3_IRQHandler
+                0x08003e58                SPI1_IRQHandler
+                0x08003e58                TAMPER_IRQHandler
+                0x08003e58                RTC_IRQHandler
+                0x08003e58                DMA1_Channel7_IRQHandler
+                0x08003e58                CAN1_RX1_IRQHandler
+                0x08003e58                I2C1_EV_IRQHandler
+                0x08003e58                DMA1_Channel6_IRQHandler
+                0x08003e58                TIM3_IRQHandler
+                0x08003e58                Default_Handler
+                0x08003e58                EXTI15_10_IRQHandler
+                0x08003e58                EXTI9_5_IRQHandler
+                0x08003e58                EXTI4_IRQHandler
+                0x08003e58                USB_LP_CAN1_RX0_IRQHandler
+                0x08003e58                USB_HP_CAN1_TX_IRQHandler
+                0x08003e58                DMA1_Channel3_IRQHandler
+                0x08003e58                WWDG_IRQHandler
+                0x08003e58                TIM1_BRK_IRQHandler
+                0x08003e58                USART2_IRQHandler
+                0x08003e58                DMA1_Channel2_IRQHandler
+                0x08003e58                CAN1_SCE_IRQHandler
+                0x08003e58                FLASH_IRQHandler
+                0x08003e58                I2C1_ER_IRQHandler
+                0x08003e58                USBWakeUp_IRQHandler
+ *fill*         0x08003e5a        0x2 
  .text.__libc_init_array
-                0x08003e58       0x48 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-init.o)
-                0x08003e58                __libc_init_array
+                0x08003e5c       0x48 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-init.o)
+                0x08003e5c                __libc_init_array
  *(.glue_7)
- .glue_7        0x08003ea0        0x0 linker stubs
+ .glue_7        0x08003ea4        0x0 linker stubs
  *(.glue_7t)
- .glue_7t       0x08003ea0        0x0 linker stubs
+ .glue_7t       0x08003ea4        0x0 linker stubs
  *(.eh_frame)
- .eh_frame      0x08003ea0        0x0 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crtbegin.o
+ .eh_frame      0x08003ea4        0x0 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crtbegin.o
  *(.init)
- .init          0x08003ea0        0x4 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crti.o
-                0x08003ea0                _init
- .init          0x08003ea4        0x8 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crtn.o
+ .init          0x08003ea4        0x4 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crti.o
+                0x08003ea4                _init
+ .init          0x08003ea8        0x8 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crtn.o
  *(.fini)
- .fini          0x08003eac        0x4 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crti.o
-                0x08003eac                _fini
- .fini          0x08003eb0        0x8 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crtn.o
-                0x08003eb8                . = ALIGN (0x4)
-                0x08003eb8                _etext = .
+ .fini          0x08003eb0        0x4 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crti.o
+                0x08003eb0                _fini
+ .fini          0x08003eb4        0x8 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crtn.o
+                0x08003ebc                . = ALIGN (0x4)
+                0x08003ebc                _etext = .
 
-.vfp11_veneer   0x08003eb8        0x0
- .vfp11_veneer  0x08003eb8        0x0 linker stubs
+.vfp11_veneer   0x08003ebc        0x0
+ .vfp11_veneer  0x08003ebc        0x0 linker stubs
 
-.v4_bx          0x08003eb8        0x0
- .v4_bx         0x08003eb8        0x0 linker stubs
+.v4_bx          0x08003ebc        0x0
+ .v4_bx         0x08003ebc        0x0 linker stubs
 
-.iplt           0x08003eb8        0x0
- .iplt          0x08003eb8        0x0 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crtbegin.o
+.iplt           0x08003ebc        0x0
+ .iplt          0x08003ebc        0x0 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crtbegin.o
 
-.rodata         0x08003eb8       0xac
-                0x08003eb8                . = ALIGN (0x4)
+.rodata         0x08003ebc       0xac
+                0x08003ebc                . = ALIGN (0x4)
  *(.rodata)
- .rodata        0x08003eb8       0x12 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_rcc.o
- *fill*         0x08003eca        0x2 
- .rodata        0x08003ecc       0x12 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_rcc_ex.o
- *fill*         0x08003ede        0x2 
- .rodata        0x08003ee0       0x18 Src/system_stm32f1xx.o
-                0x08003ee0                AHBPrescTable
-                0x08003ef0                APBPrescTable
+ .rodata        0x08003ebc       0x12 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_rcc.o
+ *fill*         0x08003ece        0x2 
+ .rodata        0x08003ed0       0x12 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_rcc_ex.o
+ *fill*         0x08003ee2        0x2 
+ .rodata        0x08003ee4       0x18 Src/system_stm32f1xx.o
+                0x08003ee4                AHBPrescTable
+                0x08003ef4                APBPrescTable
  *(.rodata*)
  .rodata.str1.4
-                0x08003ef8       0x4d Src/main.o
- *fill*         0x08003f45        0x3 
+                0x08003efc       0x4d Src/main.o
+ *fill*         0x08003f49        0x3 
  .rodata.str1.4
-                0x08003f48       0x1c Src/stm32f1xx_hal_msp.o
+                0x08003f4c       0x1c Src/stm32f1xx_hal_msp.o
                                  0x1b (size before relaxing)
-                0x08003f64                . = ALIGN (0x4)
+                0x08003f68                . = ALIGN (0x4)
 
-.rel.dyn        0x08003f64        0x0
- .rel.iplt      0x08003f64        0x0 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crtbegin.o
+.rel.dyn        0x08003f68        0x0
+ .rel.iplt      0x08003f68        0x0 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crtbegin.o
 
 .ARM.extab
  *(.ARM.extab* .gnu.linkonce.armextab.*)
 
-.ARM            0x08003f64        0x0
-                0x08003f64                __exidx_start = .
+.ARM            0x08003f68        0x0
+                0x08003f68                __exidx_start = .
  *(.ARM.exidx*)
-                0x08003f64                __exidx_end = .
+                0x08003f68                __exidx_end = .
 
-.preinit_array  0x08003f64        0x0
-                0x08003f64                PROVIDE (__preinit_array_start, .)
+.preinit_array  0x08003f68        0x0
+                0x08003f68                PROVIDE (__preinit_array_start, .)
  *(.preinit_array*)
-                0x08003f64                PROVIDE (__preinit_array_end, .)
+                0x08003f68                PROVIDE (__preinit_array_end, .)
 
-.init_array     0x08003f64        0x4
-                0x08003f64                PROVIDE (__init_array_start, .)
+.init_array     0x08003f68        0x4
+                0x08003f68                PROVIDE (__init_array_start, .)
  *(SORT_BY_NAME(.init_array.*))
  *(.init_array*)
- .init_array    0x08003f64        0x4 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crtbegin.o
-                0x08003f68                PROVIDE (__init_array_end, .)
+ .init_array    0x08003f68        0x4 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crtbegin.o
+                0x08003f6c                PROVIDE (__init_array_end, .)
 
-.fini_array     0x08003f68        0x4
+.fini_array     0x08003f6c        0x4
                 [!provide]                PROVIDE (__fini_array_start, .)
  *(SORT_BY_NAME(.fini_array.*))
  *(.fini_array*)
- .fini_array    0x08003f68        0x4 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crtbegin.o
+ .fini_array    0x08003f6c        0x4 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crtbegin.o
                 [!provide]                PROVIDE (__fini_array_end, .)
-                0x08003f6c                _sidata = LOADADDR (.data)
+                0x08003f70                _sidata = LOADADDR (.data)
 
-.data           0x20000000        0x8 load address 0x08003f6c
+.data           0x20000000        0x8 load address 0x08003f70
                 0x20000000                . = ALIGN (0x4)
                 0x20000000                _sdata = .
  *(.data)
@@ -3655,15 +3798,15 @@ LOAD c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.2
                 0x20000008                . = ALIGN (0x4)
                 0x20000008                _edata = .
 
-.igot.plt       0x20000008        0x0 load address 0x08003f74
- .igot.plt      0x20000008        0x0 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crtbegin.o
+.igot.plt       0x20000008        0x0 load address 0x08003f78
+ .igot.plt      0x20000008        0x0 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crtbegin.o
                 0x20000008                . = ALIGN (0x4)
 
-.bss            0x20000008      0x29c load address 0x08003f74
+.bss            0x20000008      0x29c load address 0x08003f78
                 0x20000008                _sbss = .
                 0x20000008                __bss_start__ = _sbss
  *(.bss)
- .bss           0x20000008       0x1c c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crtbegin.o
+ .bss           0x20000008       0x1c c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crtbegin.o
  .bss           0x20000024       0x20 Src/main.o
                 0x20000024                ui32_tim2_counter
                 0x20000028                i16_ph1_current
@@ -3703,7 +3846,7 @@ LOAD c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.2
                 0x200002a4                __bss_end__ = _ebss
 
 ._user_heap_stack
-                0x200002a4      0x604 load address 0x08003f74
+                0x200002a4      0x604 load address 0x08003f78
                 0x200002a8                . = ALIGN (0x8)
  *fill*         0x200002a4        0x4 
                 [!provide]                PROVIDE (end, .)
@@ -3723,9 +3866,9 @@ LOAD c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.2
                 0x00000000       0x29
  *(.ARM.attributes)
  .ARM.attributes
-                0x00000000       0x1d c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crti.o
+                0x00000000       0x1d c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crti.o
  .ARM.attributes
-                0x0000001d       0x2d c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crtbegin.o
+                0x0000001d       0x2d c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crtbegin.o
  .ARM.attributes
                 0x0000004a       0x33 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal.o
  .ARM.attributes
@@ -3761,18 +3904,18 @@ LOAD c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.2
  .ARM.attributes
                 0x0000037a       0x21 startup/startup_stm32f103x6.o
  .ARM.attributes
-                0x0000039b       0x1d c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m\libgcc.a(_arm_addsubdf3.o)
+                0x0000039b       0x1d c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m\libgcc.a(_arm_addsubdf3.o)
  .ARM.attributes
-                0x000003b8       0x1d c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m\libgcc.a(_arm_muldivdf3.o)
+                0x000003b8       0x1d c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m\libgcc.a(_arm_muldivdf3.o)
  .ARM.attributes
-                0x000003d5       0x1d c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m\libgcc.a(_arm_truncdfsf2.o)
+                0x000003d5       0x1d c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m\libgcc.a(_arm_truncdfsf2.o)
  .ARM.attributes
-                0x000003f2       0x2d c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-init.o)
+                0x000003f2       0x2d c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-init.o)
  .ARM.attributes
-                0x0000041f       0x1d c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crtn.o
-OUTPUT(LishuiFOC_01.elf elf32-littlearm)
+                0x0000041f       0x1d c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crtn.o
+OUTPUT(LishuiFOC.elf elf32-littlearm)
 
-.debug_info     0x00000000    0x16310
+.debug_info     0x00000000    0x16311
  .debug_info    0x00000000      0xec3 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal.o
  .debug_info    0x00000ec3     0x162a Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_adc.o
  .debug_info    0x000024ed     0x1354 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_adc_ex.o
@@ -3784,12 +3927,12 @@ OUTPUT(LishuiFOC_01.elf elf32-littlearm)
  .debug_info    0x00008917     0x3661 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim.o
  .debug_info    0x0000bf78     0x1ad0 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim_ex.o
  .debug_info    0x0000da48     0x1e7b Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_uart.o
- .debug_info    0x0000f8c3     0x2992 Src/main.o
- .debug_info    0x00012255      0x473 Src/print.o
- .debug_info    0x000126c8     0x1b7c Src/stm32f1xx_hal_msp.o
- .debug_info    0x00014244     0x1495 Src/stm32f1xx_it.o
- .debug_info    0x000156d9      0xc15 Src/system_stm32f1xx.o
- .debug_info    0x000162ee       0x22 startup/startup_stm32f103x6.o
+ .debug_info    0x0000f8c3     0x2993 Src/main.o
+ .debug_info    0x00012256      0x473 Src/print.o
+ .debug_info    0x000126c9     0x1b7c Src/stm32f1xx_hal_msp.o
+ .debug_info    0x00014245     0x1495 Src/stm32f1xx_it.o
+ .debug_info    0x000156da      0xc15 Src/system_stm32f1xx.o
+ .debug_info    0x000162ef       0x22 startup/startup_stm32f103x6.o
 
 .debug_abbrev   0x00000000     0x2c73
  .debug_abbrev  0x00000000      0x2e7 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal.o
@@ -3882,7 +4025,7 @@ OUTPUT(LishuiFOC_01.elf elf32-littlearm)
  .debug_ranges  0x00000c68       0x18 Src/system_stm32f1xx.o
  .debug_ranges  0x00000c80       0x20 startup/startup_stm32f103x6.o
 
-.debug_macro    0x00000000    0x16557
+.debug_macro    0x00000000    0x16380
  .debug_macro   0x00000000      0x32b Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal.o
  .debug_macro   0x0000032b      0xa60 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal.o
  .debug_macro   0x00000d8b       0x8e Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal.o
@@ -3955,68 +4098,66 @@ OUTPUT(LishuiFOC_01.elf elf32-littlearm)
  .debug_macro   0x00014d01      0x308 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim.o
  .debug_macro   0x00015009      0x307 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim_ex.o
  .debug_macro   0x00015310      0x308 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_uart.o
- .debug_macro   0x00015618      0x328 Src/main.o
- .debug_macro   0x00015940      0x1e1 Src/main.o
- .debug_macro   0x00015b21       0xb9 Src/print.o
- .debug_macro   0x00015bda       0x58 Src/print.o
- .debug_macro   0x00015c32      0x307 Src/stm32f1xx_hal_msp.o
- .debug_macro   0x00015f39      0x311 Src/stm32f1xx_it.o
- .debug_macro   0x0001624a      0x30d Src/system_stm32f1xx.o
+ .debug_macro   0x00015618      0x332 Src/main.o
+ .debug_macro   0x0001594a       0xb9 Src/print.o
+ .debug_macro   0x00015a03       0x58 Src/print.o
+ .debug_macro   0x00015a5b      0x307 Src/stm32f1xx_hal_msp.o
+ .debug_macro   0x00015d62      0x311 Src/stm32f1xx_it.o
+ .debug_macro   0x00016073      0x30d Src/system_stm32f1xx.o
 
-.debug_line     0x00000000     0xa7f6
- .debug_line    0x00000000      0x892 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal.o
- .debug_line    0x00000892      0xc64 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_adc.o
- .debug_line    0x000014f6      0xab6 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_adc_ex.o
- .debug_line    0x00001fac      0x8eb Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_cortex.o
- .debug_line    0x00002897      0xa9e Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_dma.o
- .debug_line    0x00003335      0x8bf Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_gpio.o
- .debug_line    0x00003bf4      0x9cf Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_rcc.o
- .debug_line    0x000045c3      0x7d9 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_rcc_ex.o
- .debug_line    0x00004d9c     0x16d9 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim.o
- .debug_line    0x00006475      0xcb4 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim_ex.o
- .debug_line    0x00007129     0x1004 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_uart.o
- .debug_line    0x0000812d      0x968 Src/main.o
- .debug_line    0x00008a95      0x4d9 Src/print.o
- .debug_line    0x00008f6e      0x82e Src/stm32f1xx_hal_msp.o
- .debug_line    0x0000979c      0x88d Src/stm32f1xx_it.o
- .debug_line    0x0000a029      0x750 Src/system_stm32f1xx.o
- .debug_line    0x0000a779       0x7d startup/startup_stm32f103x6.o
+.debug_line     0x00000000     0xa68f
+ .debug_line    0x00000000      0x87a Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal.o
+ .debug_line    0x0000087a      0xc4c Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_adc.o
+ .debug_line    0x000014c6      0xa9e Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_adc_ex.o
+ .debug_line    0x00001f64      0x8d3 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_cortex.o
+ .debug_line    0x00002837      0xa86 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_dma.o
+ .debug_line    0x000032bd      0x8a7 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_gpio.o
+ .debug_line    0x00003b64      0x9b7 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_rcc.o
+ .debug_line    0x0000451b      0x7c1 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_rcc_ex.o
+ .debug_line    0x00004cdc     0x16c1 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim.o
+ .debug_line    0x0000639d      0xc9c Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim_ex.o
+ .debug_line    0x00007039      0xfec Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_uart.o
+ .debug_line    0x00008025      0x959 Src/main.o
+ .debug_line    0x0000897e      0x4d1 Src/print.o
+ .debug_line    0x00008e4f      0x816 Src/stm32f1xx_hal_msp.o
+ .debug_line    0x00009665      0x875 Src/stm32f1xx_it.o
+ .debug_line    0x00009eda      0x738 Src/system_stm32f1xx.o
+ .debug_line    0x0000a612       0x7d startup/startup_stm32f103x6.o
 
-.debug_str      0x00000000    0x756f2
- .debug_str     0x00000000    0x71773 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal.o
-                              0x71b1d (size before relaxing)
- .debug_str     0x00071773      0x67f Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_adc.o
-                              0x71bb4 (size before relaxing)
- .debug_str     0x00071df2      0x2d8 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_adc_ex.o
-                              0x71b6c (size before relaxing)
- .debug_str     0x000720ca      0x2e1 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_cortex.o
-                              0x71b28 (size before relaxing)
- .debug_str     0x000723ab      0x220 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_dma.o
-                              0x718c6 (size before relaxing)
- .debug_str     0x000725cb      0x3ab Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_gpio.o
-                              0x718a9 (size before relaxing)
- .debug_str     0x00072976      0x368 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_rcc.o
-                              0x718fe (size before relaxing)
- .debug_str     0x00072cde      0x110 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_rcc_ex.o
-                              0x7168a (size before relaxing)
- .debug_str     0x00072dee      0xf05 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim.o
-                              0x725fe (size before relaxing)
- .debug_str     0x00073cf3      0x4f1 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim_ex.o
-                              0x71ea0 (size before relaxing)
- .debug_str     0x000741e4      0x6d6 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_uart.o
-                              0x71e17 (size before relaxing)
- .debug_str     0x000748ba      0xaca Src/main.o
+.debug_str      0x00000000    0x7571c
+ .debug_str     0x00000000    0x7176b Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal.o
+                              0x71b15 (size before relaxing)
+ .debug_str     0x0007176b      0x67f Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_adc.o
+                              0x71bac (size before relaxing)
+ .debug_str     0x00071dea      0x2d8 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_adc_ex.o
+                              0x71b64 (size before relaxing)
+ .debug_str     0x000720c2      0x2e1 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_cortex.o
+                              0x71b20 (size before relaxing)
+ .debug_str     0x000723a3      0x220 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_dma.o
+                              0x718be (size before relaxing)
+ .debug_str     0x000725c3      0x3ab Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_gpio.o
+                              0x718a1 (size before relaxing)
+ .debug_str     0x0007296e      0x368 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_rcc.o
+                              0x718f6 (size before relaxing)
+ .debug_str     0x00072cd6      0x110 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_rcc_ex.o
+                              0x71682 (size before relaxing)
+ .debug_str     0x00072de6      0xf05 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim.o
+                              0x725f6 (size before relaxing)
+ .debug_str     0x00073ceb      0x4f1 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim_ex.o
+                              0x71e98 (size before relaxing)
+ .debug_str     0x000741dc      0x6d6 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_uart.o
+                              0x71e0f (size before relaxing)
+ .debug_str     0x000748b2      0xad2 Src/main.o
                               0x730ef (size before relaxing)
  .debug_str     0x00075384      0x136 Src/print.o
-                              0x54691 (size before relaxing)
+                              0x54689 (size before relaxing)
  .debug_str     0x000754ba       0x25 Src/stm32f1xx_hal_msp.o
-                              0x71fac (size before relaxing)
+                              0x71fa4 (size before relaxing)
  .debug_str     0x000754df      0x17a Src/stm32f1xx_it.o
-                              0x71d2a (size before relaxing)
+                              0x71d22 (size before relaxing)
  .debug_str     0x00075659       0x69 Src/system_stm32f1xx.o
-                              0x71554 (size before relaxing)
- .debug_str     0x000756c2       0x30 startup/startup_stm32f103x6.o
-                                 0x5a (size before relaxing)
+                              0x7154c (size before relaxing)
+ .debug_str     0x000756c2       0x5a startup/startup_stm32f103x6.o
 
 .comment        0x00000000       0x7e
  .comment       0x00000000       0x7e Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal.o
@@ -4054,7 +4195,7 @@ OUTPUT(LishuiFOC_01.elf elf32-littlearm)
  .debug_frame   0x00001fd4       0xfc Src/stm32f1xx_hal_msp.o
  .debug_frame   0x000020d0      0x1d8 Src/stm32f1xx_it.o
  .debug_frame   0x000022a8       0x30 Src/system_stm32f1xx.o
- .debug_frame   0x000022d8       0xac c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m\libgcc.a(_arm_addsubdf3.o)
- .debug_frame   0x00002384       0x50 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m\libgcc.a(_arm_muldivdf3.o)
- .debug_frame   0x000023d4       0x24 c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m\libgcc.a(_arm_truncdfsf2.o)
- .debug_frame   0x000023f8       0x2c c:/gnu_arm/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-init.o)
+ .debug_frame   0x000022d8       0xac c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m\libgcc.a(_arm_addsubdf3.o)
+ .debug_frame   0x00002384       0x50 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m\libgcc.a(_arm_muldivdf3.o)
+ .debug_frame   0x000023d4       0x24 c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m\libgcc.a(_arm_truncdfsf2.o)
+ .debug_frame   0x000023f8       0x2c c:/temp/test/eclipse/plugins/fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628/tools/compiler/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-init.o)

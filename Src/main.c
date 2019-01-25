@@ -42,6 +42,7 @@
 
 /* USER CODE BEGIN Includes */
 #include "print.h"
+#include "FOC.h"
 #include "math.h"
 /* USER CODE END Includes */
 
