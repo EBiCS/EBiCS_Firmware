@@ -40,10 +40,12 @@
 #include "main.h"
 #include "stm32f1xx_hal.h"
 
+
 /* USER CODE BEGIN Includes */
 #include "print.h"
 #include "FOC.h"
 #include "math.h"
+#include <arm_math.h>
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -80,6 +82,7 @@ float flt_rotorposition_hall;
 int16_t i16_sinus=0;
 int16_t i16_cosinus=0;
 char buffer[100];
+
 
 /* USER CODE END PV */
 
@@ -256,7 +259,7 @@ while(ui16_reg_adc_value>4096){
 	      	          Error_Handler();
 	      	       }
 	  	  HAL_Delay(1000); //delay 100ms
-		  sprintf_(buffer, "current phase 1 %d, current phase 2 %d\r\n", i16_ph1_current , i16_ph2_current );
+		  sprintf_(buffer, "current phase 1 %d, current phase 2 %d\r\n", i16_ph1_current , i16_ph2_current);
 		  i=0;
 		  while (buffer[i] != '\0')
 		  {i++;}
@@ -682,7 +685,7 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 	ui32_counter++; //for debugging
 	ui16_tim2_recent = __HAL_TIM_GET_COUNTER(&htim2); // read in timertics since last event
 	if (ui16_tim2_recent < ui16_timertics && !ui8_overflow_flag){ //prevent angle running away at standstill
-	flt_rotorposition_absolute = flt_rotorposition_hall + ui16_tim2_recent*M_PI/180*60/ui16_timertics; //interpolate angle between two hallevents by scaling timer2 tics
+	flt_rotorposition_absolute = flt_rotorposition_hall + ui16_tim2_recent*60/ui16_timertics; //interpolate angle between two hallevents by scaling timer2 tics
 	}
 	else
 	{ui8_overflow_flag=1;
@@ -709,19 +712,19 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 		flt_rotorposition_hall = 0;
 		break;
 	case 1: //60°
-		flt_rotorposition_hall = 60*M_PI/180;
+		flt_rotorposition_hall = 60;
 		break;
 	case 3: //120°
-		flt_rotorposition_hall = 120*M_PI/180;
+		flt_rotorposition_hall = 120;
 		break;
 	case 2: //180°
-		flt_rotorposition_hall = 180*M_PI/180;
+		flt_rotorposition_hall = 180;
 		break;
 	case 6: //240°
-		flt_rotorposition_hall = 240*M_PI/180;
+		flt_rotorposition_hall = 240;
 		break;
 	case 4: //120°
-		flt_rotorposition_hall = 300*M_PI/180;
+		flt_rotorposition_hall = 300;
 		break;
 
 	} // end case

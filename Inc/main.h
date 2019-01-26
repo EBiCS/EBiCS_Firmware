@@ -78,7 +78,14 @@
   */
 /* #define USE_FULL_ASSERT    1U */
 
+
 /* USER CODE BEGIN Private defines */
+#define P_FACTOR_I_Q 0.0001
+#define I_FACTOR_I_Q 0.000001
+
+#define P_FACTOR_I_D 0.0001
+#define I_FACTOR_I_D 0.000001
+
 
 /* USER CODE END Private defines */
 
