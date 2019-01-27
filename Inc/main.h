@@ -44,6 +44,7 @@
 /* Includes ------------------------------------------------------------------*/
 
 /* USER CODE BEGIN Includes */
+#include <arm_math.h>
 
 /* USER CODE END Includes */
 
@@ -85,7 +86,9 @@
 
 #define P_FACTOR_I_D 0.0001
 #define I_FACTOR_I_D 0.000001
-
+#define SPEC_ANGLE 20 // motor specific angle, refer to chapter 8.8.3 of UM1052
+#define DEG_IN_RAD 0.0174532925
+extern uint16_t	switchtime[3];
 
 /* USER CODE END Private defines */
 

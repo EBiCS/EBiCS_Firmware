@@ -1,4 +1,9 @@
 Src/main.o: ../Src/main.c C:/LishuiFOC/Generated/LishuiFOC_01/Inc/main.h \
+ C:/LishuiFOC/Generated/LishuiFOC_01/Drivers/CMSIS/Include/arm_math.h \
+ C:/LishuiFOC/Generated/LishuiFOC_01/Drivers/CMSIS/Include/core_cm3.h \
+ C:/LishuiFOC/Generated/LishuiFOC_01/Drivers/CMSIS/Include/core_cmInstr.h \
+ C:/LishuiFOC/Generated/LishuiFOC_01/Drivers/CMSIS/Include/cmsis_gcc.h \
+ C:/LishuiFOC/Generated/LishuiFOC_01/Drivers/CMSIS/Include/core_cmFunc.h \
  C:/LishuiFOC/Generated/LishuiFOC_01/Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h \
  C:/LishuiFOC/Generated/LishuiFOC_01/Inc/stm32f1xx_hal_conf.h \
  C:/LishuiFOC/Generated/LishuiFOC_01/Inc/main.h \
@@ -7,9 +12,6 @@ Src/main.o: ../Src/main.c C:/LishuiFOC/Generated/LishuiFOC_01/Inc/main.h \
  C:/LishuiFOC/Generated/LishuiFOC_01/Drivers/CMSIS/Device/ST/STM32F1xx/Include/stm32f1xx.h \
  C:/LishuiFOC/Generated/LishuiFOC_01/Drivers/CMSIS/Device/ST/STM32F1xx/Include/stm32f103x6.h \
  C:/LishuiFOC/Generated/LishuiFOC_01/Drivers/CMSIS/Include/core_cm3.h \
- C:/LishuiFOC/Generated/LishuiFOC_01/Drivers/CMSIS/Include/core_cmInstr.h \
- C:/LishuiFOC/Generated/LishuiFOC_01/Drivers/CMSIS/Include/cmsis_gcc.h \
- C:/LishuiFOC/Generated/LishuiFOC_01/Drivers/CMSIS/Include/core_cmFunc.h \
  C:/LishuiFOC/Generated/LishuiFOC_01/Drivers/CMSIS/Device/ST/STM32F1xx/Include/system_stm32f1xx.h \
  C:/LishuiFOC/Generated/LishuiFOC_01/Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_rcc_ex.h \
  C:/LishuiFOC/Generated/LishuiFOC_01/Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_gpio.h \
@@ -26,11 +28,19 @@ Src/main.o: ../Src/main.c C:/LishuiFOC/Generated/LishuiFOC_01/Inc/main.h \
  C:/LishuiFOC/Generated/LishuiFOC_01/Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h \
  C:/LishuiFOC/Generated/LishuiFOC_01/Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h \
  C:/LishuiFOC/Generated/LishuiFOC_01/Inc/print.h \
- C:/LishuiFOC/Generated/LishuiFOC_01/Inc/FOC.h \
- C:/LishuiFOC/Generated/LishuiFOC_01/Drivers/CMSIS/Include/arm_math.h \
- C:/LishuiFOC/Generated/LishuiFOC_01/Drivers/CMSIS/Include/core_cm3.h
+ C:/LishuiFOC/Generated/LishuiFOC_01/Inc/FOC.h
 
 C:/LishuiFOC/Generated/LishuiFOC_01/Inc/main.h:
+
+C:/LishuiFOC/Generated/LishuiFOC_01/Drivers/CMSIS/Include/arm_math.h:
+
+C:/LishuiFOC/Generated/LishuiFOC_01/Drivers/CMSIS/Include/core_cm3.h:
+
+C:/LishuiFOC/Generated/LishuiFOC_01/Drivers/CMSIS/Include/core_cmInstr.h:
+
+C:/LishuiFOC/Generated/LishuiFOC_01/Drivers/CMSIS/Include/cmsis_gcc.h:
+
+C:/LishuiFOC/Generated/LishuiFOC_01/Drivers/CMSIS/Include/core_cmFunc.h:
 
 C:/LishuiFOC/Generated/LishuiFOC_01/Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h:
 
@@ -47,12 +57,6 @@ C:/LishuiFOC/Generated/LishuiFOC_01/Drivers/CMSIS/Device/ST/STM32F1xx/Include/st
 C:/LishuiFOC/Generated/LishuiFOC_01/Drivers/CMSIS/Device/ST/STM32F1xx/Include/stm32f103x6.h:
 
 C:/LishuiFOC/Generated/LishuiFOC_01/Drivers/CMSIS/Include/core_cm3.h:
-
-C:/LishuiFOC/Generated/LishuiFOC_01/Drivers/CMSIS/Include/core_cmInstr.h:
-
-C:/LishuiFOC/Generated/LishuiFOC_01/Drivers/CMSIS/Include/cmsis_gcc.h:
-
-C:/LishuiFOC/Generated/LishuiFOC_01/Drivers/CMSIS/Include/core_cmFunc.h:
 
 C:/LishuiFOC/Generated/LishuiFOC_01/Drivers/CMSIS/Device/ST/STM32F1xx/Include/system_stm32f1xx.h:
 
@@ -87,7 +91,3 @@ C:/LishuiFOC/Generated/LishuiFOC_01/Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_h
 C:/LishuiFOC/Generated/LishuiFOC_01/Inc/print.h:
 
 C:/LishuiFOC/Generated/LishuiFOC_01/Inc/FOC.h:
-
-C:/LishuiFOC/Generated/LishuiFOC_01/Drivers/CMSIS/Include/arm_math.h:
-
-C:/LishuiFOC/Generated/LishuiFOC_01/Drivers/CMSIS/Include/core_cm3.h:

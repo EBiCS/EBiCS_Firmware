@@ -82,6 +82,7 @@ float flt_rotorposition_hall;
 int16_t i16_sinus=0;
 int16_t i16_cosinus=0;
 char buffer[100];
+uint16_t switchtime[3];
 
 
 /* USER CODE END PV */
@@ -680,16 +681,28 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 {
 	//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_2);
+
+	//read in phase currents
 	i16_ph1_current = HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1);
 	i16_ph2_current = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1);
 	ui32_counter++; //for debugging
+
+	//extrapolate recent rotor position
 	ui16_tim2_recent = __HAL_TIM_GET_COUNTER(&htim2); // read in timertics since last event
 	if (ui16_tim2_recent < ui16_timertics && !ui8_overflow_flag){ //prevent angle running away at standstill
-	flt_rotorposition_absolute = flt_rotorposition_hall + ui16_tim2_recent*60/ui16_timertics; //interpolate angle between two hallevents by scaling timer2 tics
+	flt_rotorposition_absolute = SPEC_ANGLE + flt_rotorposition_hall + ui16_tim2_recent*60/ui16_timertics; //interpolate angle between two hallevents by scaling timer2 tics
 	}
 	else
 	{ui8_overflow_flag=1;
 	}
+
+	// call FOC procedure
+	FOC_calculation(i16_ph1_current, i16_ph2_current, flt_rotorposition_absolute, 0);
+
+	//set PWM
+	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, switchtime[0]);
+	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, switchtime[1]);
+	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, switchtime[2]);
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
@@ -701,8 +714,8 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 
 	ui16_tim2_recent = __HAL_TIM_GET_COUNTER(&htim2); // read in timertics since last event
 
-	if(ui16_tim2_recent>100){
-		ui16_timertics = ui16_tim2_recent; //debounce
+	if(ui16_tim2_recent>100){//debounce
+		ui16_timertics = ui16_tim2_recent;
 	   __HAL_TIM_SET_COUNTER(&htim2,0); //reset tim2 counter
 	   ui8_overflow_flag=0;
 	}
