@@ -82,7 +82,7 @@ float flt_rotorposition_hall;
 int16_t i16_sinus=0;
 int16_t i16_cosinus=0;
 char buffer[100];
-uint16_t switchtime[3];
+float32_t switchtime[3];
 
 
 /* USER CODE END PV */
@@ -700,9 +700,9 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 	FOC_calculation(i16_ph1_current, i16_ph2_current, flt_rotorposition_absolute, 0);
 
 	//set PWM
-	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, switchtime[0]);
-	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, switchtime[1]);
-	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, switchtime[2]);
+	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, (uint16_t) switchtime[0]);
+	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, (uint16_t) switchtime[1]);
+	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, (uint16_t) switchtime[2]);
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)

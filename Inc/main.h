@@ -89,7 +89,7 @@
 #define SPEC_ANGLE 20 // motor specific angle, refer to chapter 8.8.3 of UM1052
 #define DEG_IN_RAD 0.0174532925
 
-extern uint16_t	switchtime[3];
+extern float32_t switchtime[3];
 
 /* USER CODE END Private defines */
 

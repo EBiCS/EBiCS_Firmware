@@ -114,23 +114,23 @@ void svpwm(float32_t flt_u_alpha, float32_t flt_u_beta, float32_t flt_teta)	{ //
 
 	//Sector 1 & 4
 	if ((Y>=0 && Z<0 && X>0)||(Y < 0 && Z>=0 && X<=0)){
-		switchtime[0] = (uint16_t)(_T/4 + (_T/2+X-Z)/2);
-		switchtime[1] = (uint16_t)(switchtime[0] + Z);
-		switchtime[2] = (uint16_t)(switchtime[1] - X);
+		switchtime[0] = _T/4 + (_T/2+X-Z)/2;
+		switchtime[1] = switchtime[0] + Z;
+		switchtime[2] = switchtime[1] - X;
 	}
 
 	//Sector 2 & 5
 	if ((Y>=0 && Z>=0) || (Y<0 && Z<0) ){
-		switchtime[0] = (uint16_t)(_T/4 + (_T/2+Y-Z)/2);
-		switchtime[1] = (uint16_t)(switchtime[0] + Z);
-		switchtime[2] = (uint16_t)(switchtime[0] - Y);
+		switchtime[0] = _T/4 + (_T/2+Y-Z)/2;
+		switchtime[1] = switchtime[0] + Z;
+		switchtime[2] = switchtime[0] - Y;
 	}
 
 	//Sector 3 & 6
 	if ((Y<0 && Z>=0 && X>0)||(Y >= 0 && Z<0 && X<=0)){
-		switchtime[0] = (uint16_t)(_T/4 + (_T/2+Y-X)/2);
-		switchtime[2] = (uint16_t)(switchtime[0] - Y);
-		switchtime[1] = (uint16_t)(switchtime[2] + X);
+		switchtime[0] = _T/4 + (_T/2+Y-X)/2;
+		switchtime[2] = switchtime[0] - Y;
+		switchtime[1] = switchtime[2] + X;
 	}
 
 	// scale and shift to 16 bit timer range
