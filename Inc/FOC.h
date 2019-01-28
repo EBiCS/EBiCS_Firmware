@@ -20,6 +20,8 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, float flt_teta, int
 #define _PIdiv3	1.04719755
 // PWM period
 #define _T	0.0000625
+// PWM frequency
+#define _f	1/_T
 
 
 //globals

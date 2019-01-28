@@ -44,7 +44,7 @@
 /* USER CODE BEGIN Includes */
 #include "print.h"
 #include "FOC.h"
-#include "math.h"
+//#include "math.h"
 #include <arm_math.h>
 /* USER CODE END Includes */
 

@@ -54,7 +54,7 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, float flt_teta, int
 	flt_u_d =  PI_control_i_q(flt_i_d, 0); //control direct current to zero
 
 
-	//limit voltage in static frame, refer chapter 4.10.1 of UM1052
+	//limit voltage in rotating frame, refer chapter 4.10.1 of UM1052
 	float32_t	flt_u_abs = hypotf(flt_u_q,flt_u_d); //absolute value of U in static frame
 
 	if (flt_u_abs > _U_MAX){
@@ -133,7 +133,10 @@ void svpwm(float32_t flt_u_alpha, float32_t flt_u_beta, float32_t flt_teta)	{ //
 		switchtime[1] = (uint16_t)(switchtime[2] + X);
 	}
 
-
+	// scale and shift to 16 bit timer range
+	switchtime[0] = switchtime[0] * _f + 32768;
+	switchtime[1] = switchtime[1] * _f + 32768;
+	switchtime[2] = switchtime[2] * _f + 32768;
 
 
 /*
