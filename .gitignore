@@ -1,0 +1,16 @@
+main.hex
+**/*~
+*.asm
+*.bin
+*.elf
+*.ihx
+*.cdb
+*.lk
+*.map
+*.adb
+*.lst
+*.rel
+*.rst
+*.sym
+
+Debug
