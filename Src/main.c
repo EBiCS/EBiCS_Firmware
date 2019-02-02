@@ -40,7 +40,6 @@
 #include "main.h"
 #include "stm32f1xx_hal.h"
 
-
 /* USER CODE BEGIN Includes */
 #include "print.h"
 #include "FOC.h"
@@ -103,6 +102,7 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
 static void Set_reg_channel(uint16_t ADC_Channel);
+
 
 /* USER CODE END PFP */
 
@@ -178,26 +178,7 @@ while(ui16_reg_adc_value>4096){
   //wait for end of conversion
 while(ui16_reg_adc_value>4096){
 }
- // ADC1->JOFR2 = ui16_reg_adc_value;
   ADC2->JOFR1 = ui16_reg_adc_value;
-  //ui16_ph1_offset= ui16_reg_adc_value;
-  ui16_reg_adc_value=5000;
-
-  //Configure Regular Channel for reading Phase 3 current offset
-  Set_reg_channel(ADC_CHANNEL_6);
-    //Start ADC conversation
-  if(HAL_ADC_Start_IT(&hadc1) != HAL_OK)
-  	        {
-  	          /* Counter Enable Error */
-  	          Error_Handler();
-  	        }
-  //wait for end of conversion
-while(ui16_reg_adc_value>4096){
-}
- // ADC1->JOFR3 = ui16_reg_adc_value;
- // ADC2->JOFR3 = ui16_reg_adc_value;
-  //ui16_ph1_offset= ui16_reg_adc_value;
-  ui16_reg_adc_value=5000;
 
  // Start Timer 1
     if(HAL_TIM_Base_Start_IT(&htim1) != HAL_OK)
@@ -205,7 +186,16 @@ while(ui16_reg_adc_value>4096){
         /* Counter Enable Error */
         Error_Handler();
       }
+/*
+    // Set PWM to 2^15 (all phases at half battery voltage)
 
+    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 32000);
+    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 32000);
+    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, 32000);
+    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_4, 8000);
+
+
+    // Start PWM channels
     HAL_TIM_PWM_Start_IT(&htim1, TIM_CHANNEL_1);
     HAL_TIM_PWM_Start_IT(&htim1, TIM_CHANNEL_2);
     HAL_TIM_PWM_Start_IT(&htim1, TIM_CHANNEL_3);
@@ -214,10 +204,23 @@ while(ui16_reg_adc_value>4096){
     HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_1);
     HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_2);
     HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_3);
+*/
+
+    HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
+      HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_1); // turn on complementary channel
+      HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
+      HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_2);
+      HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
+      HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_3);
+
+      HAL_TIM_PWM_Start_IT(&htim1, TIM_CHANNEL_4);
 
 
-    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 0);
-    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_4, 8000);
+    TIM1->CCR1 = 1000;
+    TIM1->CCR2 = 950;
+    TIM1->CCR3 = 1050;
+
+
 
     // Start Timer 2
        if(HAL_TIM_Base_Start_IT(&htim2) != HAL_OK)
@@ -230,9 +233,13 @@ while(ui16_reg_adc_value>4096){
        SET_BIT(TIM1->EGR, TIM_EGR_TG);//Trigger generation
        SET_BIT(ADC1->CR2, ADC_CR2_JEXTTRIG);//external trigger enable
 
+
+
     HAL_GPIO_EXTI_Callback(GPIO_PIN_0); //read in initial rotor position
     flt_rotorposition_absolute = flt_rotorposition_hall; // set absolute position to corresponding hall pattern.
-	  if(HAL_ADCEx_InjectedStart_IT(&hadc2) != HAL_OK)
+
+
+    if(HAL_ADCEx_InjectedStart_IT(&hadc2) != HAL_OK)
    {
       /* Counter Enable Error */
       Error_Handler();
@@ -265,6 +272,9 @@ while(ui16_reg_adc_value>4096){
 		  while (buffer[i] != '\0')
 		  {i++;}
 		  HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);
+
+
+
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
@@ -330,6 +340,7 @@ void SystemClock_Config(void)
   /* SysTick_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
 }
+
 
 /* ADC1 init function */
 static void MX_ADC1_Init(void)
@@ -424,7 +435,6 @@ static void MX_ADC2_Init(void)
   }
 
 }
-
 /* TIM1 init function */
 static void MX_TIM1_Init(void)
 {
@@ -452,6 +462,11 @@ static void MX_TIM1_Init(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
+  if (HAL_TIM_PWM_Init(&htim1) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
   if (HAL_TIM_OC_Init(&htim1) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
@@ -464,28 +479,29 @@ static void MX_TIM1_Init(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
-  sConfigOC.OCMode = TIM_OCMODE_TIMING;
-  sConfigOC.Pulse = 0;
+  sConfigOC.OCMode = TIM_OCMODE_PWM1;
+  sConfigOC.Pulse = 1000;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-  sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
+  sConfigOC.OCNPolarity = TIM_OCNPOLARITY_LOW;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
   sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
   sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_RESET;
-  if (HAL_TIM_OC_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+  if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
 
-  if (HAL_TIM_OC_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
+  if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
 
-  if (HAL_TIM_OC_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_3) != HAL_OK)
+  if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_3) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
 
+  sConfigOC.OCMode = TIM_OCMODE_ACTIVE;
   if (HAL_TIM_OC_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_4) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
@@ -494,7 +510,7 @@ static void MX_TIM1_Init(void)
   sBreakDeadTimeConfig.OffStateRunMode = TIM_OSSR_DISABLE;
   sBreakDeadTimeConfig.OffStateIDLEMode = TIM_OSSI_DISABLE;
   sBreakDeadTimeConfig.LockLevel = TIM_LOCKLEVEL_OFF;
-  sBreakDeadTimeConfig.DeadTime = 5;
+  sBreakDeadTimeConfig.DeadTime = 0;
   sBreakDeadTimeConfig.BreakState = TIM_BREAK_DISABLE;
   sBreakDeadTimeConfig.BreakPolarity = TIM_BREAKPOLARITY_HIGH;
   sBreakDeadTimeConfig.AutomaticOutput = TIM_AUTOMATICOUTPUT_DISABLE;
@@ -515,9 +531,9 @@ static void MX_TIM2_Init(void)
   TIM_MasterConfigTypeDef sMasterConfig;
 
   htim2.Instance = TIM2;
-  htim2.Init.Prescaler = 16;
+  htim2.Init.Prescaler = 0;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim2.Init.Period = 64000;
+  htim2.Init.Period = 4000;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
@@ -632,6 +648,8 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
+
+
 static void Set_reg_channel(uint16_t ADC_Channel)
 {
 	ADC_ChannelConfTypeDef sConfig;
@@ -648,7 +666,7 @@ static void Set_reg_channel(uint16_t ADC_Channel)
 void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
 {
 	  if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_4) {
-		  //HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_2);
+		  HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_2);
 		  SET_BIT(ADC1->CR2, (ADC_CR2_JSWSTART | ADC_CR2_JEXTTRIG));
 		//  if(HAL_ADCEx_InjectedStart_IT(&hadc1) != HAL_OK)
 		  	      	       {
@@ -665,7 +683,7 @@ void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 	if (htim == &htim2) {
-		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_2);
+		//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_2);
 		ui32_tim2_counter++;
 	}
 }
@@ -698,11 +716,11 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 
 	// call FOC procedure
 	FOC_calculation(i16_ph1_current, i16_ph2_current, flt_rotorposition_absolute, 0);
-
+/*
 	//set PWM
 	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, (uint16_t) switchtime[0]);
 	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, (uint16_t) switchtime[1]);
-	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, (uint16_t) switchtime[2]);
+	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, (uint16_t) switchtime[2]);*/
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
