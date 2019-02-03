@@ -13,15 +13,14 @@
 void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, float flt_teta, int16_t int16_i_q_target);
 
 // Maximum Voltage applying, a little less than 2^15
-#define _U_MAX	32700
+#define _U_MAX	0.95
 // Square Root of 3
 #define _SQRT3	1.73205081
 // Pi divided by 3
 #define _PIdiv3	1.04719755
 // PWM period
-#define _T	0.0000625
-// PWM frequency
-#define _f	1/_T
+#define _T	2000
+
 
 
 //globals

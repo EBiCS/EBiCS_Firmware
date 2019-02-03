@@ -41,6 +41,13 @@
 #include "stm32f1xx_hal.h"
 
 /* USER CODE BEGIN Includes */
+
+// Lishui BLCD FOC Open Source Firmware
+// Board uses IRS2003 half bridge drivers, this need inverted pulses for low-side Mosfets, deadtime is generated in driver
+// This firmware bases on the ST user manual UM1052
+// It uses the OpenSTM32 workbench (SW4STM32 toolchain)
+// Basic peripheral setup was generated with CubeMX
+
 #include "print.h"
 #include "FOC.h"
 //#include "math.h"
@@ -186,27 +193,8 @@ while(ui16_reg_adc_value>4096){
         /* Counter Enable Error */
         Error_Handler();
       }
-/*
-    // Set PWM to 2^15 (all phases at half battery voltage)
 
-    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 32000);
-    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 32000);
-    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, 32000);
-    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_4, 8000);
-
-
-    // Start PWM channels
-    HAL_TIM_PWM_Start_IT(&htim1, TIM_CHANNEL_1);
-    HAL_TIM_PWM_Start_IT(&htim1, TIM_CHANNEL_2);
-    HAL_TIM_PWM_Start_IT(&htim1, TIM_CHANNEL_3);
-    HAL_TIM_PWM_Start_IT(&htim1, TIM_CHANNEL_4);
-
-    HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_1);
-    HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_2);
-    HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_3);
-*/
-
-    HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
+      HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
       HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_1); // turn on complementary channel
       HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
       HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_2);
@@ -216,9 +204,11 @@ while(ui16_reg_adc_value>4096){
       HAL_TIM_PWM_Start_IT(&htim1, TIM_CHANNEL_4);
 
 
-    TIM1->CCR1 = 1000;
+    TIM1->CCR1 = 1000; //set initial PWM values
     TIM1->CCR2 = 950;
     TIM1->CCR3 = 1050;
+
+    TIM1->CCR4 = 1000;
 
 
 
