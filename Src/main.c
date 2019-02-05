@@ -88,7 +88,7 @@ float flt_rotorposition_hall;
 int16_t i16_sinus=0;
 int16_t i16_cosinus=0;
 char buffer[100];
-float32_t switchtime[3];
+q31_t switchtime[3];
 
 
 /* USER CODE END PV */
