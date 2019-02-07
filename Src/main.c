@@ -73,7 +73,7 @@ uint32_t ui32_counter=0;
 uint32_t ui32_tim2_counter=0;
 uint8_t ui8_hall_state=0;
 uint16_t ui16_tim2_recent=0;
-uint16_t ui16_timertics=0;
+uint16_t ui16_timertics=0; 					//timertics between two hall events for 60° interpolation
 uint16_t ui16_reg_adc_value=5000;
 uint16_t ui16_ph1_offset=0;
 uint16_t ui16_ph2_offset=0;
@@ -83,12 +83,20 @@ int16_t i16_ph2_current=0;
 int16_t i16_ph3_current=0;
 uint16_t i=0;
 uint8_t ui8_overflow_flag=0;
-float flt_rotorposition_absolute;
-float flt_rotorposition_hall;
+q31_t q31_rotorposition_absolute;
+q31_t q31_rotorposition_hall;
 int16_t i16_sinus=0;
 int16_t i16_cosinus=0;
 char buffer[100];
 q31_t switchtime[3];
+
+//Rotor angle scaled from degree to q31 for arm_math. -180°-->-2^31, 0°-->0, +180°-->+2^31
+const q31_t DEG_0 = 0;
+const q31_t DEG_plus60 = 715827883;
+const q31_t DEG_plus120= 1431655765;
+const q31_t DEG_plus180= 2147483647;
+const q31_t DEG_minus60= -715827883;
+const q31_t DEG_minus120= -1431655765;
 
 
 /* USER CODE END PV */
@@ -226,7 +234,7 @@ while(ui16_reg_adc_value>4096){
 
 
     HAL_GPIO_EXTI_Callback(GPIO_PIN_0); //read in initial rotor position
-    flt_rotorposition_absolute = flt_rotorposition_hall; // set absolute position to corresponding hall pattern.
+    q31_rotorposition_absolute = q31_rotorposition_hall; // set absolute position to corresponding hall pattern.
 
 
     if(HAL_ADCEx_InjectedStart_IT(&hadc2) != HAL_OK)
@@ -698,14 +706,16 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 	//extrapolate recent rotor position
 	ui16_tim2_recent = __HAL_TIM_GET_COUNTER(&htim2); // read in timertics since last event
 	if (ui16_tim2_recent < ui16_timertics && !ui8_overflow_flag){ //prevent angle running away at standstill
-	flt_rotorposition_absolute = SPEC_ANGLE + flt_rotorposition_hall + ui16_tim2_recent*60/ui16_timertics; //interpolate angle between two hallevents by scaling timer2 tics
+
+		q31_rotorposition_absolute = q31_rotorposition_hall + ui16_tim2_recent*715827883/ui16_timertics; //interpolate angle between two hallevents by scaling timer2 tics
+
 	}
 	else
 	{ui8_overflow_flag=1;
 	}
 
 	// call FOC procedure
-	FOC_calculation(i16_ph1_current, i16_ph2_current, flt_rotorposition_absolute, 0);
+	FOC_calculation(i16_ph1_current, i16_ph2_current, q31_rotorposition_absolute, 0);
 /*
 	//set PWM
 	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, (uint16_t) switchtime[0]);
@@ -720,32 +730,32 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 	{
 	ui8_hall_state = GPIOA->IDR & 0b111; //Mask input register with Hall 1 - 3 bits
 
-	ui16_tim2_recent = __HAL_TIM_GET_COUNTER(&htim2); // read in timertics since last event
+	ui16_tim2_recent = __HAL_TIM_GET_COUNTER(&htim2); // read in timertics since last hall event
 
 	if(ui16_tim2_recent>100){//debounce
-		ui16_timertics = ui16_tim2_recent;
+		ui16_timertics = ui16_tim2_recent; //save timertics since last hall event
 	   __HAL_TIM_SET_COUNTER(&htim2,0); //reset tim2 counter
 	   ui8_overflow_flag=0;
 	}
 	switch (ui8_hall_state) //according to UM1052 Fig 57, Page 72, 120° setup
 	{
 	case 5: //0°
-		flt_rotorposition_hall = 0;
+		q31_rotorposition_hall = DEG_0 + SPEC_ANGLE;
 		break;
 	case 1: //60°
-		flt_rotorposition_hall = 60;
+		q31_rotorposition_hall = DEG_plus60 + SPEC_ANGLE;
 		break;
 	case 3: //120°
-		flt_rotorposition_hall = 120;
+		q31_rotorposition_hall = DEG_plus120 + SPEC_ANGLE;
 		break;
 	case 2: //180°
-		flt_rotorposition_hall = 180;
+		q31_rotorposition_hall = DEG_plus180 + SPEC_ANGLE; 	//overflow doesn't matter?!
 		break;
-	case 6: //240°
-		flt_rotorposition_hall = 240;
+	case 6: //240°-->-120°
+		q31_rotorposition_hall = DEG_minus120 + SPEC_ANGLE;
 		break;
-	case 4: //120°
-		flt_rotorposition_hall = 300;
+	case 4: //300°-->-60°
+		q31_rotorposition_hall = DEG_minus60 + SPEC_ANGLE;
 		break;
 
 	} // end case

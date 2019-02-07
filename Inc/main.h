@@ -85,7 +85,7 @@
 
 #define P_FACTOR_I_D 0.0001
 #define I_FACTOR_I_D 0.000001
-#define SPEC_ANGLE 20 // motor specific angle, refer to chapter 8.8.3 of UM1052
+#define SPEC_ANGLE 20L // motor specific angle, refer to chapter 8.8.3 of UM1052
 
 
 extern q31_t switchtime[3];
