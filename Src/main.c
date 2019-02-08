@@ -626,10 +626,10 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(LED_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : PAS_Pin */
+  /*Configure GPIO pin : PAS_Pin */ // für Debug PAS als Ausgang
   GPIO_InitStruct.Pin = PAS_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(PAS_GPIO_Port, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
@@ -664,9 +664,11 @@ static void Set_reg_channel(uint16_t ADC_Channel)
 void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
 {
 	  if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_4) {
-		  HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_2);
-		  SET_BIT(ADC1->CR2, (ADC_CR2_JSWSTART | ADC_CR2_JEXTTRIG));
-		//  if(HAL_ADCEx_InjectedStart_IT(&hadc1) != HAL_OK)
+		  //HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_2);
+		  HAL_GPIO_WritePin(PAS_GPIO_Port, PAS_Pin, GPIO_PIN_SET);
+		  HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
+		  //SET_BIT(ADC1->CR2, (ADC_CR2_JSWSTART | ADC_CR2_JEXTTRIG));
+		  if(HAL_ADCEx_InjectedStart_IT(&hadc1) != HAL_OK)
 		  	      	       {
 		  	      	          /* Counter Enable Error */
 		  	   //   	          Error_Handler();
@@ -716,6 +718,9 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 
 	// call FOC procedure
 	FOC_calculation(i16_ph1_current, i16_ph2_current, q31_rotorposition_absolute, 0);
+
+	HAL_GPIO_WritePin(PAS_GPIO_Port, PAS_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
 /*
 	//set PWM
 	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, (uint16_t) switchtime[0]);
