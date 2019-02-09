@@ -83,6 +83,8 @@ int16_t i16_ph2_current=0;
 int16_t i16_ph3_current=0;
 uint16_t i=0;
 uint8_t ui8_overflow_flag=0;
+uint8_t ui8_slowloop_flag=0;
+
 q31_t q31_rotorposition_absolute;
 q31_t q31_rotorposition_hall;
 int16_t i16_sinus=0;
@@ -131,7 +133,7 @@ static void Set_reg_channel(uint16_t ADC_Channel);
   * @retval None
   */
 int main(void)
-{
+	{
   /* USER CODE BEGIN 1 */
 
 
@@ -195,6 +197,8 @@ while(ui16_reg_adc_value>4096){
 }
   ADC2->JOFR1 = ui16_reg_adc_value;
 
+  Set_reg_channel(ADC_CHANNEL_3); //set regular ADC back to throttle input
+
  // Start Timer 1
     if(HAL_TIM_Base_Start_IT(&htim1) != HAL_OK)
       {
@@ -213,10 +217,10 @@ while(ui16_reg_adc_value>4096){
 
 
     TIM1->CCR1 = 1000; //set initial PWM values
-    TIM1->CCR2 = 950;
-    TIM1->CCR3 = 1050;
+    TIM1->CCR2 = 1000;
+    TIM1->CCR3 = 1000;
 
-    TIM1->CCR4 = 1000;
+    TIM1->CCR4 = 1900;
 
 
 
@@ -252,25 +256,25 @@ while(ui16_reg_adc_value>4096){
 
 
 
-
+	  	  if(ui8_slowloop_flag){
 	      // Start ADC1
 	      if(HAL_ADC_Start_IT(&hadc1) != HAL_OK)
 	        {
 	          /* Counter Enable Error */
 	          Error_Handler();
 	        }
-	      if(HAL_ADCEx_InjectedStart_IT(&hadc1) != HAL_OK)
-	      	       {
-	      	          /* Counter Enable Error */
-	      	          Error_Handler();
-	      	       }
-	  	  HAL_Delay(1000); //delay 100ms
-		  sprintf_(buffer, "current phase 1 %d, current phase 2 %d\r\n", i16_ph1_current , i16_ph2_current);
+
+	  	 // HAL_Delay(200); //delay 100ms
+		 // sprintf_(buffer, "%d, %d, %d\r\n", i16_ph1_current , i16_ph2_current, ui16_reg_adc_value-690);
+	  	  //temp3=ui16_reg_adc_value-710;
+	  	  sprintf_(buffer, "%d, %d, %d\r\n", temp1 , temp2, temp3);
 		  i=0;
 		  while (buffer[i] != '\0')
 		  {i++;}
 		  HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);
 
+		  ui8_slowloop_flag=0;
+	  	  }
 
 
   /* USER CODE END WHILE */
@@ -445,7 +449,7 @@ static void MX_TIM1_Init(void)
   htim1.Instance = TIM1;
   htim1.Init.Prescaler = 0;
   htim1.Init.CounterMode = TIM_COUNTERMODE_CENTERALIGNED1;
-  htim1.Init.Period = 2000;
+  htim1.Init.Period = 4096;
   htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim1.Init.RepetitionCounter = 0;
   htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
@@ -529,9 +533,9 @@ static void MX_TIM2_Init(void)
   TIM_MasterConfigTypeDef sMasterConfig;
 
   htim2.Instance = TIM2;
-  htim2.Init.Prescaler = 0;
+  htim2.Init.Prescaler = 4;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim2.Init.Period = 4000;
+  htim2.Init.Period = 64000;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
@@ -671,7 +675,7 @@ void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
 		  if(HAL_ADCEx_InjectedStart_IT(&hadc1) != HAL_OK)
 		  	      	       {
 		  	      	          /* Counter Enable Error */
-		  	   //   	          Error_Handler();
+		  	   	 //         Error_Handler();
 		  	      	       }
 
 
@@ -685,6 +689,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	if (htim == &htim2) {
 		//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_2);
 		ui32_tim2_counter++;
+		ui8_slowloop_flag=1;
 	}
 }
 
@@ -709,7 +714,7 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 	ui16_tim2_recent = __HAL_TIM_GET_COUNTER(&htim2); // read in timertics since last event
 	if (ui16_tim2_recent < ui16_timertics && !ui8_overflow_flag){ //prevent angle running away at standstill
 
-		q31_rotorposition_absolute = q31_rotorposition_hall + ui16_tim2_recent*715827883/ui16_timertics; //interpolate angle between two hallevents by scaling timer2 tics
+		q31_rotorposition_absolute = q31_rotorposition_hall + (q31_t) ui16_tim2_recent*715827883L/(q31_t) ui16_timertics; //interpolate angle between two hallevents by scaling timer2 tics
 
 	}
 	else
@@ -717,15 +722,17 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 	}
 
 	// call FOC procedure
-	FOC_calculation(i16_ph1_current, i16_ph2_current, q31_rotorposition_absolute, 0);
+	FOC_calculation(i16_ph1_current, i16_ph2_current, q31_rotorposition_absolute, ui16_reg_adc_value-1000);
+
+
+	//set PWM
+	TIM1->CCR1 =  (uint16_t) switchtime[0];
+	TIM1->CCR2 =  (uint16_t) switchtime[1];
+	TIM1->CCR3 =  (uint16_t) switchtime[2];
 
 	HAL_GPIO_WritePin(PAS_GPIO_Port, PAS_Pin, GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
-/*
-	//set PWM
-	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, (uint16_t) switchtime[0]);
-	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, (uint16_t) switchtime[1]);
-	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, (uint16_t) switchtime[2]);*/
+
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
