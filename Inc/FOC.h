@@ -12,7 +12,7 @@
 
 void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int16_t int16_i_q_target);
 
-// Maximum Voltage applying, a little less than 2^15
+// Maximum Voltage applying 2^11
 #define _U_MAX	2048L
 // Square Root of 3
 #define _SQRT3	1.73205081
@@ -27,6 +27,9 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 extern q31_t temp1;
 extern q31_t temp2;
 extern q31_t temp3;
+extern q31_t temp4;
+extern q31_t temp5;
+extern q31_t temp6;
 
 
 

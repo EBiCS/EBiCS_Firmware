@@ -15,6 +15,9 @@
 q31_t	temp1;
 q31_t	temp2;
 q31_t	temp3;
+q31_t	temp4;
+q31_t	temp5;
+q31_t	temp6;
 
 const q31_t _T = 4096;
 const float I_FACTOR_I_Q = 0.001;
@@ -40,6 +43,7 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 	 q31_t q31_u_beta = 0;
 	 q31_t q31_i_d = 0;
 	 q31_t q31_i_q = 0;
+	 static q31_t q31_i_q_fil = 0;
 	 q31_t q31_u_d = 0;
 	 q31_t q31_u_q = 0;
 	 q31_t sinevalue=0, cosinevalue=0;
@@ -53,29 +57,36 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 	// Park transformation
 	arm_park_q31(q31_i_alpha, q31_i_beta, &q31_i_d, &q31_i_q, sinevalue, cosinevalue);
 
+	q31_i_q_fil -= q31_i_q_fil>>4;
+	q31_i_q_fil += q31_i_q;
+
+
 	//Control iq
-	q31_u_q =  PI_control_i_q(q31_i_q, (q31_t) int16_i_q_target);
+	q31_u_q =  PI_control_i_q(q31_i_q_fil>>4, (q31_t) int16_i_q_target);
 
 	//Control id
-	q31_u_d =  PI_control_i_d(q31_i_d, 0); //control direct current to zero
+	q31_u_d =  0;// PI_control_i_d(q31_i_d, 0); //control direct current to zero
 
 
 	//limit voltage in rotating frame, refer chapter 4.10.1 of UM1052
-	q31_t	q31_u_abs = hypotf(q31_u_q,q31_u_d); //absolute value of U in static frame
+/*	q31_t	q31_u_abs = hypotf(q31_u_q,q31_u_d); //absolute value of U in static frame
 
 	if (q31_u_abs > _U_MAX){
 		q31_u_q = (q31_u_q*_U_MAX)/q31_u_abs;
 		q31_u_d = (q31_u_d*_U_MAX)/q31_u_abs;
-	}
+	}*/
 
 	//temp1 = q31_u_q;
 	//temp2 = q31_i_q;
 	//temp3 = q31_u_abs;
-
+	//temp4=q31_u_q;
+	//temp5=int16_i_q_target;
+	//temp6=q31_i_q_fil>>4;
 	//inverse Park transformation
 	arm_inv_park_q31(q31_u_d, q31_u_q, &q31_u_alpha, &q31_u_beta, sinevalue, cosinevalue);
 	//temp1 = q31_u_alpha;
 	//temp2 = q31_u_beta;
+
 
 	//call SVPWM calculation
 	svpwm(q31_u_alpha, q31_u_beta);
@@ -88,11 +99,11 @@ q31_t PI_control_i_q (q31_t ist, q31_t soll)
   q31_t q31_p; //proportional part
   static float flt_q_i = 0; //integral part
   static q31_t q31_q_dc = 0; // sum of proportional and integral part
-  q31_p=(soll - ist)*P_FACTOR_I_Q;
-  flt_q_i+=((float)(soll - ist))*I_FACTOR_I_Q;
+  q31_p = (soll - ist)*P_FACTOR_I_Q;
+  flt_q_i += ((float)(soll - ist))*I_FACTOR_I_Q;
 
   if ((q31_t)flt_q_i>_U_MAX) flt_q_i=(float)_U_MAX;
-  if ((q31_t)flt_q_i<-_U_MAX) flt_q_i=(float)-_U_MAX;
+  if ((q31_t)flt_q_i<0) flt_q_i = 0 ;
 
     //avoid too big steps in one loop run
   if (q31_p+(q31_t)flt_q_i>q31_q_dc+5) q31_q_dc+=5;
@@ -101,10 +112,10 @@ q31_t PI_control_i_q (q31_t ist, q31_t soll)
 
 
   if (q31_q_dc>_U_MAX) q31_q_dc = _U_MAX;
-  if (q31_q_dc<-_U_MAX) q31_q_dc = -_U_MAX;
-  temp1 = q31_p;
-  temp2 = (q31_t)(flt_q_i);
-  temp3 = q31_q_dc;
+  if (q31_q_dc<0) q31_q_dc = 0; // allow no negative voltage.
+  //temp1 = q31_p;
+  //temp2 = (q31_t)(flt_q_i);
+  //temp3 = q31_q_dc;
 
   return (q31_q_dc);
 }
@@ -133,7 +144,7 @@ void svpwm(q31_t q31_u_alpha, q31_t q31_u_beta)	{
 //SVPWM according to chapter 4.9 of UM1052
 
 
-	q31_t q31_U_alpha = (q31_t)((_SQRT3) *(float)_T * (float) q31_u_alpha);
+	q31_t q31_U_alpha = (q31_t)((float)_SQRT3 *(float)_T * (float) q31_u_alpha);
 	q31_t q31_U_beta = -_T * q31_u_beta;
 	q31_t X = q31_U_beta;
 	q31_t Y = (q31_U_alpha+q31_U_beta)>>1;
@@ -144,6 +155,7 @@ void svpwm(q31_t q31_u_alpha, q31_t q31_u_beta)	{
 		switchtime[0] = ((_T+X-Z)>>12) + (_T>>1); //right shift 11 for dividing by Umax (=2^11), right shift 1 for dividing by 2
 		switchtime[1] = switchtime[0] + (Z>>11);
 		switchtime[2] = switchtime[1] - (X>>11);
+		//temp4=1;
 	}
 
 	//Sector 2 & 5
@@ -151,6 +163,7 @@ void svpwm(q31_t q31_u_alpha, q31_t q31_u_beta)	{
 		switchtime[0] = ((_T+Y-Z)>>12) + (_T>>1);
 		switchtime[1] = switchtime[0] + (Z>>11);
 		switchtime[2] = switchtime[0] - (Y>>11);
+		//temp4=2;
 	}
 
 	//Sector 3 & 6
@@ -158,6 +171,7 @@ void svpwm(q31_t q31_u_alpha, q31_t q31_u_beta)	{
 		switchtime[0] = ((_T+Y-X)>>12) + (_T>>1);
 		switchtime[2] = switchtime[0] - (Y>>11);
 		switchtime[1] = switchtime[2] + (X>>11);
+		//temp4=3;
 	}
 
 

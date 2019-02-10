@@ -70,7 +70,7 @@ DMA_HandleTypeDef hdma_usart1_rx;
 /* Private variables ---------------------------------------------------------*/
 
 uint32_t ui32_counter=0;
-uint32_t ui32_tim2_counter=0;
+uint32_t ui32_tim1_counter=0;
 uint8_t ui8_hall_state=0;
 uint16_t ui16_tim2_recent=0;
 uint16_t ui16_timertics=0; 					//timertics between two hall events for 60° interpolation
@@ -79,7 +79,9 @@ uint16_t ui16_ph1_offset=0;
 uint16_t ui16_ph2_offset=0;
 uint16_t ui16_ph3_offset=0;
 int16_t i16_ph1_current=0;
+int16_t i16_ph1_current_filter=0;
 int16_t i16_ph2_current=0;
+int16_t i16_ph2_current_filter=0;
 int16_t i16_ph3_current=0;
 uint16_t i=0;
 uint8_t ui8_overflow_flag=0;
@@ -133,7 +135,7 @@ static void Set_reg_channel(uint16_t ADC_Channel);
   * @retval None
   */
 int main(void)
-	{
+{
   /* USER CODE BEGIN 1 */
 
 
@@ -170,7 +172,7 @@ int main(void)
   HAL_ADCEx_Calibration_Start(&hadc2);
 
   //Configure Regular Channel for reading Phase 1 current offset
-  Set_reg_channel(ADC_CHANNEL_4);
+  Set_reg_channel(ADC_CHANNEL_6);
     //Start ADC conversation
   if(HAL_ADC_Start_IT(&hadc1) != HAL_OK)
   	        {
@@ -216,11 +218,11 @@ while(ui16_reg_adc_value>4096){
       HAL_TIM_PWM_Start_IT(&htim1, TIM_CHANNEL_4);
 
 
-    TIM1->CCR1 = 1000; //set initial PWM values
-    TIM1->CCR2 = 1000;
-    TIM1->CCR3 = 1000;
+    TIM1->CCR1 = 2048; //set initial PWM values
+    TIM1->CCR2 = 2048;
+    TIM1->CCR3 = 2048;
 
-    TIM1->CCR4 = 1900;
+    TIM1->CCR4 = 2100;
 
 
 
@@ -256,7 +258,7 @@ while(ui16_reg_adc_value>4096){
 
 
 
-	  	  if(ui8_slowloop_flag){
+	  	  if(ui32_tim1_counter>800){
 	      // Start ADC1
 	      if(HAL_ADC_Start_IT(&hadc1) != HAL_OK)
 	        {
@@ -266,14 +268,20 @@ while(ui16_reg_adc_value>4096){
 
 	  	 // HAL_Delay(200); //delay 100ms
 		 // sprintf_(buffer, "%d, %d, %d\r\n", i16_ph1_current , i16_ph2_current, ui16_reg_adc_value-690);
-	  	  //temp3=ui16_reg_adc_value-710;
-	  	  sprintf_(buffer, "%d, %d, %d\r\n", temp1 , temp2, temp3);
+	      i16_ph1_current_filter-=i16_ph1_current_filter>>4;
+	      i16_ph1_current_filter+=i16_ph1_current;
+	      i16_ph2_current_filter-=i16_ph2_current_filter>>4;
+	      i16_ph2_current_filter+=i16_ph2_current;
+	     temp1=i16_ph1_current_filter>>4;
+	  	 temp2=i16_ph2_current_filter>>4;
+	      //temp3=ui16_reg_adc_value-710;
+	  	  sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n", temp1 , temp2, temp3, temp4, temp5, temp6);
 		  i=0;
 		  while (buffer[i] != '\0')
 		  {i++;}
 		  HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);
 
-		  ui8_slowloop_flag=0;
+		  ui32_tim1_counter=0;
 	  	  }
 
 
@@ -376,7 +384,7 @@ static void MX_ADC1_Init(void)
 
     /**Configure Injected Channel 
     */
-  sConfigInjected.InjectedChannel = ADC_CHANNEL_4;
+  sConfigInjected.InjectedChannel = ADC_CHANNEL_6;
   sConfigInjected.InjectedRank = ADC_INJECTED_RANK_1;
   sConfigInjected.InjectedNbrOfConversion = 1;
   sConfigInjected.InjectedSamplingTime = ADC_SAMPLETIME_1CYCLE_5;
@@ -533,7 +541,7 @@ static void MX_TIM2_Init(void)
   TIM_MasterConfigTypeDef sMasterConfig;
 
   htim2.Instance = TIM2;
-  htim2.Init.Prescaler = 4;
+  htim2.Init.Prescaler = 2;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim2.Init.Period = 64000;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -668,6 +676,7 @@ static void Set_reg_channel(uint16_t ADC_Channel)
 void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
 {
 	  if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_4) {
+		  ui32_tim1_counter++;
 		  //HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_2);
 		  HAL_GPIO_WritePin(PAS_GPIO_Port, PAS_Pin, GPIO_PIN_SET);
 		  HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
@@ -688,8 +697,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 	if (htim == &htim2) {
 		//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_2);
-		ui32_tim2_counter++;
-		ui8_slowloop_flag=1;
+		//ui32_tim2_counter++;
+
 	}
 }
 
@@ -708,6 +717,8 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 	//read in phase currents
 	i16_ph1_current = HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1);
 	i16_ph2_current = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1);
+
+
 	ui32_counter++; //for debugging
 
 	//extrapolate recent rotor position
@@ -720,15 +731,22 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 	else
 	{ui8_overflow_flag=1;
 	}
+    temp3=(q31_t)((float)q31_rotorposition_absolute/2147483648.0*180.0);
+
+    //q31_rotorposition_absolute=1610612736L;
 
 	// call FOC procedure
-	FOC_calculation(i16_ph1_current, i16_ph2_current, q31_rotorposition_absolute, ui16_reg_adc_value-1000);
+	FOC_calculation(i16_ph1_current, i16_ph2_current, q31_rotorposition_absolute, ui16_reg_adc_value-800);
 
 
 	//set PWM
 	TIM1->CCR1 =  (uint16_t) switchtime[0];
 	TIM1->CCR2 =  (uint16_t) switchtime[1];
 	TIM1->CCR3 =  (uint16_t) switchtime[2];
+
+	temp4=(uint16_t) switchtime[0];
+	temp5=(uint16_t) switchtime[1];
+	temp6=(uint16_t) switchtime[2];
 
 	HAL_GPIO_WritePin(PAS_GPIO_Port, PAS_Pin, GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
