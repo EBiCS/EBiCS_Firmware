@@ -46,7 +46,9 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 	 static q31_t q31_i_q_fil = 0;
 	 q31_t q31_u_d = 0;
 	 q31_t q31_u_q = 0;
-	 q31_t sinevalue=0, cosinevalue=0;
+	 q31_t sinevalue=0, cosinevalue = 0;
+
+
 
 
 	// Clark transformation
@@ -63,7 +65,7 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 
 	//Control iq
 	q31_u_q =  PI_control_i_q(q31_i_q_fil>>4, (q31_t) int16_i_q_target);
-
+	q31_u_q = 500;
 	//Control id
 	q31_u_d =  0;// PI_control_i_d(q31_i_d, 0); //control direct current to zero
 

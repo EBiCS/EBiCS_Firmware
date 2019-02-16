@@ -93,6 +93,7 @@ int16_t i16_sinus=0;
 int16_t i16_cosinus=0;
 char buffer[100];
 q31_t switchtime[3];
+q31_t q31_startpoint_conversion = 2048;
 
 //Rotor angle scaled from degree to q31 for arm_math. -180°-->-2^31, 0°-->0, +180°-->+2^31
 const q31_t DEG_0 = 0;
@@ -218,12 +219,12 @@ while(ui16_reg_adc_value>4096){
       HAL_TIM_PWM_Start_IT(&htim1, TIM_CHANNEL_4);
 
 
-    TIM1->CCR1 = 2048; //set initial PWM values
-    TIM1->CCR2 = 2048;
-    TIM1->CCR3 = 2048;
+    TIM1->CCR1 = 1701; //set initial PWM values
+    TIM1->CCR2 = 1701;
+    TIM1->CCR3 = 2394;
 
-    TIM1->CCR4 = 2100;
-
+    TIM1->CCR4 = 4090; //ADC sampling at beginning of counting down (just after middle of PWM-Cycle)
+//PWM Mode 1: Interrupt at counting down.
 
 
     // Start Timer 2
@@ -233,15 +234,27 @@ while(ui16_reg_adc_value>4096){
            Error_Handler();
          }
 
+
+      // HAL_TIM_GenerateEvent(&htim1, TIM_EVENTSOURCE_CC4);
+       __HAL_LOCK(&htim1);
        SET_BIT(TIM1->EGR, TIM_EGR_CC4G);//capture compare ch 4 event
        SET_BIT(TIM1->EGR, TIM_EGR_TG);//Trigger generation
+       SET_BIT(TIM1->BDTR, TIM_AUTOMATICOUTPUT_ENABLE);//Trigger generation
+
+       __HAL_UNLOCK(&htim1);
        SET_BIT(ADC1->CR2, ADC_CR2_JEXTTRIG);//external trigger enable
+
 
 
 
     HAL_GPIO_EXTI_Callback(GPIO_PIN_0); //read in initial rotor position
     q31_rotorposition_absolute = q31_rotorposition_hall; // set absolute position to corresponding hall pattern.
 
+    if(HAL_ADCEx_InjectedStart_IT(&hadc1) != HAL_OK)
+    		  	      	       {
+    		  	      	          /* Counter Enable Error */
+    		  	   	          Error_Handler();
+    		  	      	       }
 
     if(HAL_ADCEx_InjectedStart_IT(&hadc2) != HAL_OK)
    {
@@ -272,9 +285,9 @@ while(ui16_reg_adc_value>4096){
 	      i16_ph1_current_filter+=i16_ph1_current;
 	      i16_ph2_current_filter-=i16_ph2_current_filter>>4;
 	      i16_ph2_current_filter+=i16_ph2_current;
-	     temp1=i16_ph1_current_filter>>4;
-	  	 temp2=i16_ph2_current_filter>>4;
-	      //temp3=ui16_reg_adc_value-710;
+	     temp1=i16_ph1_current;//i16_ph1_current_filter>>4;
+	  	 temp2=i16_ph2_current;//i16_ph2_current_filter>>4;
+	     temp3=ui16_reg_adc_value;
 	  	  sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n", temp1 , temp2, temp3, temp4, temp5, temp6);
 		  i=0;
 		  while (buffer[i] != '\0')
@@ -388,7 +401,7 @@ static void MX_ADC1_Init(void)
   sConfigInjected.InjectedRank = ADC_INJECTED_RANK_1;
   sConfigInjected.InjectedNbrOfConversion = 1;
   sConfigInjected.InjectedSamplingTime = ADC_SAMPLETIME_1CYCLE_5;
-  sConfigInjected.ExternalTrigInjecConv = ADC_INJECTED_SOFTWARE_START;
+  sConfigInjected.ExternalTrigInjecConv = ADC_INJECTED_SOFTWARE_START;//ADC_EXTERNALTRIGINJECCONV_T1_CC4;
   sConfigInjected.AutoInjectedConv = DISABLE;
   sConfigInjected.InjectedDiscontinuousConvMode = DISABLE;
   sConfigInjected.InjectedOffset = 0;
@@ -541,7 +554,7 @@ static void MX_TIM2_Init(void)
   TIM_MasterConfigTypeDef sMasterConfig;
 
   htim2.Instance = TIM2;
-  htim2.Init.Prescaler = 2;
+  htim2.Init.Prescaler = 16;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim2.Init.Period = 64000;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -731,9 +744,9 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 	else
 	{ui8_overflow_flag=1;
 	}
-    temp3=(q31_t)((float)q31_rotorposition_absolute/2147483648.0*180.0);
+    temp4=(q31_t)((float)q31_rotorposition_hall/2147483648.0*180.0);
 
-    //q31_rotorposition_absolute=1610612736L;
+   // q31_rotorposition_absolute=-536870912L;
 
 	// call FOC procedure
 	FOC_calculation(i16_ph1_current, i16_ph2_current, q31_rotorposition_absolute, ui16_reg_adc_value-800);
@@ -743,10 +756,13 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 	TIM1->CCR1 =  (uint16_t) switchtime[0];
 	TIM1->CCR2 =  (uint16_t) switchtime[1];
 	TIM1->CCR3 =  (uint16_t) switchtime[2];
+	//TIM1->CCR4 =  (uint16_t) q31_startpoint_conversion;
 
-	temp4=(uint16_t) switchtime[0];
-	temp5=(uint16_t) switchtime[1];
-	temp6=(uint16_t) switchtime[2];
+	//temp4=(uint16_t) switchtime[0];
+	//temp5=(uint16_t) switchtime[1];
+	//temp6=(uint16_t) switchtime[2];
+
+	temp5 ++;
 
 	HAL_GPIO_WritePin(PAS_GPIO_Port, PAS_Pin, GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
@@ -761,6 +777,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 	ui8_hall_state = GPIOA->IDR & 0b111; //Mask input register with Hall 1 - 3 bits
 
 	ui16_tim2_recent = __HAL_TIM_GET_COUNTER(&htim2); // read in timertics since last hall event
+	temp6=ui16_tim2_recent;
 
 	if(ui16_tim2_recent>100){//debounce
 		ui16_timertics = ui16_tim2_recent; //save timertics since last hall event
