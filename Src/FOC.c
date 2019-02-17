@@ -44,12 +44,14 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 	 q31_t q31_i_d = 0;
 	 q31_t q31_i_q = 0;
 	 static q31_t q31_i_q_fil = 0;
+	 static q31_t q31_i_d_fil = 0;
 	 q31_t q31_u_d = 0;
 	 q31_t q31_u_q = 0;
 	 q31_t sinevalue=0, cosinevalue = 0;
 
 
-
+	 temp5=(q31_t)int16_i_as;
+	 temp6=(q31_t)int16_i_bs;
 
 	// Clark transformation
 	arm_clarke_q31((q31_t)int16_i_as, (q31_t)int16_i_bs, &q31_i_alpha, &q31_i_beta);
@@ -59,13 +61,16 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 	// Park transformation
 	arm_park_q31(q31_i_alpha, q31_i_beta, &q31_i_d, &q31_i_q, sinevalue, cosinevalue);
 
-	q31_i_q_fil -= q31_i_q_fil>>4;
+	q31_i_q_fil -= q31_i_q_fil>>12;
 	q31_i_q_fil += q31_i_q;
+	q31_i_d_fil -= q31_i_d_fil>>12;
+	q31_i_d_fil += q31_i_d;
 
-
+	temp1 = q31_i_q>>12;
+	temp2 = q31_i_d>>12;
 	//Control iq
-	q31_u_q =  PI_control_i_q(q31_i_q_fil>>4, (q31_t) int16_i_q_target);
-	q31_u_q = 500;
+	q31_u_q =  PI_control_i_q(q31_i_q_fil>>12, (q31_t) int16_i_q_target);
+	q31_u_q = 800;
 	//Control id
 	q31_u_d =  0;// PI_control_i_d(q31_i_d, 0); //control direct current to zero
 
@@ -82,8 +87,7 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 	//temp2 = q31_i_q;
 	//temp3 = q31_u_abs;
 	//temp4=q31_u_q;
-	//temp5=int16_i_q_target;
-	//temp6=q31_i_q_fil>>4;
+
 	//inverse Park transformation
 	arm_inv_park_q31(q31_u_d, q31_u_q, &q31_u_alpha, &q31_u_beta, sinevalue, cosinevalue);
 	//temp1 = q31_u_alpha;

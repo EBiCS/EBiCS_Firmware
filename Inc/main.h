@@ -85,7 +85,7 @@
 
 #define P_FACTOR_I_D 1L
 #define I_FACTOR_I_D 1L
-#define SPEC_ANGLE 20L // motor specific angle, refer to chapter 8.8.3 of UM1052
+#define SPEC_ANGLE 357913941L; //357913941 298261617L // 30° BionX IGH3 motor specific angle, refer to chapter 8.8.3 of UM1052 180° maped to 2^31
 
 
 extern q31_t switchtime[3];

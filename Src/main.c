@@ -93,6 +93,8 @@ int16_t i16_sinus=0;
 int16_t i16_cosinus=0;
 char buffer[100];
 q31_t switchtime[3];
+static int8_t angle[256];
+static int8_t angle_old;
 q31_t q31_startpoint_conversion = 2048;
 
 //Rotor angle scaled from degree to q31 for arm_math. -180°-->-2^31, 0°-->0, +180°-->+2^31
@@ -173,7 +175,7 @@ int main(void)
   HAL_ADCEx_Calibration_Start(&hadc2);
 
   //Configure Regular Channel for reading Phase 1 current offset
-  Set_reg_channel(ADC_CHANNEL_6);
+  Set_reg_channel(ADC_CHANNEL_4);
     //Start ADC conversation
   if(HAL_ADC_Start_IT(&hadc1) != HAL_OK)
   	        {
@@ -285,14 +287,15 @@ while(ui16_reg_adc_value>4096){
 	      i16_ph1_current_filter+=i16_ph1_current;
 	      i16_ph2_current_filter-=i16_ph2_current_filter>>4;
 	      i16_ph2_current_filter+=i16_ph2_current;
-	     temp1=i16_ph1_current;//i16_ph1_current_filter>>4;
-	  	 temp2=i16_ph2_current;//i16_ph2_current_filter>>4;
+	     //temp1=i16_ph1_current;//i16_ph1_current_filter>>4;
+	  	// temp2=i16_ph2_current;//i16_ph2_current_filter>>4;
 	     temp3=ui16_reg_adc_value;
 	  	  sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n", temp1 , temp2, temp3, temp4, temp5, temp6);
 		  i=0;
 		  while (buffer[i] != '\0')
 		  {i++;}
-		  HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);
+		 HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);
+		 //HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&angle, 256);
 
 		  ui32_tim1_counter=0;
 	  	  }
@@ -397,7 +400,7 @@ static void MX_ADC1_Init(void)
 
     /**Configure Injected Channel 
     */
-  sConfigInjected.InjectedChannel = ADC_CHANNEL_6;
+  sConfigInjected.InjectedChannel = ADC_CHANNEL_4;
   sConfigInjected.InjectedRank = ADC_INJECTED_RANK_1;
   sConfigInjected.InjectedNbrOfConversion = 1;
   sConfigInjected.InjectedSamplingTime = ADC_SAMPLETIME_1CYCLE_5;
@@ -554,7 +557,7 @@ static void MX_TIM2_Init(void)
   TIM_MasterConfigTypeDef sMasterConfig;
 
   htim2.Instance = TIM2;
-  htim2.Init.Prescaler = 16;
+  htim2.Init.Prescaler = 128;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim2.Init.Period = 64000;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -732,17 +735,24 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 	i16_ph2_current = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1);
 
 
-	ui32_counter++; //for debugging
+
 
 	//extrapolate recent rotor position
 	ui16_tim2_recent = __HAL_TIM_GET_COUNTER(&htim2); // read in timertics since last event
 	if (ui16_tim2_recent < ui16_timertics && !ui8_overflow_flag){ //prevent angle running away at standstill
+		//ui32_counter++;
+		q31_rotorposition_absolute = q31_rotorposition_hall - (q31_t) (715827883.0*((float)ui16_tim2_recent/(float)ui16_timertics)); //interpolate angle between two hallevents by scaling timer2 tics
 
-		q31_rotorposition_absolute = q31_rotorposition_hall + (q31_t) ui16_tim2_recent*715827883L/(q31_t) ui16_timertics; //interpolate angle between two hallevents by scaling timer2 tics
+	/*	if(q31_rotorposition_absolute>>24!=angle_old){
+		angle[ui32_counter++] = q31_rotorposition_absolute>>24;
+		angle_old = q31_rotorposition_absolute>>24;
+		if(ui32_counter>255)ui32_counter=0;
 
+		}*/
 	}
 	else
 	{ui8_overflow_flag=1;
+	temp6=1;
 	}
     temp4=(q31_t)((float)q31_rotorposition_hall/2147483648.0*180.0);
 
@@ -762,7 +772,7 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 	//temp5=(uint16_t) switchtime[1];
 	//temp6=(uint16_t) switchtime[2];
 
-	temp5 ++;
+
 
 	HAL_GPIO_WritePin(PAS_GPIO_Port, PAS_Pin, GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
@@ -777,13 +787,15 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 	ui8_hall_state = GPIOA->IDR & 0b111; //Mask input register with Hall 1 - 3 bits
 
 	ui16_tim2_recent = __HAL_TIM_GET_COUNTER(&htim2); // read in timertics since last hall event
-	temp6=ui16_tim2_recent;
+
 
 	if(ui16_tim2_recent>100){//debounce
 		ui16_timertics = ui16_tim2_recent; //save timertics since last hall event
 	   __HAL_TIM_SET_COUNTER(&htim2,0); //reset tim2 counter
 	   ui8_overflow_flag=0;
+	   temp6=0;
 	}
+	//temp6=ui16_timertics;
 	switch (ui8_hall_state) //according to UM1052 Fig 57, Page 72, 120° setup
 	{
 	case 5: //0°
