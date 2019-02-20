@@ -168,42 +168,14 @@ int main(void)
 
   MX_ADC1_Init();
   MX_ADC2_Init();
+
+  /* USER CODE BEGIN 2 */
+  SET_BIT(ADC1->CR2, ADC_CR2_JEXTTRIG);//external trigger enable
+  __HAL_ADC_ENABLE_IT(&hadc1,ADC_IT_JEOC);
+  HAL_ADC_Start_IT(&hadc1);
+  HAL_ADC_Start_IT(&hadc2);
   MX_TIM1_Init(); //Hier die Reihenfolge getauscht!
   MX_TIM2_Init();
-  /* USER CODE BEGIN 2 */
-
-  HAL_ADCEx_Calibration_Start(&hadc1);
-  HAL_ADCEx_Calibration_Start(&hadc2);
-
-  //Configure Regular Channel for reading Phase 1 current offset
-  Set_reg_channel(ADC_CHANNEL_4);
-    //Start ADC conversation
-  if(HAL_ADC_Start_IT(&hadc1) != HAL_OK)
-  	        {
-  	          /* Counter Enable Error */
-  	          Error_Handler();
-  	        }
-  //wait for end of conversion
-while(ui16_reg_adc_value>4096){
-}
-  ADC1->JOFR1 = ui16_reg_adc_value;
- // ADC2->JOFR1 = ui16_reg_adc_value;
-  ui16_reg_adc_value=5000;
-
-  //Configure Regular Channel for reading Phase 2 current offset
-  Set_reg_channel(ADC_CHANNEL_5);
-    //Start ADC conversation
-  if(HAL_ADC_Start_IT(&hadc1) != HAL_OK)
-  	        {
-  	          /* Counter Enable Error */
-  	          Error_Handler();
-  	        }
-  //wait for end of conversion
-while(ui16_reg_adc_value>4096){
-}
-  ADC2->JOFR1 = ui16_reg_adc_value;
-
-  Set_reg_channel(ADC_CHANNEL_3); //set regular ADC back to throttle input
 
  // Start Timer 1
     if(HAL_TIM_Base_Start_IT(&htim1) != HAL_OK)
@@ -237,7 +209,7 @@ while(ui16_reg_adc_value>4096){
            Error_Handler();
          }
 
-
+/*
       // HAL_TIM_GenerateEvent(&htim1, TIM_EVENTSOURCE_CC4);
        __HAL_LOCK(&htim1);
        SET_BIT(TIM1->EGR, TIM_EGR_CC4G);//capture compare ch 4 event
@@ -247,23 +219,13 @@ while(ui16_reg_adc_value>4096){
        __HAL_UNLOCK(&htim1);
        SET_BIT(ADC1->CR2, ADC_CR2_JEXTTRIG);//external trigger enable
 
-
+*/
 
 
     HAL_GPIO_EXTI_Callback(GPIO_PIN_0); //read in initial rotor position
     q31_rotorposition_absolute = q31_rotorposition_hall; // set absolute position to corresponding hall pattern.
 
-    if(HAL_ADCEx_InjectedStart_IT(&hadc1) != HAL_OK)
-    		  	      	       {
-    		  	      	          /* Counter Enable Error */
-    		  	   	          Error_Handler();
-    		  	      	       }
 
-    if(HAL_ADCEx_InjectedStart_IT(&hadc2) != HAL_OK)
-   {
-      /* Counter Enable Error */
-      Error_Handler();
-   }
     printf_("Lishui FOC v0.0 \r\n");
   /* USER CODE END 2 */
 
@@ -275,12 +237,7 @@ while(ui16_reg_adc_value>4096){
 
 
 	  	  if(ui32_tim1_counter>800){
-	      // Start ADC1
-	      if(HAL_ADC_Start_IT(&hadc1) != HAL_OK)
-	        {
-	          /* Counter Enable Error */
-	          Error_Handler();
-	        }
+
 
 	  	 // HAL_Delay(200); //delay 100ms
 		 // sprintf_(buffer, "%d, %d, %d\r\n", i16_ph1_current , i16_ph2_current, ui16_reg_adc_value-690);
@@ -288,15 +245,16 @@ while(ui16_reg_adc_value>4096){
 	      i16_ph1_current_filter+=i16_ph1_current;
 	      i16_ph2_current_filter-=i16_ph2_current_filter>>4;
 	      i16_ph2_current_filter+=i16_ph2_current;
-	     //temp1=i16_ph1_current;//i16_ph1_current_filter>>4;
-	  	// temp2=i16_ph2_current;//i16_ph2_current_filter>>4;
-	     temp3=ui16_reg_adc_value;
+	     temp3=i16_ph1_current;//i16_ph1_current_filter>>4;
+	  	 temp4=i16_ph2_current;//i16_ph2_current_filter>>4;
+	     //temp3=ui16_reg_adc_value;
 	  	  sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n", temp1 , temp2, temp3, temp4, temp5, temp6);
 		  i=0;
 		  while (buffer[i] != '\0')
 		  {i++;}
 		 HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);
 		 //HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&angle, 256);
+
 
 		  ui32_tim1_counter=0;
 	  	  }
@@ -405,7 +363,7 @@ static void MX_ADC1_Init(void)
   sConfigInjected.InjectedRank = ADC_INJECTED_RANK_1;
   sConfigInjected.InjectedNbrOfConversion = 1;
   sConfigInjected.InjectedSamplingTime = ADC_SAMPLETIME_1CYCLE_5;
-  sConfigInjected.ExternalTrigInjecConv = ADC_EXTERNALTRIGINJECCONV_T1_TRGO;//ADC_EXTERNALTRIGINJECCONV_T1_CC4; Hier bin ich nicht sicher ob Trigger out oder direkt CC4
+  sConfigInjected.ExternalTrigInjecConv = ADC_EXTERNALTRIGINJECCONV_T1_CC4;//ADC_EXTERNALTRIGINJECCONV_T1_TRGO; Hier bin ich nicht sicher ob Trigger out oder direkt CC4
   sConfigInjected.AutoInjectedConv = DISABLE; //muß aus sein
   sConfigInjected.InjectedDiscontinuousConvMode = DISABLE;
   sConfigInjected.InjectedOffset = 0;
@@ -698,12 +656,7 @@ void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
 		  //HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_2);
 		  HAL_GPIO_WritePin(PAS_GPIO_Port, PAS_Pin, GPIO_PIN_SET);
 		  HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
-		  //SET_BIT(ADC1->CR2, (ADC_CR2_JSWSTART | ADC_CR2_JEXTTRIG));
-		  if(HAL_ADCEx_InjectedStart_IT(&hadc1) != HAL_OK)
-		  	      	       {
-		  	      	          /* Counter Enable Error */
-		  	   	 //         Error_Handler();
-		  	      	       }
+
 
 
 	  }
@@ -778,6 +731,7 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 
 	HAL_GPIO_WritePin(PAS_GPIO_Port, PAS_Pin, GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
+
 
 }
 
