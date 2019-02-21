@@ -170,8 +170,10 @@ int main(void)
   MX_ADC2_Init();
 
   /* USER CODE BEGIN 2 */
-  SET_BIT(ADC1->CR2, ADC_CR2_JEXTTRIG);//external trigger enable
-  __HAL_ADC_ENABLE_IT(&hadc1,ADC_IT_JEOC);
+ SET_BIT(ADC1->CR2, ADC_CR2_JEXTTRIG);//external trigger enable
+ __HAL_ADC_ENABLE_IT(&hadc1,ADC_IT_JEOC);
+ SET_BIT(ADC2->CR2, ADC_CR2_JEXTTRIG);//external trigger enable
+ __HAL_ADC_ENABLE_IT(&hadc2,ADC_IT_JEOC);
   HAL_ADC_Start_IT(&hadc1);
   HAL_ADC_Start_IT(&hadc2);
   MX_TIM1_Init(); //Hier die Reihenfolge getauscht!
@@ -341,7 +343,7 @@ static void MX_ADC1_Init(void)
   hadc1.Init.ScanConvMode = ADC_SCAN_ENABLE; //Scan muß für getriggerte Wandlung gesetzt sein
   hadc1.Init.ContinuousConvMode = DISABLE;
   hadc1.Init.DiscontinuousConvMode = DISABLE;
-  hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
+  hadc1.Init.ExternalTrigConv = ADC_EXTERNALTRIGCONV_T1_CC1;
   hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
   hadc1.Init.NbrOfConversion = 1;
   if (HAL_ADC_Init(&hadc1) != HAL_OK)
@@ -363,7 +365,7 @@ static void MX_ADC1_Init(void)
   sConfigInjected.InjectedRank = ADC_INJECTED_RANK_1;
   sConfigInjected.InjectedNbrOfConversion = 1;
   sConfigInjected.InjectedSamplingTime = ADC_SAMPLETIME_1CYCLE_5;
-  sConfigInjected.ExternalTrigInjecConv = ADC_EXTERNALTRIGINJECCONV_T1_CC4;//ADC_EXTERNALTRIGINJECCONV_T1_TRGO; Hier bin ich nicht sicher ob Trigger out oder direkt CC4
+  sConfigInjected.ExternalTrigInjecConv = ADC_EXTERNALTRIGINJECCONV_T1_CC4; // Hier bin ich nicht sicher ob Trigger out oder direkt CC4
   sConfigInjected.AutoInjectedConv = DISABLE; //muß aus sein
   sConfigInjected.InjectedDiscontinuousConvMode = DISABLE;
   sConfigInjected.InjectedOffset = 0;
@@ -694,6 +696,7 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 
 	//extrapolate recent rotor position
 	ui16_tim2_recent = __HAL_TIM_GET_COUNTER(&htim2); // read in timertics since last event
+	temp5=__HAL_TIM_GET_COUNTER(&htim1);
 	if (ui16_tim2_recent < ui16_timertics && !ui8_overflow_flag){ //prevent angle running away at standstill
 		//ui32_counter++;
 		q31_rotorposition_absolute = q31_rotorposition_hall - (q31_t) (715827883.0*((float)ui16_tim2_recent/(float)ui16_timertics)); //interpolate angle between two hallevents by scaling timer2 tics
@@ -707,7 +710,7 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 	}
 	else
 	{ui8_overflow_flag=1;
-	temp6=1;
+
 	}
     temp4=(q31_t)((float)q31_rotorposition_hall/2147483648.0*180.0);
 
@@ -749,7 +752,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 		ui16_timertics = ui16_tim2_recent; //save timertics since last hall event
 	   __HAL_TIM_SET_COUNTER(&htim2,0); //reset tim2 counter
 	   ui8_overflow_flag=0;
-	   temp6=0;
+
 	}
 	//temp6=ui16_timertics;
 	switch (ui8_hall_state) //according to UM1052 Fig 57, Page 72, 120° setup
