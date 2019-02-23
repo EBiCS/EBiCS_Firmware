@@ -1,4 +1,4 @@
-This project is just for personal backup yet. There's no meaningful function implemented.
+This project is just for personal backup yet. There's only very basic functionality implemented.
 
 Helpful links:
 

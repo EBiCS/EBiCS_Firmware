@@ -135,7 +135,7 @@ q31_t PI_control_i_d (q31_t ist, q31_t soll)
 
     if (q31_d_dc>_U_MAX>>2) q31_d_dc = _U_MAX>>4;
     if (q31_d_dc<-(_U_MAX>>4)) q31_d_dc =- (_U_MAX>>4);
-    temp6=q31_d_dc;
+
     return (q31_d_dc);
   }
 

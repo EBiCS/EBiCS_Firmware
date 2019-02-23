@@ -705,7 +705,7 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 
 	//extrapolate recent rotor position
 	ui16_tim2_recent = __HAL_TIM_GET_COUNTER(&htim2); // read in timertics since last event
-	//temp5=__HAL_TIM_GET_COUNTER(&htim1);
+	temp6=__HAL_TIM_GET_COUNTER(&htim1);
 	if (ui16_tim2_recent < ui16_timertics && !ui8_overflow_flag){ //prevent angle running away at standstill
 		//ui32_counter++;
 		q31_rotorposition_absolute = q31_rotorposition_hall - (q31_t) (715827883.0*((float)ui16_tim2_recent/(float)ui16_timertics)); //interpolate angle between two hallevents by scaling timer2 tics

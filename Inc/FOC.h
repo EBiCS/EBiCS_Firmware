@@ -13,7 +13,7 @@
 void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int16_t int16_i_q_target);
 
 // Maximum Voltage applying 2^11
-#define _U_MAX	2048L
+#define _U_MAX	1950L
 // Square Root of 3
 #define _SQRT3	1.73205081
 // Pi divided by 3
