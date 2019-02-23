@@ -74,18 +74,21 @@ uint32_t ui32_tim1_counter=0;
 uint8_t ui8_hall_state=0;
 uint16_t ui16_tim2_recent=0;
 uint16_t ui16_timertics=0; 					//timertics between two hall events for 60° interpolation
-uint16_t ui16_reg_adc_value=5000;
+uint16_t ui16_reg_adc_value;
+uint32_t ui32_reg_adc_value_filter;
 uint16_t ui16_ph1_offset=0;
 uint16_t ui16_ph2_offset=0;
 uint16_t ui16_ph3_offset=0;
 int16_t i16_ph1_current=0;
-int16_t i16_ph1_current_filter=0;
+
 int16_t i16_ph2_current=0;
 int16_t i16_ph2_current_filter=0;
 int16_t i16_ph3_current=0;
 uint16_t i=0;
+uint16_t j=0;
 uint8_t ui8_overflow_flag=0;
 uint8_t ui8_slowloop_flag=0;
+uint8_t ui8_print_flag=0;
 
 q31_t q31_rotorposition_absolute;
 q31_t q31_rotorposition_hall;
@@ -93,7 +96,7 @@ int16_t i16_sinus=0;
 int16_t i16_cosinus=0;
 char buffer[100];
 q31_t switchtime[3];
-static int8_t angle[256];
+static int8_t angle[256][4];
 static int8_t angle_old;
 q31_t q31_startpoint_conversion = 2048;
 
@@ -241,24 +244,27 @@ int main(void)
 	  	  if(ui32_tim1_counter>800){
 
 
-	  	 // HAL_Delay(200); //delay 100ms
-		 // sprintf_(buffer, "%d, %d, %d\r\n", i16_ph1_current , i16_ph2_current, ui16_reg_adc_value-690);
-	      i16_ph1_current_filter-=i16_ph1_current_filter>>4;
-	      i16_ph1_current_filter+=i16_ph1_current;
-	      i16_ph2_current_filter-=i16_ph2_current_filter>>4;
-	      i16_ph2_current_filter+=i16_ph2_current;
-	     temp3=i16_ph1_current;//i16_ph1_current_filter>>4;
-	  	 temp4=i16_ph2_current;//i16_ph2_current_filter>>4;
-	     //temp3=ui16_reg_adc_value;
-	  	  sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n", temp1 , temp2, temp3, temp4, temp5, temp6);
+
+	  	 sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n", temp1 , temp2, temp3, temp4, temp5, temp6);
 		  i=0;
 		  while (buffer[i] != '\0')
 		  {i++;}
 		 HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);
-		 //HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&angle, 256);
+	  	/* if (ui8_print_flag==1){
+	  		ui8_print_flag=2;
 
+	  		 for(j=0; j<255; j++){
+	  		sprintf_(buffer, "%d, %d, %d, %d\r\n", angle[j][0] , angle[j][1], angle[j][2], angle[j][3]);
+		  i=0;
+		  while (buffer[i] != '\0')
+		  {i++;}
+		 HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);
+		 HAL_Delay(5);
 
+	  		 }
+	  	 }*/
 		  ui32_tim1_counter=0;
+		  ui8_print_flag=0;
 	  	  }
 
 
@@ -368,7 +374,7 @@ static void MX_ADC1_Init(void)
   sConfigInjected.ExternalTrigInjecConv = ADC_EXTERNALTRIGINJECCONV_T1_CC4; // Hier bin ich nicht sicher ob Trigger out oder direkt CC4
   sConfigInjected.AutoInjectedConv = DISABLE; //muß aus sein
   sConfigInjected.InjectedDiscontinuousConvMode = DISABLE;
-  sConfigInjected.InjectedOffset = 0;
+  sConfigInjected.InjectedOffset = 1900;
   HAL_ADC_Stop(&hadc1); //ADC muß gestoppt sein, damit Triggerquelle gesetzt werden kann.
   if (HAL_ADCEx_InjectedConfigChannel(&hadc1, &sConfigInjected) != HAL_OK)
   {
@@ -416,7 +422,7 @@ static void MX_ADC2_Init(void)
   sConfigInjected.ExternalTrigInjecConv = ADC_INJECTED_SOFTWARE_START;
   sConfigInjected.AutoInjectedConv = DISABLE;
   sConfigInjected.InjectedDiscontinuousConvMode = DISABLE;
-  sConfigInjected.InjectedOffset = 0;
+  sConfigInjected.InjectedOffset = 1860;
   if (HAL_ADCEx_InjectedConfigChannel(&hadc2, &sConfigInjected) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
@@ -678,7 +684,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 // regular ADC callback
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 {
-	ui16_reg_adc_value = HAL_ADC_GetValue(hadc);
+	ui32_reg_adc_value_filter -= ui32_reg_adc_value_filter>>4;
+	ui32_reg_adc_value_filter += HAL_ADC_GetValue(hadc);
+	ui16_reg_adc_value = ui32_reg_adc_value_filter>>4;
+	temp5=ui16_reg_adc_value-665;
 }
 
 //injected ADC
@@ -696,28 +705,37 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 
 	//extrapolate recent rotor position
 	ui16_tim2_recent = __HAL_TIM_GET_COUNTER(&htim2); // read in timertics since last event
-	temp5=__HAL_TIM_GET_COUNTER(&htim1);
+	//temp5=__HAL_TIM_GET_COUNTER(&htim1);
 	if (ui16_tim2_recent < ui16_timertics && !ui8_overflow_flag){ //prevent angle running away at standstill
 		//ui32_counter++;
 		q31_rotorposition_absolute = q31_rotorposition_hall - (q31_t) (715827883.0*((float)ui16_tim2_recent/(float)ui16_timertics)); //interpolate angle between two hallevents by scaling timer2 tics
 
+//debugging
 	/*	if(q31_rotorposition_absolute>>24!=angle_old){
-		angle[ui32_counter++] = q31_rotorposition_absolute>>24;
-		angle_old = q31_rotorposition_absolute>>24;
-		if(ui32_counter>255)ui32_counter=0;
+			angle_old = q31_rotorposition_absolute>>24;
+			if(ui8_print_flag==0){
+				angle[ui32_counter++][0] = q31_rotorposition_absolute>>24;
+				angle[ui32_counter][1] = temp5;
+				angle[ui32_counter][2] = temp6;
+				angle[ui32_counter][3] = temp1;
 
+				if(ui32_counter>255){
+						ui32_counter=0;
+						ui8_print_flag=1;
+					}
+			}
 		}*/
 	}
 	else
 	{ui8_overflow_flag=1;
 
 	}
-    temp4=(q31_t)((float)q31_rotorposition_hall/2147483648.0*180.0);
+    //temp4=(q31_t)((float)q31_rotorposition_hall/2147483648.0*180.0);
 
    // q31_rotorposition_absolute=-536870912L;
 
 	// call FOC procedure
-	FOC_calculation(i16_ph1_current, i16_ph2_current, q31_rotorposition_absolute, ui16_reg_adc_value-800);
+	FOC_calculation(i16_ph1_current, i16_ph2_current, q31_rotorposition_absolute, ui16_reg_adc_value-665);
 
 
 	//set PWM
