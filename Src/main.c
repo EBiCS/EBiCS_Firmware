@@ -40,6 +40,8 @@
 #include "main.h"
 #include "stm32f1xx_hal.h"
 
+
+
 /* USER CODE BEGIN Includes */
 
 // Lishui BLCD FOC Open Source Firmware
@@ -50,7 +52,8 @@
 
 #include "print.h"
 #include "FOC.h"
-//#include "math.h"
+#include "display_kingmeter.h"
+#include "config.h"
 #include <arm_math.h>
 /* USER CODE END Includes */
 
@@ -95,6 +98,7 @@ q31_t q31_rotorposition_hall;
 int16_t i16_sinus=0;
 int16_t i16_cosinus=0;
 char buffer[100];
+
 q31_t switchtime[3];
 static int8_t angle[256][4];
 static int8_t angle_old;
@@ -107,6 +111,16 @@ const q31_t DEG_plus120= 1431655765;
 const q31_t DEG_plus180= 2147483647;
 const q31_t DEG_minus60= -715827883;
 const q31_t DEG_minus120= -1431655765;
+
+//variables for display communication
+
+KINGMETER_t KM;
+int16_t battery_percent_fromcapacity = 11; 			//Calculation of used watthours not implemented yet
+int16_t wheel_time = 1000;							//duration of one wheel rotation for speed calculation
+int16_t current_display;							//pepared battery current for display
+int16_t throttle_stat;								//throttle value, not linked to ADC-Value yet
+int16_t poti_stat;									//scaled assist level
+
 
 
 /* USER CODE END PV */
@@ -127,6 +141,8 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
 static void Set_reg_channel(uint16_t ADC_Channel);
+void kingmeter_update(void);
+int32_t map (int32_t x, int32_t in_min, int32_t in_max, int32_t out_min, int32_t out_max);
 
 
 /* USER CODE END PFP */
@@ -226,6 +242,10 @@ int main(void)
 
 */
 
+       //Init KingMeter Display
+       KingMeter_Init (&KM);
+
+
 
     HAL_GPIO_EXTI_Callback(GPIO_PIN_0); //read in initial rotor position
     q31_rotorposition_absolute = q31_rotorposition_hall; // set absolute position to corresponding hall pattern.
@@ -249,7 +269,7 @@ int main(void)
 		  i=0;
 		  while (buffer[i] != '\0')
 		  {i++;}
-		 HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);
+		// HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);
 	  	/* if (ui8_print_flag==1){
 	  		ui8_print_flag=2;
 
@@ -798,6 +818,101 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 
 	} //end if
 
+}
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *UartHandle)
+{
+
+	kingmeter_update();
+}
+
+void kingmeter_update(void)
+{
+    /* Prepare Tx parameters */
+
+    if(battery_percent_fromcapacity > 10)
+    {
+        KM.Tx.Battery = KM_BATTERY_NORMAL;
+    }
+    else
+    {
+        KM.Tx.Battery = KM_BATTERY_LOW;
+    }
+
+    if(wheel_time < KM_MAX_WHEELTIME)
+    {
+        // Adapt wheeltime to match displayed speedo value according config.h setting
+        KM.Tx.Wheeltime_ms = (uint16_t) (((float) wheel_time) * (((float) KM.Settings.WheelSize_mm) / (wheel_circumference * 1000)));
+    }
+    else
+    {
+        KM.Tx.Wheeltime_ms = KM_MAX_WHEELTIME;
+    }
+
+    KM.Tx.Error = KM_ERROR_NONE;
+
+    KM.Tx.Current_x10 = (uint16_t) (current_display * 10);
+
+
+    /* Receive Rx parameters/settings and send Tx parameters */
+    KingMeter_Service(&KM);
+
+
+    /* Apply Rx parameters */
+
+    #ifdef SUPPORT_LIGHTS_SWITCH
+    if(KM.Rx.Headlight == KM_HEADLIGHT_OFF)
+    {
+        digitalWrite(lights_pin, 0);
+    }
+    else // KM_HEADLIGHT_ON, KM_HEADLIGHT_LOW, KM_HEADLIGHT_HIGH
+    {
+        digitalWrite(lights_pin, 1);
+    }
+    #endif
+
+    if(KM.Rx.PushAssist == KM_PUSHASSIST_ON)
+    {
+        #if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_901U)
+        throttle_stat = map(KM.Rx.AssistLevel, 0, 255, 0,1023);
+        #else
+        throttle_stat = 200;
+        #endif
+    }
+    else
+    {
+        throttle_stat = 0;
+        poti_stat     = map(KM.Rx.AssistLevel, 0, 255, 0,1023);
+    }
+
+
+    /* Shutdown in case we received no message in the last 3s */
+/*
+    if((millis() - KM.LastRx) > 3000)
+    {
+        poti_stat     = 0;
+        throttle_stat = 0;
+        #if HARDWARE_REV >=2
+        save_shutdown();
+        #endif
+    }*/
+}
+
+int32_t map (int32_t x, int32_t in_min, int32_t in_max, int32_t out_min, int32_t out_max)
+{
+  // if input is smaller/bigger than expected return the min/max out ranges value
+  if (x < in_min)
+    return out_min;
+  else if (x > in_max)
+    return out_max;
+
+  // map the input to the output range.
+  // round up if mapping bigger ranges to smaller ranges
+  else  if ((in_max - in_min) > (out_max - out_min))
+    return (x - in_min) * (out_max - out_min + 1) / (in_max - in_min + 1) + out_min;
+  // round down if mapping smaller ranges to bigger ranges
+  else
+    return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
 /* USER CODE END 4 */
