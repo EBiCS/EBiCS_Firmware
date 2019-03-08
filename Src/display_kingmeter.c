@@ -126,6 +126,7 @@ void KingMeter_Init (KINGMETER_t* KM_ctx)
      {
  	   Error_Handler();
      }
+   // HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, KM_MAX_RXBUFF);
 }
 
 
@@ -200,8 +201,8 @@ static void KM_618U_Service(KINGMETER_t* KM_ctx)
 
      //   KM_ctx->SerialPort->write(TxBuff[7]);                           // Send XOR CheckSum
 
-     // Buffer über DMA senden
-        HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuff, 8); 				//hier 8 oder 7?
+
+
     }
 
 
@@ -226,6 +227,10 @@ static void KM_618U_Service(KINGMETER_t* KM_ctx)
     // Message received completely
     if(KM_ctx->RxState == RXSTATE_DONE)
     {
+
+        // Buffer über DMA senden
+        HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuff, 8);
+
         KM_ctx->RxState = RXSTATE_STARTCODE;
 
         // Decode PAS level - Display sets PAS-level to 0 when overspeed detected!
