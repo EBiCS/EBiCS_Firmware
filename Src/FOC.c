@@ -19,7 +19,7 @@ q31_t	temp4;
 q31_t	temp5;
 q31_t	temp6;
 
-const q31_t _T = 4096;
+const q31_t _T = 2048;
 const float I_FACTOR_I_Q = 0.1;
 
 
@@ -60,18 +60,18 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 	// Park transformation
 	arm_park_q31(q31_i_alpha, q31_i_beta, &q31_i_d, &q31_i_q, sinevalue, cosinevalue);
 
-	q31_i_q_fil -= q31_i_q_fil>>4;
+	q31_i_q_fil -= q31_i_q_fil>>3;
 	q31_i_q_fil += q31_i_q;
-	q31_i_d_fil -= q31_i_d_fil>>4;
+	q31_i_d_fil -= q31_i_d_fil>>3;
 	q31_i_d_fil += q31_i_d;
 
-	temp1 = q31_i_q_fil>>4;
-	temp2 = q31_i_d_fil>>4;
+	temp1 = q31_i_q_fil>>3;
+	temp2 = q31_i_d_fil>>3;
 	//Control iq
-	q31_u_q =  PI_control_i_q(q31_i_q_fil>>4, (q31_t) int16_i_q_target);
+	q31_u_q =  PI_control_i_q(q31_i_q_fil>>3, (q31_t) int16_i_q_target);
 
 	//Control id
-	q31_u_d = -PI_control_i_d(q31_i_d_fil>>4, 0); //control direct current to zero
+	q31_u_d = -PI_control_i_d(q31_i_d_fil>>3, 0); //control direct current to zero
 	temp3 = q31_u_q;
 	temp4 = q31_u_d;
 	//limit voltage in rotating frame, refer chapter 4.10.1 of UM1052
@@ -152,7 +152,7 @@ void svpwm(q31_t q31_u_alpha, q31_t q31_u_beta)	{
 
 	//Sector 1 & 4
 	if ((Y>=0 && Z<0 && X>0)||(Y < 0 && Z>=0 && X<=0)){
-		switchtime[0] = ((_T+X-Z)>>12) + (_T>>1); //right shift 11 for dividing by Umax (=2^11), right shift 1 for dividing by 2
+		switchtime[0] = ((_T+X-Z)>>12) + (_T>>1); //right shift 11 for dividing by peroid (=2^11), right shift 1 for dividing by 2
 		switchtime[1] = switchtime[0] + (Z>>11);
 		switchtime[2] = switchtime[1] - (X>>11);
 		//temp4=1;

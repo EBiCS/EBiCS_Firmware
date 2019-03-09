@@ -92,6 +92,7 @@ uint16_t j=0;
 uint8_t ui8_overflow_flag=0;
 uint8_t ui8_slowloop_flag=0;
 uint8_t ui8_print_flag=0;
+uint8_t ui8_UART_flag=0;
 
 q31_t q31_rotorposition_absolute;
 q31_t q31_rotorposition_hall;
@@ -215,11 +216,11 @@ int main(void)
       HAL_TIM_PWM_Start_IT(&htim1, TIM_CHANNEL_4);
 
 
-    TIM1->CCR1 = 1701; //set initial PWM values
-    TIM1->CCR2 = 1701;
-    TIM1->CCR3 = 2394;
+    TIM1->CCR1 = 1024; //set initial PWM values
+    TIM1->CCR2 = 1024;
+    TIM1->CCR3 = 1024;
 
-    TIM1->CCR4 = 4090; //ADC sampling at beginning of counting down (just after middle of PWM-Cycle)
+    TIM1->CCR4 = 2045; //ADC sampling at beginning of counting down (just after middle of PWM-Cycle)
 //PWM Mode 1: Interrupt at counting down.
 
 
@@ -260,9 +261,10 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-
-
-
+	  if(ui8_UART_flag){
+	  kingmeter_update();
+	  ui8_UART_flag=0;
+	  }
 	  	  if(ui32_tim1_counter>800){
 
 
@@ -463,7 +465,7 @@ static void MX_TIM1_Init(void)
   htim1.Instance = TIM1;
   htim1.Init.Prescaler = 0;
   htim1.Init.CounterMode = TIM_COUNTERMODE_CENTERALIGNED1;
-  htim1.Init.Period = 4096;
+  htim1.Init.Period = 2048;
   htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim1.Init.RepetitionCounter = 0;
   htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
@@ -757,7 +759,7 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
    // q31_rotorposition_absolute=-536870912L;
 
 	// call FOC procedure
-	FOC_calculation(i16_ph1_current, i16_ph2_current, q31_rotorposition_absolute, ui16_reg_adc_value-665);
+	FOC_calculation(i16_ph1_current, i16_ph2_current, q31_rotorposition_absolute, (KM.Rx.AssistLevel-1)*50  ); //   ui16_reg_adc_value-665 (KM.Rx.AssistLevel-1)*50
 
 
 	//set PWM
@@ -824,8 +826,8 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *UartHandle)
 {
+	ui8_UART_flag=1;
 
-	kingmeter_update();
 }
 
 void kingmeter_update(void)

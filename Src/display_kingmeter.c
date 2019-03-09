@@ -234,7 +234,7 @@ static void KM_618U_Service(KINGMETER_t* KM_ctx)
         KM_ctx->RxState = RXSTATE_STARTCODE;
 
         // Decode PAS level - Display sets PAS-level to 0 when overspeed detected!
-        KM_ctx->Rx.AssistLevel = map(KM_ctx->RxBuff[1] & 0x07, 0, 5, 0, 255);
+        KM_ctx->Rx.AssistLevel = KM_ctx->RxBuff[1] & 0x07;
 
         // Decode Headlight status
         KM_ctx->Rx.Headlight = (KM_ctx->RxBuff[1] & 0x80) >> 7;         // KM_HEADLIGHT_OFF / KM_HEADLIGHT_ON
