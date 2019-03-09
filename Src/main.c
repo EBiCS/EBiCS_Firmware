@@ -846,16 +846,16 @@ void kingmeter_update(void)
     if(wheel_time < KM_MAX_WHEELTIME)
     {
         // Adapt wheeltime to match displayed speedo value according config.h setting
-        KM.Tx.Wheeltime_ms = (uint16_t) (((float) wheel_time) * (((float) KM.Settings.WheelSize_mm) / (wheel_circumference * 1000)));
+        KM.Tx.Wheeltime_ms = ui16_timertics<<1;
     }
     else
     {
         KM.Tx.Wheeltime_ms = KM_MAX_WHEELTIME;
     }
-
+    KM.Tx.Wheeltime_ms = ui16_timertics;
     KM.Tx.Error = KM_ERROR_NONE;
 
-    KM.Tx.Current_x10 = (uint16_t) (current_display * 10);
+    KM.Tx.Current_x10 = (uint16_t) (temp1);
 
 
     /* Receive Rx parameters/settings and send Tx parameters */

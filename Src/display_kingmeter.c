@@ -159,7 +159,7 @@ void KingMeter_Service(KINGMETER_t* KM_ctx)
 static void KM_618U_Service(KINGMETER_t* KM_ctx)
 {
     uint8_t  i;
-    uint8_t TxBuff[KM_MAX_TXBUFF];
+    static uint8_t TxBuff[KM_MAX_TXBUFF];
     KM_ctx->RxState = RXSTATE_SENDTXMSG;
 
 // Send message to display
@@ -229,7 +229,8 @@ static void KM_618U_Service(KINGMETER_t* KM_ctx)
     {
 
         // Buffer über DMA senden
-        HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuff, 8);
+        HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuff, KM_MAX_TXBUFF);
+       // HAL_Delay(6);
 
         KM_ctx->RxState = RXSTATE_STARTCODE;
 

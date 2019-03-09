@@ -20,7 +20,7 @@ q31_t	temp5;
 q31_t	temp6;
 
 const q31_t _T = 2048;
-const float I_FACTOR_I_Q = 0.1;
+const float I_FACTOR_I_Q = 0.05;
 
 
 
