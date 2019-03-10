@@ -72,6 +72,12 @@
 #define LED_GPIO_Port GPIOB
 #define PAS_Pin GPIO_PIN_8
 #define PAS_GPIO_Port GPIOB
+#define Speed_EXTI5_Pin GPIO_PIN_5
+#define Speed_EXTI5_GPIO_Port GPIOB
+#define Speed_EXTI5_EXTI_IRQn EXTI9_5_IRQn
+#define PAS_EXTI8_Pin GPIO_PIN_8
+#define PAS_EXTI8_GPIO_Port GPIOB
+#define PAS_EXTI8_EXTI_IRQn EXTI9_5_IRQn
 
 /* ########################## Assert Selection ############################## */
 /**

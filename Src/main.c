@@ -72,7 +72,7 @@ DMA_HandleTypeDef hdma_usart1_rx;
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
 
-uint32_t ui32_counter=0;
+
 uint32_t ui32_tim1_counter=0;
 uint8_t ui8_hall_state=0;
 uint16_t ui16_tim2_recent=0;
@@ -93,6 +93,13 @@ uint8_t ui8_overflow_flag=0;
 uint8_t ui8_slowloop_flag=0;
 uint8_t ui8_print_flag=0;
 uint8_t ui8_UART_flag=0;
+uint8_t ui8_PAS_flag=0;
+uint8_t ui8_SPEED_flag=0;
+uint32_t uint32_PAS_counter= PAS_TIMEOUT+1;
+uint32_t uint32_SPEED_counter=32000;
+uint32_t uint32_PAS=32000;
+uint32_t uint32_SPEED=32000;
+uint16_t uint16_current_target=0;
 
 q31_t q31_rotorposition_absolute;
 q31_t q31_rotorposition_hall;
@@ -101,9 +108,9 @@ int16_t i16_cosinus=0;
 char buffer[100];
 
 q31_t switchtime[3];
-static int8_t angle[256][4];
-static int8_t angle_old;
-q31_t q31_startpoint_conversion = 2048;
+//static int8_t angle[256][4];
+//static int8_t angle_old;
+//q31_t q31_startpoint_conversion = 2048;
 
 //Rotor angle scaled from degree to q31 for arm_math. -180°-->-2^31, 0°-->0, +180°-->+2^31
 const q31_t DEG_0 = 0;
@@ -265,6 +272,30 @@ int main(void)
 	  kingmeter_update();
 	  ui8_UART_flag=0;
 	  }
+
+	  //PAS signal processing
+	  if(ui8_PAS_flag){
+		  uint32_PAS = uint32_PAS_counter;
+		  uint32_PAS_counter =0;
+		  ui8_PAS_flag=0;
+	  }
+
+	  //SPEED signal processing
+	  if(ui8_SPEED_flag){
+		  uint32_SPEED = uint32_SPEED_counter;
+		  uint32_SPEED_counter =0;
+		  ui8_SPEED_flag=0;
+	  }
+
+	  //throttle and PAS current target setting
+	  if ((KM.Rx.AssistLevel-1)*50>ui16_reg_adc_value-THROTTE_OFFSET)
+
+	  {
+		  if (uint32_PAS_counter<PAS_TIMEOUT) uint16_current_target= (KM.Rx.AssistLevel-1)*50;
+		  else uint16_current_target= 0;
+	  }
+	  else uint16_current_target = ui16_reg_adc_value-THROTTE_OFFSET;
+	  //print values for debugging
 	  	  if(ui32_tim1_counter>800){
 
 
@@ -647,10 +678,17 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(LED_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : PAS_Pin */ // für Debug PAS als Ausgang
-  GPIO_InitStruct.Pin = PAS_Pin;
+ /* GPIO_InitStruct.Pin = PAS_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(PAS_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(PAS_GPIO_Port, &GPIO_InitStruct);*/
+
+  /*Configure GPIO pins : Speed_EXTI5_Pin PAS_EXTI8_Pin */
+  GPIO_InitStruct.Pin = Speed_EXTI5_Pin|PAS_EXTI8_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
 
   /* EXTI interrupt init*/
   HAL_NVIC_SetPriority(EXTI0_IRQn, 0, 0);
@@ -661,6 +699,9 @@ static void MX_GPIO_Init(void)
 
   HAL_NVIC_SetPriority(EXTI2_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(EXTI2_IRQn);
+
+  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
 
 }
 
@@ -685,12 +726,10 @@ void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
 {
 	  if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_4) {
 		  ui32_tim1_counter++;
-		  //HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_2);
-		  HAL_GPIO_WritePin(PAS_GPIO_Port, PAS_Pin, GPIO_PIN_SET);
+		  uint32_PAS_counter++;
+		  uint32_SPEED_counter++;
+		  //for oszi-check of used time in FOC procedere
 		  HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
-
-
-
 	  }
 
 }
@@ -756,10 +795,9 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 	}
     //temp4=(q31_t)((float)q31_rotorposition_hall/2147483648.0*180.0);
 
-   // q31_rotorposition_absolute=-536870912L;
 
 	// call FOC procedure
-	FOC_calculation(i16_ph1_current, i16_ph2_current, q31_rotorposition_absolute, (KM.Rx.AssistLevel-1)*50  ); //   ui16_reg_adc_value-665 (KM.Rx.AssistLevel-1)*50
+	FOC_calculation(i16_ph1_current, i16_ph2_current, q31_rotorposition_absolute, uint16_current_target  );
 
 
 	//set PWM
@@ -774,7 +812,6 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 
 
 
-	HAL_GPIO_WritePin(PAS_GPIO_Port, PAS_Pin, GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
 
 
@@ -821,6 +858,18 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 	} // end case
 
 	} //end if
+
+	//PAS processing
+	if(GPIO_Pin == PAS_EXTI8_Pin)
+	{
+		ui8_PAS_flag = 1;
+	}
+
+	//Speed processing
+	if(GPIO_Pin == Speed_EXTI5_Pin)
+	{
+		ui8_SPEED_flag = 1;
+	}
 
 }
 

@@ -9,5 +9,7 @@
 #define DISPLAY_TYPE DISPLAY_TYPE_KINGMETER_618U
 
 #define wheel_circumference 2.202 //wheel circumference in m
+#define THROTTE_OFFSET 670
+#define PAS_TIMEOUT 3600
 
 #endif
