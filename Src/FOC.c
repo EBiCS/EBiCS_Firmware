@@ -5,6 +5,7 @@
  *      Author: Stancecoke
  */
 #include "main.h"
+#include "config.h"
 #include "FOC.h"
 #include "stm32f1xx_hal.h"
 #include <arm_math.h>
@@ -20,7 +21,7 @@ q31_t	temp5;
 q31_t	temp6;
 
 const q31_t _T = 2048;
-const float I_FACTOR_I_Q = 0.05;
+
 
 
 

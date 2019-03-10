@@ -99,6 +99,8 @@ uint32_t uint32_PAS_counter= PAS_TIMEOUT+1;
 uint32_t uint32_SPEED_counter=32000;
 uint32_t uint32_PAS=32000;
 uint32_t uint32_SPEED=32000;
+uint16_t uint16_mapped_throttle=0;
+uint16_t uint16_mapped_PAS=0;
 uint16_t uint16_current_target=0;
 
 q31_t q31_rotorposition_absolute;
@@ -288,13 +290,15 @@ int main(void)
 	  }
 
 	  //throttle and PAS current target setting
-	  if ((KM.Rx.AssistLevel-1)*50>ui16_reg_adc_value-THROTTE_OFFSET)
+	  uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, (PH_CURRENT_MAX*(int32_t)(KM.Rx.AssistLevel-1))>>2, 0);
+	  uint16_mapped_throttle = map(ui16_reg_adc_value, THROTTE_OFFSET ,4096, 0, PH_CURRENT_MAX);
+	  if (uint16_mapped_PAS>uint16_mapped_throttle)
 
 	  {
-		  if (uint32_PAS_counter<PAS_TIMEOUT) uint16_current_target= (KM.Rx.AssistLevel-1)*50;
+		  if (uint32_PAS_counter < PAS_TIMEOUT) uint16_current_target= uint16_mapped_PAS;
 		  else uint16_current_target= 0;
 	  }
-	  else uint16_current_target = ui16_reg_adc_value-THROTTE_OFFSET;
+	  else uint16_current_target = uint16_mapped_throttle;
 	  //print values for debugging
 	  	  if(ui32_tim1_counter>800){
 

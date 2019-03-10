@@ -87,12 +87,10 @@
 /* #define USE_FULL_ASSERT    1U */
 
 /* USER CODE BEGIN Private defines */
-#define P_FACTOR_I_Q 1L
 
 
-#define P_FACTOR_I_D 1L
-#define I_FACTOR_I_D 1L
-#define SPEC_ANGLE -715827882L//715827882 536870912 357913941L; //357913941 298261617 119304647L // 30° BionX IGH3 motor specific angle, refer to chapter 8.8.3 of UM1052 180° maped to 2^31
+
+
 int32_t map (int32_t x, int32_t in_min, int32_t in_max, int32_t out_min, int32_t out_max);
 
 extern q31_t switchtime[3];
