@@ -63,6 +63,9 @@ static void KM_618U_Service(KINGMETER_t* KM_ctx);
 static void KM_901U_Service(KINGMETER_t* KM_ctx);
 #endif
 
+uint8_t  lowByte(uint16_t word);
+uint8_t  highByte(uint16_t word);
+
 uint8_t pas_tolerance  = 0;
 uint8_t wheel_magnets = 1;
 uint8_t vcutoff = 30;
@@ -276,7 +279,7 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
     uint8_t  TxBuff[KM_MAX_TXBUFF];
     uint8_t  TxCnt;
 
-
+/* all of this not necessary, as message is received by DMA
     // Search for Start Code
     if(KM_ctx->RxState == RXSTATE_STARTCODE)
     {
@@ -316,7 +319,7 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
 
 
             if(KM_ctx->RxCnt == (5 + KM_ctx->RxBuff[4] + 4))            // Check for reception of complete message
-            {
+            {*/
                 // Verify CheckSum
                 CheckSum = 0x0000;
                 for(i=1; i<(5+KM_ctx->RxBuff[4]); i++)
@@ -324,7 +327,7 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
                     CheckSum = CheckSum + KM_ctx->RxBuff[i];            // Calculate CheckSum
                 }
 
-                if((lowByte(CheckSum) == KM_ctx->RxBuff[i]) && (highByte(CheckSum) == KM_ctx->RxBuff[i+1]))
+                if((lowByte(CheckSum)) == KM_ctx->RxBuff[i] && (highByte(CheckSum)) == KM_ctx->RxBuff[i+1]) //low-byte and high-byte
                 {
                     KM_ctx->RxState = RXSTATE_DONE;
                 }
@@ -333,10 +336,10 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
                     KM_ctx->RxState = RXSTATE_STARTCODE;                // Invalid CheckSum, ignore message
                 }
 
-                break;
-            }
-        }
-    }
+
+            //}
+       // }
+  //  }
 
 
     // Message received completely
@@ -421,24 +424,35 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
         {
             CheckSum = 0x0000;
 
-            KM_ctx->SerialPort->write(TxBuff[0]);                       // Send StartCode
+           // KM_ctx->SerialPort->write(TxBuff[0]);                       // Send StartCode
 
             for(i=1; i<TxCnt; i++)
             {
-                KM_ctx->SerialPort->write(TxBuff[i]);                   // Send TxBuff[1..x]
+                //KM_ctx->SerialPort->write(TxBuff[i]);                   // Send TxBuff[1..x]
                 CheckSum = CheckSum + TxBuff[i];                        // Calculate CheckSum 
             }
+            TxBuff[TxCnt+1]=lowByte(CheckSum);							// Low Byte of checksum
+            TxBuff[TxCnt+2]=highByte(CheckSum);								// High Byte of checksum
+           // KM_ctx->SerialPort->write(lowByte(CheckSum));               // Send CheckSum low
+           // KM_ctx->SerialPort->write(highByte(CheckSum));              // Send CheckSum high
+            TxBuff[TxCnt+3] = 0x0D;
+            TxBuff[TxCnt+4] = 0x0A;
+           // KM_ctx->SerialPort->write(0x0D);                            // Send CR
+           // KM_ctx->SerialPort->write(0x0A);                            // Send LF
 
-            KM_ctx->SerialPort->write(lowByte(CheckSum));               // Send CheckSum low
-            KM_ctx->SerialPort->write(highByte(CheckSum));              // Send CheckSum high
-
-            KM_ctx->SerialPort->write(0x0D);                            // Send CR
-            KM_ctx->SerialPort->write(0x0A);                            // Send LF
+            HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuff, TxCnt+4);
         }
     }
 }
 #endif
 
+uint8_t lowByte(uint16_t word){
+	return word & 0xFF;
+}
+
+uint8_t  highByte(uint16_t word){
+	return word >>8;
+}
 
 
 #endif // (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
