@@ -896,19 +896,22 @@ void kingmeter_update(void)
         KM.Tx.Battery = KM_BATTERY_LOW;
     }
 
-    if(wheel_time < KM_MAX_WHEELTIME)
+    if(__HAL_TIM_GET_COUNTER(&htim2) < 8000)
     {
         // Adapt wheeltime to match displayed speedo value according config.h setting
-        KM.Tx.Wheeltime_ms = ui16_timertics<<1;
+        KM.Tx.Wheeltime_ms = 64000/(ui16_tim2_recent>>4);
     }
     else
     {
-        KM.Tx.Wheeltime_ms = KM_MAX_WHEELTIME;
+        KM.Tx.Wheeltime_ms = 0;
     }
-    KM.Tx.Wheeltime_ms = ui16_timertics;
+
+
+    //KM.Tx.Wheeltime_ms = 25;
+
     KM.Tx.Error = KM_ERROR_NONE;
 
-    KM.Tx.Current_x10 = (uint16_t) (temp1);
+    KM.Tx.Current_x10 = (uint16_t) (temp1>>2);
 
 
     /* Receive Rx parameters/settings and send Tx parameters */
