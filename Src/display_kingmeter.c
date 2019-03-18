@@ -382,11 +382,12 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
                     TxBuff[4]  = 0x00;                                  // State data (only UnderVoltage bit has influence on display)
                 }
 
-                TxBuff[5]  = lowByte (KM_ctx->Tx.Current_x10);          // Current low
-                TxBuff[6]  = highByte(KM_ctx->Tx.Current_x10);          // Current high
+                TxBuff[5]  = (uint8_t) ((KM_ctx->Tx.Current_x10 * 3) / 10);        			// Current low Strom in 1/3 Ampere, nur ein Byte
+               // TxBuff[6]  = highByte(KM_ctx->Tx.Current_x10);          // Current high
+
+                TxBuff[6]  = highByte(KM_ctx->Tx.Wheeltime_ms);         // WheelSpeed high Hinweis
                 TxBuff[7]  = lowByte (KM_ctx->Tx.Wheeltime_ms);         // WheelSpeed low
-                TxBuff[8]  = highByte(KM_ctx->Tx.Wheeltime_ms);         // WheelSpeed high
-               // TxBuff[10] = KM_ctx->Tx.Error;                          // Error
+                TxBuff[8] = KM_ctx->Tx.Error;                          // Error
 
                 TxCnt = 9;
                 break;
