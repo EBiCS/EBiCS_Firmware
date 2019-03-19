@@ -290,7 +290,15 @@ int main(void)
 	  }
 
 	  //throttle and PAS current target setting
-	  uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, (PH_CURRENT_MAX*(int32_t)(KM.Rx.AssistLevel-1))>>2, 0);
+
+#if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_618U)
+	  uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, (PH_CURRENT_MAX*(int32_t)(KM.Rx.AssistLevel-1))>>2, 0); // level in range 1...5
+#endif
+
+#if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_901U)
+	  uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, (PH_CURRENT_MAX*(int32_t)(KM.Rx.AssistLevel))>>8, 0); // level in range 0...255
+#endif
+
 	  uint16_mapped_throttle = map(ui16_reg_adc_value, THROTTE_OFFSET ,4096, 0, PH_CURRENT_MAX);
 	  if (uint16_mapped_PAS>uint16_mapped_throttle)
 
@@ -308,7 +316,7 @@ int main(void)
 		  i=0;
 		  while (buffer[i] != '\0')
 		  {i++;}
-		 HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);
+		// HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);
 	  	/* if (ui8_print_flag==1){
 	  		ui8_print_flag=2;
 
