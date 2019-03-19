@@ -10,8 +10,8 @@
 
 #define wheel_circumference 2.202 	//wheel circumference in m
 #define THROTTE_OFFSET 670 			//ACD-value at closed throttle
-#define PAS_TIMEOUT 3200			//time tics @ 16kHz untils motor stops
-#define RAMP_END 400					//time tics @ 16kHz where motor reaches full level power
+#define PAS_TIMEOUT 12000			//time tics @ 16kHz untils motor stops
+#define RAMP_END 4000					//time tics @ 16kHz where motor reaches full level power
 #define PH_CURRENT_MAX 250			//iq value (phase current in rotating frame), not calibrated yet
 
 #define P_FACTOR_I_Q 1L				//proportional factor for PI control of iq

@@ -304,11 +304,11 @@ int main(void)
 
 
 
-	  	 sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n", temp1 , temp2, temp3, temp4, temp5, temp6);
+	  	 sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n", temp1 , ui16_timertics, uint32_PAS, uint16_mapped_PAS, uint16_current_target, temp6);
 		  i=0;
 		  while (buffer[i] != '\0')
 		  {i++;}
-		// HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);
+		 HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);
 	  	/* if (ui8_print_flag==1){
 	  		ui8_print_flag=2;
 
@@ -896,14 +896,14 @@ void kingmeter_update(void)
         KM.Tx.Battery = KM_BATTERY_LOW;
     }
 
-    if(__HAL_TIM_GET_COUNTER(&htim2) < 8000)
+    if(__HAL_TIM_GET_COUNTER(&htim2) < 12000)
     {
         // Adapt wheeltime to match displayed speedo value according config.h setting
-        KM.Tx.Wheeltime_ms = 64000/(ui16_tim2_recent>>4);
+        KM.Tx.Wheeltime_ms = (ui16_timertics>>1);
     }
     else
     {
-        KM.Tx.Wheeltime_ms = 0;
+        KM.Tx.Wheeltime_ms = 64000;
     }
 
 
@@ -911,7 +911,7 @@ void kingmeter_update(void)
 
     KM.Tx.Error = KM_ERROR_NONE;
 
-    KM.Tx.Current_x10 = (uint16_t) (temp1>>2);
+    KM.Tx.Current_x10 = (uint16_t) (temp1>>1);
 
 
     /* Receive Rx parameters/settings and send Tx parameters */
