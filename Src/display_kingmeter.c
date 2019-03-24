@@ -107,7 +107,15 @@ void KingMeter_Init (KINGMETER_t* KM_ctx)
     KM_ctx->Settings.WheelSize_mm           = (uint16_t) (wheel_circumference * 1000);
 
     // Parameters received from display in operation mode:
-    KM_ctx->Rx.AssistLevel                  = 5;
+
+#if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_618U)
+    KM_ctx->Rx.AssistLevel                  = 3; 					//J-LCD Level 1...5
+#endif
+
+#if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_901U)
+	KM_ctx->Rx.AssistLevel                  = 128;					//MK5S Level 0...255
+#endif
+
     KM_ctx->Rx.Headlight                    = KM_HEADLIGHT_OFF;
     KM_ctx->Rx.Battery                      = KM_BATTERY_NORMAL;
     KM_ctx->Rx.PushAssist                   = KM_PUSHASSIST_OFF;

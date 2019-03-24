@@ -291,6 +291,7 @@ int main(void)
 
 	  //throttle and PAS current target setting
 
+
 #if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_618U)
 	  uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, (PH_CURRENT_MAX*(int32_t)(KM.Rx.AssistLevel-1))>>2, 0); // level in range 1...5
 #endif
@@ -298,7 +299,14 @@ int main(void)
 #if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_901U)
 	  uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, (PH_CURRENT_MAX*(int32_t)(KM.Rx.AssistLevel))>>8, 0); // level in range 0...255
 #endif
+#ifdef TS_MODE //torque-sensor mode
 
+	  uint16_current_target = (TS_COEF*(int16_t)(KM.Rx.AssistLevel)* (ui16_reg_adc_value-THROTTE_OFFSET)/uint32_PAS)>>8;
+	  if(uint16_current_target>PH_CURRENT_MAX) uint16_current_target = PH_CURRENT_MAX;
+	  if(uint32_PAS_counter > PAS_TIMEOUT) uint16_current_target = 0;
+	  //uint16_current_target = 0;
+
+#else
 	  uint16_mapped_throttle = map(ui16_reg_adc_value, THROTTE_OFFSET ,4096, 0, PH_CURRENT_MAX);
 	  if (uint16_mapped_PAS>uint16_mapped_throttle)
 
@@ -307,16 +315,18 @@ int main(void)
 		  else uint16_current_target= 0;
 	  }
 	  else uint16_current_target = uint16_mapped_throttle;
+
+#endif
 	  //print values for debugging
-	  	  if(ui32_tim1_counter>800){
+	  	  if(ui32_tim1_counter>1600){
 
 
 
-	  	 sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n", temp1 , ui16_timertics, uint32_PAS, uint16_mapped_PAS, uint16_current_target, temp6);
+	  	 sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n", temp1 , ui16_timertics,uint32_PAS_counter, uint32_PAS, ui16_reg_adc_value-THROTTE_OFFSET, uint16_current_target);
 		  i=0;
 		  while (buffer[i] != '\0')
 		  {i++;}
-		// HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);
+		 // HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);
 	  	/* if (ui8_print_flag==1){
 	  		ui8_print_flag=2;
 
@@ -738,7 +748,7 @@ void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
 {
 	  if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_4) {
 		  ui32_tim1_counter++;
-		  uint32_PAS_counter++;
+		  if (uint32_PAS_counter < PAS_TIMEOUT+1)uint32_PAS_counter++;
 		  uint32_SPEED_counter++;
 		  //for oszi-check of used time in FOC procedere
 		  HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
