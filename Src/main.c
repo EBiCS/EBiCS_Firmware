@@ -99,6 +99,7 @@ uint32_t uint32_PAS_counter= PAS_TIMEOUT+1;
 uint32_t uint32_SPEED_counter=32000;
 uint32_t uint32_PAS=32000;
 uint32_t uint32_SPEED=32000;
+uint32_t uint32_torque_cumulated=0;
 uint16_t uint16_mapped_throttle=0;
 uint16_t uint16_mapped_PAS=0;
 uint16_t uint16_current_target=0;
@@ -280,6 +281,9 @@ int main(void)
 		  uint32_PAS = uint32_PAS_counter;
 		  uint32_PAS_counter =0;
 		  ui8_PAS_flag=0;
+		  //read in and sum up torque-signal within one crank revolution (for sempu sensor 32 PAS pulses/revolution, 2^5=32)
+		  uint32_torque_cumulated -= uint32_torque_cumulated>>5;
+		  uint32_torque_cumulated += (ui16_reg_adc_value-THROTTE_OFFSET);
 	  }
 
 	  //SPEED signal processing
@@ -301,7 +305,7 @@ int main(void)
 #endif
 #ifdef TS_MODE //torque-sensor mode
 
-	  uint16_current_target = (TS_COEF*(int16_t)(KM.Rx.AssistLevel)* (ui16_reg_adc_value-THROTTE_OFFSET)/uint32_PAS)>>8;
+	  uint16_current_target = (TS_COEF*(int16_t)(KM.Rx.AssistLevel)* (uint32_torque_cumulated>>5)/uint32_PAS)>>8;
 	  if(uint16_current_target>PH_CURRENT_MAX) uint16_current_target = PH_CURRENT_MAX;
 	  if(uint32_PAS_counter > PAS_TIMEOUT) uint16_current_target = 0;
 	  //uint16_current_target = 0;
@@ -322,11 +326,12 @@ int main(void)
 
 
 
-	  	 sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n", temp1 , ui16_timertics,uint32_PAS_counter, uint32_PAS, ui16_reg_adc_value-THROTTE_OFFSET, uint16_current_target);
-		  i=0;
+	  	 sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n", temp1, uint16_current_target, ui16_timertics, temp3, uint32_PAS, uint32_torque_cumulated>>5);
+		 // recent current iq, current target, duration between two motor hall events, duty cycle, duration between two PAS signals, averaged torque signal for one crank revolution
+	  	 i=0;
 		  while (buffer[i] != '\0')
 		  {i++;}
-		 // HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);
+		 HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);
 	  	/* if (ui8_print_flag==1){
 	  		ui8_print_flag=2;
 
