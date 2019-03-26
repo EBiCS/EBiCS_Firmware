@@ -76,7 +76,7 @@ DMA_HandleTypeDef hdma_usart1_rx;
 uint32_t ui32_tim1_counter=0;
 uint8_t ui8_hall_state=0;
 uint16_t ui16_tim2_recent=0;
-uint16_t ui16_timertics=0; 					//timertics between two hall events for 60° interpolation
+uint16_t ui16_timertics=5000; 					//timertics between two hall events for 60° interpolation
 uint16_t ui16_reg_adc_value;
 uint32_t ui32_reg_adc_value_filter;
 uint16_t ui16_ph1_offset=0;
@@ -232,8 +232,8 @@ int main(void)
 
     TIM1->CCR4 = 2045; //ADC sampling at beginning of counting down (just after middle of PWM-Cycle)
 //PWM Mode 1: Interrupt at counting down.
-
-
+    temp4=0; // for max PWM
+    temp5=5000; //for min PWM
     // Start Timer 2
        if(HAL_TIM_Base_Start_IT(&htim2) != HAL_OK)
          {
@@ -326,7 +326,7 @@ int main(void)
 
 
 
-	  	 sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n", temp1, uint16_current_target, ui16_timertics, temp3, uint32_PAS, uint32_torque_cumulated>>5);
+	  	 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", temp4, temp5, temp1, uint16_current_target, ui16_timertics, temp3, uint32_PAS, uint32_torque_cumulated>>5);
 		 // recent current iq, current target, duration between two motor hall events, duty cycle, duration between two PAS signals, averaged torque signal for one crank revolution
 	  	 i=0;
 		  while (buffer[i] != '\0')
@@ -777,7 +777,7 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 	ui32_reg_adc_value_filter -= ui32_reg_adc_value_filter>>4;
 	ui32_reg_adc_value_filter += HAL_ADC_GetValue(hadc);
 	ui16_reg_adc_value = ui32_reg_adc_value_filter>>4;
-	temp5=ui16_reg_adc_value-665;
+	//temp5=ui16_reg_adc_value-665;
 }
 
 //injected ADC
@@ -832,7 +832,8 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 	TIM1->CCR2 =  (uint16_t) switchtime[1];
 	TIM1->CCR3 =  (uint16_t) switchtime[2];
 	//TIM1->CCR4 =  (uint16_t) q31_startpoint_conversion;
-
+ if (switchtime[0]>temp4)temp4 = switchtime[0];
+ if (switchtime[0]<temp5)temp5 = switchtime[0];
 	//temp4=(uint16_t) switchtime[0];
 	//temp5=(uint16_t) switchtime[1];
 	//temp6=(uint16_t) switchtime[2];

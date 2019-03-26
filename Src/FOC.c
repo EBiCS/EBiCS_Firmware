@@ -78,11 +78,11 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 	//limit voltage in rotating frame, refer chapter 4.10.1 of UM1052
 	q31_t	q31_u_abs = hypot(q31_u_q, q31_u_d); //absolute value of U in static frame
 	temp3 = q31_u_abs;
-/*
+
 	if (q31_u_abs > _U_MAX){
 		q31_u_q = (q31_u_q*_U_MAX)/q31_u_abs;
 		q31_u_d = (q31_u_d*_U_MAX)/q31_u_abs;
-	}*/
+	}
 
 //Sin and Cos again due to angle running backwards
 	arm_sin_cos_q31(q31_teta, &sinevalue, &cosinevalue);
