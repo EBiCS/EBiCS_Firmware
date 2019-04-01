@@ -109,6 +109,8 @@ q31_t q31_rotorposition_hall;
 int16_t i16_sinus=0;
 int16_t i16_cosinus=0;
 char buffer[100];
+char char_dyn_adc_state;
+char char_dyn_adc_state_old;
 
 q31_t switchtime[3];
 //static int8_t angle[256][4];
@@ -146,6 +148,7 @@ static void MX_ADC1_Init(void);
 static void MX_ADC2_Init(void);
 static void MX_TIM2_Init(void);
 
+
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
                                 
 
@@ -153,6 +156,8 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 /* Private function prototypes -----------------------------------------------*/
 static void Set_reg_channel(uint16_t ADC_Channel);
 void kingmeter_update(void);
+static void dyn_adc_state(q31_t angle);
+static void set_inj_channel(char state);
 int32_t map (int32_t x, int32_t in_min, int32_t in_max, int32_t out_min, int32_t out_max);
 
 
@@ -230,10 +235,9 @@ int main(void)
     TIM1->CCR2 = 1024;
     TIM1->CCR3 = 1024;
 
-    TIM1->CCR4 = 2045; //ADC sampling at beginning of counting down (just after middle of PWM-Cycle)
+    TIM1->CCR4 = 2040; //ADC sampling at beginning of counting down (just after middle of PWM-Cycle)
 //PWM Mode 1: Interrupt at counting down.
-    temp4=0; // for max PWM
-    temp5=5000; //for min PWM
+
     // Start Timer 2
        if(HAL_TIM_Base_Start_IT(&htim2) != HAL_OK)
          {
@@ -325,7 +329,7 @@ int main(void)
 	  	  if(ui32_tim1_counter>1600){
 
 
-	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", ui16_reg_adc_value, ui8_hall_state, i16_ph1_current, i16_ph2_current, ui16_timertics, temp3, uint32_PAS, uint32_torque_cumulated>>5);
+	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", switchtime[0], switchtime[1] , switchtime[2], temp4, ui16_reg_adc_value, temp5, uint32_PAS, uint32_torque_cumulated>>5);
 	  	// sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", temp4, temp5, temp1, uint16_current_target, ui16_timertics, temp3, uint32_PAS, uint32_torque_cumulated>>5);
 		 // recent current iq, current target, duration between two motor hall events, duty cycle, duration between two PAS signals, averaged torque signal for one crank revolution
 	  	 i=0;
@@ -757,6 +761,7 @@ void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
 		  uint32_SPEED_counter++;
 		  //for oszi-check of used time in FOC procedere
 		  HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
+
 	  }
 
 }
@@ -786,16 +791,41 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 {
 	//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_2);
 
+	temp6=__HAL_TIM_GET_COUNTER(&htim1);
 	//read in phase currents
-	i16_ph1_current = HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1);
-	i16_ph2_current = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1);
+
+	switch (char_dyn_adc_state) //read in according to state
+		{
+		case 1: //Phase C at high dutycycles, read from A+B directly
+			{
+				i16_ph1_current = HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1);
+				i16_ph2_current = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1);
+			}
+			break;
+		case 2: //Phase A at high dutycycles, read from B+C (A = -B -C)
+			{
+				i16_ph2_current = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1);
+				i16_ph1_current = -i16_ph2_current-HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1);
+
+			}
+			break;
+		case 3: //Phase B at high dutycycles, read from A+C (B=-A-C)
+			{
+				i16_ph1_current = HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1);
+				i16_ph2_current = -i16_ph1_current-HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1);
+			}
+			break;
+
+
+		} // end case
+
 
 
 
 
 	//extrapolate recent rotor position
 	ui16_tim2_recent = __HAL_TIM_GET_COUNTER(&htim2); // read in timertics since last event
-	temp6=__HAL_TIM_GET_COUNTER(&htim1);
+
 	if (ui16_tim2_recent < ui16_timertics && !ui8_overflow_flag){ //prevent angle running away at standstill
 		//ui32_counter++;
 		q31_rotorposition_absolute = q31_rotorposition_hall + (q31_t) (715827883.0*((float)ui16_tim2_recent/(float)ui16_timertics)); //interpolate angle between two hallevents by scaling timer2 tics
@@ -820,8 +850,16 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 	{ui8_overflow_flag=1;
 
 	}
-    //temp4=(q31_t)((float)q31_rotorposition_hall/2147483648.0*180.0);
 
+	//q31_rotorposition_absolute=-(int32_t)((float)ui16_reg_adc_value/1580.0*2147483647.0);
+	temp5=(q31_t)((float)q31_rotorposition_absolute/2147483648.0*180.0);
+	//get the Phase with highest duty cycle for dynamic phase current reading
+	dyn_adc_state(q31_rotorposition_absolute);
+	//set the according injected channels to read current at Low-Side active time
+	if (char_dyn_adc_state!=char_dyn_adc_state_old){
+		set_inj_channel(char_dyn_adc_state);
+		char_dyn_adc_state_old = char_dyn_adc_state;
+	}
 
 	// call FOC procedure
 	FOC_calculation(i16_ph1_current, i16_ph2_current, q31_rotorposition_absolute, uint16_current_target  );
@@ -832,13 +870,6 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 	TIM1->CCR2 =  (uint16_t) switchtime[1];
 	TIM1->CCR3 =  (uint16_t) switchtime[2];
 	//TIM1->CCR4 =  (uint16_t) q31_startpoint_conversion;
- if (switchtime[0]>temp4)temp4 = switchtime[0];
- if (switchtime[0]<temp5)temp5 = switchtime[0];
-	//temp4=(uint16_t) switchtime[0];
-	//temp5=(uint16_t) switchtime[1];
-	//temp6=(uint16_t) switchtime[2];
-
-
 
 	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
 
@@ -997,6 +1028,122 @@ int32_t map (int32_t x, int32_t in_min, int32_t in_max, int32_t out_min, int32_t
   // round down if mapping smaller ranges to bigger ranges
   else
     return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
+
+void dyn_adc_state(q31_t angle){
+	if (angle > -1073741824 && angle < 357913941) char_dyn_adc_state = 1; // -90∞ .. +30∞: Phase C at high dutycycles
+	if (angle > 357913941 && angle < 1789569707) char_dyn_adc_state = 2; // +30∞ .. 150∞ Phase A at high dutycycles
+	if (angle < -1073741824 || angle > 1789569707) char_dyn_adc_state = 3; // +150 .. -90∞ Phase B at high dutycycles
+}
+
+static void set_inj_channel(char state){
+	switch (state)
+	{
+	case 1: //Phase C at high dutycycles, read current from phase A + B
+		 {ADC_InjectionConfTypeDef sConfigInjected;
+		 /**Configure Injected Channel on ADC1
+		    */
+		  sConfigInjected.InjectedChannel = ADC_CHANNEL_4;
+		  sConfigInjected.InjectedRank = ADC_INJECTED_RANK_1;
+		  sConfigInjected.InjectedNbrOfConversion = 1;
+		  sConfigInjected.InjectedSamplingTime = ADC_SAMPLETIME_1CYCLE_5;
+		  sConfigInjected.ExternalTrigInjecConv = ADC_EXTERNALTRIGINJECCONV_T1_CC4; // Hier bin ich nicht sicher ob Trigger out oder direkt CC4
+		  sConfigInjected.AutoInjectedConv = DISABLE; //muﬂ aus sein
+		  sConfigInjected.InjectedDiscontinuousConvMode = DISABLE;
+		  sConfigInjected.InjectedOffset = 965;//1900;
+		  HAL_ADC_Stop(&hadc1); //ADC muﬂ gestoppt sein, damit Triggerquelle gesetzt werden kann.
+		  if (HAL_ADCEx_InjectedConfigChannel(&hadc1, &sConfigInjected) != HAL_OK)
+		  {
+		    _Error_Handler(__FILE__, __LINE__);
+		  }
+
+		  /**Configure Injected Channel on ADC2
+		    */
+		  sConfigInjected.InjectedChannel = ADC_CHANNEL_5;
+		  sConfigInjected.InjectedRank = ADC_INJECTED_RANK_1;
+		  sConfigInjected.InjectedNbrOfConversion = 1;
+		  sConfigInjected.InjectedSamplingTime = ADC_SAMPLETIME_1CYCLE_5;
+		  sConfigInjected.ExternalTrigInjecConv = ADC_INJECTED_SOFTWARE_START;
+		  sConfigInjected.AutoInjectedConv = DISABLE;
+		  sConfigInjected.InjectedDiscontinuousConvMode = DISABLE;
+		  sConfigInjected.InjectedOffset = 933;//	1860;
+		  if (HAL_ADCEx_InjectedConfigChannel(&hadc2, &sConfigInjected) != HAL_OK)
+		  {
+		    _Error_Handler(__FILE__, __LINE__);
+		  }}
+			break;
+	case 2: //Phase A at high dutycycles, read current from phase C + B
+			 {ADC_InjectionConfTypeDef sConfigInjected;
+			 /**Configure Injected Channel on ADC1
+			    */
+			  sConfigInjected.InjectedChannel = ADC_CHANNEL_6;
+			  sConfigInjected.InjectedRank = ADC_INJECTED_RANK_1;
+			  sConfigInjected.InjectedNbrOfConversion = 1;
+			  sConfigInjected.InjectedSamplingTime = ADC_SAMPLETIME_1CYCLE_5;
+			  sConfigInjected.ExternalTrigInjecConv = ADC_EXTERNALTRIGINJECCONV_T1_CC4; // Hier bin ich nicht sicher ob Trigger out oder direkt CC4
+			  sConfigInjected.AutoInjectedConv = DISABLE; //muﬂ aus sein
+			  sConfigInjected.InjectedDiscontinuousConvMode = DISABLE;
+			  sConfigInjected.InjectedOffset = 930;//1900;
+			  HAL_ADC_Stop(&hadc1); //ADC muﬂ gestoppt sein, damit Triggerquelle gesetzt werden kann.
+			  if (HAL_ADCEx_InjectedConfigChannel(&hadc1, &sConfigInjected) != HAL_OK)
+			  {
+			    _Error_Handler(__FILE__, __LINE__);
+			  }
+
+			  /**Configure Injected Channel on ADC2
+			    */
+			  sConfigInjected.InjectedChannel = ADC_CHANNEL_5;
+			  sConfigInjected.InjectedRank = ADC_INJECTED_RANK_1;
+			  sConfigInjected.InjectedNbrOfConversion = 1;
+			  sConfigInjected.InjectedSamplingTime = ADC_SAMPLETIME_1CYCLE_5;
+			  sConfigInjected.ExternalTrigInjecConv = ADC_INJECTED_SOFTWARE_START;
+			  sConfigInjected.AutoInjectedConv = DISABLE;
+			  sConfigInjected.InjectedDiscontinuousConvMode = DISABLE;
+			  sConfigInjected.InjectedOffset = 933;//	1860;
+			  if (HAL_ADCEx_InjectedConfigChannel(&hadc2, &sConfigInjected) != HAL_OK)
+			  {
+			    _Error_Handler(__FILE__, __LINE__);
+			  }}
+				break;
+
+	case 3: //Phase B at high dutycycles, read current from phase A + C
+			 {ADC_InjectionConfTypeDef sConfigInjected;
+			 /**Configure Injected Channel on ADC1
+			    */
+			  sConfigInjected.InjectedChannel = ADC_CHANNEL_4;
+			  sConfigInjected.InjectedRank = ADC_INJECTED_RANK_1;
+			  sConfigInjected.InjectedNbrOfConversion = 1;
+			  sConfigInjected.InjectedSamplingTime = ADC_SAMPLETIME_1CYCLE_5;
+			  sConfigInjected.ExternalTrigInjecConv = ADC_EXTERNALTRIGINJECCONV_T1_CC4; // Hier bin ich nicht sicher ob Trigger out oder direkt CC4
+			  sConfigInjected.AutoInjectedConv = DISABLE; //muﬂ aus sein
+			  sConfigInjected.InjectedDiscontinuousConvMode = DISABLE;
+			  sConfigInjected.InjectedOffset = 965;//1900;
+			  HAL_ADC_Stop(&hadc1); //ADC muﬂ gestoppt sein, damit Triggerquelle gesetzt werden kann.
+			  if (HAL_ADCEx_InjectedConfigChannel(&hadc1, &sConfigInjected) != HAL_OK)
+			  {
+			    _Error_Handler(__FILE__, __LINE__);
+			  }
+
+			  /**Configure Injected Channel on ADC2
+			    */
+			  sConfigInjected.InjectedChannel = ADC_CHANNEL_6;
+			  sConfigInjected.InjectedRank = ADC_INJECTED_RANK_1;
+			  sConfigInjected.InjectedNbrOfConversion = 1;
+			  sConfigInjected.InjectedSamplingTime = ADC_SAMPLETIME_1CYCLE_5;
+			  sConfigInjected.ExternalTrigInjecConv = ADC_INJECTED_SOFTWARE_START;
+			  sConfigInjected.AutoInjectedConv = DISABLE;
+			  sConfigInjected.InjectedDiscontinuousConvMode = DISABLE;
+			  sConfigInjected.InjectedOffset = 930;//	1860;
+			  if (HAL_ADCEx_InjectedConfigChannel(&hadc2, &sConfigInjected) != HAL_OK)
+			  {
+			    _Error_Handler(__FILE__, __LINE__);
+			  }}
+				break;
+
+
+	}
+
+
 }
 
 /* USER CODE END 4 */

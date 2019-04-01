@@ -66,7 +66,7 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 	q31_i_d_fil -= q31_i_d_fil>>3;
 	q31_i_d_fil += q31_i_d;
 
-	temp1 = q31_i_q_fil>>3;
+	//temp1 = q31_i_q_fil>>3;
 	//temp2 = q31_i_d_fil>>3;
 	//Control iq
 	q31_u_q =  PI_control_i_q(q31_i_q_fil>>3, (q31_t) int16_i_q_target);
@@ -84,7 +84,8 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 		q31_u_d = (q31_u_d*_U_MAX)/q31_u_abs;
 	}
 
-
+	//q31_u_q=1000;
+	//q31_u_d=0;
 	//arm_sin_cos_q31(q31_teta, &sinevalue, &cosinevalue);
 	//inverse Park transformation
 	arm_inv_park_q31(q31_u_d, q31_u_q, &q31_u_alpha, &q31_u_beta, -sinevalue, cosinevalue);

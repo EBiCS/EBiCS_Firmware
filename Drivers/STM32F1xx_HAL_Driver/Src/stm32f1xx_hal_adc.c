@@ -277,6 +277,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f1xx_hal.h"
 
+
 /** @addtogroup STM32F1xx_HAL_Driver
   * @{
   */
@@ -1551,6 +1552,7 @@ void HAL_ADC_IRQHandler(ADC_HandleTypeDef* hadc)
       {
         /* Set ADC state */
         SET_BIT(hadc->State, HAL_ADC_STATE_INJ_EOC);
+
       }
 
       /* Determine whether any further conversion upcoming on group injected  */
