@@ -109,8 +109,8 @@ q31_t q31_rotorposition_hall;
 int16_t i16_sinus=0;
 int16_t i16_cosinus=0;
 char buffer[100];
-char char_dyn_adc_state;
-char char_dyn_adc_state_old;
+char char_dyn_adc_state=1;
+char char_dyn_adc_state_old=1;
 
 q31_t switchtime[3];
 //static int8_t angle[256][4];
@@ -1040,104 +1040,29 @@ static void set_inj_channel(char state){
 	switch (state)
 	{
 	case 1: //Phase C at high dutycycles, read current from phase A + B
-		 {ADC_InjectionConfTypeDef sConfigInjected;
-		 /**Configure Injected Channel on ADC1
-		    */
-		  sConfigInjected.InjectedChannel = ADC_CHANNEL_4;
-		  sConfigInjected.InjectedRank = ADC_INJECTED_RANK_1;
-		  sConfigInjected.InjectedNbrOfConversion = 1;
-		  sConfigInjected.InjectedSamplingTime = ADC_SAMPLETIME_1CYCLE_5;
-		  sConfigInjected.ExternalTrigInjecConv = ADC_EXTERNALTRIGINJECCONV_T1_CC4; // Hier bin ich nicht sicher ob Trigger out oder direkt CC4
-		  sConfigInjected.AutoInjectedConv = DISABLE; //muß aus sein
-		  sConfigInjected.InjectedDiscontinuousConvMode = DISABLE;
-		  sConfigInjected.InjectedOffset = 965;//1900;
-		  HAL_ADC_Stop(&hadc1); //ADC muß gestoppt sein, damit Triggerquelle gesetzt werden kann.
-		  if (HAL_ADCEx_InjectedConfigChannel(&hadc1, &sConfigInjected) != HAL_OK)
-		  {
-		    _Error_Handler(__FILE__, __LINE__);
-		  }
-
-		  /**Configure Injected Channel on ADC2
-		    */
-		  sConfigInjected.InjectedChannel = ADC_CHANNEL_5;
-		  sConfigInjected.InjectedRank = ADC_INJECTED_RANK_1;
-		  sConfigInjected.InjectedNbrOfConversion = 1;
-		  sConfigInjected.InjectedSamplingTime = ADC_SAMPLETIME_1CYCLE_5;
-		  sConfigInjected.ExternalTrigInjecConv = ADC_INJECTED_SOFTWARE_START;
-		  sConfigInjected.AutoInjectedConv = DISABLE;
-		  sConfigInjected.InjectedDiscontinuousConvMode = DISABLE;
-		  sConfigInjected.InjectedOffset = 933;//	1860;
-		  if (HAL_ADCEx_InjectedConfigChannel(&hadc2, &sConfigInjected) != HAL_OK)
-		  {
-		    _Error_Handler(__FILE__, __LINE__);
-		  }}
+		 {
+			 ADC1->JSQR=0b00100000000000000000; //ADC1 injected reads phase A JL = 0b00, JSQ4 = 0b00100 (decimal 4 = channel 4)
+			 ADC1->JOFR1 = OFFSET_A;
+			 ADC2->JSQR=0b00101000000000000000; //ADC2 injected reads phase B, JSQ4 = 0b00101, decimal 5
+			 ADC2->JOFR1 = OFFSET_B;
+		 }
 			break;
 	case 2: //Phase A at high dutycycles, read current from phase C + B
-			 {ADC_InjectionConfTypeDef sConfigInjected;
-			 /**Configure Injected Channel on ADC1
-			    */
-			  sConfigInjected.InjectedChannel = ADC_CHANNEL_6;
-			  sConfigInjected.InjectedRank = ADC_INJECTED_RANK_1;
-			  sConfigInjected.InjectedNbrOfConversion = 1;
-			  sConfigInjected.InjectedSamplingTime = ADC_SAMPLETIME_1CYCLE_5;
-			  sConfigInjected.ExternalTrigInjecConv = ADC_EXTERNALTRIGINJECCONV_T1_CC4; // Hier bin ich nicht sicher ob Trigger out oder direkt CC4
-			  sConfigInjected.AutoInjectedConv = DISABLE; //muß aus sein
-			  sConfigInjected.InjectedDiscontinuousConvMode = DISABLE;
-			  sConfigInjected.InjectedOffset = 930;//1900;
-			  HAL_ADC_Stop(&hadc1); //ADC muß gestoppt sein, damit Triggerquelle gesetzt werden kann.
-			  if (HAL_ADCEx_InjectedConfigChannel(&hadc1, &sConfigInjected) != HAL_OK)
-			  {
-			    _Error_Handler(__FILE__, __LINE__);
-			  }
-
-			  /**Configure Injected Channel on ADC2
-			    */
-			  sConfigInjected.InjectedChannel = ADC_CHANNEL_5;
-			  sConfigInjected.InjectedRank = ADC_INJECTED_RANK_1;
-			  sConfigInjected.InjectedNbrOfConversion = 1;
-			  sConfigInjected.InjectedSamplingTime = ADC_SAMPLETIME_1CYCLE_5;
-			  sConfigInjected.ExternalTrigInjecConv = ADC_INJECTED_SOFTWARE_START;
-			  sConfigInjected.AutoInjectedConv = DISABLE;
-			  sConfigInjected.InjectedDiscontinuousConvMode = DISABLE;
-			  sConfigInjected.InjectedOffset = 933;//	1860;
-			  if (HAL_ADCEx_InjectedConfigChannel(&hadc2, &sConfigInjected) != HAL_OK)
-			  {
-			    _Error_Handler(__FILE__, __LINE__);
-			  }}
+			 {
+				 ADC1->JSQR=0b00110000000000000000; //ADC1 injected reads phase C, JSQ4 = 0b00110, decimal 6
+				 ADC1->JOFR1 = OFFSET_C;
+				 ADC2->JSQR=0b00101000000000000000; //ADC2 injected reads phase B, JSQ4 = 0b00101, decimal 5
+				 ADC2->JOFR1 = OFFSET_B;
+			 }
 				break;
 
 	case 3: //Phase B at high dutycycles, read current from phase A + C
-			 {ADC_InjectionConfTypeDef sConfigInjected;
-			 /**Configure Injected Channel on ADC1
-			    */
-			  sConfigInjected.InjectedChannel = ADC_CHANNEL_4;
-			  sConfigInjected.InjectedRank = ADC_INJECTED_RANK_1;
-			  sConfigInjected.InjectedNbrOfConversion = 1;
-			  sConfigInjected.InjectedSamplingTime = ADC_SAMPLETIME_1CYCLE_5;
-			  sConfigInjected.ExternalTrigInjecConv = ADC_EXTERNALTRIGINJECCONV_T1_CC4; // Hier bin ich nicht sicher ob Trigger out oder direkt CC4
-			  sConfigInjected.AutoInjectedConv = DISABLE; //muß aus sein
-			  sConfigInjected.InjectedDiscontinuousConvMode = DISABLE;
-			  sConfigInjected.InjectedOffset = 965;//1900;
-			  HAL_ADC_Stop(&hadc1); //ADC muß gestoppt sein, damit Triggerquelle gesetzt werden kann.
-			  if (HAL_ADCEx_InjectedConfigChannel(&hadc1, &sConfigInjected) != HAL_OK)
-			  {
-			    _Error_Handler(__FILE__, __LINE__);
-			  }
-
-			  /**Configure Injected Channel on ADC2
-			    */
-			  sConfigInjected.InjectedChannel = ADC_CHANNEL_6;
-			  sConfigInjected.InjectedRank = ADC_INJECTED_RANK_1;
-			  sConfigInjected.InjectedNbrOfConversion = 1;
-			  sConfigInjected.InjectedSamplingTime = ADC_SAMPLETIME_1CYCLE_5;
-			  sConfigInjected.ExternalTrigInjecConv = ADC_INJECTED_SOFTWARE_START;
-			  sConfigInjected.AutoInjectedConv = DISABLE;
-			  sConfigInjected.InjectedDiscontinuousConvMode = DISABLE;
-			  sConfigInjected.InjectedOffset = 930;//	1860;
-			  if (HAL_ADCEx_InjectedConfigChannel(&hadc2, &sConfigInjected) != HAL_OK)
-			  {
-			    _Error_Handler(__FILE__, __LINE__);
-			  }}
+			 {
+				 ADC1->JSQR=0b00100000000000000000; //ADC1 injected reads phase A JL = 0b00, JSQ4 = 0b00100 (decimal 4 = channel 4)
+				 ADC1->JOFR1 = OFFSET_A;
+				 ADC2->JSQR=0b00110000000000000000; //ADC2 injected reads phase C, JSQ4 = 0b00110, decimal 6
+				 ADC2->JOFR1 = OFFSET_C;
+			 }
 				break;
 
 
