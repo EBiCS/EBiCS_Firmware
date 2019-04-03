@@ -329,7 +329,7 @@ int main(void)
 	  	  if(ui32_tim1_counter>1600){
 
 
-	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", switchtime[0], switchtime[1] , switchtime[2], temp4, ui16_reg_adc_value, temp5, uint32_PAS, uint32_torque_cumulated>>5);
+	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", temp1, temp3 , uint16_current_target, temp6, ui16_reg_adc_value, char_dyn_adc_state, uint32_PAS, uint32_torque_cumulated>>5);
 	  	// sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", temp4, temp5, temp1, uint16_current_target, ui16_timertics, temp3, uint32_PAS, uint32_torque_cumulated>>5);
 		 // recent current iq, current target, duration between two motor hall events, duty cycle, duration between two PAS signals, averaged torque signal for one crank revolution
 	  	 i=0;
@@ -791,7 +791,7 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 {
 	//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_2);
 
-	temp6=__HAL_TIM_GET_COUNTER(&htim1);
+	//temp6=__HAL_TIM_GET_COUNTER(&htim1);
 	//read in phase currents
 
 	switch (char_dyn_adc_state) //read in according to state
@@ -857,10 +857,11 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 	dyn_adc_state(q31_rotorposition_absolute);
 	//set the according injected channels to read current at Low-Side active time
 	if (char_dyn_adc_state!=char_dyn_adc_state_old){
-		set_inj_channel(char_dyn_adc_state);
+		//set_inj_channel(char_dyn_adc_state);
 		char_dyn_adc_state_old = char_dyn_adc_state;
+		temp6 = ADC1->JSQR;
 	}
-
+	//uint16_current_target=0;
 	// call FOC procedure
 	FOC_calculation(i16_ph1_current, i16_ph2_current, q31_rotorposition_absolute, uint16_current_target  );
 
