@@ -789,8 +789,7 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 {
 
-	//read in timer for indication of processor load
-	temp6=__HAL_TIM_GET_COUNTER(&htim1);
+
 	//read in phase currents
 
 	switch (char_dyn_adc_state) //read in according to state
@@ -852,12 +851,10 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 
 	//q31_rotorposition_absolute=-(int32_t)((float)ui16_reg_adc_value/1580.0*2147483647.0);
 
-	//read in timer for indication of processor load
-	temp5=__HAL_TIM_GET_COUNTER(&htim1);
+
 	// float with division! For debugging, not necessary
-	temp2=(q31_t)((float)q31_rotorposition_absolute/2147483648.0*180.0);
-	//read in timer for indication of processor load
-	temp4=__HAL_TIM_GET_COUNTER(&htim1);
+	//temp2=(q31_t)((float)q31_rotorposition_absolute/2147483648.0*180.0);
+
 
 	//get the Phase with highest duty cycle for dynamic phase current reading
 	dyn_adc_state(q31_rotorposition_absolute);
@@ -866,11 +863,13 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 		set_inj_channel(char_dyn_adc_state);
 		char_dyn_adc_state_old = char_dyn_adc_state;
 		}
+
+
 	//uint16_current_target=0;
 	// call FOC procedure
 	FOC_calculation(i16_ph1_current, i16_ph2_current, q31_rotorposition_absolute, uint16_current_target);
 
-
+	//temp5=__HAL_TIM_GET_COUNTER(&htim1);
 	//set PWM
 	TIM1->CCR1 =  (uint16_t) switchtime[0];
 	TIM1->CCR2 =  (uint16_t) switchtime[1];
@@ -878,7 +877,8 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 	//TIM1->CCR4 =  (uint16_t) q31_startpoint_conversion;
 
 	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
-
+	//read in timer for indication of processor load
+	//temp4=__HAL_TIM_GET_COUNTER(&htim1);
 
 }
 

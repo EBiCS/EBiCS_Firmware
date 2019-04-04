@@ -30,6 +30,7 @@ extern q31_t temp3;
 extern q31_t temp4;
 extern q31_t temp5;
 extern q31_t temp6;
+extern char PI_flag;
 
 
 

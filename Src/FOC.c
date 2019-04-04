@@ -20,9 +20,11 @@ q31_t	temp4;
 q31_t	temp5;
 q31_t	temp6;
 
+char PI_flag=0;
+
 const q31_t _T = 2048;
 
-
+TIM_HandleTypeDef htim1;
 
 
 void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int16_t int16_i_q_target);
@@ -56,10 +58,14 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 
 	// Clark transformation
 	arm_clarke_q31((q31_t)int16_i_as, (q31_t)int16_i_bs, &q31_i_alpha, &q31_i_beta);
+
 	arm_sin_cos_q31(q31_teta, &sinevalue, &cosinevalue);
+	//read in timer for indication of processor load
+	temp4=__HAL_TIM_GET_COUNTER(&htim1);
 
 	// Park transformation
 	arm_park_q31(q31_i_alpha, q31_i_beta, &q31_i_d, &q31_i_q, sinevalue, cosinevalue);
+	temp6=__HAL_TIM_GET_COUNTER(&htim1);
 
 	q31_i_q_fil -= q31_i_q_fil>>3;
 	q31_i_q_fil += q31_i_q;
@@ -70,14 +76,18 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 	//temp2 = q31_i_d_fil>>3;
 	//Control iq
 	q31_u_q =  PI_control_i_q(q31_i_q_fil>>3, (q31_t) int16_i_q_target);
+	//read in timer for indication of processor load
+
 
 	//Control id
 	q31_u_d = -PI_control_i_d(q31_i_d_fil>>3, 0); //control direct current to zero
 	//temp3 = q31_u_q;
 	//temp4 = q31_u_d;
 	//limit voltage in rotating frame, refer chapter 4.10.1 of UM1052
+
 	q31_t	q31_u_abs = hypot(q31_u_q, q31_u_d); //absolute value of U in static frame
 	temp3 = q31_u_abs;
+
 
 	if (q31_u_abs > _U_MAX){
 		q31_u_q = (q31_u_q*_U_MAX)/q31_u_abs; //division!
@@ -92,6 +102,7 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 
 	//call SVPWM calculation
 	svpwm(q31_u_alpha, q31_u_beta);
+	//temp6=__HAL_TIM_GET_COUNTER(&htim1);
 
 }
 //PI Control for quadrature current iq (torque) float operation without division
