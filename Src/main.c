@@ -329,9 +329,8 @@ int main(void)
 	  	  if(ui32_tim1_counter>1600){
 
 
-	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", temp1, temp3 , uint16_current_target, temp6, ui16_reg_adc_value, char_dyn_adc_state, uint32_PAS, uint32_torque_cumulated>>5);
-	  	// sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", temp4, temp5, temp1, uint16_current_target, ui16_timertics, temp3, uint32_PAS, uint32_torque_cumulated>>5);
-		 // recent current iq, current target, duration between two motor hall events, duty cycle, duration between two PAS signals, averaged torque signal for one crank revolution
+	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", temp1, temp3 , uint16_current_target, temp6, temp5, temp4, temp2, char_dyn_adc_state);
+	 	 // temp1: iq, temp3: dutycycle, temp6: timer1 value at start injec. callback, temp5: timer 1 value after angle interpolation, temp4: timer1 value after debug-angle, temp2: debug-angle in degree
 	  	 i=0;
 		  while (buffer[i] != '\0')
 		  {i++;}
@@ -789,9 +788,9 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 
 void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 {
-	//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_2);
 
-	//temp6=__HAL_TIM_GET_COUNTER(&htim1);
+	//read in timer for indication of processor load
+	temp6=__HAL_TIM_GET_COUNTER(&htim1);
 	//read in phase currents
 
 	switch (char_dyn_adc_state) //read in according to state
@@ -827,7 +826,7 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 	ui16_tim2_recent = __HAL_TIM_GET_COUNTER(&htim2); // read in timertics since last event
 
 	if (ui16_tim2_recent < ui16_timertics && !ui8_overflow_flag){ //prevent angle running away at standstill
-		//ui32_counter++;
+		// float with division necessary!
 		q31_rotorposition_absolute = q31_rotorposition_hall + (q31_t) (715827883.0*((float)ui16_tim2_recent/(float)ui16_timertics)); //interpolate angle between two hallevents by scaling timer2 tics
 
 //debugging
@@ -852,18 +851,24 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 	}
 
 	//q31_rotorposition_absolute=-(int32_t)((float)ui16_reg_adc_value/1580.0*2147483647.0);
-	temp5=(q31_t)((float)q31_rotorposition_absolute/2147483648.0*180.0);
+
+	//read in timer for indication of processor load
+	temp5=__HAL_TIM_GET_COUNTER(&htim1);
+	// float with division! For debugging, not necessary
+	temp2=(q31_t)((float)q31_rotorposition_absolute/2147483648.0*180.0);
+	//read in timer for indication of processor load
+	temp4=__HAL_TIM_GET_COUNTER(&htim1);
+
 	//get the Phase with highest duty cycle for dynamic phase current reading
 	dyn_adc_state(q31_rotorposition_absolute);
 	//set the according injected channels to read current at Low-Side active time
 	if (char_dyn_adc_state!=char_dyn_adc_state_old){
-		//set_inj_channel(char_dyn_adc_state);
+		set_inj_channel(char_dyn_adc_state);
 		char_dyn_adc_state_old = char_dyn_adc_state;
-		temp6 = ADC1->JSQR;
-	}
+		}
 	//uint16_current_target=0;
 	// call FOC procedure
-	FOC_calculation(i16_ph1_current, i16_ph2_current, q31_rotorposition_absolute, uint16_current_target  );
+	FOC_calculation(i16_ph1_current, i16_ph2_current, q31_rotorposition_absolute, uint16_current_target);
 
 
 	//set PWM

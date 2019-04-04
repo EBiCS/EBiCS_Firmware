@@ -80,21 +80,21 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 	temp3 = q31_u_abs;
 
 	if (q31_u_abs > _U_MAX){
-		q31_u_q = (q31_u_q*_U_MAX)/q31_u_abs;
-		q31_u_d = (q31_u_d*_U_MAX)/q31_u_abs;
+		q31_u_q = (q31_u_q*_U_MAX)/q31_u_abs; //division!
+		q31_u_d = (q31_u_d*_U_MAX)/q31_u_abs; //division!
 	}
 
 	//q31_u_q=1000;
 	//q31_u_d=0;
-	arm_sin_cos_q31(-q31_teta, &sinevalue, &cosinevalue);
+	//arm_sin_cos_q31(q31_teta, &sinevalue, &cosinevalue);
 	//inverse Park transformation
-	arm_inv_park_q31(q31_u_d, q31_u_q, &q31_u_alpha, &q31_u_beta, sinevalue, cosinevalue);
+	arm_inv_park_q31(q31_u_d, q31_u_q, &q31_u_alpha, &q31_u_beta, -sinevalue, cosinevalue);
 
 	//call SVPWM calculation
 	svpwm(q31_u_alpha, q31_u_beta);
 
 }
-//PI Control for quadrature current iq (torque)
+//PI Control for quadrature current iq (torque) float operation without division
 q31_t PI_control_i_q (q31_t ist, q31_t soll)
 {
 
@@ -147,7 +147,7 @@ void svpwm(q31_t q31_u_alpha, q31_t q31_u_beta)	{
 //SVPWM according to chapter 4.9 of UM1052
 
 
-	q31_t q31_U_alpha = (q31_t)((float)_SQRT3 *(float)_T * (float) q31_u_alpha);
+	q31_t q31_U_alpha = (q31_t)((float)_SQRT3 *(float)_T * (float) q31_u_alpha); //float operation to avoid q31 overflow
 	q31_t q31_U_beta = -_T * q31_u_beta;
 	q31_t X = q31_U_beta;
 	q31_t Y = (q31_U_alpha+q31_U_beta)>>1;
