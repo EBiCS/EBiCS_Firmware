@@ -235,7 +235,7 @@ int main(void)
     TIM1->CCR2 = 1024;
     TIM1->CCR3 = 1024;
 
-    TIM1->CCR4 = 2040; //ADC sampling at beginning of counting down (just after middle of PWM-Cycle)
+    TIM1->CCR4 = _T-10; //ADC sampling at beginning of counting down (just after middle of PWM-Cycle)
 //PWM Mode 1: Interrupt at counting down.
 
     // Start Timer 2
@@ -329,7 +329,7 @@ int main(void)
 	  	  if(ui32_tim1_counter>1600){
 
 
-	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", temp1, temp3 , uint16_current_target, temp6, temp5, temp4, temp2, char_dyn_adc_state);
+	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", temp1, temp3 , uint16_current_target, i16_ph1_current, i16_ph2_current, temp4, temp2, char_dyn_adc_state);
 	 	 // temp1: iq, temp3: dutycycle, temp6: timer1 value at start injec. callback, temp5: timer 1 value after angle interpolation, temp4: timer1 value after debug-angle, temp2: debug-angle in degree
 	  	 i=0;
 		  while (buffer[i] != '\0')
@@ -459,7 +459,7 @@ static void MX_ADC1_Init(void)
   sConfigInjected.ExternalTrigInjecConv = ADC_EXTERNALTRIGINJECCONV_T1_CC4; // Hier bin ich nicht sicher ob Trigger out oder direkt CC4
   sConfigInjected.AutoInjectedConv = DISABLE; //muﬂ aus sein
   sConfigInjected.InjectedDiscontinuousConvMode = DISABLE;
-  sConfigInjected.InjectedOffset = 965;//1900;
+  sConfigInjected.InjectedOffset = OFFSET_A;//1900;
   HAL_ADC_Stop(&hadc1); //ADC muﬂ gestoppt sein, damit Triggerquelle gesetzt werden kann.
   if (HAL_ADCEx_InjectedConfigChannel(&hadc1, &sConfigInjected) != HAL_OK)
   {
@@ -507,7 +507,7 @@ static void MX_ADC2_Init(void)
   sConfigInjected.ExternalTrigInjecConv = ADC_INJECTED_SOFTWARE_START;
   sConfigInjected.AutoInjectedConv = DISABLE;
   sConfigInjected.InjectedDiscontinuousConvMode = DISABLE;
-  sConfigInjected.InjectedOffset = 933;//	1860;
+  sConfigInjected.InjectedOffset = OFFSET_B;//	1860;
   if (HAL_ADCEx_InjectedConfigChannel(&hadc2, &sConfigInjected) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
@@ -526,7 +526,7 @@ static void MX_TIM1_Init(void)
   htim1.Instance = TIM1;
   htim1.Init.Prescaler = 0;
   htim1.Init.CounterMode = TIM_COUNTERMODE_CENTERALIGNED1;
-  htim1.Init.Period = 2048;
+  htim1.Init.Period = _T;
   htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim1.Init.RepetitionCounter = 0;
   htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
@@ -791,6 +791,9 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 
 
 	//read in phase currents
+	//i16_ph1_current = HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1);
+	//i16_ph2_current = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1);
+
 
 	switch (char_dyn_adc_state) //read in according to state
 		{
@@ -816,6 +819,7 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 
 
 		} // end case
+
 
 
 

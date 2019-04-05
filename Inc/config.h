@@ -22,8 +22,10 @@
 #define I_FACTOR_I_D 1L				//integral factor for PI control of id
 #define SPEC_ANGLE  -357913941L		//motor specific angle, refer to chapter 8.3.3 of UM1052.shengyi:-715827882L, 715827882 536870912 357913941L; //357913941 298261617 119304647L // 30° BionX IGH3 motor specific angle, refer to chapter 8.8.3 of UM1052 180° maped to 2^31
 
-#define OFFSET_A 930 				//Offset of current sensing phase A
-#define OFFSET_B 930				//Offset of current sensing phase B
-#define OFFSET_C 930				//Offset of current sensing phase C
+#define OFFSET_A 952 				//Offset of current sensing phase A
+#define OFFSET_B 957				//Offset of current sensing phase B
+#define OFFSET_C 981				//Offset of current sensing phase C
+
+#define _T 4096
 
 #endif
