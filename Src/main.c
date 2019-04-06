@@ -275,6 +275,31 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+
+	  //PI-control processing
+	  if(PI_flag){
+		  q31_u_q =  PI_control_i_q(q31_i_q_fil>>3, (q31_t) uint16_current_target);
+
+
+
+		  	//Control id
+		  	q31_u_d = -PI_control_i_d(q31_i_d_fil>>3, 0); //control direct current to zero
+
+		  	//limit voltage in rotating frame, refer chapter 4.10.1 of UM1052
+
+		  	q31_t	q31_u_abs = hypot(q31_u_q, q31_u_d); //absolute value of U in static frame
+		  	temp3 = q31_u_abs;
+
+
+		  	if (q31_u_abs > _U_MAX){
+		  		q31_u_q = (q31_u_q*_U_MAX)/q31_u_abs; //division!
+		  		q31_u_d = (q31_u_d*_U_MAX)/q31_u_abs; //division!
+		  		temp4=1;
+		  	}
+		  	else temp4=0;
+		  	PI_flag=0;
+	  }
+	  //display message processing
 	  if(ui8_UART_flag){
 	  kingmeter_update();
 	  ui8_UART_flag=0;
@@ -326,10 +351,10 @@ int main(void)
 
 #endif
 	  //print values for debugging
-	  	  if(ui32_tim1_counter>1600){
+	  	  if(ui32_tim1_counter>800){
 
 
-	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", temp1, temp3 , uint16_current_target, i16_ph1_current, i16_ph2_current, temp4, temp2, char_dyn_adc_state);
+	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", temp1, temp3 , uint16_current_target, i16_ph1_current, i16_ph2_current, temp4, temp5, char_dyn_adc_state);
 	 	 // temp1: iq, temp3: dutycycle, temp6: timer1 value at start injec. callback, temp5: timer 1 value after angle interpolation, temp4: timer1 value after debug-angle, temp2: debug-angle in degree
 	  	 i=0;
 		  while (buffer[i] != '\0')
@@ -879,6 +904,7 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 	TIM1->CCR2 =  (uint16_t) switchtime[1];
 	TIM1->CCR3 =  (uint16_t) switchtime[2];
 	//TIM1->CCR4 =  (uint16_t) q31_startpoint_conversion;
+	if(switchtime[0]>temp5)temp5=switchtime[0];
 
 	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
 	//read in timer for indication of processor load

@@ -20,6 +20,11 @@ q31_t	temp4;
 q31_t	temp5;
 q31_t	temp6;
 
+q31_t q31_i_q_fil = 0;
+q31_t q31_i_d_fil = 0;
+q31_t q31_u_d = 0;
+q31_t q31_u_q = 0;
+
 char PI_flag=0;
 
 //const q31_t _T = 2048;
@@ -46,10 +51,7 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 	 q31_t q31_u_beta = 0;
 	 q31_t q31_i_d = 0;
 	 q31_t q31_i_q = 0;
-	 static q31_t q31_i_q_fil = 0;
-	 static q31_t q31_i_d_fil = 0;
-	 q31_t q31_u_d = 0;
-	 q31_t q31_u_q = 0;
+
 	 q31_t sinevalue=0, cosinevalue = 0;
 
 
@@ -74,14 +76,17 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 	temp1 = q31_i_q_fil>>3;
 	//temp2 = q31_i_d_fil>>3;
 	//Control iq
+
+	PI_flag=1;
+
+	/*
 	q31_u_q =  PI_control_i_q(q31_i_q_fil>>3, (q31_t) int16_i_q_target);
 
 
 
 	//Control id
 	q31_u_d = -PI_control_i_d(q31_i_d_fil>>3, 0); //control direct current to zero
-	//temp3 = q31_u_q;
-	//temp4 = q31_u_d;
+
 	//limit voltage in rotating frame, refer chapter 4.10.1 of UM1052
 
 	q31_t	q31_u_abs = hypot(q31_u_q, q31_u_d); //absolute value of U in static frame
@@ -91,7 +96,10 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 	if (q31_u_abs > _U_MAX){
 		q31_u_q = (q31_u_q*_U_MAX)/q31_u_abs; //division!
 		q31_u_d = (q31_u_d*_U_MAX)/q31_u_abs; //division!
+		temp4=1;
 	}
+	else temp4=0;
+	*/
 
 	//q31_u_q=0;
 	//q31_u_d=0;
