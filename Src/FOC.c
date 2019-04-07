@@ -73,8 +73,7 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 	q31_i_d_fil -= q31_i_d_fil>>3;
 	q31_i_d_fil += q31_i_d;
 
-	temp1 = q31_i_q_fil>>3;
-	//temp2 = q31_i_d_fil>>3;
+
 	//Control iq
 
 	PI_flag=1;

@@ -111,6 +111,7 @@ int16_t i16_cosinus=0;
 char buffer[100];
 char char_dyn_adc_state=1;
 char char_dyn_adc_state_old=1;
+q31_t	q31_u_abs=0;
 
 q31_t switchtime[3];
 //static int8_t angle[256][4];
@@ -231,9 +232,9 @@ int main(void)
       HAL_TIM_PWM_Start_IT(&htim1, TIM_CHANNEL_4);
 
 
-    TIM1->CCR1 = 1024; //set initial PWM values
-    TIM1->CCR2 = 1024;
-    TIM1->CCR3 = 1024;
+    TIM1->CCR1 = _T>1; //set initial PWM values
+    TIM1->CCR2 = _T>1;
+    TIM1->CCR3 = _T>1;
 
     TIM1->CCR4 = _T-10; //ADC sampling at beginning of counting down (just after middle of PWM-Cycle)
 //PWM Mode 1: Interrupt at counting down.
@@ -278,6 +279,8 @@ int main(void)
 
 	  //PI-control processing
 	  if(PI_flag){
+
+
 		  q31_u_q =  PI_control_i_q(q31_i_q_fil>>3, (q31_t) uint16_current_target);
 
 
@@ -287,8 +290,8 @@ int main(void)
 
 		  	//limit voltage in rotating frame, refer chapter 4.10.1 of UM1052
 
-		  	q31_t	q31_u_abs = hypot(q31_u_q, q31_u_d); //absolute value of U in static frame
-		  	temp3 = q31_u_abs;
+		  	q31_u_abs = hypot(q31_u_q, q31_u_d); //absolute value of U in static frame
+
 
 
 		  	if (q31_u_abs > _U_MAX){
@@ -354,7 +357,7 @@ int main(void)
 	  	  if(ui32_tim1_counter>800){
 
 
-	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", temp1, temp3 , uint16_current_target, i16_ph1_current, i16_ph2_current, temp4, temp5, char_dyn_adc_state);
+	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", q31_i_q_fil>>3, q31_u_abs , uint16_current_target, i16_ph1_current, i16_ph2_current, temp4, temp5, char_dyn_adc_state);
 	 	 // temp1: iq, temp3: dutycycle, temp6: timer1 value at start injec. callback, temp5: timer 1 value after angle interpolation, temp4: timer1 value after debug-angle, temp2: debug-angle in degree
 	  	 i=0;
 		  while (buffer[i] != '\0')
@@ -606,6 +609,7 @@ static void MX_TIM1_Init(void)
   }
 
   //sConfigOC.OCMode = TIM_OCMODE_ACTIVE; // war hier ein Bock?!
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_LOW;
   if (HAL_TIM_OC_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_4) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);

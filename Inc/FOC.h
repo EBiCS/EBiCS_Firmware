@@ -11,6 +11,8 @@
 #include <arm_math.h>
 
 void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int16_t int16_i_q_target);
+q31_t PI_control_i_q (q31_t ist, q31_t soll);
+q31_t PI_control_i_d (q31_t ist, q31_t soll);
 
 // Maximum Voltage applyed
 #define _U_MAX	2030L  //little lower than period of timer1 for proper phase current reading. Could be improved by dynamic timing of AD-conversion
