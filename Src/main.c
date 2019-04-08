@@ -846,6 +846,12 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 			}
 			break;
 
+		case 0: //timeslot too small for ADC
+			{
+				//do nothing
+			}
+			break;
+
 
 		} // end case
 
@@ -1070,10 +1076,20 @@ int32_t map (int32_t x, int32_t in_min, int32_t in_max, int32_t out_min, int32_t
     return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
+//assuming, a proper AD conversion takes 350 timer tics, to be confirmed. DT+TR+TS Deadtime +
 void dyn_adc_state(q31_t angle){
-	if (angle > -1073741824 && angle < 357913941) char_dyn_adc_state = 1; // -90° .. +30°: Phase C at high dutycycles
-	if (angle > 357913941 && angle < 1789569707) char_dyn_adc_state = 2; // +30° .. 150° Phase A at high dutycycles
-	if (angle < -1073741824 || angle > 1789569707) char_dyn_adc_state = 3; // +150 .. -90° Phase B at high dutycycles
+	if (switchtime[2]>switchtime[0] && switchtime[2]>switchtime[1]){
+		char_dyn_adc_state = 1; // -90° .. +30°: Phase C at high dutycycles
+		if(q31_u_abs>1700){
+			if ((switchtime[2]-switchtime[0]<350)||(switchtime[2]-switchtime[1])<350){
+				char_dyn_adc_state = 0; //time frame to small for ADC
+			}
+			else TIM1->CCR4 = switchtime[2]-350; //set startpoint of ADC to 350 tics before highest phase is switched off
+		}
+		else TIM1->CCR4 =_T-1; //set startpoint of ADC to timer overflow
+	}
+	if (switchtime[0]>switchtime[1] && switchtime[0]>switchtime[2]) char_dyn_adc_state = 2; // +30° .. 150° Phase A at high dutycycles
+	if (switchtime[1]>switchtime[0] && switchtime[1]>switchtime[2]) char_dyn_adc_state = 3; // +150 .. -90° Phase B at high dutycycles
 }
 
 static void set_inj_channel(char state){
