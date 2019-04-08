@@ -1076,7 +1076,7 @@ int32_t map (int32_t x, int32_t in_min, int32_t in_max, int32_t out_min, int32_t
     return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
-//assuming, a proper AD conversion takes 350 timer tics, to be confirmed. DT+TR+TS Deadtime +
+//assuming, a proper AD conversion takes 350 timer tics, to be confirmed. DT+TR+TS deadtime + noise subsiding + sample time
 void dyn_adc_state(q31_t angle){
 	if (switchtime[2]>switchtime[0] && switchtime[2]>switchtime[1]){
 		char_dyn_adc_state = 1; // -90° .. +30°: Phase C at high dutycycles
@@ -1088,8 +1088,26 @@ void dyn_adc_state(q31_t angle){
 		}
 		else TIM1->CCR4 =_T-1; //set startpoint of ADC to timer overflow
 	}
-	if (switchtime[0]>switchtime[1] && switchtime[0]>switchtime[2]) char_dyn_adc_state = 2; // +30° .. 150° Phase A at high dutycycles
-	if (switchtime[1]>switchtime[0] && switchtime[1]>switchtime[2]) char_dyn_adc_state = 3; // +150 .. -90° Phase B at high dutycycles
+	if (switchtime[0]>switchtime[1] && switchtime[0]>switchtime[2]) {
+		char_dyn_adc_state = 2; // +30° .. 150° Phase A at high dutycycles
+		if(q31_u_abs>1700){
+			if ((switchtime[0]-switchtime[1]<350)||(switchtime[0]-switchtime[2])<350){
+				char_dyn_adc_state = 0; //time frame to small for ADC
+			}
+			else TIM1->CCR4 = switchtime[0]-350; //set startpoint of ADC to 350 tics before highest phase is switched off
+		}
+		else TIM1->CCR4 =_T-1; //set startpoint of ADC to timer overflow
+	}
+	if (switchtime[1]>switchtime[0] && switchtime[1]>switchtime[2]){
+		char_dyn_adc_state = 3; // +150 .. -90° Phase B at high dutycycles
+		if(q31_u_abs>1700){
+		if ((switchtime[1]-switchtime[0]<350)||(switchtime[1]-switchtime[2])<350){
+				char_dyn_adc_state = 0; //time frame to small for ADC
+			}
+			else TIM1->CCR4 = switchtime[1]-350; //set startpoint of ADC to 350 tics before highest phase is switched off
+		}
+		else TIM1->CCR4 =_T-1; //set startpoint of ADC to timer overflow
+	}
 }
 
 static void set_inj_channel(char state){
