@@ -357,7 +357,7 @@ int main(void)
 	  	  if(ui32_tim1_counter>800){
 
 
-	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", q31_i_q_fil>>3, q31_u_abs , uint16_current_target, i16_ph1_current, i16_ph2_current, temp4, temp5, char_dyn_adc_state);
+	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", q31_i_q_fil>>3, q31_u_abs , uint16_current_target, TIM1->CCR4, i16_ph2_current, temp4, temp5, char_dyn_adc_state);
 	 	 // temp1: iq, temp3: dutycycle, temp6: timer1 value at start injec. callback, temp5: timer 1 value after angle interpolation, temp4: timer1 value after debug-angle, temp2: debug-angle in degree
 	  	 i=0;
 		  while (buffer[i] != '\0')
@@ -587,7 +587,7 @@ static void MX_TIM1_Init(void)
   }
 
   sConfigOC.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC.Pulse = 1000;
+  sConfigOC.Pulse = 1;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCNPolarity = TIM_OCNPOLARITY_LOW;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
@@ -787,8 +787,8 @@ void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
 		  ui32_tim1_counter++;
 		  if (uint32_PAS_counter < PAS_TIMEOUT+1)uint32_PAS_counter++;
 		  uint32_SPEED_counter++;
-		  //for oszi-check of used time in FOC procedere
-		  HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
+
+
 
 	  }
 
@@ -817,8 +817,8 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 
 void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 {
-
-
+	//for oszi-check of used time in FOC procedere
+	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
 	//read in phase currents
 	//i16_ph1_current = HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1);
 	//i16_ph2_current = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1);
@@ -898,6 +898,7 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 	//get the Phase with highest duty cycle for dynamic phase current reading
 	dyn_adc_state(q31_rotorposition_absolute);
 	//set the according injected channels to read current at Low-Side active time
+
 	if (char_dyn_adc_state!=char_dyn_adc_state_old){
 		set_inj_channel(char_dyn_adc_state);
 		char_dyn_adc_state_old = char_dyn_adc_state;
@@ -914,7 +915,7 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 	TIM1->CCR2 =  (uint16_t) switchtime[1];
 	TIM1->CCR3 =  (uint16_t) switchtime[2];
 	//TIM1->CCR4 =  (uint16_t) q31_startpoint_conversion;
-	if(switchtime[0]>temp5)temp5=switchtime[0];
+
 
 	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
 	//read in timer for indication of processor load

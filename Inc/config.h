@@ -26,6 +26,6 @@
 #define OFFSET_B 957				//Offset of current sensing phase B
 #define OFFSET_C 981				//Offset of current sensing phase C
 
-#define _T 4096
+#define _T 2048
 
 #endif
