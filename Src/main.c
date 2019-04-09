@@ -1082,30 +1082,30 @@ void dyn_adc_state(q31_t angle){
 	if (switchtime[2]>switchtime[0] && switchtime[2]>switchtime[1]){
 		char_dyn_adc_state = 1; // -90° .. +30°: Phase C at high dutycycles
 		if(q31_u_abs>1700){
-			if ((switchtime[2]-switchtime[0]<ADC_DUR)||(switchtime[2]-switchtime[1])<ADC_DUR){
-				char_dyn_adc_state = 0; //time frame to small for ADC
+			/*if ((switchtime[2]-switchtime[0]<ADC_DUR)||(switchtime[2]-switchtime[1])<ADC_DUR){
+				//char_dyn_adc_state = 0; //time frame to small for ADC
 			}
-			else TIM1->CCR4 = switchtime[2]-ADC_DUR; //set startpoint of ADC to 350 tics before highest phase is switched off
+			else*/ TIM1->CCR4 = switchtime[2]-ADC_DUR; //set startpoint of ADC to 350 tics before highest phase is switched off
 		}
 		else TIM1->CCR4 =_T-1; //set startpoint of ADC to timer overflow
 	}
 	if (switchtime[0]>switchtime[1] && switchtime[0]>switchtime[2]) {
 		char_dyn_adc_state = 2; // +30° .. 150° Phase A at high dutycycles
 		if(q31_u_abs>1700){
-			if ((switchtime[0]-switchtime[1]<ADC_DUR)||(switchtime[0]-switchtime[2])<ADC_DUR){
-				char_dyn_adc_state = 0; //time frame to small for ADC
+			/*if ((switchtime[0]-switchtime[1]<ADC_DUR)||(switchtime[0]-switchtime[2])<ADC_DUR){
+				//char_dyn_adc_state = 0; //time frame to small for ADC
 			}
-			else TIM1->CCR4 = switchtime[0]-ADC_DUR; //set startpoint of ADC to 350 tics before highest phase is switched off
+			else*/ TIM1->CCR4 = switchtime[0]-ADC_DUR; //set startpoint of ADC to 350 tics before highest phase is switched off
 		}
 		else TIM1->CCR4 =_T-1; //set startpoint of ADC to timer overflow
 	}
 	if (switchtime[1]>switchtime[0] && switchtime[1]>switchtime[2]){
 		char_dyn_adc_state = 3; // +150 .. -90° Phase B at high dutycycles
 		if(q31_u_abs>1700){
-		if ((switchtime[1]-switchtime[0]<ADC_DUR)||(switchtime[1]-switchtime[2])<ADC_DUR){
-				char_dyn_adc_state = 0; //time frame to small for ADC
+			/*if ((switchtime[1]-switchtime[0]<ADC_DUR)||(switchtime[1]-switchtime[2])<ADC_DUR){
+				//char_dyn_adc_state = 0; //time frame to small for ADC
 			}
-			else TIM1->CCR4 = switchtime[1]-ADC_DUR; //set startpoint of ADC to 350 tics before highest phase is switched off
+			else*/ TIM1->CCR4 = switchtime[1]-ADC_DUR; //set startpoint of ADC to 350 tics before highest phase is switched off
 		}
 		else TIM1->CCR4 =_T-1; //set startpoint of ADC to timer overflow
 	}
