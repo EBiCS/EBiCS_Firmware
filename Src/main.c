@@ -236,9 +236,11 @@ int main(void)
     TIM1->CCR2 = _T>1;
     TIM1->CCR3 = _T>1;
 
-    TIM1->CCR4 = _T-10; //ADC sampling at beginning of counting down (just after middle of PWM-Cycle)
+    TIM1->CCR4 = _T-10; //ADC sampling just before timer overflow (just before middle of PWM-Cycle)
 //PWM Mode 1: Interrupt at counting down.
 
+    //TIM1->BDTR |= 1L<<15;
+    TIM1->BDTR &= ~(1L<<15); //reset MOE (Main Output Enable) bit to disable PWM output
     // Start Timer 2
        if(HAL_TIM_Base_Start_IT(&htim2) != HAL_OK)
          {
@@ -353,6 +355,9 @@ int main(void)
 	  else uint16_current_target = uint16_mapped_throttle;
 
 #endif
+
+	  //enable PWM output, if power is wanted
+	  if (uint16_current_target>0)TIM1->BDTR |= 1L<<15; //set MOE bit
 	  //print values for debugging
 	  	  if(ui32_tim1_counter>800){
 
