@@ -341,7 +341,7 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
                 		}
                 break;
 
-                case 0x53:      // Operation mode
+                case 0x53:      // Settings mode
 
                     CheckSum = 0x0000;
                     for(i=1; i<(4+KM_ctx->RxBuff[3]); i++)
@@ -359,7 +359,7 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
                     	KM_ctx->RxState = RXSTATE_STARTCODE;                // Invalid CheckSum, ignore message
                     }
                break;
-
+            }
 
 
 
@@ -381,7 +381,7 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
                 KM_ctx->Rx.Throttle           = (KM_ctx->RxBuff[5] & 0x04) >> 2;    // KM_THROTTLE_OFF / KM_THROTTLE_ON
                 KM_ctx->Rx.CruiseControl      = (KM_ctx->RxBuff[5] & 0x02) >> 1;    // KM_CRUISE_OFF / KM_CRUISE_ON
                 KM_ctx->Rx.OverSpeed          = (KM_ctx->RxBuff[5] & 0x01);         // KM_OVERSPEED_NO / KM_OVERSPEED_YES
-                KM_ctx->Rx.SPEEDMAX_Limit_x10 = (((uint16_t) KM_ctx->RxBuff[8])<<7)  | KM_ctx->RxBuff[6];
+                KM_ctx->Rx.SPEEDMAX_Limit_x10 = (((uint16_t) KM_ctx->RxBuff[7])<<8)  | KM_ctx->RxBuff[6];
                 KM_ctx->Rx.CUR_Limit_x10      = (((uint16_t) KM_ctx->RxBuff[9])<<8) | KM_ctx->RxBuff[8];
 
 
@@ -402,8 +402,6 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
                 }
 
                 TxBuff[5]  = (uint8_t) ((KM_ctx->Tx.Current_x10 * 3) / 10);        			// Current low Strom in 1/3 Ampere, nur ein Byte
-               // TxBuff[6]  = highByte(KM_ctx->Tx.Current_x10);          // Current high
-
                 TxBuff[6]  = highByte(KM_ctx->Tx.Wheeltime_ms);         // WheelSpeed high Hinweis
                 TxBuff[7]  = lowByte (KM_ctx->Tx.Wheeltime_ms);         // WheelSpeed low
                 TxBuff[8] = KM_ctx->Tx.Error;                          // Error
@@ -438,7 +436,7 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
                 TxBuff[8] = 0x00;
 
 
-
+               // 3A 1A 53 05 00 00 0D 91 00 10 01 0D 0A
 
                 														// DataSize
                 //TxBuff[5] = KM_901U_HANDSHAKE[KM_ctx->RxBuff[14]];      // Handshake answer
@@ -455,21 +453,17 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
         {
             CheckSum = 0x0000;
 
-           // KM_ctx->SerialPort->write(TxBuff[0]);                       // Send StartCode
+
 
             for(i=1; i<TxCnt; i++)
             {
-                //KM_ctx->SerialPort->write(TxBuff[i]);                   // Send TxBuff[1..x]
+
                 CheckSum = CheckSum + TxBuff[i];                        // Calculate CheckSum 
             }
             TxBuff[TxCnt+0]=lowByte(CheckSum);							// Low Byte of checksum
             TxBuff[TxCnt+1]=highByte(CheckSum);								// High Byte of checksum
-           // KM_ctx->SerialPort->write(lowByte(CheckSum));               // Send CheckSum low
-           // KM_ctx->SerialPort->write(highByte(CheckSum));              // Send CheckSum high
             TxBuff[TxCnt+2] = 0x0D;
             TxBuff[TxCnt+3] = 0x0A;
-           // KM_ctx->SerialPort->write(0x0D);                            // Send CR
-           // KM_ctx->SerialPort->write(0x0A);                            // Send LF
 
             HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuff, TxCnt+4);
         }
