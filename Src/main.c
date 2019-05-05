@@ -114,6 +114,7 @@ char char_dyn_adc_state_old=1;
 q31_t	q31_u_abs=0;
 
 q31_t switchtime[3];
+volatile uint32_t adcData[8]; //Buffer for ADC1 Input
 //static int8_t angle[256][4];
 //static int8_t angle_old;
 //q31_t q31_startpoint_conversion = 2048;
@@ -203,14 +204,29 @@ int main(void)
   MX_USART1_UART_Init();
 
   MX_ADC1_Init();
+  /* Run the ADC calibration */
+  if (HAL_ADCEx_Calibration_Start(&hadc1) != HAL_OK)
+  {
+    /* Calibration Error */
+    Error_Handler();
+  }
   MX_ADC2_Init();
+  /* Run the ADC calibration */
+  if (HAL_ADCEx_Calibration_Start(&hadc2) != HAL_OK)
+  {
+    /* Calibration Error */
+    Error_Handler();
+  }
 
   /* USER CODE BEGIN 2 */
  SET_BIT(ADC1->CR2, ADC_CR2_JEXTTRIG);//external trigger enable
  __HAL_ADC_ENABLE_IT(&hadc1,ADC_IT_JEOC);
  SET_BIT(ADC2->CR2, ADC_CR2_JEXTTRIG);//external trigger enable
  __HAL_ADC_ENABLE_IT(&hadc2,ADC_IT_JEOC);
-  HAL_ADC_Start_IT(&hadc1);
+
+
+  //HAL_ADC_Start_IT(&hadc1);
+  HAL_ADCEx_MultiModeStart_DMA(&hadc1, (uint32_t*)adcData, 8);
   HAL_ADC_Start_IT(&hadc2);
   MX_TIM1_Init(); //Hier die Reihenfolge getauscht!
   MX_TIM2_Init();
@@ -272,6 +288,10 @@ int main(void)
 
 
     printf_("Lishui FOC v0.0 \r\n");
+
+
+
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -361,9 +381,9 @@ int main(void)
 	  //print values for debugging
 	  	  if(ui32_tim1_counter>800){
 
-
-	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", q31_i_q_fil>>3, q31_u_abs , uint16_current_target, TIM1->CCR4, i16_ph2_current, temp4, temp5, char_dyn_adc_state);
-	 	 // temp1: iq, temp3: dutycycle, temp6: timer1 value at start injec. callback, temp5: timer 1 value after angle interpolation, temp4: timer1 value after debug-angle, temp2: debug-angle in degree
+	  	//	HAL_ADC_Start_DMA(&hadc1, (uint32_t*)&adcData, 8);
+	  	//	sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", q31_i_q_fil>>3, q31_u_abs , uint16_current_target, TIM1->CCR4, i16_ph2_current, temp4, temp5, char_dyn_adc_state);
+	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[0]>>16),(uint16_t)(adcData[1]>>16),(uint16_t)(adcData[2]>>16),(uint16_t)(adcData[7]>>16)) ;
 	  	 i=0;
 		  while (buffer[i] != '\0')
 		  {i++;}
@@ -465,11 +485,14 @@ static void MX_ADC1_Init(void)
     */
   hadc1.Instance = ADC1;
   hadc1.Init.ScanConvMode = ADC_SCAN_ENABLE; //Scan muß für getriggerte Wandlung gesetzt sein
-  hadc1.Init.ContinuousConvMode = DISABLE;
+  hadc1.Init.ContinuousConvMode = ENABLE;
   hadc1.Init.DiscontinuousConvMode = DISABLE;
-  hadc1.Init.ExternalTrigConv = ADC_EXTERNALTRIGCONV_T1_CC1;
+  hadc1.Init.ExternalTrigConv =  ADC_SOFTWARE_START;//ADC_EXTERNALTRIGCONV_T1_CC1;// ADC_SOFTWARE_START; //
   hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
-  hadc1.Init.NbrOfConversion = 1;
+  hadc1.Init.NbrOfConversion = 8;
+  hadc1.Init.NbrOfDiscConversion = 0;
+
+
   if (HAL_ADC_Init(&hadc1) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
@@ -501,13 +524,77 @@ static void MX_ADC1_Init(void)
 
     /**Configure Regular Channel 
     */
-  sConfig.Channel = ADC_CHANNEL_3;
+  sConfig.Channel = ADC_CHANNEL_7;
   sConfig.Rank = ADC_REGULAR_RANK_1;
   sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
+
+  /**Configure Regular Channel
+  */
+sConfig.Channel = ADC_CHANNEL_8;
+sConfig.Rank = ADC_REGULAR_RANK_2;
+sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
+if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+{
+  _Error_Handler(__FILE__, __LINE__);
+}
+/**Configure Regular Channel
+*/
+sConfig.Channel = ADC_CHANNEL_9;
+sConfig.Rank = ADC_REGULAR_RANK_3;
+sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
+if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+{
+_Error_Handler(__FILE__, __LINE__);
+}
+/**Configure Regular Channel
+*/
+sConfig.Channel = ADC_CHANNEL_3;
+sConfig.Rank = ADC_REGULAR_RANK_4;
+sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
+if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+{
+_Error_Handler(__FILE__, __LINE__);
+}
+/**Configure Regular Channel
+*/
+sConfig.Channel = ADC_CHANNEL_4;
+sConfig.Rank = ADC_REGULAR_RANK_5;
+sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
+if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+{
+_Error_Handler(__FILE__, __LINE__);
+}
+/**Configure Regular Channel
+*/
+sConfig.Channel = ADC_CHANNEL_5;
+sConfig.Rank = ADC_REGULAR_RANK_6;
+sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
+if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+{
+_Error_Handler(__FILE__, __LINE__);
+}
+/**Configure Regular Channel
+*/
+sConfig.Channel = ADC_CHANNEL_6;
+sConfig.Rank = ADC_REGULAR_RANK_7;
+sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
+if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+{
+_Error_Handler(__FILE__, __LINE__);
+}
+/**Configure Regular Channel
+*/
+sConfig.Channel = ADC_CHANNEL_14;
+sConfig.Rank = ADC_REGULAR_RANK_8;
+sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
+if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+{
+_Error_Handler(__FILE__, __LINE__);
+}
 
 }
 
@@ -696,6 +783,8 @@ static void MX_DMA_Init(void)
   /* DMA controller clock enable */
   __HAL_RCC_DMA1_CLK_ENABLE();
 
+
+
   /* DMA interrupt init */
   /* DMA1_Channel1_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 0, 0);
@@ -813,7 +902,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 {
 	ui32_reg_adc_value_filter -= ui32_reg_adc_value_filter>>4;
-	ui32_reg_adc_value_filter += HAL_ADC_GetValue(hadc);
+	ui32_reg_adc_value_filter += adcData[1]>>16; //HAL_ADC_GetValue(hadc);
 	ui16_reg_adc_value = ui32_reg_adc_value_filter>>4;
 	//temp5=ui16_reg_adc_value-665;
 }

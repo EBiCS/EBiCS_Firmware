@@ -305,10 +305,11 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
 
                    if(SOM_Flag){
                 	   ui8_RxLength = j+1;
-                	   if (HAL_UART_Receive_DMA(&huart1, (uint8_t *)KM_ctx->RxBuff, ui8_RxLength) != HAL_OK) //Start UART DMA with right message lenght
+                	   //HAL_UART_DMAStop(&huart1);
+                	  /* if (HAL_UART_Receive_DMA(&huart1, (uint8_t *)KM_ctx->RxBuff, ui8_RxLength) != HAL_OK) //Start UART DMA with right message lenght
                 	        {
                 	    	   Error_Handler();
-                	        }
+                	        }*/
                 	   SOM_Flag=2;
                    }
                    j=0;
@@ -429,14 +430,16 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
                 TxBuff[1] = 0x1A;                                       // SrcAdd:  Controller
                 TxBuff[2] = 0x53;                                      	// CmdCode
                 TxBuff[3] = 0x05;                                       // Number of Databytes
-                TxBuff[4] = 0x00;
+                TxBuff[4] = 0x80;
                 TxBuff[5] = 0x00;
                 TxBuff[6] = 0x0D;
-                TxBuff[7] = 0x86;
-                TxBuff[8] = 0x00;
+                TxBuff[7] = 0x91;
+                TxBuff[8] = 0x26;
 
 
                // 3A 1A 53 05 00 00 0D 91 00 10 01 0D 0A
+                //3A 1A 53 05 80 00 0D 91 26 B6 01 0D 0A
+                //3A 1A 53 05 00 00 0D 91 00 10 01 0D 0A
 
                 														// DataSize
                 //TxBuff[5] = KM_901U_HANDSHAKE[KM_ctx->RxBuff[14]];      // Handshake answer

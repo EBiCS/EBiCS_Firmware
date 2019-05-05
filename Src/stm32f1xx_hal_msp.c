@@ -112,9 +112,13 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* hadc)
     PA5     ------> ADC1_IN5
     PA6     ------> ADC1_IN6 
     */
-    GPIO_InitStruct.Pin = Throttle_Pin|Phase_Current1_Pin|Phase_Current_2_Pin|Phase_Current_3_Pin;
+    GPIO_InitStruct.Pin = Throttle_Pin|Phase_Current1_Pin|Phase_Current_2_Pin|Phase_Current_3_Pin|GPIO_PIN_7; //128 for PA7 = AIN7
     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+    GPIO_InitStruct.Pin =  GPIO_PIN_0|GPIO_PIN_1; //for ADC8+9
+    GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
+    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
     /* ADC1 DMA Init */
     /* ADC1 Init */
@@ -124,7 +128,7 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* hadc)
     hdma_adc1.Init.MemInc = DMA_MINC_ENABLE;
     hdma_adc1.Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;
     hdma_adc1.Init.MemDataAlignment = DMA_MDATAALIGN_HALFWORD;
-    hdma_adc1.Init.Mode = DMA_NORMAL;
+    hdma_adc1.Init.Mode = DMA_CIRCULAR;//DMA_NORMAL;
     hdma_adc1.Init.Priority = DMA_PRIORITY_MEDIUM;
     if (HAL_DMA_Init(&hdma_adc1) != HAL_OK)
     {
