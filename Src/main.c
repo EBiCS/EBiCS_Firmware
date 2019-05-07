@@ -114,7 +114,7 @@ char char_dyn_adc_state_old=1;
 q31_t	q31_u_abs=0;
 
 q31_t switchtime[3];
-volatile uint32_t adcData[8]; //Buffer for ADC1 Input
+volatile uint16_t adcData[8]; //Buffer for ADC1 Input
 //static int8_t angle[256][4];
 //static int8_t angle_old;
 //q31_t q31_startpoint_conversion = 2048;
@@ -226,7 +226,7 @@ int main(void)
 
 
   //HAL_ADC_Start_IT(&hadc1);
-  HAL_ADCEx_MultiModeStart_DMA(&hadc1, (uint32_t*)adcData, 8);
+  HAL_ADCEx_MultiModeStart_DMA(&hadc1, (uint32_t*)adcData, 5);
   HAL_ADC_Start_IT(&hadc2);
   MX_TIM1_Init(); //Hier die Reihenfolge getauscht!
   MX_TIM2_Init();
@@ -256,7 +256,7 @@ int main(void)
 //PWM Mode 1: Interrupt at counting down.
 
     //TIM1->BDTR |= 1L<<15;
-    TIM1->BDTR &= ~(1L<<15); //reset MOE (Main Output Enable) bit to disable PWM output
+   // TIM1->BDTR &= ~(1L<<15); //reset MOE (Main Output Enable) bit to disable PWM output
     // Start Timer 2
        if(HAL_TIM_Base_Start_IT(&htim2) != HAL_OK)
          {
@@ -381,9 +381,9 @@ int main(void)
 	  //print values for debugging
 	  	  if(ui32_tim1_counter>800){
 
-	  	//	HAL_ADC_Start_DMA(&hadc1, (uint32_t*)&adcData, 8);
-	  	//	sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", q31_i_q_fil>>3, q31_u_abs , uint16_current_target, TIM1->CCR4, i16_ph2_current, temp4, temp5, char_dyn_adc_state);
-	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[0]>>16),(uint16_t)(adcData[1]>>16),(uint16_t)(adcData[2]>>16),(uint16_t)(adcData[7]>>16)) ;
+
+	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", q31_i_q_fil>>3, q31_u_abs , uint16_current_target, TIM1->CCR4, i16_ph2_current, adcData[2],adcData[3], adcData[4]);
+	  	//	sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5]),(uint16_t)(adcData[6]),(uint16_t)(adcData[7])) ;
 	  	 i=0;
 		  while (buffer[i] != '\0')
 		  {i++;}
@@ -485,11 +485,11 @@ static void MX_ADC1_Init(void)
     */
   hadc1.Instance = ADC1;
   hadc1.Init.ScanConvMode = ADC_SCAN_ENABLE; //Scan muß für getriggerte Wandlung gesetzt sein
-  hadc1.Init.ContinuousConvMode = ENABLE;
+  hadc1.Init.ContinuousConvMode = DISABLE;
   hadc1.Init.DiscontinuousConvMode = DISABLE;
-  hadc1.Init.ExternalTrigConv =  ADC_SOFTWARE_START;//ADC_EXTERNALTRIGCONV_T1_CC1;// ADC_SOFTWARE_START; //
+  hadc1.Init.ExternalTrigConv = ADC_EXTERNALTRIGCONV_T1_CC1;// // ADC_SOFTWARE_START; //
   hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
-  hadc1.Init.NbrOfConversion = 8;
+  hadc1.Init.NbrOfConversion = 5;
   hadc1.Init.NbrOfDiscConversion = 0;
 
 
@@ -526,35 +526,18 @@ static void MX_ADC1_Init(void)
     */
   sConfig.Channel = ADC_CHANNEL_7;
   sConfig.Rank = ADC_REGULAR_RANK_1;
-  sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
+  sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;//ADC_SAMPLETIME_239CYCLES_5;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
 
-  /**Configure Regular Channel
-  */
-sConfig.Channel = ADC_CHANNEL_8;
-sConfig.Rank = ADC_REGULAR_RANK_2;
-sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
-if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
-{
-  _Error_Handler(__FILE__, __LINE__);
-}
-/**Configure Regular Channel
-*/
-sConfig.Channel = ADC_CHANNEL_9;
-sConfig.Rank = ADC_REGULAR_RANK_3;
-sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
-if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
-{
-_Error_Handler(__FILE__, __LINE__);
-}
+
 /**Configure Regular Channel
 */
 sConfig.Channel = ADC_CHANNEL_3;
-sConfig.Rank = ADC_REGULAR_RANK_4;
-sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
+sConfig.Rank = ADC_REGULAR_RANK_2;
+sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;//ADC_SAMPLETIME_239CYCLES_5;
 if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
 {
 _Error_Handler(__FILE__, __LINE__);
@@ -562,8 +545,8 @@ _Error_Handler(__FILE__, __LINE__);
 /**Configure Regular Channel
 */
 sConfig.Channel = ADC_CHANNEL_4;
-sConfig.Rank = ADC_REGULAR_RANK_5;
-sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
+sConfig.Rank = ADC_REGULAR_RANK_3;
+sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;//ADC_SAMPLETIME_239CYCLES_5;
 if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
 {
 _Error_Handler(__FILE__, __LINE__);
@@ -571,8 +554,8 @@ _Error_Handler(__FILE__, __LINE__);
 /**Configure Regular Channel
 */
 sConfig.Channel = ADC_CHANNEL_5;
-sConfig.Rank = ADC_REGULAR_RANK_6;
-sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
+sConfig.Rank = ADC_REGULAR_RANK_4;
+sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;//ADC_SAMPLETIME_239CYCLES_5;
 if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
 {
 _Error_Handler(__FILE__, __LINE__);
@@ -580,17 +563,8 @@ _Error_Handler(__FILE__, __LINE__);
 /**Configure Regular Channel
 */
 sConfig.Channel = ADC_CHANNEL_6;
-sConfig.Rank = ADC_REGULAR_RANK_7;
-sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
-if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
-{
-_Error_Handler(__FILE__, __LINE__);
-}
-/**Configure Regular Channel
-*/
-sConfig.Channel = ADC_CHANNEL_14;
-sConfig.Rank = ADC_REGULAR_RANK_8;
-sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
+sConfig.Rank = ADC_REGULAR_RANK_5;
+sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;//ADC_SAMPLETIME_239CYCLES_5;
 if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
 {
 _Error_Handler(__FILE__, __LINE__);
@@ -881,7 +855,7 @@ void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
 		  ui32_tim1_counter++;
 		  if (uint32_PAS_counter < PAS_TIMEOUT+1)uint32_PAS_counter++;
 		  uint32_SPEED_counter++;
-
+		  temp5=__HAL_TIM_GET_COUNTER(&htim1);
 
 
 	  }
@@ -902,8 +876,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 {
 	ui32_reg_adc_value_filter -= ui32_reg_adc_value_filter>>4;
-	ui32_reg_adc_value_filter += adcData[1]>>16; //HAL_ADC_GetValue(hadc);
+	ui32_reg_adc_value_filter += adcData[1]; //HAL_ADC_GetValue(hadc);
 	ui16_reg_adc_value = ui32_reg_adc_value_filter>>4;
+
+
 	//temp5=ui16_reg_adc_value-665;
 }
 
@@ -913,6 +889,7 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 {
 	//for oszi-check of used time in FOC procedere
 	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
+
 	//read in phase currents
 	//i16_ph1_current = HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1);
 	//i16_ph2_current = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1);
