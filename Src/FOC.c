@@ -24,6 +24,9 @@ q31_t q31_i_q_fil = 0;
 q31_t q31_i_d_fil = 0;
 q31_t q31_u_d = 0;
 q31_t q31_u_q = 0;
+q31_t x1;
+q31_t x2;
+q31_t teta_obs;
 
 char PI_flag=0;
 
@@ -36,6 +39,8 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 void svpwm(q31_t q31_u_alpha, q31_t q31_u_beta);
 q31_t PI_control_i_q (q31_t ist, q31_t soll);
 q31_t PI_control_i_d (q31_t ist, q31_t soll);
+void observer_update(q31_t v_alpha, q31_t v_beta, q31_t i_alpha, q31_t i_beta, volatile q31_t x1, volatile q31_t x2, volatile q31_t phase);
+
 
 
 
@@ -105,6 +110,8 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 	//arm_sin_cos_q31(q31_teta, &sinevalue, &cosinevalue);
 	//inverse Park transformation
 	arm_inv_park_q31(q31_u_d, q31_u_q, &q31_u_alpha, &q31_u_beta, -sinevalue, cosinevalue);
+
+	observer_update(q31_u_alpha, q31_u_beta, q31_i_alpha, q31_i_beta , x1, x2, teta_obs);
 
 	//call SVPWM calculation
 	svpwm(q31_u_alpha, q31_u_beta);
@@ -197,3 +204,77 @@ void svpwm(q31_t q31_u_alpha, q31_t q31_u_beta)	{
 
 }
 
+// See http://cas.ensmp.fr/~praly/Telechargement/Journaux/2010-IEEE_TPEL-Lee-Hong-Nam-Ortega-Praly-Astolfi.pdf
+void observer_update(q31_t v_alpha, q31_t v_beta, q31_t i_alpha, q31_t i_beta, volatile q31_t x1, volatile q31_t x2, volatile q31_t phase) {
+
+	const float L = (3.0 / 2.0) * INDUCTANCE;
+	const float lambda = FLUX_LINKAGE;
+	float R = (3.0 / 2.0) * RESISTANCE;
+/*
+	// Saturation compensation
+	const float sign = (m_motor_state.iq * m_motor_state.vq) >= 0.0 ? 1.0 : -1.0;
+	R -= R * sign * m_conf->foc_sat_comp * (m_motor_state.i_abs_filter / m_conf->l_current_max);
+
+	// Temperature compensation
+	const float t = mc_interface_temp_motor_filtered();
+	if (m_conf->foc_temp_comp && t > -5.0) {
+		R += R * 0.00386 * (t - m_conf->foc_temp_comp_base_temp);
+	}*/
+
+	const float L_ia = L * i_alpha;
+	const float L_ib = L * i_beta;
+	const float R_ia = R * i_alpha;
+	const float R_ib = R * i_beta;
+	const float lambda_2 = lambda*lambda;
+	const float gamma_half = GAMMA * 0.5;
+
+	// Original
+//	float err = lambda_2 - (SQ(*x1 - L_ia) + SQ(*x2 - L_ib));
+//	float x1_dot = -R_ia + v_alpha + gamma_half * (*x1 - L_ia) * err;
+//	float x2_dot = -R_ib + v_beta + gamma_half * (*x2 - L_ib) * err;
+//	*x1 += x1_dot * dt;
+//	*x2 += x2_dot * dt;
+/*
+	// Iterative with some trial and error
+	const int iterations = 6;
+	const float dt_iteration = dt / (float)iterations;
+	for (int i = 0;i < iterations;i++) {
+		float err = lambda_2 - (SQ(*x1 - L_ia) + SQ(*x2 - L_ib));
+		float gamma_tmp = gamma_half;
+		if (utils_truncate_number_abs(&err, lambda_2 * 0.2)) {
+			gamma_tmp *= 10.0;
+		}
+		float x1_dot = -R_ia + v_alpha + gamma_tmp * (*x1 - L_ia) * err;
+		float x2_dot = -R_ib + v_beta + gamma_tmp * (*x2 - L_ib) * err;
+
+		*x1 += x1_dot * dt_iteration;
+		*x2 += x2_dot * dt_iteration;
+	}
+	*/
+
+	// Same as above, but without iterations.
+	float err = lambda_2 - ((x1 - L_ia)*(x1 - L_ia) + (x2 - L_ib)*(x2 - L_ib));
+	float gamma_tmp = gamma_half;
+	/*if (utils_truncate_number_abs(&err, lambda_2 * 0.2)) {
+		gamma_tmp *= 10.0;
+	}*/
+	float x1_dot = -R_ia + v_alpha + gamma_tmp * (x1 - L_ia) * err;
+	float x2_dot = -R_ib + v_beta + gamma_tmp * (x2 - L_ib) * err;
+	x1 += x1_dot * _T;
+	x2 += x2_dot * _T;
+
+	//UTILS_NAN_ZERO(*x1);
+	//UTILS_NAN_ZERO(*x2);
+
+	//*phase = utils_fast_atan2(*x2 - L_ib, *x1 - L_ia);
+}
+/*
+static void pll_run(float phase, float dt, volatile float *phase_var,volatile float *speed_var) {
+	//UTILS_NAN_ZERO(*phase_var);
+	float delta_theta = phase - *phase_var;
+	//utils_norm_angle_rad(&delta_theta);
+	//UTILS_NAN_ZERO(*speed_var);
+	*phase_var += (*speed_var + SPEED_KP * delta_theta) * dt;
+	//utils_norm_angle_rad((float*)phase_var);
+	*speed_var += SPEED_KI * delta_theta * dt;
+}*/

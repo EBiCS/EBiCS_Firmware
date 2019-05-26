@@ -26,6 +26,14 @@
 #define OFFSET_B 1022				//Offset of current sensing phase B
 #define OFFSET_C 1042				//Offset of current sensing phase C
 
+//Constants for Motor model of observer an speed PLL
+#define INDUCTANCE 15 			//mH*10
+#define RESISTANCE 38			//mOhm
+#define FLUX_LINKAGE 1			//V*s/ras
+#define GAMMA 1
+#define SPEED_KP 1
+#define SPEED_KI 1
+
 #define _T 2048
 
 #endif
