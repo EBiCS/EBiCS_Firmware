@@ -39,8 +39,8 @@ extern q31_t q31_u_d;
 extern q31_t q31_u_q;
 
 //observer variables
-extern volatile static q31_t q31_delta_teta;
-extern q31_t q31_e_d_obs = 0;
+extern q31_t q31_delta_teta;
+extern q31_t q31_e_d_obs;
 
 
 #endif /* FOC_H_ */

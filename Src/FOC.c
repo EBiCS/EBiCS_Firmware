@@ -29,7 +29,7 @@ volatile static q31_t q31_x2_obs;
 volatile static q31_t q31_e_alpha_obs;
 volatile static q31_t q31_e_beta_obs;
 volatile static q31_t q31_teta_obs;
-volatile static q31_t q31_delta_teta;
+q31_t q31_delta_teta;
 
 q31_t q31_e_q_obs = 0;
 q31_t q31_e_d_obs = 0;
