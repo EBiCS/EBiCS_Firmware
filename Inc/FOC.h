@@ -30,12 +30,17 @@ extern q31_t temp4;
 extern q31_t temp5;
 extern q31_t temp6;
 extern char PI_flag;
+extern char Obs_flag;
 
+//current control variables
 extern q31_t q31_i_q_fil;
 extern q31_t q31_i_d_fil;
 extern q31_t q31_u_d;
 extern q31_t q31_u_q;
 
+//observer variables
+extern volatile static q31_t q31_delta_teta;
+extern q31_t q31_e_d_obs = 0;
 
 
 #endif /* FOC_H_ */
