@@ -106,17 +106,19 @@ uint16_t uint16_current_target=0;
 
 q31_t q31_rotorposition_absolute;
 q31_t q31_rotorposition_hall;
-int16_t i16_sinus=0;
-int16_t i16_cosinus=0;
+//int16_t i16_sinus=0;
+//int16_t i16_cosinus=0;
 char buffer[100];
 char char_dyn_adc_state=1;
 char char_dyn_adc_state_old=1;
 q31_t	q31_u_abs=0;
+volatile static q31_t q31_teta_obs;
+q31_t q31_delta_teta;
 
 q31_t switchtime[3];
 volatile uint16_t adcData[8]; //Buffer for ADC1 Input
 //static int8_t angle[256][4];
-//static int8_t angle_old;
+static int8_t angle_old;
 //q31_t q31_startpoint_conversion = 2048;
 
 //Rotor angle scaled from degree to q31 for arm_math. -180°-->-2^31, 0°-->0, +180°-->+2^31
@@ -156,7 +158,7 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
-static void Set_reg_channel(uint16_t ADC_Channel);
+
 void kingmeter_update(void);
 static void dyn_adc_state(q31_t angle);
 static void set_inj_channel(char state);
@@ -324,6 +326,11 @@ int main(void)
 		  	else temp4=0;
 		  	PI_flag=0;
 	  }
+	  if(Obs_flag){
+		  q31_delta_teta =  PI_control_e_d(q31_e_d_obs, 0);
+		  Obs_flag=0;
+	  }
+
 	  //display message processing
 	  if(ui8_UART_flag){
 	  kingmeter_update();
@@ -378,6 +385,17 @@ int main(void)
 
 	  //enable PWM output, if power is wanted
 	  if (uint16_current_target>0)TIM1->BDTR |= 1L<<15; //set MOE bit
+
+	  if(q31_rotorposition_absolute>>24!=angle_old){
+	  			angle_old = q31_rotorposition_absolute>>24;
+	  			buffer[0]=angle_old;
+	  			buffer[1]=q31_teta_obs>>24;
+
+	  			HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, 2);
+	  }
+
+
+
 	  //print values for debugging
 	  	  if(ui32_tim1_counter>800){
 
@@ -387,7 +405,7 @@ int main(void)
 	  	 i=0;
 		  while (buffer[i] != '\0')
 		  {i++;}
-		 HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);
+		// HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);
 	  	/* if (ui8_print_flag==1){
 	  		ui8_print_flag=2;
 
@@ -735,7 +753,7 @@ static void MX_USART1_UART_Init(void)
 {
 
   huart1.Instance = USART1;
-  huart1.Init.BaudRate = 9600;
+  huart1.Init.BaudRate = 115200; //9600;
   huart1.Init.WordLength = UART_WORDLENGTH_8B;
   huart1.Init.StopBits = UART_STOPBITS_1;
   huart1.Init.Parity = UART_PARITY_NONE;
@@ -836,17 +854,7 @@ static void MX_GPIO_Init(void)
 
 
 
-static void Set_reg_channel(uint16_t ADC_Channel)
-{
-	ADC_ChannelConfTypeDef sConfig;
-	 sConfig.Channel = ADC_Channel;
-	  sConfig.Rank = ADC_REGULAR_RANK_1;
-	  sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
-	  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
-	  {
-	    _Error_Handler(__FILE__, __LINE__);
-	  }
-	}
+
 
 //Timer1 CC Channel4
 void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
@@ -979,6 +987,8 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 	//uint16_current_target=0;
 	// call FOC procedure
 	FOC_calculation(i16_ph1_current, i16_ph2_current, q31_rotorposition_absolute, uint16_current_target);
+
+	q31_teta_obs += q31_delta_teta;
 
 	//temp5=__HAL_TIM_GET_COUNTER(&htim1);
 	//set PWM

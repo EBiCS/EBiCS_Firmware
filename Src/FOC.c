@@ -28,8 +28,8 @@ volatile static q31_t q31_x1_obs;
 volatile static q31_t q31_x2_obs;
 volatile static q31_t q31_e_alpha_obs;
 volatile static q31_t q31_e_beta_obs;
-volatile static q31_t q31_teta_obs;
-q31_t q31_delta_teta;
+
+
 
 q31_t q31_e_q_obs = 0;
 q31_t q31_e_d_obs = 0;
@@ -46,6 +46,7 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 void svpwm(q31_t q31_u_alpha, q31_t q31_u_beta);
 q31_t PI_control_i_q (q31_t ist, q31_t soll);
 q31_t PI_control_i_d (q31_t ist, q31_t soll);
+q31_t PI_control_e_d (q31_t ist, q31_t soll);
 void observer_update(q31_t v_alpha, q31_t v_beta, q31_t i_alpha, q31_t i_beta, volatile q31_t *x1, volatile q31_t *x2, volatile q31_t *e_alpha, volatile q31_t *e_beta);
 
 
@@ -122,7 +123,7 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 	arm_park_q31(q31_e_alpha_obs, q31_e_beta_obs, &q31_e_d_obs, &q31_e_q_obs, sinevalue, cosinevalue);
 
 	Obs_flag=1;
-	q31_teta_obs += q31_delta_teta;
+
 
 	//call SVPWM calculation
 	svpwm(q31_u_alpha, q31_u_beta);
@@ -150,6 +151,21 @@ q31_t PI_control_i_q (q31_t ist, q31_t soll)
 
   if (q31_q_dc>_U_MAX) q31_q_dc = _U_MAX;
   if (q31_q_dc<0) q31_q_dc = 0; // allow no negative voltage.
+
+  return (q31_q_dc);
+}
+
+//PI Control for d-fraction of BEMF, sensorless commutation
+q31_t PI_control_e_d (q31_t ist, q31_t soll)
+{
+
+  q31_t q31_p; //proportional part
+  static float flt_q_i = 0; //integral part
+  static q31_t q31_q_dc = 0; // sum of proportional and integral part
+  q31_p = (soll - ist)*P_FACTOR_E_D;
+  flt_q_i += ((float)(soll - ist))*I_FACTOR_E_D;
+
+  q31_q_dc=q31_p+(q31_t)flt_q_i;
 
   return (q31_q_dc);
 }

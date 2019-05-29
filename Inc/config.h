@@ -20,6 +20,10 @@
 #define I_FACTOR_I_Q 0.01L			//integral factor for PI control of iq
 #define P_FACTOR_I_D 1L				//proportional factor for PI control of id
 #define I_FACTOR_I_D 1L				//integral factor for PI control of id
+
+#define P_FACTOR_E_D 1L				//proportional factor for PI control of ed
+#define I_FACTOR_E_D 0.01L			//integral factor for PI control of ed
+
 #define SPEC_ANGLE  -357913941L		//motor specific angle, refer to chapter 8.3.3 of UM1052.shengyi:-715827882L, 715827882 536870912 357913941L; //357913941 298261617 119304647L // 30° BionX IGH3 motor specific angle, refer to chapter 8.8.3 of UM1052 180° maped to 2^31
 
 #define OFFSET_A 1025 				//Offset of current sensing phase A
