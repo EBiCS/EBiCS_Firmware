@@ -253,7 +253,7 @@ void observer_update(q31_t v_alpha, q31_t v_beta, q31_t i_alpha, q31_t i_beta, v
 	const q31_t R_ia = R * i_alpha;
 	const q31_t R_ib = R * i_beta;
 	const q31_t lambda_2 = lambda*lambda;
-	const q31_t gamma_half = GAMMA * 0.5;
+	const q31_t gamma_half = GAMMA;
 
 	// Original
 //	float err = lambda_2 - (SQ(*x1 - L_ia) + SQ(*x2 - L_ib));
@@ -285,8 +285,8 @@ void observer_update(q31_t v_alpha, q31_t v_beta, q31_t i_alpha, q31_t i_beta, v
 	/*if (utils_truncate_number_abs(&err, lambda_2 * 0.2)) {
 		gamma_tmp *= 10.0;
 	}*/
-	q31_t x1_dot = -R_ia + v_alpha + gamma_tmp * (*x1 - L_ia) * err;
-	q31_t x2_dot = -R_ib + v_beta + gamma_tmp * (*x2 - L_ib) * err;
+	volatile q31_t x1_dot = -R_ia + v_alpha + gamma_tmp * (*x1 - L_ia) * err;
+	volatile q31_t x2_dot = -R_ib + v_beta + gamma_tmp * (*x2 - L_ib) * err;
 	*x1 += x1_dot * _T;
 	*x2 += x2_dot * _T;
 

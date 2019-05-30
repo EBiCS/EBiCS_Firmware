@@ -390,14 +390,14 @@ int main(void)
 	  			angle_old = q31_rotorposition_absolute>>24;
 
 	  			buffer[0]=angle_old;
-	  			buffer[1]=255-(q31_teta_obs>>24);
+	  			buffer[1]=(q31_teta_obs>>24);
 
 
 	  		HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, 2);
 
 
-	  }*/
-
+	  }
+*/
 
 
 	  //print values for debugging
