@@ -327,7 +327,7 @@ int main(void)
 		  	PI_flag=0;
 	  }
 	  if(Obs_flag){
-		  q31_delta_teta =  PI_control_e_d(q31_e_d_obs, 0);
+		  q31_delta_teta = PI_control_e_d(q31_e_d_obs, 0);
 		  Obs_flag=0;
 	  }
 
@@ -385,14 +385,18 @@ int main(void)
 
 	  //enable PWM output, if power is wanted
 	  if (uint16_current_target>0)TIM1->BDTR |= 1L<<15; //set MOE bit
-
+/*
 	  if(q31_rotorposition_absolute>>24!=angle_old){
 	  			angle_old = q31_rotorposition_absolute>>24;
-	  			buffer[0]=angle_old;
-	  			buffer[1]=q31_teta_obs>>24;
 
-	  			HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, 2);
-	  }
+	  			buffer[0]=angle_old;
+	  			buffer[1]=255-(q31_teta_obs>>24);
+
+
+	  		HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, 2);
+
+
+	  }*/
 
 
 
@@ -400,12 +404,12 @@ int main(void)
 	  	  if(ui32_tim1_counter>800){
 
 
-	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", q31_i_q_fil>>3, q31_u_abs , uint16_current_target, TIM1->CCR4, i16_ph2_current, adcData[2],adcData[3], adcData[4]);
+	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", (int16_t)(q31_delta_teta>>16), (int16_t)(q31_e_d_obs>>16) , uint16_current_target, TIM1->CCR4, i16_ph2_current, adcData[2],adcData[3], adcData[4]);
 	  	//	sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5]),(uint16_t)(adcData[6]),(uint16_t)(adcData[7])) ;
 	  	 i=0;
 		  while (buffer[i] != '\0')
 		  {i++;}
-		// HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);
+		 HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);
 	  	/* if (ui8_print_flag==1){
 	  		ui8_print_flag=2;
 
@@ -753,7 +757,7 @@ static void MX_USART1_UART_Init(void)
 {
 
   huart1.Instance = USART1;
-  huart1.Init.BaudRate = 115200; //9600;
+  huart1.Init.BaudRate = 56000;//9600;
   huart1.Init.WordLength = UART_WORDLENGTH_8B;
   huart1.Init.StopBits = UART_STOPBITS_1;
   huart1.Init.Parity = UART_PARITY_NONE;

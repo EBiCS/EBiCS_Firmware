@@ -234,9 +234,9 @@ void svpwm(q31_t q31_u_alpha, q31_t q31_u_beta)	{
 // See http://cas.ensmp.fr/~praly/Telechargement/Journaux/2010-IEEE_TPEL-Lee-Hong-Nam-Ortega-Praly-Astolfi.pdf
 void observer_update(q31_t v_alpha, q31_t v_beta, q31_t i_alpha, q31_t i_beta, volatile q31_t *x1, volatile q31_t *x2, volatile q31_t *e_alpha, volatile q31_t *e_beta) {
 
-	const float L = (3.0 / 2.0) * INDUCTANCE;
-	const float lambda = FLUX_LINKAGE;
-	float R = (3.0 / 2.0) * RESISTANCE;
+	const q31_t L = (3.0 / 2.0) * INDUCTANCE;
+	const q31_t lambda = FLUX_LINKAGE;
+	q31_t R = (3.0 / 2.0) * RESISTANCE;
 /*
 	// Saturation compensation
 	const float sign = (m_motor_state.iq * m_motor_state.vq) >= 0.0 ? 1.0 : -1.0;
@@ -248,12 +248,12 @@ void observer_update(q31_t v_alpha, q31_t v_beta, q31_t i_alpha, q31_t i_beta, v
 		R += R * 0.00386 * (t - m_conf->foc_temp_comp_base_temp);
 	}*/
 
-	const float L_ia = L * i_alpha;
-	const float L_ib = L * i_beta;
-	const float R_ia = R * i_alpha;
-	const float R_ib = R * i_beta;
-	const float lambda_2 = lambda*lambda;
-	const float gamma_half = GAMMA * 0.5;
+	const q31_t L_ia = L * i_alpha;
+	const q31_t L_ib = L * i_beta;
+	const q31_t R_ia = R * i_alpha;
+	const q31_t R_ib = R * i_beta;
+	const q31_t lambda_2 = lambda*lambda;
+	const q31_t gamma_half = GAMMA * 0.5;
 
 	// Original
 //	float err = lambda_2 - (SQ(*x1 - L_ia) + SQ(*x2 - L_ib));
@@ -280,13 +280,13 @@ void observer_update(q31_t v_alpha, q31_t v_beta, q31_t i_alpha, q31_t i_beta, v
 	*/
 
 	// Same as above, but without iterations.
-	float err = lambda_2 - ((*x1 - L_ia)*(*x1 - L_ia) + (*x2 - L_ib)*(*x2 - L_ib));
-	float gamma_tmp = gamma_half;
+	volatile q31_t err = lambda_2 - ((*x1 - L_ia)*(*x1 - L_ia) + (*x2 - L_ib)*(*x2 - L_ib));
+	q31_t gamma_tmp = gamma_half;
 	/*if (utils_truncate_number_abs(&err, lambda_2 * 0.2)) {
 		gamma_tmp *= 10.0;
 	}*/
-	float x1_dot = -R_ia + v_alpha + gamma_tmp * (*x1 - L_ia) * err;
-	float x2_dot = -R_ib + v_beta + gamma_tmp * (*x2 - L_ib) * err;
+	q31_t x1_dot = -R_ia + v_alpha + gamma_tmp * (*x1 - L_ia) * err;
+	q31_t x2_dot = -R_ib + v_beta + gamma_tmp * (*x2 - L_ib) * err;
 	*x1 += x1_dot * _T;
 	*x2 += x2_dot * _T;
 
