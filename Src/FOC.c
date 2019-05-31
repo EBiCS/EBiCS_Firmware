@@ -119,7 +119,9 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 	//inverse Park transformation
 	arm_inv_park_q31(q31_u_d, q31_u_q, &q31_u_alpha, &q31_u_beta, -sinevalue, cosinevalue);
 
-	observer_update(q31_u_alpha, q31_u_beta, q31_i_alpha, q31_i_beta , &q31_x1_obs, &q31_x2_obs, &q31_e_alpha_obs, &q31_e_beta_obs);
+	//>>11 because of 2048 max dutycycle, voltage values in mV, amps in mA
+	observer_update((q31_u_alpha*adcData[0]*CAL_V)>>11, (q31_u_beta*adcData[0]*CAL_V)>>11, q31_i_alpha*CAL_I, q31_i_beta*CAL_I , &q31_x1_obs, &q31_x2_obs, &q31_e_alpha_obs, &q31_e_beta_obs);
+
 	arm_park_q31(q31_e_alpha_obs, q31_e_beta_obs, &q31_e_d_obs, &q31_e_q_obs, sinevalue, cosinevalue);
 
 	Obs_flag=1;
@@ -248,10 +250,10 @@ void observer_update(q31_t v_alpha, q31_t v_beta, q31_t i_alpha, q31_t i_beta, v
 		R += R * 0.00386 * (t - m_conf->foc_temp_comp_base_temp);
 	}*/
 
-	const q31_t L_ia = L * i_alpha;
-	const q31_t L_ib = L * i_beta;
-	const q31_t R_ia = R * i_alpha;
-	const q31_t R_ib = R * i_beta;
+	const q31_t L_ia = (L * i_alpha)/1000; // diveded by 1000 because of value in milliamps
+	const q31_t L_ib = (L * i_beta)/1000;
+	const q31_t R_ia = (R * i_alpha)/1000;
+	const q31_t R_ib = (R * i_beta)/1000;
 	const q31_t lambda_2 = lambda*lambda;
 	const q31_t gamma_half = GAMMA;
 
@@ -285,10 +287,12 @@ void observer_update(q31_t v_alpha, q31_t v_beta, q31_t i_alpha, q31_t i_beta, v
 	/*if (utils_truncate_number_abs(&err, lambda_2 * 0.2)) {
 		gamma_tmp *= 10.0;
 	}*/
-	volatile q31_t x1_dot = -R_ia + v_alpha + gamma_tmp * (*x1 - L_ia) * err;
-	volatile q31_t x2_dot = -R_ib + v_beta + gamma_tmp * (*x2 - L_ib) * err;
-	*x1 += x1_dot * _T;
-	*x2 += x2_dot * _T;
+	temp5=(((*x1 - L_ia) * err)>>gamma_tmp);
+	temp6=(((*x2 - L_ib) * err)>>gamma_tmp);
+	volatile q31_t x1_dot = -R_ia + v_alpha + temp5;
+	volatile q31_t x2_dot = -R_ib + v_beta + temp6;
+	*x1 += x1_dot >>14; // *1/16000
+	*x2 += x2_dot >>14;
 
 	*e_alpha= *x1 - L_ia;
 	*e_beta= *x2 - L_ib;

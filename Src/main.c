@@ -116,7 +116,7 @@ volatile static q31_t q31_teta_obs;
 q31_t q31_delta_teta;
 
 q31_t switchtime[3];
-volatile uint16_t adcData[8]; //Buffer for ADC1 Input
+uint16_t adcData[8];
 //static int8_t angle[256][4];
 static int8_t angle_old;
 //q31_t q31_startpoint_conversion = 2048;
@@ -177,7 +177,7 @@ int32_t map (int32_t x, int32_t in_min, int32_t in_max, int32_t out_min, int32_t
   * @retval None
   */
 int main(void)
-{
+ {
   /* USER CODE BEGIN 1 */
 
 
@@ -404,7 +404,7 @@ int main(void)
 	  	  if(ui32_tim1_counter>800){
 
 
-	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", (int16_t)(q31_delta_teta>>16), (int16_t)(q31_e_d_obs>>16) , uint16_current_target, TIM1->CCR4, i16_ph2_current, adcData[2],adcData[3], adcData[4]);
+	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", (int16_t)q31_i_q_fil>>3, (int16_t)((q31_i_q_fil>>3)*q31_u_abs/_T) , uint16_current_target, (int16_t)q31_u_abs, adcData[0], adcData[2],(int16_t)q31_e_d_obs, ui16_timertics);
 	  	//	sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5]),(uint16_t)(adcData[6]),(uint16_t)(adcData[7])) ;
 	  	 i=0;
 		  while (buffer[i] != '\0')
