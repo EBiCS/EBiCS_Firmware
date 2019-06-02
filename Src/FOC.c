@@ -118,11 +118,12 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 	//arm_sin_cos_q31(q31_teta, &sinevalue, &cosinevalue);
 	//inverse Park transformation
 	arm_inv_park_q31(q31_u_d, q31_u_q, &q31_u_alpha, &q31_u_beta, -sinevalue, cosinevalue);
-
+/*
 	temp1= q31_i_alpha;
 	temp2= q31_i_beta;
 	temp3= q31_u_alpha;
     temp4= q31_u_beta;
+    */
 
 	//>>11 because of 2048 max dutycycle, voltage values in mV, amps in mA
 	observer_update((-q31_u_alpha*adcData[0]*CAL_V)>>11, (q31_u_beta*adcData[0]*CAL_V)>>11, q31_i_alpha*CAL_I, q31_i_beta*CAL_I , &q31_x1_obs, &q31_x2_obs, &q31_e_alpha_obs, &q31_e_beta_obs);
@@ -285,7 +286,9 @@ void observer_update(q31_t v_alpha, q31_t v_beta, q31_t i_alpha, q31_t i_beta, v
 		*x2 += x2_dot * dt_iteration;
 	}
 	*/
-
+	*x1=0;
+	*x2=0;
+	for (int i = 0;i <6;i++){
 	// Same as above, but without iterations.
 	volatile q31_t err = lambda_2 - ((*x1 - L_ia)*(*x1 - L_ia) + (*x2 - L_ib)*(*x2 - L_ib));
 	q31_t gamma_tmp = gamma_half;
@@ -294,13 +297,19 @@ void observer_update(q31_t v_alpha, q31_t v_beta, q31_t i_alpha, q31_t i_beta, v
 	}*/
 	temp5=(((*x1 - L_ia) * err)>>gamma_tmp);
 	temp6=(((*x2 - L_ib) * err)>>gamma_tmp);
-	volatile q31_t x1_dot = -R_ia + v_alpha + temp5;
-	volatile q31_t x2_dot = -R_ib + v_beta + temp6;
+
+	volatile q31_t x1_dot = -R_ia + v_alpha + temp5 ;
+	volatile q31_t x2_dot = -R_ib + v_beta + temp6 ;
+
 	*x1 += x1_dot >>14; // *1/16000
 	*x2 += x2_dot >>14;
 
+	}
+
 	*e_alpha= *x1 - L_ia;
 	*e_beta= *x2 - L_ib;
+	temp1=*e_alpha;
+	temp2=*e_beta;
 
 	//UTILS_NAN_ZERO(*x1);
 	//UTILS_NAN_ZERO(*x2);

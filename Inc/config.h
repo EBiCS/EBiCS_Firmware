@@ -37,7 +37,7 @@
 #define INDUCTANCE 120 			//mH = mV*s/A
 #define RESISTANCE 350			//mOhm = mV/A
 #define FLUX_LINKAGE 666			//mV*s/revolution
-#define GAMMA 16
+#define GAMMA 7
 
 
 #define _T 2048
