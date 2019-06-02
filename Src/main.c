@@ -39,6 +39,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "stm32f1xx_hal.h"
+#include "math.h"
 
 
 
@@ -250,11 +251,11 @@ int main(void)
       HAL_TIM_PWM_Start_IT(&htim1, TIM_CHANNEL_4);
 
 
-    TIM1->CCR1 = _T>1; //set initial PWM values
-    TIM1->CCR2 = _T>1;
-    TIM1->CCR3 = _T>1;
+    TIM1->CCR1 = 1024; //set initial PWM values
+    TIM1->CCR2 = 1024;
+    TIM1->CCR3 = 1024;
 
-    TIM1->CCR4 = _T-10; //ADC sampling just before timer overflow (just before middle of PWM-Cycle)
+    TIM1->CCR4 = 1014; //ADC sampling just before timer overflow (just before middle of PWM-Cycle)
 //PWM Mode 1: Interrupt at counting down.
 
     //TIM1->BDTR |= 1L<<15;
@@ -321,9 +322,9 @@ int main(void)
 		  	if (q31_u_abs > _U_MAX){
 		  		q31_u_q = (q31_u_q*_U_MAX)/q31_u_abs; //division!
 		  		q31_u_d = (q31_u_d*_U_MAX)/q31_u_abs; //division!
-		  		temp4=1;
+		  		//temp4=1;
 		  	}
-		  	else temp4=0;
+		  	else //temp4=0;
 		  	PI_flag=0;
 	  }
 	  if(Obs_flag){
@@ -389,11 +390,15 @@ int main(void)
 	  if(q31_rotorposition_absolute>>24!=angle_old){
 	  			angle_old = q31_rotorposition_absolute>>24;
 
-	  			buffer[0]=angle_old;
-	  			buffer[1]=(q31_teta_obs>>24);
+	  			//buffer[0]=angle_old;
+	  			//buffer[1]=(q31_teta_obs>>24);
+	  			buffer[0]=(char)(((atan2((double)temp2,(double)temp1)+3.1416)*40));
+	  			buffer[1]=(char)(((atan2((double)temp4,(double)-temp3)+3.1416)*40));
+	  			buffer[2]=(char)(angle_old+128);
+	  			//buffer[3]=(char)temp4;
+	  			//buffer[4]=0xFF;
 
-
-	  		HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, 2);
+	  		HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, 3);
 
 
 	  }
@@ -404,7 +409,7 @@ int main(void)
 	  	  if(ui32_tim1_counter>800){
 
 
-	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", (int16_t)q31_i_q_fil>>3, (int16_t)((q31_i_q_fil>>3)*q31_u_abs/_T) , uint16_current_target, (int16_t)q31_u_abs, adcData[0], adcData[2],(int16_t)q31_e_d_obs, ui16_timertics);
+	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", (int16_t)q31_i_q_fil>>3, (int16_t)((q31_i_q_fil>>3)*q31_u_abs/_T) , uint16_current_target, (int16_t)q31_u_abs, adcData[0], (int16_t)q31_i_d_fil>>3,(int16_t)q31_e_d_obs,(int16_t) q31_u_d);
 	  	//	sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5]),(uint16_t)(adcData[6]),(uint16_t)(adcData[7])) ;
 	  	 i=0;
 		  while (buffer[i] != '\0')

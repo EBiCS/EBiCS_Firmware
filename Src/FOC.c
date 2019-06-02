@@ -119,8 +119,13 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 	//inverse Park transformation
 	arm_inv_park_q31(q31_u_d, q31_u_q, &q31_u_alpha, &q31_u_beta, -sinevalue, cosinevalue);
 
+	temp1= q31_i_alpha;
+	temp2= q31_i_beta;
+	temp3= q31_u_alpha;
+    temp4= q31_u_beta;
+
 	//>>11 because of 2048 max dutycycle, voltage values in mV, amps in mA
-	observer_update((q31_u_alpha*adcData[0]*CAL_V)>>11, (q31_u_beta*adcData[0]*CAL_V)>>11, q31_i_alpha*CAL_I, q31_i_beta*CAL_I , &q31_x1_obs, &q31_x2_obs, &q31_e_alpha_obs, &q31_e_beta_obs);
+	observer_update((-q31_u_alpha*adcData[0]*CAL_V)>>11, (q31_u_beta*adcData[0]*CAL_V)>>11, q31_i_alpha*CAL_I, q31_i_beta*CAL_I , &q31_x1_obs, &q31_x2_obs, &q31_e_alpha_obs, &q31_e_beta_obs);
 
 	arm_park_q31(q31_e_alpha_obs, q31_e_beta_obs, &q31_e_d_obs, &q31_e_q_obs, sinevalue, cosinevalue);
 
