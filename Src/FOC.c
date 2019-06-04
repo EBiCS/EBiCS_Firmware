@@ -24,10 +24,10 @@ q31_t q31_i_q_fil = 0;
 q31_t q31_i_d_fil = 0;
 q31_t q31_u_d = 0;
 q31_t q31_u_q = 0;
-volatile static q31_t q31_x1_obs;
-volatile static q31_t q31_x2_obs;
-volatile static q31_t q31_e_alpha_obs;
-volatile static q31_t q31_e_beta_obs;
+volatile static float fl_x1_obs;
+volatile static float fl_x2_obs;
+volatile static float fl_e_alpha_obs;
+volatile static float fl_e_beta_obs;
 
 
 
@@ -47,7 +47,7 @@ void svpwm(q31_t q31_u_alpha, q31_t q31_u_beta);
 q31_t PI_control_i_q (q31_t ist, q31_t soll);
 q31_t PI_control_i_d (q31_t ist, q31_t soll);
 q31_t PI_control_e_d (q31_t ist, q31_t soll);
-void observer_update(q31_t v_alpha, q31_t v_beta, q31_t i_alpha, q31_t i_beta, volatile q31_t *x1, volatile q31_t *x2, volatile q31_t *e_alpha, volatile q31_t *e_beta);
+void observer_update(float v_alpha, float v_beta, float i_alpha, float i_beta, volatile float *x1, volatile float *x2, volatile float *e_alpha, volatile float *e_beta);
 
 
 
@@ -126,9 +126,9 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
     */
 
 	//>>11 because of 2048 max dutycycle, voltage values in mV, amps in mA
-	observer_update((-q31_u_alpha*adcData[0]*CAL_V)>>11, (q31_u_beta*adcData[0]*CAL_V)>>11, q31_i_alpha*CAL_I, q31_i_beta*CAL_I , &q31_x1_obs, &q31_x2_obs, &q31_e_alpha_obs, &q31_e_beta_obs);
+	observer_update((float)q31_u_alpha*(float)adcData[0]*CAL_V, (-(float)q31_u_beta*(float)adcData[0]*CAL_V), (float)q31_i_alpha*CAL_I, (float)q31_i_beta*CAL_I , &fl_x1_obs, &fl_x2_obs, &fl_e_alpha_obs, &fl_e_beta_obs);
 
-	arm_park_q31(q31_e_alpha_obs, q31_e_beta_obs, &q31_e_d_obs, &q31_e_q_obs, sinevalue, cosinevalue);
+	arm_park_q31((q31_t)fl_e_alpha_obs, (q31_t)fl_e_beta_obs, &q31_e_d_obs, &q31_e_q_obs, sinevalue, cosinevalue);
 
 	Obs_flag=1;
 
@@ -240,11 +240,12 @@ void svpwm(q31_t q31_u_alpha, q31_t q31_u_beta)	{
 }
 
 // See http://cas.ensmp.fr/~praly/Telechargement/Journaux/2010-IEEE_TPEL-Lee-Hong-Nam-Ortega-Praly-Astolfi.pdf
-void observer_update(q31_t v_alpha, q31_t v_beta, q31_t i_alpha, q31_t i_beta, volatile q31_t *x1, volatile q31_t *x2, volatile q31_t *e_alpha, volatile q31_t *e_beta) {
+void observer_update(float v_alpha, float v_beta, float i_alpha, float i_beta, volatile float *x1, volatile float *x2, volatile float *e_alpha, volatile float *e_beta) {
 
-	const q31_t L = (3.0 / 2.0) * INDUCTANCE;
-	const q31_t lambda = FLUX_LINKAGE;
-	q31_t R = (3.0 / 2.0) * RESISTANCE;
+	const float L = (3.0 / 2.0) * INDUCTANCE;
+	const float lambda = FLUX_LINKAGE;
+	float R = (3.0 / 2.0) * RESISTANCE;
+	float dT = 1/8000;
 /*
 	// Saturation compensation
 	const float sign = (m_motor_state.iq * m_motor_state.vq) >= 0.0 ? 1.0 : -1.0;
@@ -256,12 +257,12 @@ void observer_update(q31_t v_alpha, q31_t v_beta, q31_t i_alpha, q31_t i_beta, v
 		R += R * 0.00386 * (t - m_conf->foc_temp_comp_base_temp);
 	}*/
 
-	const q31_t L_ia = (L * i_alpha)/1000; // diveded by 1000 because of value in milliamps
-	const q31_t L_ib = (L * i_beta)/1000;
-	const q31_t R_ia = (R * i_alpha)/1000;
-	const q31_t R_ib = (R * i_beta)/1000;
-	const q31_t lambda_2 = lambda*lambda;
-	const q31_t gamma_half = GAMMA;
+	const float L_ia = (L * i_alpha); // diveded by 1000 because of value in milliamps
+	const float L_ib = (L * i_beta);
+	const float R_ia = (R * i_alpha);
+	const float R_ib = (R * i_beta);
+	const float lambda_2 = lambda*lambda;
+	const float gamma_half = GAMMA * 0.5;
 
 	// Original
 //	float err = lambda_2 - (SQ(*x1 - L_ia) + SQ(*x2 - L_ib));
@@ -286,30 +287,29 @@ void observer_update(q31_t v_alpha, q31_t v_beta, q31_t i_alpha, q31_t i_beta, v
 		*x2 += x2_dot * dt_iteration;
 	}
 	*/
-	*x1=0;
-	*x2=0;
+	//*x1=0;
+	//*x2=0;
 	for (int i = 0;i <6;i++){
 	// Same as above, but without iterations.
 	volatile q31_t err = lambda_2 - ((*x1 - L_ia)*(*x1 - L_ia) + (*x2 - L_ib)*(*x2 - L_ib));
-	q31_t gamma_tmp = gamma_half;
+	float gamma_tmp = gamma_half;
 	/*if (utils_truncate_number_abs(&err, lambda_2 * 0.2)) {
 		gamma_tmp *= 10.0;
 	}*/
-	temp5=(((*x1 - L_ia) * err)>>gamma_tmp);
-	temp6=(((*x2 - L_ib) * err)>>gamma_tmp);
 
-	volatile q31_t x1_dot = -R_ia + v_alpha + temp5 ;
-	volatile q31_t x2_dot = -R_ib + v_beta + temp6 ;
 
-	*x1 += x1_dot >>14; // *1/16000
-	*x2 += x2_dot >>14;
+	volatile q31_t x1_dot = -R_ia + v_alpha + (((*x1 - L_ia) * err)*gamma_tmp) ;
+	volatile q31_t x2_dot = -R_ib + v_beta + (((*x2 - L_ib) * err)*gamma_tmp) ;
+
+	*x1 += x1_dot *dT/6; // *1/16000
+	*x2 += x2_dot *dT/6;
 
 	}
 
 	*e_alpha= *x1 - L_ia;
 	*e_beta= *x2 - L_ib;
-	temp1=*e_alpha;
-	temp2=*e_beta;
+	temp1=(q31_t)*e_alpha;
+	temp2=(q31_t)*e_beta;
 
 	//UTILS_NAN_ZERO(*x1);
 	//UTILS_NAN_ZERO(*x2);

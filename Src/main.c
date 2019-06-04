@@ -65,6 +65,7 @@ DMA_HandleTypeDef hdma_adc1;
 
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
+TIM_HandleTypeDef htim3;
 
 UART_HandleTypeDef huart1;
 DMA_HandleTypeDef hdma_usart1_tx;
@@ -152,6 +153,7 @@ static void MX_TIM1_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_ADC2_Init(void);
 static void MX_TIM2_Init(void);
+static void MX_TIM3_Init(void);
 
 
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
@@ -233,6 +235,7 @@ int main(void)
   HAL_ADC_Start_IT(&hadc2);
   MX_TIM1_Init(); //Hier die Reihenfolge getauscht!
   MX_TIM2_Init();
+  MX_TIM3_Init();
 
  // Start Timer 1
     if(HAL_TIM_Base_Start_IT(&htim1) != HAL_OK)
@@ -266,6 +269,13 @@ int main(void)
            /* Counter Enable Error */
            Error_Handler();
          }
+
+       // Start Timer 3
+          if(HAL_TIM_Base_Start_IT(&htim3) != HAL_OK)
+            {
+              /* Counter Enable Error */
+              Error_Handler();
+            }
 
 /*
       // HAL_TIM_GenerateEvent(&htim1, TIM_EVENTSOURCE_CC4);
@@ -757,6 +767,42 @@ static void MX_TIM2_Init(void)
 
 }
 
+/* TIM3 init function 8kHz interrupt frequency for FOC calculation */
+static void MX_TIM3_Init(void)
+{
+
+  TIM_ClockConfigTypeDef sClockSourceConfig;
+  TIM_MasterConfigTypeDef sMasterConfig;
+
+  htim3.Instance = TIM3;
+  htim3.Init.Prescaler = 0;
+  htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim3.Init.Period = 2*_T;
+  htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim3, &sClockSourceConfig) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+  HAL_TIM_MspPostInit(&htim3);
+
+}
+
+
 /* USART1 init function */
 static void MX_USART1_UART_Init(void)
 {
@@ -882,9 +928,22 @@ void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
 //Timer2 Counter for speed measurement, callback handling not necessary
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-	if (htim == &htim2) {
-		//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_2);
-		//ui32_tim2_counter++;
+	if (htim == &htim3) {
+		HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
+		//HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+
+
+		// call FOC procedure
+		FOC_calculation(i16_ph1_current, i16_ph2_current, q31_rotorposition_absolute, uint16_current_target);
+
+		q31_teta_obs += q31_delta_teta;
+
+		//set PWM
+		TIM1->CCR1 =  (uint16_t) switchtime[0];
+		TIM1->CCR2 =  (uint16_t) switchtime[1];
+		TIM1->CCR3 =  (uint16_t) switchtime[2];
+
+		HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
 
 	}
 }
@@ -905,7 +964,7 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 {
 	//for oszi-check of used time in FOC procedere
-	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
+	//HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
 
 	//read in phase currents
 	//i16_ph1_current = HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1);
@@ -992,7 +1051,7 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 		char_dyn_adc_state_old = char_dyn_adc_state;
 		}
 
-
+/*
 	//uint16_current_target=0;
 	// call FOC procedure
 	FOC_calculation(i16_ph1_current, i16_ph2_current, q31_rotorposition_absolute, uint16_current_target);
@@ -1007,9 +1066,9 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 	//TIM1->CCR4 =  (uint16_t) q31_startpoint_conversion;
 
 
-	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
+	//HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
 	//read in timer for indication of processor load
-	//temp4=__HAL_TIM_GET_COUNTER(&htim1);
+	//temp4=__HAL_TIM_GET_COUNTER(&htim1);*/
 
 }
 
