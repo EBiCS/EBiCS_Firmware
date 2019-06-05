@@ -245,7 +245,7 @@ void observer_update(float v_alpha, float v_beta, float i_alpha, float i_beta, v
 	const float L = (3.0 / 2.0) * INDUCTANCE;
 	const float lambda = FLUX_LINKAGE;
 	float R = (3.0 / 2.0) * RESISTANCE;
-	float dT = 1/8000;
+	float dT = 1/(8000*6);
 /*
 	// Saturation compensation
 	const float sign = (m_motor_state.iq * m_motor_state.vq) >= 0.0 ? 1.0 : -1.0;
@@ -289,7 +289,7 @@ void observer_update(float v_alpha, float v_beta, float i_alpha, float i_beta, v
 	*/
 	//*x1=0;
 	//*x2=0;
-	for (int i = 0;i <6;i++){
+	//for (int i = 0;i <3;i++){
 	// Same as above, but without iterations.
 	volatile q31_t err = lambda_2 - ((*x1 - L_ia)*(*x1 - L_ia) + (*x2 - L_ib)*(*x2 - L_ib));
 	float gamma_tmp = gamma_half;
@@ -301,10 +301,10 @@ void observer_update(float v_alpha, float v_beta, float i_alpha, float i_beta, v
 	volatile q31_t x1_dot = -R_ia + v_alpha + (((*x1 - L_ia) * err)*gamma_tmp) ;
 	volatile q31_t x2_dot = -R_ib + v_beta + (((*x2 - L_ib) * err)*gamma_tmp) ;
 
-	*x1 += x1_dot *dT/6; // *1/16000
-	*x2 += x2_dot *dT/6;
+	*x1 += x1_dot *dT;
+	*x2 += x2_dot *dT;
 
-	}
+	//}
 
 	*e_alpha= *x1 - L_ia;
 	*e_beta= *x2 - L_ib;

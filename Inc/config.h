@@ -30,14 +30,14 @@
 #define OFFSET_B 1022				//Offset of current sensing phase B
 #define OFFSET_C 1042				//Offset of current sensing phase C
 
-#define CAL_V 25					// 1000mV / 40 digits ADC
-#define CAL_I 50					// 1000mA / 20 digits ADC
+#define CAL_V 0.0144				// 1V / 40 digits ADC, *1/Sqrt(3)
+#define CAL_I 0.05					// 1A / 20 digits ADC
 
 //Constants for Motor model of observer an speed PLL
-#define INDUCTANCE 120 			//mH = mV*s/A
-#define RESISTANCE 350			//mOhm = mV/A
-#define FLUX_LINKAGE 666			//mV*s/revolution
-#define GAMMA 7
+#define INDUCTANCE 0.0012			//H = V*s/A
+#define RESISTANCE 0.35				//Ohm = V/A
+#define FLUX_LINKAGE 0.017			//V*s/rad
+#define GAMMA 100.0
 
 
 #define _T 2048
