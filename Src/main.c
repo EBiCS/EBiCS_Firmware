@@ -179,8 +179,7 @@ int32_t map (int32_t x, int32_t in_min, int32_t in_max, int32_t out_min, int32_t
   *
   * @retval None
   */
-int main(void)
- {
+int main(void) {
   /* USER CODE BEGIN 1 */
 
 
@@ -918,7 +917,7 @@ void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
 		  ui32_tim1_counter++;
 		  if (uint32_PAS_counter < PAS_TIMEOUT+1)uint32_PAS_counter++;
 		  uint32_SPEED_counter++;
-		  temp5=__HAL_TIM_GET_COUNTER(&htim1);
+		  //temp5=__HAL_TIM_GET_COUNTER(&htim1);
 
 
 	  }

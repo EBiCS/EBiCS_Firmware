@@ -17,7 +17,7 @@
 #define PH_CURRENT_MAX 300			//iq value (phase current in rotating frame), not calibrated yet
 
 #define P_FACTOR_I_Q 1L				//proportional factor for PI control of iq
-#define I_FACTOR_I_Q 0.01L			//integral factor for PI control of iq
+#define I_FACTOR_I_Q 0.1L			//integral factor for PI control of iq
 #define P_FACTOR_I_D 1L				//proportional factor for PI control of id
 #define I_FACTOR_I_D 1L				//integral factor for PI control of id
 
@@ -30,14 +30,14 @@
 #define OFFSET_B 1022				//Offset of current sensing phase B
 #define OFFSET_C 1042				//Offset of current sensing phase C
 
-#define CAL_V 0.0144				// 1V / 40 digits ADC, *1/Sqrt(3)
+#define CAL_V 0.000007				// 1V / 40 digits ADC, *1/Sqrt(3) /2048 max DutyCycle
 #define CAL_I 0.05					// 1A / 20 digits ADC
 
 //Constants for Motor model of observer an speed PLL
 #define INDUCTANCE 0.0012			//H = V*s/A
 #define RESISTANCE 0.35				//Ohm = V/A
 #define FLUX_LINKAGE 0.017			//V*s/rad
-#define GAMMA 100.0
+#define GAMMA 3000.0
 
 
 #define _T 2048

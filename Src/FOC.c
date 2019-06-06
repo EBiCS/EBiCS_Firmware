@@ -245,7 +245,7 @@ void observer_update(float v_alpha, float v_beta, float i_alpha, float i_beta, v
 	const float L = (3.0 / 2.0) * INDUCTANCE;
 	const float lambda = FLUX_LINKAGE;
 	float R = (3.0 / 2.0) * RESISTANCE;
-	float dT = 1/(8000*6);
+	float dT = 1/(2000.0);
 /*
 	// Saturation compensation
 	const float sign = (m_motor_state.iq * m_motor_state.vq) >= 0.0 ? 1.0 : -1.0;
@@ -308,8 +308,13 @@ void observer_update(float v_alpha, float v_beta, float i_alpha, float i_beta, v
 
 	*e_alpha= *x1 - L_ia;
 	*e_beta= *x2 - L_ib;
-	temp1=(q31_t)*e_alpha;
-	temp2=(q31_t)*e_beta;
+	temp1=(q31_t)(*e_alpha*10000.0);
+	temp2=(q31_t)(*e_beta*10000.0);
+	if((q31_t)v_alpha>temp3)temp3=(q31_t)v_alpha;
+	if((q31_t)v_alpha<temp4)temp4=(q31_t)v_alpha;
+	if((q31_t)R_ia>temp5)temp5=(q31_t)R_ia;
+	if((q31_t)R_ia<temp6)temp6=(q31_t)R_ia;
+
 
 	//UTILS_NAN_ZERO(*x1);
 	//UTILS_NAN_ZERO(*x2);
