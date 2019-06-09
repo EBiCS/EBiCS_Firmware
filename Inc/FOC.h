@@ -24,8 +24,8 @@ q31_t PI_control_e_d (q31_t ist, q31_t soll);
 
 
 //globals
-extern q31_t temp1;
-extern q31_t temp2;
+extern long long temp1;
+extern long long temp2;
 extern q31_t temp3;
 extern q31_t temp4;
 extern q31_t temp5;

@@ -108,8 +108,7 @@ uint16_t uint16_current_target=0;
 
 q31_t q31_rotorposition_absolute;
 q31_t q31_rotorposition_hall;
-//int16_t i16_sinus=0;
-//int16_t i16_cosinus=0;
+
 char buffer[100];
 char char_dyn_adc_state=1;
 char char_dyn_adc_state_old=1;
@@ -399,14 +398,14 @@ int main(void) {
 	  if(q31_rotorposition_absolute>>24!=angle_old){
 	  			angle_old = q31_rotorposition_absolute>>24;
 
-	  			//buffer[0]=angle_old;
+	  			//buffer[0]=(char)(temp1);
 	  			//buffer[1]=(q31_teta_obs>>24);
 	  			buffer[0]=(char)(((atan2((double)temp2,(double)temp1)+3.1416)*40));
 	  			buffer[1]=(char)(((atan2((double)temp4,(double)temp3)+3.1416)*40));
 	  			buffer[2]=(char)(angle_old+128);
 	  			//buffer[3]=(char)temp4;
 	  			//buffer[4]=0xFF;
-
+	  			//q31_teta_obs=(q31_t)((float)buffer[0]/128.0*2147483648.0);
 	  		HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, 3);
 
 
@@ -776,7 +775,7 @@ static void MX_TIM3_Init(void)
   htim3.Instance = TIM3;
   htim3.Init.Prescaler = 0;
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim3.Init.Period = 4*_T;
+  htim3.Init.Period = 2*_T;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
@@ -930,12 +929,17 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	if (htim == &htim3) {
 		HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
 		//HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+		if(HAL_GPIO_ReadPin(PAS_GPIO_Port, PAS_Pin))
+		{
+			// call FOC procedure
+			FOC_calculation(i16_ph1_current, i16_ph2_current, q31_rotorposition_absolute, uint16_current_target);
+		}
 
+		else{
+		FOC_calculation(i16_ph1_current, i16_ph2_current, q31_teta_obs, uint16_current_target);
+		}
 
-		// call FOC procedure
-		FOC_calculation(i16_ph1_current, i16_ph2_current, q31_rotorposition_absolute, uint16_current_target);
-
-		q31_teta_obs += q31_delta_teta;
+		//q31_teta_obs += q31_delta_teta;
 
 		//set PWM
 		TIM1->CCR1 =  (uint16_t) switchtime[0];
@@ -1116,7 +1120,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 	//PAS processing
 	if(GPIO_Pin == PAS_EXTI8_Pin)
 	{
-		ui8_PAS_flag = 1;
+		//ui8_PAS_flag = 1;
 	}
 
 	//Speed processing
