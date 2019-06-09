@@ -21,8 +21,8 @@
 #define P_FACTOR_I_D 1L				//proportional factor for PI control of id
 #define I_FACTOR_I_D 1L				//integral factor for PI control of id
 
-#define P_FACTOR_E_D 0.0001L				//proportional factor for PI control of ed
-#define I_FACTOR_E_D 0.00001L			//integral factor for PI control of ed
+#define P_FACTOR_E_D 0.0				//proportional factor for PI control of ed
+#define I_FACTOR_E_D 0.001F			//integral factor for PI control of ed
 
 #define SPEC_ANGLE  -357913941L		//motor specific angle, refer to chapter 8.3.3 of UM1052.shengyi:-715827882L, 715827882 536870912 357913941L; //357913941 298261617 119304647L // 30° BionX IGH3 motor specific angle, refer to chapter 8.8.3 of UM1052 180° maped to 2^31
 
@@ -37,7 +37,7 @@
 #define INDUCTANCE 12LL//  *10^4 0.0012			//H = V*s/A
 #define RESISTANCE 3500LL// *10^4  0.35				//Ohm = V/A
 #define FLUX_LINKAGE 17000LL// *10^6  0.017			//V*s/rad
-#define GAMMA 16LL
+#define GAMMA 24LL
 
 
 #define _T 2048

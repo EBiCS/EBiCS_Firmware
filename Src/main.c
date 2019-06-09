@@ -336,7 +336,7 @@ int main(void) {
 		  	PI_flag=0;
 	  }
 	  if(Obs_flag){
-		  q31_delta_teta = PI_control_e_d(q31_e_d_obs, 0);
+		  q31_delta_teta = PI_control_e_d(q31_e_d_obs, -10000.0);
 		  Obs_flag=0;
 	  }
 
@@ -394,7 +394,7 @@ int main(void) {
 
 	  //enable PWM output, if power is wanted
 	  if (uint16_current_target>0)TIM1->BDTR |= 1L<<15; //set MOE bit
-
+/*
 	  if(q31_rotorposition_absolute>>24!=angle_old){
 	  			angle_old = q31_rotorposition_absolute>>24;
 
@@ -405,24 +405,24 @@ int main(void) {
 	  			buffer[2]=(char)(angle_old+128);
 	  			//buffer[3]=(char)temp4;
 	  			//buffer[4]=0xFF;
-	  			//q31_teta_obs=(q31_t)((float)buffer[0]/128.0*2147483648.0);
+	  			//q31_teta_obs=(q31_t)((float)buffer[0]/128.0*2147483648.0+1073741824.0);
 	  		HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, 3);
 
 
 	  }
-
+*/
 
 
 	  //print values for debugging
 	  	  if(ui32_tim1_counter>800){
 
-/*
-	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", (int16_t)q31_i_q_fil>>3, (int16_t)((q31_i_q_fil>>3)*q31_u_abs/_T) , uint16_current_target, (int16_t)q31_u_abs,  (int16_t)temp1, (int16_t)temp2,(int16_t)q31_e_d_obs,(int16_t) q31_u_d);
+
+	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", (int16_t)q31_i_q_fil>>3, (int16_t)((q31_i_q_fil>>3)*q31_u_abs/_T) , uint16_current_target, (int16_t)q31_u_abs,  (int16_t)temp1, q31_teta_obs,(int16_t)q31_e_d_obs, q31_delta_teta);
 	  	//	sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5]),(uint16_t)(adcData[6]),(uint16_t)(adcData[7])) ;
 	  	 i=0;
 		  while (buffer[i] != '\0')
 		  {i++;}
-		 HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);*/
+		 HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);
 	  	/* if (ui8_print_flag==1){
 	  		ui8_print_flag=2;
 
@@ -933,13 +933,14 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		{
 			// call FOC procedure
 			FOC_calculation(i16_ph1_current, i16_ph2_current, q31_rotorposition_absolute, uint16_current_target);
+			q31_teta_obs=q31_rotorposition_absolute;
 		}
 
 		else{
 		FOC_calculation(i16_ph1_current, i16_ph2_current, q31_teta_obs, uint16_current_target);
 		}
 
-		//q31_teta_obs += q31_delta_teta;
+		q31_teta_obs += q31_delta_teta;
 
 		//set PWM
 		TIM1->CCR1 =  (uint16_t) switchtime[0];

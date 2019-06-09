@@ -174,7 +174,9 @@ q31_t PI_control_e_d (q31_t ist, q31_t soll)
   static q31_t q31_q_dc = 0; // sum of proportional and integral part
   q31_p = (soll - ist)*P_FACTOR_E_D;
   flt_q_i += ((float)(soll - ist))*I_FACTOR_E_D;
-
+  temp1=(soll-ist)*I_FACTOR_E_D;
+  if(flt_q_i>10000000.0)flt_q_i=10000000.0;
+  if(flt_q_i<1000000.0)flt_q_i=1000000.0;
   q31_q_dc=q31_p+(q31_t)flt_q_i;
 
   return (q31_q_dc);
@@ -318,9 +320,9 @@ void observer_update(long long v_alpha, long long v_beta, long long i_alpha, lon
 	if((q31_t)R_ia>temp5)temp5=(q31_t)R_ia;
 	if((q31_t)R_ia<temp6)temp6=(q31_t)R_ia;
 
-	err_log[z]=err;
-	z++;
-	if (z>9)z=0;
+	//err_log[z]=err;
+	//z++;
+	//if (z>9)z=0;
 	//UTILS_NAN_ZERO(*x1);
 	//UTILS_NAN_ZERO(*x2);
 
