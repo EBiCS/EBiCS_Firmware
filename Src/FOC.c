@@ -29,7 +29,7 @@ volatile long long fl_x1_obs;
 volatile long long fl_x2_obs;
 volatile long long fl_e_alpha_obs;
 volatile long long fl_e_beta_obs;
-volatile long long err_log[10];
+volatile q31_t e_log[400][3];
 
 
 
@@ -61,7 +61,9 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 {
 
 	 q31_t q31_i_alpha = 0;
+	 q31_t q31_i_alpha_fil = 0;
 	 q31_t q31_i_beta = 0;
+	 q31_t q31_i_beta_fil = 0;
 	 q31_t q31_u_alpha = 0;
 	 q31_t q31_u_beta = 0;
 	 q31_t q31_i_d = 0;
@@ -77,6 +79,12 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 	arm_clarke_q31((q31_t)int16_i_as, (q31_t)int16_i_bs, &q31_i_alpha, &q31_i_beta);
 
 	arm_sin_cos_q31(q31_teta, &sinevalue, &cosinevalue);
+/*
+	q31_i_alpha_fil-=q31_i_alpha_fil>>3;
+	q31_i_alpha_fil+=q31_i_alpha;
+	q31_i_beta_fil-=q31_i_beta_fil>>3;
+	q31_i_beta_fil+=q31_i_beta;*/
+
 
 
 	// Park transformation
@@ -128,12 +136,22 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
     */
 
 
-	observer_update((long long)q31_u_alpha*(long long)adcData[0]*CAL_V, (-(long long)q31_u_beta*(long long)adcData[0]*CAL_V), (long long)q31_i_alpha*CAL_I, (long long)q31_i_beta*CAL_I , &fl_x1_obs, &fl_x2_obs, &fl_e_alpha_obs, &fl_e_beta_obs);
+	observer_update((long long)q31_u_alpha*(long long)adcData[0]*CAL_V, (-(long long)q31_u_beta*(long long)adcData[0]*CAL_V), (long long)(q31_i_alpha)*CAL_I, (long long)(q31_i_beta)*CAL_I , &fl_x1_obs, &fl_x2_obs, &fl_e_alpha_obs, &fl_e_beta_obs);
 
 	arm_park_q31((q31_t)fl_e_alpha_obs, (q31_t)fl_e_beta_obs, &q31_e_d_obs, &q31_e_q_obs, sinevalue, cosinevalue);
 
 	Obs_flag=1;
-
+	//q31_delta_teta = PI_control_e_d(q31_e_d_obs, -10000.0);
+	if(!HAL_GPIO_ReadPin(PAS_GPIO_Port, PAS_Pin))
+			{
+		e_log[z][0]=(q31_t)int16_i_as;
+		e_log[z][1]=(q31_t)int16_i_bs;
+		//e_log[z][2]=q31_u_alpha;
+		//e_log[z][3]=q31_u_alpha;
+		e_log[z][2]=q31_teta;
+		z++;
+		if (z>399)z=0;
+			}
 
 	//call SVPWM calculation
 	svpwm(q31_u_alpha, q31_u_beta);
@@ -175,8 +193,8 @@ q31_t PI_control_e_d (q31_t ist, q31_t soll)
   q31_p = (soll - ist)*P_FACTOR_E_D;
   flt_q_i += ((float)(soll - ist))*I_FACTOR_E_D;
   temp1=(soll-ist)*I_FACTOR_E_D;
-  if(flt_q_i>10000000.0)flt_q_i=10000000.0;
-  if(flt_q_i<1000000.0)flt_q_i=1000000.0;
+  if(flt_q_i>3999999.0)flt_q_i=3999999.0;
+  if(flt_q_i<100000.0)flt_q_i=100000.0;
   q31_q_dc=q31_p+(q31_t)flt_q_i;
 
   return (q31_q_dc);
@@ -291,19 +309,19 @@ void observer_update(long long v_alpha, long long v_beta, long long i_alpha, lon
 		*x2 += x2_dot * dt_iteration;
 	}
 	*/
-	//*x1=0;
-	//*x2=0;
+	*e_alpha= *x1 - L_ia;
+	*e_beta= *x2 - L_ib;
 	//for (int i = 0;i <3;i++){
 	// Same as above, but without iterations.
-	long long err = lambda_2 - ((*x1 - L_ia)*(*x1 - L_ia) + (*x2 - L_ib)*(*x2 - L_ib));
+	long long err = lambda_2 - (*e_alpha * *e_alpha + *e_beta * *e_beta);
 	long long gamma_tmp = gamma_half;
 	/*if (utils_truncate_number_abs(&err, lambda_2 * 0.2)) {
 		gamma_tmp *= 10.0;
 	}*/
 
 
-	long long x1_dot = -R_ia + v_alpha + (((*x1 - L_ia) * err)>>gamma_tmp) ;
-	long long x2_dot = -R_ib + v_beta + (((*x2 - L_ib) * err)>>gamma_tmp) ;
+	long long x1_dot = -R_ia + v_alpha + ((*e_alpha * err)>>gamma_tmp) ;
+	long long x2_dot = -R_ib + v_beta + ((*e_beta * err)>>gamma_tmp) ;
 
 	*x1 += x1_dot >>dT;
 	*x2 += x2_dot >>dT;
@@ -312,13 +330,15 @@ void observer_update(long long v_alpha, long long v_beta, long long i_alpha, lon
 
 	*e_alpha= *x1 - L_ia;
 	*e_beta= *x2 - L_ib;
-
+/*
 	temp1=(*e_alpha);
 	temp2=(*e_beta);
-	if((q31_t)v_alpha>temp3)temp3=(q31_t)v_alpha;
-	if((q31_t)v_alpha<temp4)temp4=(q31_t)v_alpha;
-	if((q31_t)R_ia>temp5)temp5=(q31_t)R_ia;
-	if((q31_t)R_ia<temp6)temp6=(q31_t)R_ia;
+	if((q31_t)i_alpha>temp3)temp3=(q31_t)i_alpha;
+	if((q31_t)i_alpha<temp4)temp4=(q31_t)i_alpha;
+	if((q31_t)*e_alpha>temp5)temp5=(q31_t)*e_alpha;
+	if((q31_t)*e_alpha<temp6)temp6=(q31_t)*e_alpha;
+
+	*/
 
 	//err_log[z]=err;
 	//z++;

@@ -929,7 +929,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	if (htim == &htim3) {
 		HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
 		//HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-		if(HAL_GPIO_ReadPin(PAS_GPIO_Port, PAS_Pin))
+/*		if(HAL_GPIO_ReadPin(PAS_GPIO_Port, PAS_Pin))
 		{
 			// call FOC procedure
 			FOC_calculation(i16_ph1_current, i16_ph2_current, q31_rotorposition_absolute, uint16_current_target);
@@ -938,7 +938,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
 		else{
 		FOC_calculation(i16_ph1_current, i16_ph2_current, q31_teta_obs, uint16_current_target);
-		}
+		}*/
+		FOC_calculation(i16_ph1_current, i16_ph2_current, q31_rotorposition_absolute, uint16_current_target);
 
 		q31_teta_obs += q31_delta_teta;
 
