@@ -43,5 +43,7 @@ extern q31_t q31_u_q;
 
 extern q31_t q31_e_d_obs;
 
+extern q31_t e_log[400][3];
+
 
 #endif /* FOC_H_ */

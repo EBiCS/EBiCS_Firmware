@@ -29,7 +29,7 @@ volatile long long fl_x1_obs;
 volatile long long fl_x2_obs;
 volatile long long fl_e_alpha_obs;
 volatile long long fl_e_beta_obs;
-volatile q31_t e_log[400][3];
+q31_t e_log[400][3];
 
 
 
@@ -151,7 +151,9 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 		e_log[z][2]=q31_teta;
 		z++;
 		if (z>399)z=0;
+		ui8_debug_state=2;
 			}
+	else {ui8_debug_state=3;}
 
 	//call SVPWM calculation
 	svpwm(q31_u_alpha, q31_u_beta);
