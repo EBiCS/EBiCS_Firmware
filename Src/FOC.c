@@ -142,7 +142,7 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 
 	Obs_flag=1;
 	//q31_delta_teta = PI_control_e_d(q31_e_d_obs, -10000.0);
-	if(!HAL_GPIO_ReadPin(PAS_GPIO_Port, PAS_Pin))
+	if(!HAL_GPIO_ReadPin(PAS_GPIO_Port, PAS_Pin)&&ui8_debug_state==0)
 			{
 		e_log[z][0]=(q31_t)int16_i_as;
 		e_log[z][1]=(q31_t)int16_i_bs;
@@ -150,10 +150,11 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 		//e_log[z][3]=q31_u_alpha;
 		e_log[z][2]=q31_teta;
 		z++;
-		if (z>399)z=0;
-		ui8_debug_state=2;
+		if (z>399)
+		{z=0;
+		ui8_debug_state=2;}
 			}
-	else {ui8_debug_state=3;}
+	else {if(ui8_debug_state==2)ui8_debug_state=3;;}
 
 	//call SVPWM calculation
 	svpwm(q31_u_alpha, q31_u_beta);
