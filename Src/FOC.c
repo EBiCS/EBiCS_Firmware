@@ -29,12 +29,15 @@ volatile long long fl_x1_obs;
 volatile long long fl_x2_obs;
 volatile long long fl_e_alpha_obs;
 volatile long long fl_e_beta_obs;
-q31_t e_log[400][3];
+q31_t e_log[400][4];
+
+q31_t q31_ed_i = 0; //integral part of observer ed control
 
 
 
 q31_t q31_e_q_obs = 0;
 q31_t q31_e_d_obs = 0;
+q31_t q31_e_d_obs_fil = 0;
 
 char PI_flag=0;
 char Obs_flag=0;
@@ -49,6 +52,7 @@ void svpwm(q31_t q31_u_alpha, q31_t q31_u_beta);
 q31_t PI_control_i_q (q31_t ist, q31_t soll);
 q31_t PI_control_i_d (q31_t ist, q31_t soll);
 q31_t PI_control_e_d (q31_t ist, q31_t soll);
+q31_t atan2_LUT(q31_t e_alpha, q31_t e_beta);
 void observer_update(long long v_alpha, long long v_beta, long long i_alpha, long long i_beta, volatile long long *x1, volatile long long *x2, volatile long long *e_alpha,volatile long long *e_beta);
 
 
@@ -139,23 +143,25 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 	observer_update((long long)q31_u_alpha*(long long)adcData[0]*CAL_V, (-(long long)q31_u_beta*(long long)adcData[0]*CAL_V), (long long)(q31_i_alpha)*CAL_I, (long long)(q31_i_beta)*CAL_I , &fl_x1_obs, &fl_x2_obs, &fl_e_alpha_obs, &fl_e_beta_obs);
 
 	arm_park_q31((q31_t)fl_e_alpha_obs, (q31_t)fl_e_beta_obs, &q31_e_d_obs, &q31_e_q_obs, sinevalue, cosinevalue);
+	q31_e_d_obs_fil -= q31_e_d_obs_fil>>3;
+	q31_e_d_obs_fil += q31_e_d_obs;
 
-	Obs_flag=1;
-	//q31_delta_teta = PI_control_e_d(q31_e_d_obs, -10000.0);
+	q31_delta_teta_obs = PI_control_e_d(q31_e_d_obs_fil>>3, -20000L);
+	//Obs_flag=1;
+
+
 	if(!HAL_GPIO_ReadPin(PAS_GPIO_Port, PAS_Pin)&&ui8_debug_state==0)
 			{
-		e_log[z][0]=(q31_t)int16_i_as;
-		e_log[z][1]=(q31_t)int16_i_bs;
-		//e_log[z][2]=q31_u_alpha;
-		//e_log[z][3]=q31_u_alpha;
-		e_log[z][2]=q31_teta;
+		e_log[z][0]=q31_delta_teta_obs;
+		e_log[z][1]=(q31_t)q31_e_d_obs;
+		e_log[z][2]=(q31_t)q31_teta;
+		e_log[z][3]=q31_rotorposition_absolute;
 		z++;
 		if (z>399)
 		{z=0;
 		ui8_debug_state=2;}
 			}
 	else {if(ui8_debug_state==2)ui8_debug_state=3;;}
-
 	//call SVPWM calculation
 	svpwm(q31_u_alpha, q31_u_beta);
 	//temp6=__HAL_TIM_GET_COUNTER(&htim1);
@@ -190,17 +196,20 @@ q31_t PI_control_i_q (q31_t ist, q31_t soll)
 q31_t PI_control_e_d (q31_t ist, q31_t soll)
 {
 
-  q31_t q31_p; //proportional part
-  static float flt_q_i = 0; //integral part
-  static q31_t q31_q_dc = 0; // sum of proportional and integral part
-  q31_p = (soll - ist)*P_FACTOR_E_D;
-  flt_q_i += ((float)(soll - ist))*I_FACTOR_E_D;
-  temp1=(soll-ist)*I_FACTOR_E_D;
-  if(flt_q_i>3999999.0)flt_q_i=3999999.0;
-  if(flt_q_i<100000.0)flt_q_i=100000.0;
-  q31_q_dc=q31_p+(q31_t)flt_q_i;
+  q31_t q31_ed_p; //proportional part
 
-  return (q31_q_dc);
+  static q31_t q31_ed_out = 0; // sum of proportional and integral part
+  q31_ed_p = (soll - ist)*P_FACTOR_E_D;
+  q31_ed_i += (soll - ist)*I_FACTOR_E_D;
+
+  if(q31_ed_i>ED_I_LIM)q31_ed_i=ED_I_LIM;
+  if(q31_ed_i<-ED_I_LIM)q31_ed_i=-ED_I_LIM;
+  q31_ed_out= q31_ed_p + q31_ed_i;
+
+  if(q31_ed_out>DELTA_TETA_MAX)q31_ed_out=DELTA_TETA_MAX;
+  if(q31_ed_out<DELTA_TETA_MIN)q31_ed_out=DELTA_TETA_MIN;
+
+  return (q31_ed_out);
 }
 
 //PI Control for direct current id (loss)
@@ -333,17 +342,8 @@ void observer_update(long long v_alpha, long long v_beta, long long i_alpha, lon
 
 	*e_alpha= *x1 - L_ia;
 	*e_beta= *x2 - L_ib;
-/*
-	temp1=(*e_alpha);
-	temp2=(*e_beta);
-	if((q31_t)i_alpha>temp3)temp3=(q31_t)i_alpha;
-	if((q31_t)i_alpha<temp4)temp4=(q31_t)i_alpha;
-	if((q31_t)*e_alpha>temp5)temp5=(q31_t)*e_alpha;
-	if((q31_t)*e_alpha<temp6)temp6=(q31_t)*e_alpha;
 
-	*/
 
-	//err_log[z]=err;
 	//z++;
 	//if (z>9)z=0;
 	//UTILS_NAN_ZERO(*x1);
@@ -361,3 +361,127 @@ static void pll_run(float phase, float dt, volatile float *phase_var,volatile fl
 	//utils_norm_angle_rad((float*)phase_var);
 	*speed_var += SPEED_KI * delta_theta * dt;
 }*/
+
+q31_t atan2_LUT(q31_t e_alpha, q31_t e_beta){
+
+uint16_t LUT_atan[90]={64000,
+58664,
+29323,
+19539,
+14643,
+11704,
+9742,
+8339,
+7286,
+6465,
+5807,
+5268,
+4817,
+4435,
+4107,
+3821,
+3571,
+3349,
+3151,
+2973,
+2813,
+2667,
+2534,
+2412,
+2299,
+2195,
+2099,
+2009,
+1925,
+1847,
+1773,
+1704,
+1638,
+1576,
+1518,
+1462,
+1409,
+1358,
+1310,
+1264,
+1220,
+1177,
+1137,
+1098,
+1060,
+1024,
+988,
+954,
+922,
+890,
+859,
+829,
+800,
+771,
+743,
+717,
+690,
+664,
+639,
+615,
+591,
+567,
+544,
+521,
+499,
+477,
+455,
+434,
+413,
+393,
+372,
+352,
+332,
+313,
+293,
+274,
+255,
+236,
+217,
+199,
+180,
+162,
+143,
+125,
+107,
+89,
+71,
+53,
+35,
+17
+} ;
+
+
+q31_t quot=(e_beta<<10)/e_alpha;
+q31_t angle_obs;
+uint8_t i=0;
+//Quadrant 1
+if (e_alpha>0 && e_beta>0){
+    while (quot<LUT_atan[i])i++;
+    angle_obs=i;
+}
+//Quadrant 2
+if (e_alpha<0 && e_beta>0){
+    while (-quot<LUT_atan[i])i++;
+    angle_obs=-i;
+}
+
+//Quadrant 3
+if (e_alpha<0 && e_beta<0){
+    while (quot<LUT_atan[i])i++;
+    angle_obs=-180+i;
+}
+
+//Quadrant 4
+if (e_alpha>0 && e_beta<0){
+    while (-quot<LUT_atan[i])i++;
+    angle_obs=180-i;
+}
+
+return (angle_obs);
+}
