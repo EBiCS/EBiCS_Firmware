@@ -116,7 +116,7 @@ char buffer[100];
 char char_dyn_adc_state=1;
 char char_dyn_adc_state_old=1;
 q31_t	q31_u_abs=0;
-volatile static q31_t q31_teta_obs;
+q31_t q31_teta_obs;
 q31_t q31_delta_teta;
 q31_t q31_delta_teta_obs;
 
@@ -958,7 +958,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		}
 		//FOC_calculation(i16_ph1_current, i16_ph2_current, q31_rotorposition_absolute, uint16_current_target);
 
-		q31_teta_obs += q31_delta_teta_obs;
+		//q31_teta_obs += q31_delta_teta_obs;
 
 		//set PWM
 		TIM1->CCR1 =  (uint16_t) switchtime[0];

@@ -142,13 +142,15 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 
 	observer_update((long long)q31_u_alpha*(long long)adcData[0]*CAL_V, (-(long long)q31_u_beta*(long long)adcData[0]*CAL_V), (long long)(q31_i_alpha)*CAL_I, (long long)(q31_i_beta)*CAL_I , &fl_x1_obs, &fl_x2_obs, &fl_e_alpha_obs, &fl_e_beta_obs);
 
-	arm_park_q31((q31_t)fl_e_alpha_obs, (q31_t)fl_e_beta_obs, &q31_e_d_obs, &q31_e_q_obs, sinevalue, cosinevalue);
+/*	arm_park_q31((q31_t)fl_e_alpha_obs, (q31_t)fl_e_beta_obs, &q31_e_d_obs, &q31_e_q_obs, sinevalue, cosinevalue);
 	q31_e_d_obs_fil -= q31_e_d_obs_fil>>3;
 	q31_e_d_obs_fil += q31_e_d_obs;
 
 	q31_delta_teta_obs = PI_control_e_d(q31_e_d_obs_fil>>3, -20000L);
 	//Obs_flag=1;
+	 */
 
+	q31_teta_obs=atan2_LUT(fl_e_alpha_obs,fl_e_beta_obs);
 
 	if(!HAL_GPIO_ReadPin(PAS_GPIO_Port, PAS_Pin)&&ui8_debug_state==0)
 			{
@@ -458,7 +460,7 @@ uint16_t LUT_atan[90]={64000,
 
 
 q31_t quot=(e_beta<<10)/e_alpha;
-q31_t angle_obs;
+q31_t angle_obs=0;
 uint8_t i=0;
 //Quadrant 1
 if (e_alpha>0 && e_beta>0){
@@ -483,5 +485,5 @@ if (e_alpha>0 && e_beta<0){
     angle_obs=180-i;
 }
 
-return (angle_obs);
+return (angle_obs*11930464); //angle in degree to q31
 }

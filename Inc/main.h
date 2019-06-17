@@ -98,6 +98,7 @@ extern uint16_t adcData[8]; //Buffer for ADC1 Input
 extern uint8_t ui8_debug_state;
 extern q31_t q31_rotorposition_absolute;
 extern q31_t q31_delta_teta_obs;
+extern q31_t q31_teta_obs;
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus
