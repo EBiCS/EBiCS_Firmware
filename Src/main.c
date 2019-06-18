@@ -343,6 +343,7 @@ int main(void) {
 	  if(Obs_flag){
 		//  q31_delta_teta_obs = PI_control_e_d(q31_e_d_obs, -20000L);
 		  q31_teta_obs=atan2_LUT(-fl_e_alpha_obs,fl_e_beta_obs);
+		 // q31_teta_obs=(q31_t)(atan2((double)fl_e_alpha_obs,(double)fl_e_beta_obs)*683565275.0);
 		  Obs_flag=0;
 	  }
 
