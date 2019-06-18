@@ -477,7 +477,7 @@ uint8_t index =0;
 uint8_t frac =0;
 q31_t angle_obs=0;
 uint8_t i=0;
-//Quadrant 1
+//Quadrant 1 +
 if (e_alpha>0 && e_beta>0){
     if(e_alpha>e_beta){  // y/x < 1
 
@@ -498,20 +498,20 @@ if (e_alpha<0 && e_beta>0){
 	if(-e_alpha>e_beta){  // y/x < 1
     index = (e_beta*100)/-e_alpha;
     frac = (e_beta*1000/-e_alpha)-10*index;
-    angle_obs=-(LUT_atan[index]+(LUT_atan[index+1]-LUT_atan[index])*frac/10); //interpolate between to values
+    angle_obs = 65535-(LUT_atan[index]+(LUT_atan[index+1]-LUT_atan[index])*frac/10); //interpolate between to values
    }
     else {                     // y/x > 1 artan(y/x) = Pi/2 - artan(x/y)
 
     index = (-e_alpha*100)/e_beta;
     frac = (-e_alpha*1000/e_beta)-10*index;
-        angle_obs= -(32767-(LUT_atan[index]+((LUT_atan[index+1]-LUT_atan[index])*frac)/10));
+        angle_obs= 65535-(32767-(LUT_atan[index]+((LUT_atan[index+1]-LUT_atan[index])*frac)/10));
     }
 
 }
 
 //Quadrant 3
 if (e_alpha<0 && e_beta<0){
-    if(e_alpha>e_beta){  // y/x < 1
+    if(-e_alpha>-e_beta){  // y/x < 1
 
      index = (e_beta*100)/e_alpha;
      frac = (e_beta*1000/e_alpha)-10*index;
@@ -528,20 +528,19 @@ if (e_alpha<0 && e_beta<0){
 
 //Quadrant 4
 if (e_alpha>0 && e_beta<0){
+    if(e_alpha>-e_beta){  // y/x < 1
 
-	if(e_alpha>-e_beta){  // y/x < 1
-	    index = (-e_beta*100)/e_alpha;
-	    frac = (-e_beta*1000/e_alpha)-10*index;
-	    angle_obs= 65535-(LUT_atan[index]+(LUT_atan[index+1]-LUT_atan[index])*frac/10); //interpolate between to values
-	   }
-	    else {                     // y/x > 1 artan(y/x) = Pi/2 - artan(x/y)
+     index = (-e_beta*100)/e_alpha;
+     frac = (-e_beta*1000/e_alpha)-10*index;
+     angle_obs=-(LUT_atan[index]+(LUT_atan[index+1]-LUT_atan[index])*frac/10); //interpolate between to values
+    }
+     else {                     // y/x > 1 artan(y/x) = Pi/2 - artan(x/y)
 
-	    index = (e_alpha*100)/-e_beta;
-	    frac = (e_alpha*1000/-e_beta)-10*index;
-	        angle_obs= 32767+(LUT_atan[index]+((LUT_atan[index+1]-LUT_atan[index])*frac)/10);
-	    }
+     index = (e_alpha*100)/-e_beta;
+     frac = (e_alpha*1000/-e_beta)-10*index;
+         angle_obs= -(32767-(LUT_atan[index]+((LUT_atan[index+1]-LUT_atan[index])*frac)/10));
+     }
 
 }
-
-return ((angle_obs<<15)-1431655765); //angle in degree to q31 Look up table is scaled to 90° = 2^16
+return ((angle_obs<<15)+1550960412); //angle in degree to q31 Look up table is scaled to 90° = 2^16 -1431655765
 }
