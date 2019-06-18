@@ -342,6 +342,7 @@ int main(void) {
 	  }
 	  if(Obs_flag){
 		//  q31_delta_teta_obs = PI_control_e_d(q31_e_d_obs, -20000L);
+		  q31_teta_obs=atan2_LUT(-fl_e_alpha_obs,fl_e_beta_obs);
 		  Obs_flag=0;
 	  }
 
@@ -949,8 +950,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		{
 			// call FOC procedure
 			FOC_calculation(i16_ph1_current, i16_ph2_current, q31_rotorposition_absolute, uint16_current_target);
-			q31_teta_obs = q31_rotorposition_absolute;
-			q31_ed_i = q31_delta_teta<<1; //because 8 kHz control loop speed
+			//q31_teta_obs = q31_rotorposition_absolute;
+			//q31_ed_i = q31_delta_teta<<1; //because 8 kHz control loop speed
 		}
 
 		else{

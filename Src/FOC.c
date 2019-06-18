@@ -27,8 +27,8 @@ q31_t q31_u_d = 0;
 q31_t q31_u_q = 0;
 volatile long long fl_x1_obs;
 volatile long long fl_x2_obs;
-volatile long long fl_e_alpha_obs;
-volatile long long fl_e_beta_obs;
+q31_t fl_e_alpha_obs;
+q31_t fl_e_beta_obs;
 q31_t e_log[400][4];
 
 q31_t q31_ed_i = 0; //integral part of observer ed control
@@ -53,7 +53,7 @@ q31_t PI_control_i_q (q31_t ist, q31_t soll);
 q31_t PI_control_i_d (q31_t ist, q31_t soll);
 q31_t PI_control_e_d (q31_t ist, q31_t soll);
 q31_t atan2_LUT(q31_t e_alpha, q31_t e_beta);
-void observer_update(long long v_alpha, long long v_beta, long long i_alpha, long long i_beta, volatile long long *x1, volatile long long *x2, volatile long long *e_alpha,volatile long long *e_beta);
+void observer_update(long long v_alpha, long long v_beta, long long i_alpha, long long i_beta, volatile long long *x1, volatile long long *x2, q31_t *e_alpha,q31_t *e_beta);
 
 
 
@@ -147,16 +147,16 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 	q31_e_d_obs_fil += q31_e_d_obs;
 
 	q31_delta_teta_obs = PI_control_e_d(q31_e_d_obs_fil>>3, -20000L);
-	//Obs_flag=1;
-	 */
 
-	q31_teta_obs=atan2_LUT(fl_e_alpha_obs,fl_e_beta_obs);
+	 */
+	Obs_flag=1;
+	//q31_teta_obs=atan2_LUT(fl_e_alpha_obs,fl_e_beta_obs);
 
 	if(!HAL_GPIO_ReadPin(PAS_GPIO_Port, PAS_Pin)&&ui8_debug_state==0)
 			{
-		e_log[z][0]=q31_delta_teta_obs;
-		e_log[z][1]=(q31_t)q31_e_d_obs;
-		e_log[z][2]=(q31_t)q31_teta;
+		e_log[z][0]=fl_e_alpha_obs;
+		e_log[z][1]=fl_e_beta_obs;
+		e_log[z][2]=(q31_t)q31_teta_obs;
 		e_log[z][3]=q31_rotorposition_absolute;
 		z++;
 		if (z>399)
@@ -276,7 +276,7 @@ void svpwm(q31_t q31_u_alpha, q31_t q31_u_beta)	{
 }
 
 // See http://cas.ensmp.fr/~praly/Telechargement/Journaux/2010-IEEE_TPEL-Lee-Hong-Nam-Ortega-Praly-Astolfi.pdf
-void observer_update(long long v_alpha, long long v_beta, long long i_alpha, long long i_beta, volatile long long *x1, volatile long long *x2, volatile long long *e_alpha, volatile long long *e_beta) {
+void observer_update(long long v_alpha, long long v_beta, long long i_alpha, long long i_beta, volatile long long *x1, volatile long long *x2, q31_t *e_alpha, q31_t *e_beta) {
 
 	const long long L = (3LL * INDUCTANCE)>>1;
 	const long long lambda = FLUX_LINKAGE;
@@ -485,5 +485,5 @@ if (e_alpha>0 && e_beta<0){
     angle_obs=180-i;
 }
 
-return (angle_obs*11930464); //angle in degree to q31
+return (angle_obs*11930464-1431655765); //angle in degree to q31
 }
