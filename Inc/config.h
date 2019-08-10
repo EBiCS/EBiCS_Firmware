@@ -38,9 +38,9 @@
 #define CAL_I 5LL// *10^2   0.05					// 1A / 20 digits ADC
 
 //Constants for Motor model of observer an speed PLL
-#define INDUCTANCE	5LL//  *10^4 0.0012			//H = V*s/A
-#define RESISTANCE 200LL// *10^4  0.35				//Ohm = V/A
-#define FLUX_LINKAGE 1000LL// *10^6  0.017			//V*s/rad
+#define INDUCTANCE	8LL//  *10^4 0.0012			//H = V*s/A
+#define RESISTANCE 1000LL// *10^4  0.35				//Ohm = V/A
+#define FLUX_LINKAGE 900LL// *10^6  0.017			//V*s/rad
 #define GAMMA 24LL
 
 
