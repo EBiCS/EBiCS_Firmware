@@ -28,19 +28,19 @@
 #define DELTA_TETA_MAX 120000000L
 #define DELTA_TETA_MIN 2000000L
 
-#define SPEC_ANGLE  -357913941L		//motor specific angle, refer to chapter 8.3.3 of UM1052.shengyi:-715827882L, 715827882 536870912 357913941L; //357913941 298261617 119304647L // 30° BionX IGH3 motor specific angle, refer to chapter 8.8.3 of UM1052 180° maped to 2^31
+#define SPEC_ANGLE  -715827882L		//motor specific angle, refer to chapter 8.3.3 of UM1052.shengyi:-715827882L, 715827882 536870912 357913941L; //357913941 298261617 119304647L // 30° BionX IGH3 motor specific angle, refer to chapter 8.8.3 of UM1052 180° maped to 2^31
 
-#define OFFSET_A 1025 				//Offset of current sensing phase A
-#define OFFSET_B 1022				//Offset of current sensing phase B
-#define OFFSET_C 1042				//Offset of current sensing phase C
+#define OFFSET_A 1930//1950 //1025 				//Offset of current sensing phase A
+#define OFFSET_B 1950 //1022				//Offset of current sensing phase B
+#define OFFSET_C 1920 //1042				//Offset of current sensing phase C
 
-#define CAL_V 7LL//  *10^6  0.000007				// 1V / 40 digits ADC, *1/Sqrt(3) /2048 max DutyCycle
+#define CAL_V 70LL//  *10^6  0.000007				// 1V / 40 digits ADC, *1/Sqrt(3) /2048 max DutyCycle
 #define CAL_I 5LL// *10^2   0.05					// 1A / 20 digits ADC
 
 //Constants for Motor model of observer an speed PLL
-#define INDUCTANCE	12LL//  *10^4 0.0012			//H = V*s/A
-#define RESISTANCE 3500LL// *10^4  0.35				//Ohm = V/A
-#define FLUX_LINKAGE 17000LL// *10^6  0.017			//V*s/rad
+#define INDUCTANCE	5LL//  *10^4 0.0012			//H = V*s/A
+#define RESISTANCE 200LL// *10^4  0.35				//Ohm = V/A
+#define FLUX_LINKAGE 1000LL// *10^6  0.017			//V*s/rad
 #define GAMMA 24LL
 
 

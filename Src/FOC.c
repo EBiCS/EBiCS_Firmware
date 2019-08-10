@@ -254,7 +254,7 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 
 	 */
 	//Obs_flag=1;
-	q31_teta_obs=atan2_LUT(fl_e_alpha_obs,fl_e_beta_obs);
+	q31_teta_obs=atan2_LUT(fl_e_alpha_obs,fl_e_beta_obs)+357913941L;
 
 	if(!HAL_GPIO_ReadPin(PAS_GPIO_Port, PAS_Pin)&&ui8_debug_state==0)
 			{
