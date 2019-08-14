@@ -433,7 +433,7 @@ int main(void) {
 		}
 	  //print values for debugging
 	  	  if(ui32_tim1_counter>800){
-
+/*
 
 	  	//	sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", (int16_t)q31_i_q_fil>>3, (int16_t)((q31_i_q_fil>>3)*q31_u_abs/_T) , uint16_current_target, (int16_t)q31_u_abs,  (int16_t)temp1, q31_teta_obs,(int16_t)q31_e_d_obs, q31_delta_teta);
 	  		sprintf_(buffer, "%d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4])) ;
@@ -441,6 +441,8 @@ int main(void) {
 		  while (buffer[i] != '\0')
 		  {i++;}
 		 HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);
+
+		 */
 	  	/* if (ui8_print_flag==1){
 	  		ui8_print_flag=2;
 
@@ -994,7 +996,7 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 	//i16_ph1_current = HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1);
 	//i16_ph2_current = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1);
 
-
+	//temp3=char_dyn_adc_state;
 	switch (char_dyn_adc_state) //read in according to state
 		{
 		case 1: //Phase C at high dutycycles, read from A+B directly
