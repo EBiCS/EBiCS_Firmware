@@ -121,7 +121,7 @@ q31_t q31_delta_teta;
 q31_t q31_delta_teta_obs;
 
 q31_t switchtime[3];
-uint16_t adcData[8];
+uint16_t adcData[5];
 //static int8_t angle[256][4];
 static int8_t angle_old;
 
@@ -419,7 +419,7 @@ int main(void) {
 	  }
 */
 		if(ui8_debug_state==3 && ui8_UART_TxCplt_flag){
-	        sprintf_(buffer, "%d, %d, %d, %d\r\n", e_log[k][0], e_log[k][1], e_log[k][2]>>24,e_log[k][3]>>24);
+	        sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n", e_log[k][0], e_log[k][1], e_log[k][2],e_log[k][3],0,0); //>>24
 			i=0;
 			while (buffer[i] != '\0')
 			{i++;}
@@ -434,13 +434,13 @@ int main(void) {
 	  //print values for debugging
 	  	  if(ui32_tim1_counter>800){
 
-/*
-	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", (int16_t)q31_i_q_fil>>3, (int16_t)((q31_i_q_fil>>3)*q31_u_abs/_T) , uint16_current_target, (int16_t)q31_u_abs,  (int16_t)temp1, q31_teta_obs,(int16_t)q31_e_d_obs, q31_delta_teta);
-	  	//	sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5]),(uint16_t)(adcData[6]),(uint16_t)(adcData[7])) ;
+
+	  	//	sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", (int16_t)q31_i_q_fil>>3, (int16_t)((q31_i_q_fil>>3)*q31_u_abs/_T) , uint16_current_target, (int16_t)q31_u_abs,  (int16_t)temp1, q31_teta_obs,(int16_t)q31_e_d_obs, q31_delta_teta);
+	  		sprintf_(buffer, "%d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4])) ;
 	  	 i=0;
 		  while (buffer[i] != '\0')
 		  {i++;}
-		 HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);*/
+		 HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);
 	  	/* if (ui8_print_flag==1){
 	  		ui8_print_flag=2;
 
@@ -956,7 +956,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		}
 
 		else{
-		FOC_calculation(i16_ph1_current, i16_ph2_current, q31_teta_obs, uint16_current_target);
+		FOC_calculation(i16_ph1_current, i16_ph2_current,q31_rotorposition_absolute , uint16_current_target); //q31_teta_obs
 		}
 		//FOC_calculation(i16_ph1_current, i16_ph2_current, q31_rotorposition_absolute, uint16_current_target);
 

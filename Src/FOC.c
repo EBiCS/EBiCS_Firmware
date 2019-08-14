@@ -244,7 +244,7 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
     */
 
 
-	observer_update((long long)q31_u_alpha*(long long)adcData[0]*CAL_V, (-(long long)q31_u_beta*(long long)adcData[0]*CAL_V), (long long)(q31_i_alpha)*CAL_I, (long long)(q31_i_beta)*CAL_I , &fl_x1_obs, &fl_x2_obs, &fl_e_alpha_obs, &fl_e_beta_obs);
+	observer_update(((long long)q31_u_alpha*(long long)adcData[0]*CAL_V)>>13, ((long long)(-q31_u_beta*(long long)adcData[0]*CAL_V))>>13, (long long)(-q31_i_alpha)*CAL_I, (long long)(-q31_i_beta)*CAL_I , &fl_x1_obs, &fl_x2_obs, &fl_e_alpha_obs, &fl_e_beta_obs);
 
 /*	arm_park_q31((q31_t)fl_e_alpha_obs, (q31_t)fl_e_beta_obs, &q31_e_d_obs, &q31_e_q_obs, sinevalue, cosinevalue);
 	q31_e_d_obs_fil -= q31_e_d_obs_fil>>3;
@@ -255,13 +255,17 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 	 */
 	//Obs_flag=1;
 	q31_teta_obs=atan2_LUT(fl_e_alpha_obs,fl_e_beta_obs)+357913941L;
-
+/*
+	temp1=fl_e_alpha_obs;
+	temp2=fl_e_beta_obs;
+	temp3=(q31_t)q31_teta_obs>>24;
+	*/
 	if(!HAL_GPIO_ReadPin(PAS_GPIO_Port, PAS_Pin)&&ui8_debug_state==0)
 			{
-		e_log[z][0]=fl_e_alpha_obs;
-		e_log[z][1]=fl_e_beta_obs;
-		e_log[z][2]=(q31_t)q31_teta_obs;
-		e_log[z][3]=q31_rotorposition_absolute;
+		e_log[z][0]=temp1;//fl_e_alpha_obs;
+		e_log[z][1]=temp2;//fl_e_beta_obs;
+		e_log[z][2]=temp3;//(q31_t)q31_teta_obs>>24;
+		e_log[z][3]=temp4;
 		z++;
 		if (z>399)
 		{z=0;
@@ -269,6 +273,9 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 			}
 	else {if(ui8_debug_state==2)ui8_debug_state=3;;}
 	//call SVPWM calculation
+
+	//q31_u_alpha=0;
+	//q31_u_beta=0;
 	svpwm(q31_u_alpha, q31_u_beta);
 	//temp6=__HAL_TIM_GET_COUNTER(&htim1);
 
@@ -403,7 +410,10 @@ void observer_update(long long v_alpha, long long v_beta, long long i_alpha, lon
 	const long long R_ib = (R * i_beta);
 	const long long lambda_2 = lambda*lambda;
 	const long long gamma_half = GAMMA;
-
+	temp1=i_alpha;
+	temp2=i_beta;
+	temp3=v_alpha;
+	temp4=v_beta;
 	// Original
 //	float err = lambda_2 - (SQ(*x1 - L_ia) + SQ(*x2 - L_ib));
 //	float x1_dot = -R_ia + v_alpha + gamma_half * (*x1 - L_ia) * err;
