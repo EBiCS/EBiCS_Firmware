@@ -40,8 +40,8 @@
 //Constants for Motor model of observer an speed PLL
 #define INDUCTANCE	2LL//  *10^4 0.0012			//H = V*s/A
 #define RESISTANCE 117LL// *10^4  0.35				//Ohm = V/A
-#define FLUX_LINKAGE 1700LL// *10^6  0.017			//V*s/rad
-#define GAMMA 24LL
+#define FLUX_LINKAGE 400LL// *10^6  0.017			//V*s/rad
+#define GAMMA 12LL
 
 
 #define _T 2048

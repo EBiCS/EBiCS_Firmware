@@ -25,8 +25,8 @@ q31_t q31_i_q_fil = 0;
 q31_t q31_i_d_fil = 0;
 q31_t q31_u_d = 0;
 q31_t q31_u_q = 0;
-volatile long long fl_x1_obs;
-volatile long long fl_x2_obs;
+volatile long long fl_x1_obs=0;
+volatile long long fl_x2_obs=0;
 q31_t fl_e_alpha_obs;
 q31_t fl_e_beta_obs;
 q31_t e_log[400][4];
@@ -157,7 +157,7 @@ q31_t PI_control_i_q (q31_t ist, q31_t soll);
 q31_t PI_control_i_d (q31_t ist, q31_t soll);
 q31_t PI_control_e_d (q31_t ist, q31_t soll);
 q31_t atan2_LUT(q31_t e_alpha, q31_t e_beta);
-void observer_update(long long v_alpha, long long v_beta, long long i_alpha, long long i_beta, volatile long long *x1, volatile long long *x2, q31_t *e_alpha,q31_t *e_beta);
+void observer_update(long long v_alpha, long long v_beta, long long i_alpha, long long i_beta,  q31_t *e_alpha,q31_t *e_beta);
 
 
 
@@ -244,7 +244,7 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
     */
 
 
-	observer_update(((long long)q31_u_alpha*(long long)adcData[0]*CAL_V)>>13, ((long long)(-q31_u_beta*(long long)adcData[0]*CAL_V))>>13, (long long)((-q31_i_alpha)*CAL_I)>>1, (long long)((-q31_i_beta)*CAL_I)>>1, &fl_x1_obs, &fl_x2_obs, &fl_e_alpha_obs, &fl_e_beta_obs);
+	observer_update(((long long)q31_u_alpha*(long long)adcData[0]*CAL_V)>>12, ((long long)(-q31_u_beta*(long long)adcData[0]*CAL_V))>>12, (long long)((-q31_i_alpha)*CAL_I)>>1, (long long)((-q31_i_beta)*CAL_I)>>1, &fl_e_alpha_obs, &fl_e_beta_obs);
 
 /*	arm_park_q31((q31_t)fl_e_alpha_obs, (q31_t)fl_e_beta_obs, &q31_e_d_obs, &q31_e_q_obs, sinevalue, cosinevalue);
 	q31_e_d_obs_fil -= q31_e_d_obs_fil>>3;
@@ -255,14 +255,14 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 	 */
 	//Obs_flag=1;
 	q31_teta_obs=atan2_LUT(fl_e_alpha_obs,fl_e_beta_obs)+357913941L;
-/*
+
 	temp1=fl_e_alpha_obs;
-	temp2=fl_e_beta_obs;
+	//temp2=fl_e_beta_obs;
 	temp3=(q31_t)q31_teta_obs>>24;
 	temp4=q31_teta>>24;
-*/
-	temp1=int16_i_as;
-	temp2=int16_i_bs;
+
+	//temp1=int16_i_as;
+	//temp2=int16_i_bs;
 	if(!HAL_GPIO_ReadPin(PAS_GPIO_Port, PAS_Pin)&&ui8_debug_state==0)
 			{
 		e_log[z][0]=temp1;//fl_e_alpha_obs;
@@ -308,25 +308,7 @@ q31_t PI_control_i_q (q31_t ist, q31_t soll)
   return (q31_q_dc);
 }
 
-//PI Control for d-fraction of BEMF, sensorless commutation
-q31_t PI_control_e_d (q31_t ist, q31_t soll)
-{
 
-  q31_t q31_ed_p; //proportional part
-
-  static q31_t q31_ed_out = 0; // sum of proportional and integral part
-  q31_ed_p = (soll - ist)*P_FACTOR_E_D;
-  q31_ed_i += (soll - ist)*I_FACTOR_E_D;
-
-  if(q31_ed_i>ED_I_LIM)q31_ed_i=ED_I_LIM;
-  if(q31_ed_i<-ED_I_LIM)q31_ed_i=-ED_I_LIM;
-  q31_ed_out= q31_ed_p + q31_ed_i;
-
-  if(q31_ed_out>DELTA_TETA_MAX)q31_ed_out=DELTA_TETA_MAX;
-  if(q31_ed_out<DELTA_TETA_MIN)q31_ed_out=DELTA_TETA_MIN;
-
-  return (q31_ed_out);
-}
 
 //PI Control for direct current id (loss)
 q31_t PI_control_i_d (q31_t ist, q31_t soll)
@@ -390,12 +372,14 @@ void svpwm(q31_t q31_u_alpha, q31_t q31_u_beta)	{
 }
 
 // See http://cas.ensmp.fr/~praly/Telechargement/Journaux/2010-IEEE_TPEL-Lee-Hong-Nam-Ortega-Praly-Astolfi.pdf
-void observer_update(long long v_alpha, long long v_beta, long long i_alpha, long long i_beta, volatile long long *x1, volatile long long *x2, q31_t *e_alpha, q31_t *e_beta) {
+void observer_update(long long v_alpha, long long v_beta, long long i_alpha, long long i_beta, q31_t *e_alpha, q31_t *e_beta) {
 
 	const long long L = (3LL * INDUCTANCE)>>1;
 	const long long lambda = FLUX_LINKAGE;
 	long long R = (3LL * RESISTANCE)>>1;
 	long long dT = 13LL;
+	volatile long long x1=0;
+	volatile long long x2=0;
 /*
 	// Saturation compensation
 	const float sign = (m_motor_state.iq * m_motor_state.vq) >= 0.0 ? 1.0 : -1.0;
@@ -407,12 +391,15 @@ void observer_update(long long v_alpha, long long v_beta, long long i_alpha, lon
 		R += R * 0.00386 * (t - m_conf->foc_temp_comp_base_temp);
 	}*/
 
-	const long long L_ia = (L * i_alpha); // diveded by 1000 because of value in milliamps
-	const long long L_ib = (L * i_beta);
-	const long long R_ia = (R * i_alpha);
-	const long long R_ib = (R * i_beta);
+	const long long L_ia = (L * i_alpha)>>4; // diveded by 1000 because of value in milliamps
+	const long long L_ib = (L * i_beta)>>4;
+	const long long R_ia = (R * i_alpha)>>4;
+	const long long R_ib = (R * i_beta)>>4;
 	const long long lambda_2 = lambda*lambda;
 	const long long gamma_half = GAMMA;
+	//temp2=v_alpha;
+	//temp1=R_ia;
+	//temp1=L_ia;
 /*
 	temp1=i_alpha;
 	temp2=i_beta;
@@ -442,27 +429,28 @@ void observer_update(long long v_alpha, long long v_beta, long long i_alpha, lon
 		*x2 += x2_dot * dt_iteration;
 	}
 	*/
-	*e_alpha= *x1 - L_ia;
-	*e_beta= *x2 - L_ib;
+	*e_alpha= (x1 - L_ia)>>8;
+	*e_beta=  (x2 - L_ib)>>8;
 	//for (int i = 0;i <3;i++){
 	// Same as above, but without iterations.
-	long long err = lambda_2 - (*e_alpha * *e_alpha + *e_beta * *e_beta);
+	long long err = lambda_2 - (((*e_alpha * *e_alpha)) + ((*e_beta * *e_beta)));
+	temp2=err;
 	long long gamma_tmp = gamma_half;
 	/*if (utils_truncate_number_abs(&err, lambda_2 * 0.2)) {
 		gamma_tmp *= 10.0;
 	}*/
 
 
-	long long x1_dot = -R_ia + v_alpha + ((*e_alpha * err)>>gamma_tmp) ;
-	long long x2_dot = -R_ib + v_beta + ((*e_beta * err)>>gamma_tmp) ;
-
-	*x1 += x1_dot >>dT;
-	*x2 += x2_dot >>dT;
+	long long x1_dot = -R_ia + v_alpha + ((*e_alpha * err)*gamma_tmp) ;
+	long long x2_dot = -R_ib + v_beta + ((*e_beta * err)*gamma_tmp) ;
+	//temp2=-R_ia + v_alpha;
+	x1 += x1_dot >>dT;
+	x2 += x2_dot >>dT;
 
 	//}
 
-	*e_alpha= *x1 - L_ia;
-	*e_beta= *x2 - L_ib;
+	*e_alpha= x1 - L_ia;
+	*e_beta= x2 - L_ib;
 
 
 	//z++;
