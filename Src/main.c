@@ -419,7 +419,7 @@ int main(void) {
 	  }
 */
 		if(ui8_debug_state==3 && ui8_UART_TxCplt_flag){
-	        sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n", e_log[k][0], e_log[k][1], e_log[k][2],e_log[k][3],0,0); //>>24
+	        sprintf_(buffer, "%d, %d, %d, %d\r\n", e_log[k][0], e_log[k][1], e_log[k][2],e_log[k][3]); //>>24
 			i=0;
 			while (buffer[i] != '\0')
 			{i++;}

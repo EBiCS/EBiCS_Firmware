@@ -255,14 +255,14 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 	 */
 	//Obs_flag=1;
 	q31_teta_obs=atan2_LUT(fl_e_alpha_obs,fl_e_beta_obs)+357913941L;
-
+/*
 	temp1=fl_e_alpha_obs;
 	temp2=fl_e_beta_obs;
 	temp3=(q31_t)q31_teta_obs>>24;
 	temp4=q31_teta>>24;
-
-	//temp1=int16_i_as;
-	//temp2=int16_i_bs;
+*/
+	temp1=int16_i_as;
+	temp2=int16_i_bs;
 	if(!HAL_GPIO_ReadPin(PAS_GPIO_Port, PAS_Pin)&&ui8_debug_state==0)
 			{
 		e_log[z][0]=temp1;//fl_e_alpha_obs;

@@ -9,7 +9,7 @@
 #define DISPLAY_TYPE DISPLAY_TYPE_KINGMETER_901U
 
 #define wheel_circumference 2.202 	//wheel circumference in m
-#define THROTTE_OFFSET 200//1210 			//ADC-value at closed throttle 670 for throttle, 1255 for TS
+#define THROTTE_OFFSET 670//1210 			//ADC-value at closed throttle 670 for throttle, 1255 for TS
 #define TS_COEF 2000				//coefficient for torque-sensor-mode
 //#define TS_MODE						//Torquesensor-Mode
 #define PAS_TIMEOUT 12000			//time tics @ 16kHz untils motor stops
