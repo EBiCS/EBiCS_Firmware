@@ -21,9 +21,6 @@
 #define P_FACTOR_I_D 1L				//proportional factor for PI control of id
 #define I_FACTOR_I_D 1L				//integral factor for PI control of id
 
-#define P_FACTOR_E_D -10L			//proportional factor for PI control of ed
-#define I_FACTOR_E_D -1000L			//integral factor for PI control of ed
-#define ED_I_LIM 100000000    //min/max value of integral part
 
 #define DELTA_TETA_MAX 120000000L
 #define DELTA_TETA_MIN 2000000L
@@ -39,8 +36,8 @@
 
 //Constants for Motor model of observer an speed PLL
 #define INDUCTANCE	2LL//  *10^4 0.0012			//H = V*s/A
-#define RESISTANCE 117LL// *10^4  0.35				//Ohm = V/A
-#define FLUX_LINKAGE 400LL// *10^6  0.017			//V*s/rad
+#define RESISTANCE 1170LL// *10^4  0.35				//Ohm = V/A
+#define FLUX_LINKAGE 35LL// *10^6  0.017			//V*s/rad
 #define GAMMA 12LL
 
 

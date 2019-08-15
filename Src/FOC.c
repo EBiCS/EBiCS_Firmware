@@ -244,7 +244,7 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
     */
 
 
-	observer_update(((long long)q31_u_alpha*(long long)adcData[0]*CAL_V)>>12, ((long long)(-q31_u_beta*(long long)adcData[0]*CAL_V))>>12, (long long)((-q31_i_alpha)*CAL_I)>>1, (long long)((-q31_i_beta)*CAL_I)>>1, &fl_e_alpha_obs, &fl_e_beta_obs);
+	observer_update(((long long)q31_u_alpha*(long long)adcData[0]*CAL_V)>>12, ((long long)(-q31_u_beta*(long long)adcData[0]*CAL_V))>>12, (long long)((-q31_i_alpha)*CAL_I), (long long)((-q31_i_beta)*CAL_I), &fl_e_alpha_obs, &fl_e_beta_obs);
 
 /*	arm_park_q31((q31_t)fl_e_alpha_obs, (q31_t)fl_e_beta_obs, &q31_e_d_obs, &q31_e_q_obs, sinevalue, cosinevalue);
 	q31_e_d_obs_fil -= q31_e_d_obs_fil>>3;
@@ -254,10 +254,10 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 
 	 */
 	//Obs_flag=1;
-	q31_teta_obs=atan2_LUT(fl_e_alpha_obs,fl_e_beta_obs)+357913941L;
+	q31_teta_obs=atan2_LUT(fl_e_alpha_obs,fl_e_beta_obs)+1789569707L;
 
-	temp1=fl_e_alpha_obs;
-	//temp2=fl_e_beta_obs;
+	//temp1=fl_e_alpha_obs;
+	temp2=fl_e_beta_obs;
 	temp3=(q31_t)q31_teta_obs>>24;
 	temp4=q31_teta>>24;
 
@@ -391,10 +391,10 @@ void observer_update(long long v_alpha, long long v_beta, long long i_alpha, lon
 		R += R * 0.00386 * (t - m_conf->foc_temp_comp_base_temp);
 	}*/
 
-	const long long L_ia = (L * i_alpha)>>4; // diveded by 1000 because of value in milliamps
-	const long long L_ib = (L * i_beta)>>4;
-	const long long R_ia = (R * i_alpha)>>4;
-	const long long R_ib = (R * i_beta)>>4;
+	const long long L_ia = (L * i_alpha)>>2; // diveded by 1000 because of value in milliamps
+	const long long L_ib = (L * i_beta)>>2;
+	const long long R_ia = (R * i_alpha)>>2;
+	const long long R_ib = (R * i_beta)>>2;
 	const long long lambda_2 = lambda*lambda;
 	const long long gamma_half = GAMMA;
 	//temp2=v_alpha;
@@ -434,7 +434,7 @@ void observer_update(long long v_alpha, long long v_beta, long long i_alpha, lon
 	//for (int i = 0;i <3;i++){
 	// Same as above, but without iterations.
 	long long err = lambda_2 - (((*e_alpha * *e_alpha)) + ((*e_beta * *e_beta)));
-	temp2=err;
+	temp1=err;
 	long long gamma_tmp = gamma_half;
 	/*if (utils_truncate_number_abs(&err, lambda_2 * 0.2)) {
 		gamma_tmp *= 10.0;
