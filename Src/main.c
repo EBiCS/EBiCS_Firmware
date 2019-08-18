@@ -144,6 +144,8 @@ int16_t current_display;							//pepared battery current for display
 int16_t throttle_stat;								//throttle value, not linked to ADC-Value yet
 int16_t poti_stat;									//scaled assist level
 
+int16_t tim1cc4=1948;									//cc4 value of timer 1 for injected ADC timing
+
 
 
 /* USER CODE END PV */
@@ -261,7 +263,7 @@ int main(void) {
     TIM1->CCR2 = 1024;
     TIM1->CCR3 = 1024;
 
-    TIM1->CCR4 = 1014; //ADC sampling just before timer overflow (just before middle of PWM-Cycle)
+    TIM1->CCR4 = tim1cc4;//1014; //ADC sampling just before timer overflow (just before middle of PWM-Cycle)
 //PWM Mode 1: Interrupt at counting down.
 
     //TIM1->BDTR |= 1L<<15;
@@ -340,12 +342,7 @@ int main(void) {
 		  	else //temp4=0;
 		  	PI_flag=0;
 	  }
-	  if(Obs_flag){
-		//  q31_delta_teta_obs = PI_control_e_d(q31_e_d_obs, -20000L);
-		  q31_teta_obs=atan2_LUT(-fl_e_alpha_obs,fl_e_beta_obs);
-		 // q31_teta_obs=(q31_t)(atan2((double)fl_e_alpha_obs,(double)fl_e_beta_obs)*683565275.0);
-		  Obs_flag=0;
-	  }
+
 
 	  //display message processing
 	  if(ui8_UART_flag){
@@ -435,14 +432,14 @@ int main(void) {
 	  	  if(ui32_tim1_counter>800){
 /*
 
-	  	//	sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", (int16_t)q31_i_q_fil>>3, (int16_t)((q31_i_q_fil>>3)*q31_u_abs/_T) , uint16_current_target, (int16_t)q31_u_abs,  (int16_t)temp1, q31_teta_obs,(int16_t)q31_e_d_obs, q31_delta_teta);
-	  		sprintf_(buffer, "%d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4])) ;
+	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", (int16_t)q31_i_q_fil>>3, (int16_t)((q31_i_q_fil>>3)*q31_u_abs/_T) , i16_ph1_current, i16_ph2_current,  (int16_t)temp1, q31_teta_obs,(int16_t)q31_e_d_obs, q31_delta_teta);
+	  	//	sprintf_(buffer, "%d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4])) ;
 	  	 i=0;
 		  while (buffer[i] != '\0')
 		  {i++;}
 		 HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);
 
-		 */
+*/
 	  	/* if (ui8_print_flag==1){
 	  		ui8_print_flag=2;
 
@@ -936,29 +933,30 @@ void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
 		  ui32_tim1_counter++;
 		  if (uint32_PAS_counter < PAS_TIMEOUT+1)uint32_PAS_counter++;
 		  uint32_SPEED_counter++;
-		  //temp5=__HAL_TIM_GET_COUNTER(&htim1);
 
+		  HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
 
 	  }
 
 }
 
-//Timer2 Counter for speed measurement, callback handling not necessary
+//Timer3 Counter for FOC execution
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 	if (htim == &htim3) {
-		HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
+		//HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
 		//HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+
+		//temp4=q31_rotorposition_absolute>>24;
 		if(HAL_GPIO_ReadPin(PAS_GPIO_Port, PAS_Pin))
 		{
 			// call FOC procedure
 			FOC_calculation(i16_ph1_current, i16_ph2_current, q31_rotorposition_absolute, uint16_current_target);
-			//q31_teta_obs = q31_rotorposition_absolute;
-			//q31_ed_i = q31_delta_teta<<1; //because 8 kHz control loop speed
+
 		}
 
 		else{
-		FOC_calculation(i16_ph1_current, i16_ph2_current,q31_teta_obs , uint16_current_target); //q31_teta_obs
+			FOC_calculation(i16_ph1_current, i16_ph2_current,q31_rotorposition_absolute , uint16_current_target); //q31_teta_obs
 		}
 		//FOC_calculation(i16_ph1_current, i16_ph2_current, q31_rotorposition_absolute, uint16_current_target);
 
@@ -969,7 +967,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		TIM1->CCR2 =  (uint16_t) switchtime[1];
 		TIM1->CCR3 =  (uint16_t) switchtime[2];
 
-		HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
+		//HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
 
 	}
 }
@@ -990,13 +988,18 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 {
 	//for oszi-check of used time in FOC procedere
-	//HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
 
 	//read in phase currents
-	//i16_ph1_current = HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1);
-	//i16_ph2_current = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1);
+	i16_ph1_current = HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1);
+	i16_ph2_current = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1);
+
+
 
 	//temp3=char_dyn_adc_state;
+	//temp4=__HAL_TIM_GET_COUNTER(&htim1);
+
+/*
 	switch (char_dyn_adc_state) //read in according to state
 		{
 		case 1: //Phase C at high dutycycles, read from A+B directly
@@ -1027,6 +1030,7 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 
 
 		} // end case
+*/
 
 
 
@@ -1035,6 +1039,8 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 
 	//extrapolate recent rotor position
 	ui16_tim2_recent = __HAL_TIM_GET_COUNTER(&htim2); // read in timertics since last event
+	//q31_rotorposition_absolute +=1342170*4;
+
 
 	if (ui16_tim2_recent < ui16_timertics && !ui8_overflow_flag){ //prevent angle running away at standstill
 		// float with division necessary!
@@ -1070,13 +1076,15 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 
 
 	//get the Phase with highest duty cycle for dynamic phase current reading
-	dyn_adc_state(q31_rotorposition_absolute);
+	//dyn_adc_state(q31_rotorposition_absolute);
 	//set the according injected channels to read current at Low-Side active time
-
+    //temp3=char_dyn_adc_state;
+/*
 	if (char_dyn_adc_state!=char_dyn_adc_state_old){
 		set_inj_channel(char_dyn_adc_state);
 		char_dyn_adc_state_old = char_dyn_adc_state;
 		}
+*/
 
 /*
 	//uint16_current_target=0;
@@ -1096,6 +1104,8 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 	//HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
 	//read in timer for indication of processor load
 	//temp4=__HAL_TIM_GET_COUNTER(&htim1);*/
+
+	//HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
 
 }
 
@@ -1267,9 +1277,9 @@ void dyn_adc_state(q31_t angle){
 			/*if ((switchtime[2]-switchtime[0]<ADC_DUR)||(switchtime[2]-switchtime[1])<ADC_DUR){
 				//char_dyn_adc_state = 0; //time frame to small for ADC
 			}
-			else*/ TIM1->CCR4 = _T-1;//switchtime[2]-ADC_DUR; //set startpoint of ADC to 350 tics before highest phase is switched off
+			else*/ TIM1->CCR4 = tim1cc4;//switchtime[2]-ADC_DUR; //set startpoint of ADC to 350 tics before highest phase is switched off
 		}
-		else TIM1->CCR4 =_T-1; //set startpoint of ADC to timer overflow
+		else TIM1->CCR4 =tim1cc4; //set startpoint of ADC to timer overflow
 	}
 	if (switchtime[0]>switchtime[1] && switchtime[0]>switchtime[2]) {
 		char_dyn_adc_state = 2; // +30° .. 150° Phase A at high dutycycles
@@ -1277,9 +1287,9 @@ void dyn_adc_state(q31_t angle){
 			/*if ((switchtime[0]-switchtime[1]<ADC_DUR)||(switchtime[0]-switchtime[2])<ADC_DUR){
 				//char_dyn_adc_state = 0; //time frame to small for ADC
 			}
-			else*/ TIM1->CCR4 = _T-1;//switchtime[0]-ADC_DUR; //set startpoint of ADC to 350 tics before highest phase is switched off
+			else*/ TIM1->CCR4 = tim1cc4;//switchtime[0]-ADC_DUR; //set startpoint of ADC to 350 tics before highest phase is switched off
 		}
-		else TIM1->CCR4 =_T-1; //set startpoint of ADC to timer overflow
+		else TIM1->CCR4 =tim1cc4; //set startpoint of ADC to timer overflow
 	}
 	if (switchtime[1]>switchtime[0] && switchtime[1]>switchtime[2]){
 		char_dyn_adc_state = 3; // +150 .. -90° Phase B at high dutycycles
@@ -1287,9 +1297,9 @@ void dyn_adc_state(q31_t angle){
 			/*if ((switchtime[1]-switchtime[0]<ADC_DUR)||(switchtime[1]-switchtime[2])<ADC_DUR){
 				//char_dyn_adc_state = 0; //time frame to small for ADC
 			}
-			else*/ TIM1->CCR4 = _T-1; //switchtime[1]-ADC_DUR; //set startpoint of ADC to 350 tics before highest phase is switched off
+			else*/ TIM1->CCR4 = tim1cc4; //switchtime[1]-ADC_DUR; //set startpoint of ADC to 350 tics before highest phase is switched off
 		}
-		else TIM1->CCR4 =_T-1; //set startpoint of ADC to timer overflow
+		else TIM1->CCR4 =tim1cc4; //set startpoint of ADC to timer overflow
 	}
 }
 

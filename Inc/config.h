@@ -27,20 +27,20 @@
 
 #define SPEC_ANGLE  -715827882L		//motor specific angle, refer to chapter 8.3.3 of UM1052.shengyi:-715827882L, 715827882 536870912 357913941L; //357913941 298261617 119304647L // 30° BionX IGH3 motor specific angle, refer to chapter 8.8.3 of UM1052 180° maped to 2^31
 
-#define OFFSET_A 1970 //1025 				//Offset of current sensing phase A
-#define OFFSET_B 1930 //1022				//Offset of current sensing phase B
-#define OFFSET_C 1890 //1042				//Offset of current sensing phase C
+#define OFFSET_A 1980 //1025 				//Offset of current sensing phase A
+#define OFFSET_B 1932 //1022				//Offset of current sensing phase B
+#define OFFSET_C 1925 //1042				//Offset of current sensing phase C
 
-#define CAL_V 70LL//  *10^6  0.000007				// 1V / 40 digits ADC, *1/Sqrt(3) /2048 max DutyCycle
-#define CAL_I 50LL// *10^2   0.05					// 1A / 20 digits ADC
+#define CAL_V 144LL			// 1V / 40 digits ADC, *1/Sqrt(3)*10000, geteilt durch 2048 max DutyCycle als >>2^11 bei Übergabe an Observerfunktion. >>1 zusätzlich um Auflösung von CAS-V zu verbessern, im Oberserver kommt Spannung in mV an.
+#define CAL_I 50LL					// 1A / 20 digits ADC Strom kommt in mA im Observer an.
 
 //Constants for Motor model of observer an speed PLL
-#define INDUCTANCE	2LL//  *10^4 0.0012			//H = V*s/A
-#define RESISTANCE 1170LL// *10^4  0.35				//Ohm = V/A
-#define FLUX_LINKAGE 35LL// *10^6  0.017			//V*s/rad
-#define GAMMA 12LL
+#define INDUCTANCE	2LL				//H = V*s/A Induktivität in µH/100 Shengyi hat 200µHenry Induktivität -->>>5 Observer um auf Henry zukommen
+#define RESISTANCE 117LL			//Ohm = V/A Widerstand in Shengi ist 117mOhm --> >>3 in Observer um auf Ohm zu kommen.
+#define FLUX_LINKAGE 300LL			//V*s/rad von Hand angepasst mit Ziel err schwingt um Null
+#define GAMMA 24LL					//per trial and error
 
 
-#define _T 2048
+#define _T 2048						//Periode des Timers1 zur Einstellung der PWM Frequenz 2048 ergibt 16kHz
 
 #endif
