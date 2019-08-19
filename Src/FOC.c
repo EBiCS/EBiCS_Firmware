@@ -158,7 +158,7 @@ q31_t PI_control_i_d (q31_t ist, q31_t soll);
 q31_t PI_control_e_d (q31_t ist, q31_t soll);
 q31_t atan2_LUT(q31_t e_alpha, q31_t e_beta);
 void observer_update(long long v_alpha, long long v_beta, long long i_alpha, long long i_beta,  q31_t *e_alpha,q31_t *e_beta);
-
+int utils_truncate_number_abs(long long *number, q31_t max);
 
 
 
@@ -236,23 +236,23 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 	//arm_sin_cos_q31(q31_teta, &sinevalue, &cosinevalue);
 	//inverse Park transformation
 	arm_inv_park_q31(q31_u_d, q31_u_q, &q31_u_alpha, &q31_u_beta, -sinevalue, cosinevalue);
-
+/*
 	temp1= -q31_i_alpha;
 	temp2= q31_i_beta;
 	temp3= q31_u_alpha;
     temp4= q31_u_beta;
 
-
+*/
 
 	observer_update(((long long)q31_u_alpha*(long long)adcData[0]*CAL_V)>>12, ((long long)(-q31_u_beta*(long long)adcData[0]*CAL_V))>>12, (long long)((-q31_i_alpha)*CAL_I), (long long)((-q31_i_beta)*CAL_I), &fl_e_alpha_obs, &fl_e_beta_obs);
 
 
-	q31_teta_obs=atan2_LUT(fl_e_alpha_obs,fl_e_beta_obs)+1789569707L;
+	q31_teta_obs=atan2_LUT(fl_e_alpha_obs,fl_e_beta_obs)+1431655765L;
 
-	//temp1=fl_e_alpha_obs;
-	//temp2=fl_e_beta_obs;
-//	temp3=q31_teta_obs>>24;
-//	temp4=q31_teta>>24;
+	temp1=fl_e_alpha_obs;
+	temp2=fl_e_beta_obs;
+	temp3=q31_teta_obs>>24;
+	//temp4=q31_teta>>24;
 
 	//temp1=int16_i_as;
 	//temp2=int16_i_bs;
@@ -410,10 +410,10 @@ void observer_update(long long v_alpha, long long v_beta, long long i_alpha, lon
 
 
 
-	const long long L_ia = (L * (iaf>>fact))>>5; // see comment in config.h for right shift
-	const long long L_ib = (L * (ibf>>fact))>>5;
-	const long long R_ia = (R * (iaf>>fact))>>3; // hier eigentlich>>3?
-	const long long R_ib = (R * (ibf>>fact))>>3;
+	const long long L_ia = (L * i_alpha);//(iaf>>fact))>>5; // see comment in config.h for right shift
+	const long long L_ib = (L * i_beta);//(ibf>>fact))>>5;
+	const long long R_ia = (R * i_alpha);//(iaf>>fact))>>3; // hier eigentlich>>3?
+	const long long R_ib = (R * i_beta);//(ibf>>fact))>>3;
 	const long long lambda_2 = lambda*lambda;
 	const long long gamma_half = GAMMA;
 	//temp2=v_alpha;
@@ -421,9 +421,9 @@ void observer_update(long long v_alpha, long long v_beta, long long i_alpha, lon
 	//temp1=L_ia;
 /*
 	temp1=i_alpha;
-	temp2=iaf>>fact;
-	temp3=i_beta;
-	temp4=ibf>>fact;
+	temp2=i_beta;
+	temp3=v_alpha;
+	temp4=v_beta;
 */
 
 	// Original
@@ -449,21 +449,23 @@ void observer_update(long long v_alpha, long long v_beta, long long i_alpha, lon
 		*x2 += x2_dot * dt_iteration;
 	}
 	*/
-	*e_alpha= (x1 - L_ia)>>6;
-	*e_beta=  (x2 - L_ib)>>6;
+	*e_alpha= (x1 - L_ia)>>2;
+	*e_beta=  (x2 - L_ib)>>2;
 	//for (int i = 0;i <3;i++){
 	// Same as above, but without iterations.
 	long long err = lambda_2 - (((*e_alpha * *e_alpha)) + ((*e_beta * *e_beta)));
+	//temp1=x1;
 	//temp2=err;
 	long long gamma_tmp = gamma_half;
-	/*if (utils_truncate_number_abs(&err, lambda_2 * 0.2)) {
-		gamma_tmp *= 10.0;
+	/*if (utils_truncate_number_abs(&err, lambda_2<<4)) {
+		if(gamma_tmp>0) gamma_tmp--;
 	}*/
 
 
-	long long x1_dot = -R_ia + (vaf>>fact) + ((*e_alpha * err)>>gamma_tmp) ;
-	long long x2_dot = -R_ib + (vbf>>fact) + ((*e_beta * err)>>gamma_tmp) ;
-	//temp2=-R_ia + v_alpha;
+	long long x1_dot = -R_ia + (v_alpha) + ((*e_alpha * err)>>gamma_tmp) ;
+	long long x2_dot = -R_ib + (v_beta) + ((*e_beta * err)>>gamma_tmp) ;
+	//temp1 = err;
+	//temp2 = -R_ia + (v_alpha);
 	x1 += x1_dot >>dT;
 	x2 += x2_dot >>dT;
 
@@ -572,4 +574,18 @@ if (e_alpha>0 && e_beta<0){
 
 }
 return ((angle_obs<<15)+1550960412); //angle in degree to q31 Look up table is scaled to 90° = 2^16 -1431655765
+}
+
+int utils_truncate_number_abs(long long *number, q31_t max) {
+	int did_trunc = 0;
+
+	if (*number > max) {
+		*number = max;
+		did_trunc = 1;
+	} else if (*number < -max) {
+		*number = -max;
+		did_trunc = 1;
+	}
+
+	return did_trunc;
 }
