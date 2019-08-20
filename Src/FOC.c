@@ -247,7 +247,7 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 	observer_update(((long long)q31_u_alpha*(long long)adcData[0]*CAL_V)>>12, ((long long)(-q31_u_beta*(long long)adcData[0]*CAL_V))>>12, (long long)((-q31_i_alpha)*CAL_I), (long long)((-q31_i_beta)*CAL_I), &fl_e_alpha_obs, &fl_e_beta_obs);
 
 
-	q31_teta_obs=atan2_LUT(fl_e_alpha_obs,fl_e_beta_obs)+1431655765L;
+	q31_teta_obs=atan2_LUT(-fl_e_beta_obs,fl_e_alpha_obs)+715827882L;
 
 	temp1=fl_e_alpha_obs;
 	temp2=fl_e_beta_obs;
@@ -410,10 +410,10 @@ void observer_update(long long v_alpha, long long v_beta, long long i_alpha, lon
 
 
 
-	const long long L_ia = (L * i_alpha);//(iaf>>fact))>>5; // see comment in config.h for right shift
-	const long long L_ib = (L * i_beta);//(ibf>>fact))>>5;
-	const long long R_ia = (R * i_alpha);//(iaf>>fact))>>3; // hier eigentlich>>3?
-	const long long R_ib = (R * i_beta);//(ibf>>fact))>>3;
+	const long long L_ia = (L * i_alpha)>>5;//(iaf>>fact))>>5; // see comment in config.h for right shift
+	const long long L_ib = (L * i_beta)>>5;//(ibf>>fact))>>5;
+	const long long R_ia = (R * i_alpha)>>3;//(iaf>>fact))>>3; // hier eigentlich>>3?
+	const long long R_ib = (R * i_beta)>>3;//(ibf>>fact))>>3;
 	const long long lambda_2 = lambda*lambda;
 	const long long gamma_half = GAMMA;
 	//temp2=v_alpha;
@@ -425,6 +425,7 @@ void observer_update(long long v_alpha, long long v_beta, long long i_alpha, lon
 	temp3=v_alpha;
 	temp4=v_beta;
 */
+
 
 	// Original
 //	float err = lambda_2 - (SQ(*x1 - L_ia) + SQ(*x2 - L_ib));
@@ -449,8 +450,8 @@ void observer_update(long long v_alpha, long long v_beta, long long i_alpha, lon
 		*x2 += x2_dot * dt_iteration;
 	}
 	*/
-	*e_alpha= (x1 - L_ia)>>2;
-	*e_beta=  (x2 - L_ib)>>2;
+	*e_alpha= (x1 - L_ia);
+	*e_beta=  (x2 - L_ib);
 	//for (int i = 0;i <3;i++){
 	// Same as above, but without iterations.
 	long long err = lambda_2 - (((*e_alpha * *e_alpha)) + ((*e_beta * *e_beta)));

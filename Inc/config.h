@@ -31,14 +31,14 @@
 #define OFFSET_B 1932 //1022				//Offset of current sensing phase B
 #define OFFSET_C 1925 //1042				//Offset of current sensing phase C
 
-#define CAL_V 144LL			// 1V / 40 digits ADC, *1/Sqrt(3)*10000, geteilt durch 2048 max DutyCycle als >>2^11 bei Übergabe an Observerfunktion. >>1 zusätzlich um Auflösung von CAS-V zu verbessern, im Oberserver kommt Spannung in mV an.
+#define CAL_V 144LL			// 1V / 40 digits ADC, *1/Sqrt(3)*10000, geteilt durch 2048 max DutyCycle als >>2^11 bei Übergabe an Observerfunktion. >>1 zusätzlich um Auflösung von CAL_V zu verbessern, im Oberserver kommt Spannung in mV an.
 #define CAL_I 50LL					// 1A / 20 digits ADC Strom kommt in mA im Observer an.
 
 //Constants for Motor model of observer an speed PLL
-#define INDUCTANCE	2LL				//H = V*s/A Induktivität in µH/100 Shengyi hat 200µHenry Induktivität -->>>5 Observer um auf Henry zukommen
+#define INDUCTANCE	2LL				//H = V*s/A Induktivität in µH/100 Shengyi hat 200µHenry Induktivität -->>>5 in Observer um auf Henry zukommen
 #define RESISTANCE 117LL			//Ohm = V/A Widerstand in Shengi ist 117mOhm --> >>3 in Observer um auf Ohm zu kommen.
-#define FLUX_LINKAGE 300LL			//V*s/rad von Hand angepasst mit Ziel err schwingt um Null
-#define GAMMA 13LL					//per trial and error
+#define FLUX_LINKAGE 1200LL			//V*s/rad von Hand angepasst
+#define GAMMA 12LL					//per trial and error
 
 
 #define _T 2048						//Periode des Timers1 zur Einstellung der PWM Frequenz 2048 ergibt 16kHz

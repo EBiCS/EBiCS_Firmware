@@ -956,7 +956,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		}
 
 		else{
-			FOC_calculation(i16_ph1_current, i16_ph2_current,q31_rotorposition_absolute , uint16_current_target); //q31_teta_obs
+			FOC_calculation(i16_ph1_current, i16_ph2_current, q31_teta_obs, uint16_current_target); //q31_teta_obs
 		}
 		//FOC_calculation(i16_ph1_current, i16_ph2_current, q31_rotorposition_absolute, uint16_current_target);
 
