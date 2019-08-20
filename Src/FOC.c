@@ -232,7 +232,7 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 	*/
 
 	//q31_u_q=250;
-	//q31_u_d=0;
+	q31_u_d=0;
 	//arm_sin_cos_q31(q31_teta, &sinevalue, &cosinevalue);
 	//inverse Park transformation
 	arm_inv_park_q31(q31_u_d, q31_u_q, &q31_u_alpha, &q31_u_beta, -sinevalue, cosinevalue);
@@ -247,7 +247,7 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 	observer_update(((long long)q31_u_alpha*(long long)adcData[0]*CAL_V)>>12, ((long long)(-q31_u_beta*(long long)adcData[0]*CAL_V))>>12, (long long)((-q31_i_alpha)*CAL_I), (long long)((-q31_i_beta)*CAL_I), &fl_e_alpha_obs, &fl_e_beta_obs);
 
 
-	q31_teta_obs=atan2_LUT(-fl_e_beta_obs,fl_e_alpha_obs)+715827882L;
+	q31_teta_obs=atan2_LUT(-fl_e_beta_obs,fl_e_alpha_obs)+1193046471;
 
 	temp1=fl_e_alpha_obs;
 	temp2=fl_e_beta_obs;
@@ -263,8 +263,10 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 		e_log[z][2]=temp3;//(q31_t)q31_teta_obs>>24;
 		e_log[z][3]=temp4;
 		z++;
+		if(z>200) Obs_flag=1;
 		if (z>399)
 		{z=0;
+
 		ui8_debug_state=2;}
 			}
 	else {if(ui8_debug_state==2)ui8_debug_state=3;;}
@@ -427,6 +429,7 @@ void observer_update(long long v_alpha, long long v_beta, long long i_alpha, lon
 */
 
 
+
 	// Original
 //	float err = lambda_2 - (SQ(*x1 - L_ia) + SQ(*x2 - L_ib));
 //	float x1_dot = -R_ia + v_alpha + gamma_half * (*x1 - L_ia) * err;
@@ -458,9 +461,9 @@ void observer_update(long long v_alpha, long long v_beta, long long i_alpha, lon
 	//temp1=x1;
 	//temp2=err;
 	long long gamma_tmp = gamma_half;
-	/*if (utils_truncate_number_abs(&err, lambda_2<<4)) {
-		if(gamma_tmp>0) gamma_tmp--;
-	}*/
+	if (utils_truncate_number_abs(&err, lambda_2>>2)) {
+		//if(gamma_tmp>0) gamma_tmp--;
+	}
 
 
 	long long x1_dot = -R_ia + (v_alpha) + ((*e_alpha * err)>>gamma_tmp) ;
@@ -469,12 +472,13 @@ void observer_update(long long v_alpha, long long v_beta, long long i_alpha, lon
 	//temp2 = -R_ia + (v_alpha);
 	x1 += x1_dot >>dT;
 	x2 += x2_dot >>dT;
+/*
+	temp1 =-R_ia;
+	temp2 =v_alpha;
+	temp3 =((*e_alpha * err)>>gamma_tmp);
+	temp4 =err;
 
-	//temp1 =x1_dot;
-	//temp2 =x1;
-
-
-
+*/
 	*e_alpha= x1 - L_ia;// + (eaf>>24);
 	*e_beta= x2 - L_ib;
 

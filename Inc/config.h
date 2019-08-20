@@ -37,8 +37,8 @@
 //Constants for Motor model of observer an speed PLL
 #define INDUCTANCE	2LL				//H = V*s/A Induktivität in µH/100 Shengyi hat 200µHenry Induktivität -->>>5 in Observer um auf Henry zukommen
 #define RESISTANCE 117LL			//Ohm = V/A Widerstand in Shengi ist 117mOhm --> >>3 in Observer um auf Ohm zu kommen.
-#define FLUX_LINKAGE 1200LL			//V*s/rad von Hand angepasst
-#define GAMMA 12LL					//per trial and error
+#define FLUX_LINKAGE 1400LL			//V*s/rad von Hand angepasst
+#define GAMMA 11LL					//per trial and error
 
 
 #define _T 2048						//Periode des Timers1 zur Einstellung der PWM Frequenz 2048 ergibt 16kHz

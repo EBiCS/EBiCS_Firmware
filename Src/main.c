@@ -426,6 +426,7 @@ int main(void) {
 			if (k>399){
 				k=0;
 				ui8_debug_state=0;
+				Obs_flag=0;
 			}
 		}
 	  //print values for debugging
@@ -948,7 +949,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		//HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
 
 		temp4=q31_rotorposition_absolute>>24;
-		if(HAL_GPIO_ReadPin(PAS_GPIO_Port, PAS_Pin))
+		if(!Obs_flag)
 		{
 			// call FOC procedure
 			FOC_calculation(i16_ph1_current, i16_ph2_current, q31_rotorposition_absolute, uint16_current_target);
