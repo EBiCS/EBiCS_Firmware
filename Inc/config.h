@@ -36,10 +36,10 @@
 #define CAL_I 38LL<<8					// ADC * 37,5 mA/Digit. Strom kommt in mA *2^-8 im Observer an. Siehe Post Nr. 99 im Thread (für 12 FET)
 
 //Constants for Motor model of observer
-#define INDUCTANCE	13LL				//H = V*s/A Induktivität in µH/100 Shengyi hat 200µHenry Induktivität 2^16*0,0002 -->>>16 in Observer um auf Henry zukommen
+#define INDUCTANCE	9LL				//H = V*s/A Induktivität in µH/100 Shengyi hat 200µHenry Induktivität 2^16*0,0002 -->>>16 in Observer um auf Henry zukommen
 #define RESISTANCE 60LL			//Ohm = V/A Widerstand in Shengi ist 117mOhm -->2^9*0,117 >>9 in Observer um auf Ohm zu kommen.
 #define FLUX_LINKAGE 1200LL			//V*s/rad von Hand angepasst
-#define GAMMA 11LL					//per trial and error
+#define GAMMA 9LL					//per trial and error
 
 
 #define _T 2048						//Periode des Timers1 zur Einstellung der PWM Frequenz 2048 ergibt 16kHz

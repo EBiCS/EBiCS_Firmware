@@ -247,10 +247,10 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 	observer_update(((long long)q31_u_alpha*(long long)adcData[0]*CAL_V)>>11, ((long long)(-q31_u_beta*(long long)adcData[0]*CAL_V))>>11, (long long)((-q31_i_alpha)*CAL_I), (long long)((-q31_i_beta)*CAL_I), &fl_e_alpha_obs, &fl_e_beta_obs);
 
 
-	q31_teta_obs=atan2_LUT(-fl_e_beta_obs,fl_e_alpha_obs)-811271600;
+	q31_teta_obs=atan2_LUT(-fl_e_beta_obs,fl_e_alpha_obs)-930576247;
 
-	//temp1=fl_e_alpha_obs;
-	//temp2=fl_e_beta_obs;
+	temp1=fl_e_alpha_obs;
+	temp2=fl_e_beta_obs;
 	//temp3=q31_teta_obs>>24;
 	//temp5=q31_teta>>24;
 	temp6=q31_teta_obs>>24;
@@ -426,10 +426,10 @@ void observer_update(long long v_alpha, long long v_beta, long long i_alpha, lon
 	//temp1=R_ia;
 	//temp2=L_ia;
 
-	temp1=i_alpha;
-	temp2=i_beta;
-	temp3=v_alpha;
-	temp4=v_beta;
+	//temp3=i_alpha;
+	//temp4=i_beta;
+	//temp3=v_alpha;
+	//temp4=v_beta;
 
 
 
@@ -478,13 +478,13 @@ void observer_update(long long v_alpha, long long v_beta, long long i_alpha, lon
 	//temp2 = -R_ia + (v_alpha);
 	x1 += x1_dot >>dT;
 	x2 += x2_dot >>dT;
-/*
-	temp1 =-R_ia;
-	temp2 =v_alpha;
+
+	//temp1 =-R_ia;
+	//temp2 =v_alpha;
 	temp3 =((*e_alpha * err)>>gamma_tmp);
 	temp4 =err;
 
-*/
+
 	*e_alpha= x1 - L_ia;// + (eaf>>24);
 	*e_beta= x2 - L_ib;
 
