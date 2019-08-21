@@ -47,7 +47,7 @@ extern q31_t q31_u_q;
 
 extern q31_t q31_e_d_obs;
 extern q31_t q31_ed_i; //integral part
-extern q31_t e_log[400][4];
+extern q31_t e_log[300][6];
 
 extern q31_t fl_e_alpha_obs;
 extern q31_t fl_e_beta_obs;

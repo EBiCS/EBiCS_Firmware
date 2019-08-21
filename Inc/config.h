@@ -31,13 +31,14 @@
 #define OFFSET_B 1932 //1022				//Offset of current sensing phase B
 #define OFFSET_C 1925 //1042				//Offset of current sensing phase C
 
-#define CAL_V 144LL			// 1V / 40 digits ADC, *1/Sqrt(3)*10000, geteilt durch 2048 max DutyCycle als >>2^11 bei Übergabe an Observerfunktion. >>1 zusätzlich um Auflösung von CAL_V zu verbessern, im Oberserver kommt Spannung in mV an.
-#define CAL_I 50LL					// 1A / 20 digits ADC Strom kommt in mA im Observer an.
+//LeftShift um bei R*L in vernünftigen Ganzzahlbereich zu kommen
+#define CAL_V 15LL<<8			  		// ADC*25,6 mV/Digit*1/SQRT(3)=15,  bei Übergabe an Observerfunktion >>11 um Dutycycle reinzurechnen.  Im Oberserver kommt Spannung in mV *2^-8 an.
+#define CAL_I 38LL<<8					// ADC * 37,5 mA/Digit. Strom kommt in mA *2^-8 im Observer an. Siehe Post Nr. 99 im Thread (für 12 FET)
 
-//Constants for Motor model of observer an speed PLL
-#define INDUCTANCE	2LL				//H = V*s/A Induktivität in µH/100 Shengyi hat 200µHenry Induktivität -->>>5 in Observer um auf Henry zukommen
-#define RESISTANCE 117LL			//Ohm = V/A Widerstand in Shengi ist 117mOhm --> >>3 in Observer um auf Ohm zu kommen.
-#define FLUX_LINKAGE 1400LL			//V*s/rad von Hand angepasst
+//Constants for Motor model of observer
+#define INDUCTANCE	13LL				//H = V*s/A Induktivität in µH/100 Shengyi hat 200µHenry Induktivität 2^16*0,0002 -->>>16 in Observer um auf Henry zukommen
+#define RESISTANCE 60LL			//Ohm = V/A Widerstand in Shengi ist 117mOhm -->2^9*0,117 >>9 in Observer um auf Ohm zu kommen.
+#define FLUX_LINKAGE 1200LL			//V*s/rad von Hand angepasst
 #define GAMMA 11LL					//per trial and error
 
 

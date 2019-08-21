@@ -416,17 +416,17 @@ int main(void) {
 	  }
 */
 		if(ui8_debug_state==3 && ui8_UART_TxCplt_flag){
-	        sprintf_(buffer, "%d, %d, %d, %d\r\n", e_log[k][0], e_log[k][1], e_log[k][2],e_log[k][3]); //>>24
+	        sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n", e_log[k][0], e_log[k][1], e_log[k][2],e_log[k][3],e_log[k][4],e_log[k][5]); //>>24
 			i=0;
 			while (buffer[i] != '\0')
 			{i++;}
 			ui8_UART_TxCplt_flag=0;
 			HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);
 			k++;
-			if (k>399){
+			if (k>299){
 				k=0;
 				ui8_debug_state=0;
-				Obs_flag=0;
+				//Obs_flag=0;
 			}
 		}
 	  //print values for debugging
@@ -948,7 +948,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		//HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
 		//HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
 
-		temp4=q31_rotorposition_absolute>>24;
+		temp5=q31_rotorposition_absolute>>24;
 		if(!Obs_flag)
 		{
 			// call FOC procedure

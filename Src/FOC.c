@@ -29,7 +29,7 @@ volatile long long fl_x1_obs=0;
 volatile long long fl_x2_obs=0;
 q31_t fl_e_alpha_obs;
 q31_t fl_e_beta_obs;
-q31_t e_log[400][4];
+q31_t e_log[300][6];
 
 q31_t q31_ed_i = 0; //integral part of observer ed control
 
@@ -244,15 +244,17 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 
 */
 
-	observer_update(((long long)q31_u_alpha*(long long)adcData[0]*CAL_V)>>12, ((long long)(-q31_u_beta*(long long)adcData[0]*CAL_V))>>12, (long long)((-q31_i_alpha)*CAL_I), (long long)((-q31_i_beta)*CAL_I), &fl_e_alpha_obs, &fl_e_beta_obs);
+	observer_update(((long long)q31_u_alpha*(long long)adcData[0]*CAL_V)>>11, ((long long)(-q31_u_beta*(long long)adcData[0]*CAL_V))>>11, (long long)((-q31_i_alpha)*CAL_I), (long long)((-q31_i_beta)*CAL_I), &fl_e_alpha_obs, &fl_e_beta_obs);
 
 
-	q31_teta_obs=atan2_LUT(-fl_e_beta_obs,fl_e_alpha_obs)+1193046471;
+	q31_teta_obs=atan2_LUT(-fl_e_beta_obs,fl_e_alpha_obs)-811271600;
 
-	temp1=fl_e_alpha_obs;
-	temp2=fl_e_beta_obs;
-	temp3=q31_teta_obs>>24;
-	//temp4=q31_teta>>24;
+	//temp1=fl_e_alpha_obs;
+	//temp2=fl_e_beta_obs;
+	//temp3=q31_teta_obs>>24;
+	//temp5=q31_teta>>24;
+	temp6=q31_teta_obs>>24;
+
 
 	//temp1=int16_i_as;
 	//temp2=int16_i_bs;
@@ -262,9 +264,11 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 		e_log[z][1]=temp2;//fl_e_beta_obs;
 		e_log[z][2]=temp3;//(q31_t)q31_teta_obs>>24;
 		e_log[z][3]=temp4;
+		e_log[z][4]=temp5;
+		e_log[z][5]=temp6;
 		z++;
-		if(z>200) Obs_flag=1;
-		if (z>399)
+		if(z>150) Obs_flag=1;
+		if (z>299)
 		{z=0;
 
 		ui8_debug_state=2;}
@@ -412,23 +416,26 @@ void observer_update(long long v_alpha, long long v_beta, long long i_alpha, lon
 
 
 
-	const long long L_ia = (L * i_alpha)>>5;//(iaf>>fact))>>5; // see comment in config.h for right shift
-	const long long L_ib = (L * i_beta)>>5;//(ibf>>fact))>>5;
-	const long long R_ia = (R * i_alpha)>>3;//(iaf>>fact))>>3; // hier eigentlich>>3?
-	const long long R_ib = (R * i_beta)>>3;//(ibf>>fact))>>3;
+	const long long L_ia = (L * i_alpha)>>16;//(iaf>>fact))>>5; // see comment in config.h for right shift
+	const long long L_ib = (L * i_beta)>>16;//(ibf>>fact))>>5;
+	const long long R_ia = (R * i_alpha)>>9;//(iaf>>fact))>>3;
+	const long long R_ib = (R * i_beta)>>9;//(ibf>>fact))>>3;
 	const long long lambda_2 = lambda*lambda;
 	const long long gamma_half = GAMMA;
 	//temp2=v_alpha;
 	//temp1=R_ia;
-	//temp1=L_ia;
-/*
+	//temp2=L_ia;
+
 	temp1=i_alpha;
 	temp2=i_beta;
 	temp3=v_alpha;
 	temp4=v_beta;
-*/
 
 
+
+
+	//temp1=v_alpha;
+	//temp2=v_beta;
 
 	// Original
 //	float err = lambda_2 - (SQ(*x1 - L_ia) + SQ(*x2 - L_ib));
@@ -458,10 +465,9 @@ void observer_update(long long v_alpha, long long v_beta, long long i_alpha, lon
 	//for (int i = 0;i <3;i++){
 	// Same as above, but without iterations.
 	long long err = lambda_2 - (((*e_alpha * *e_alpha)) + ((*e_beta * *e_beta)));
-	//temp1=x1;
-	//temp2=err;
+
 	long long gamma_tmp = gamma_half;
-	if (utils_truncate_number_abs(&err, lambda_2>>2)) {
+	if (utils_truncate_number_abs(&err, lambda_2>>1)) {
 		//if(gamma_tmp>0) gamma_tmp--;
 	}
 
@@ -482,7 +488,8 @@ void observer_update(long long v_alpha, long long v_beta, long long i_alpha, lon
 	*e_alpha= x1 - L_ia;// + (eaf>>24);
 	*e_beta= x2 - L_ib;
 
-
+	//temp3=*e_alpha;
+	//temp4=err;
 
 
 
