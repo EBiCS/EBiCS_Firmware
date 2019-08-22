@@ -232,7 +232,7 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 	*/
 
 	//q31_u_q=250;
-	q31_u_d=0;
+	//q31_u_d=0;
 	//arm_sin_cos_q31(q31_teta, &sinevalue, &cosinevalue);
 	//inverse Park transformation
 	arm_inv_park_q31(q31_u_d, q31_u_q, &q31_u_alpha, &q31_u_beta, -sinevalue, cosinevalue);
@@ -249,8 +249,8 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 
 	q31_teta_obs=atan2_LUT(-fl_e_beta_obs,fl_e_alpha_obs)-930576247;
 
-	temp1=fl_e_alpha_obs;
-	temp2=fl_e_beta_obs;
+	//temp1=fl_e_alpha_obs;
+	//temp2=fl_e_beta_obs;
 	//temp3=q31_teta_obs>>24;
 	//temp5=q31_teta>>24;
 	temp6=q31_teta_obs>>24;
@@ -426,9 +426,9 @@ void observer_update(long long v_alpha, long long v_beta, long long i_alpha, lon
 	//temp1=R_ia;
 	//temp2=L_ia;
 
-	//temp3=i_alpha;
+	temp1=i_alpha;
 	//temp4=i_beta;
-	//temp3=v_alpha;
+	temp2=v_alpha;
 	//temp4=v_beta;
 
 
@@ -467,7 +467,7 @@ void observer_update(long long v_alpha, long long v_beta, long long i_alpha, lon
 	long long err = lambda_2 - (((*e_alpha * *e_alpha)) + ((*e_beta * *e_beta)));
 
 	long long gamma_tmp = gamma_half;
-	if (utils_truncate_number_abs(&err, lambda_2>>1)) {
+	if (utils_truncate_number_abs(&err, lambda_2>>0)) {
 		//if(gamma_tmp>0) gamma_tmp--;
 	}
 

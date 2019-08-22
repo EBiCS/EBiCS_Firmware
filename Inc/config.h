@@ -9,12 +9,13 @@
 #define DISPLAY_TYPE DISPLAY_TYPE_KINGMETER_901U
 
 #define wheel_circumference 2.202 	//wheel circumference in m
-#define THROTTE_OFFSET 690//1210 			//ADC-value at closed throttle 670 for throttle, 1255 for TS
+#define THROTTLE_OFFSET 690//1210 			//ADC-value at closed throttle 670 for throttle, 1255 for TS
+#define THROTTLE_MAX 3015
 #define TS_COEF 2000				//coefficient for torque-sensor-mode
 //#define TS_MODE						//Torquesensor-Mode
 #define PAS_TIMEOUT 12000			//time tics @ 16kHz untils motor stops
 #define RAMP_END 4000					//time tics @ 16kHz where motor reaches full level power
-#define PH_CURRENT_MAX 550			//iq value (phase current in rotating frame), not calibrated yet
+#define PH_CURRENT_MAX 380			//iq value (phase current in rotating frame), not calibrated yet
 
 #define P_FACTOR_I_Q 1L				//proportional factor for PI control of iq
 #define I_FACTOR_I_Q 0.1F			//integral factor for PI control of iq
@@ -36,8 +37,8 @@
 #define CAL_I 38LL<<8					// ADC * 37,5 mA/Digit. Strom kommt in mA *2^-8 im Observer an. Siehe Post Nr. 99 im Thread (für 12 FET)
 
 //Constants for Motor model of observer
-#define INDUCTANCE	8LL		//war nach Messung 13 (mit einfachem LCR-Tester)		//H = V*s/A Induktivität in µH/100 Shengyi hat 200µHenry Induktivität 2^16*0,0002 -->>>16 in Observer um auf Henry zukommen
-#define RESISTANCE 60LL			//Ohm = V/A Widerstand in Shengi ist 117mOhm -->2^9*0,117 >>9 in Observer um auf Ohm zu kommen.
+#define INDUCTANCE	6LL		//war nach Messung 13 (mit einfachem LCR-Tester)		//H = V*s/A Induktivität in µH/100 Shengyi hat 200µHenry Induktivität 2^16*0,0002 -->>>16 in Observer um auf Henry zukommen
+#define RESISTANCE 40LL		//war nach Messung 60	//Ohm = V/A Widerstand in Shengi ist 117mOhm -->2^9*0,117 >>9 in Observer um auf Ohm zu kommen.
 #define FLUX_LINKAGE 1200LL			//V*s/rad von Hand angepasst
 #define GAMMA 9LL					//per trial and error
 

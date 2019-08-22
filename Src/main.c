@@ -357,7 +357,7 @@ int main(void) {
 		  ui8_PAS_flag=0;
 		  //read in and sum up torque-signal within one crank revolution (for sempu sensor 32 PAS pulses/revolution, 2^5=32)
 		  uint32_torque_cumulated -= uint32_torque_cumulated>>5;
-		  uint32_torque_cumulated += (ui16_reg_adc_value-THROTTE_OFFSET);
+		  uint32_torque_cumulated += (ui16_reg_adc_value-THROTTLE_OFFSET);
 	  }
 
 	  //SPEED signal processing
@@ -385,7 +385,7 @@ int main(void) {
 	  //uint16_current_target = 0;
 
 #else
-	  uint16_mapped_throttle = map(ui16_reg_adc_value, THROTTE_OFFSET ,4096, 0, PH_CURRENT_MAX);
+	  uint16_mapped_throttle = map(ui16_reg_adc_value, THROTTLE_OFFSET , THROTTLE_MAX, 0, PH_CURRENT_MAX);
 	  if (uint16_mapped_PAS>uint16_mapped_throttle)
 
 	  {
