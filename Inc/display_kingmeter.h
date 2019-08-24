@@ -27,7 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "config.h"
 #include "stdint.h"
 
-
+#if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
 
 // Definitions
 #define KM_MAX_WHEELTIME 0x0DAC          // Maximum Wheeltime reported to the display (e.g. when wheel is stopped)
@@ -173,6 +173,8 @@ void KingMeter_Init (KINGMETER_t* KM_ctx);
 
 void KingMeter_Service(KINGMETER_t* KM_ctx);
 
+
+#endif // Display Type Kingmeter
 
 #endif // KINGMETER_H
 

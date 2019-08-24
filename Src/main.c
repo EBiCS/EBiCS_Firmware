@@ -52,8 +52,16 @@
 
 #include "print.h"
 #include "FOC.h"
-#include "display_kingmeter.h"
 #include "config.h"
+
+#if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
+  #include "display_kingmeter.h"
+#endif
+
+#if (DISPLAY_TYPE == BAFANG)
+  #include "display_BAFANG.h"
+#endif
+
 #include <arm_math.h>
 /* USER CODE END Includes */
 
@@ -129,12 +137,26 @@ const q31_t DEG_minus120= -1431655765;
 
 //variables for display communication
 
+//variables for display communication
+#if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
 KINGMETER_t KM;
-int16_t battery_percent_fromcapacity = 11; 			//Calculation of used watthours not implemented yet
+#endif
+
+//variables for display communication
+#if (DISPLAY_TYPE == BAFANG)
+BAFANG_t BF;
+#endif
+
+MotorState_t MS;
+
+int16_t battery_percent_fromcapacity = 50; 			//Calculation of used watthours not implemented yet
 int16_t wheel_time = 1000;							//duration of one wheel rotation for speed calculation
 int16_t current_display;							//pepared battery current for display
-int16_t throttle_stat;								//throttle value, not linked to ADC-Value yet
-int16_t poti_stat;									//scaled assist level
+
+int16_t power;										//recent power output
+
+uint8_t ui8_AssistLevel = 3;
+								//scaled assist level
 
 
 
@@ -156,8 +178,14 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
-static void Set_reg_channel(uint16_t ADC_Channel);
+#if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
 void kingmeter_update(void);
+#endif
+
+#if (DISPLAY_TYPE == DISPLAY_TYPE_BAFANG)
+void bafang_update(void);
+#endif
+
 static void dyn_adc_state(q31_t angle);
 static void set_inj_channel(char state);
 int32_t map (int32_t x, int32_t in_min, int32_t in_max, int32_t out_min, int32_t out_max);
@@ -277,7 +305,15 @@ int main(void)
 */
 
        //Init KingMeter Display
+       //Init KingMeter Display
+#if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
        KingMeter_Init (&KM);
+#endif
+
+#if (DISPLAY_TYPE == DISPLAY_TYPE_BAFANG)
+       Bafang_Init (&BF);
+#endif
+
 
 
 
@@ -326,7 +362,15 @@ int main(void)
 	  }
 	  //display message processing
 	  if(ui8_UART_flag){
+#if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
 	  kingmeter_update();
+#endif
+
+
+#if (DISPLAY_TYPE == DISPLAY_TYPE_BAFANG)
+	  bafang_update();
+#endif
+
 	  ui8_UART_flag=0;
 	  }
 
@@ -337,7 +381,7 @@ int main(void)
 		  ui8_PAS_flag=0;
 		  //read in and sum up torque-signal within one crank revolution (for sempu sensor 32 PAS pulses/revolution, 2^5=32)
 		  uint32_torque_cumulated -= uint32_torque_cumulated>>5;
-		  uint32_torque_cumulated += (ui16_reg_adc_value-THROTTE_OFFSET);
+		  uint32_torque_cumulated += (ui16_reg_adc_value-THROTTLE_OFFSET);
 	  }
 
 	  //SPEED signal processing
@@ -349,41 +393,46 @@ int main(void)
 
 	  //throttle and PAS current target setting
 
+#if (DISPLAY_TYPE == DISPLAY_TYPE_BAFANG)
+	  uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, (PH_CURRENT_MAX*(int32_t)(ui8_AssistLevel))>>2, 0); // level in range 0...5
+#endif
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_618U)
-	  uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, (PH_CURRENT_MAX*(int32_t)(KM.Rx.AssistLevel-1))>>2, 0); // level in range 1...5
+	  uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, (PH_CURRENT_MAX*(int32_t)(ui8_AssistLevel-1))>>2, 0); // level in range 1...5
 #endif
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_901U)
-	  uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, (PH_CURRENT_MAX*(int32_t)(KM.Rx.AssistLevel))>>8, 0); // level in range 0...255
+	  uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, (PH_CURRENT_MAX*(int32_t)(ui8_AssistLevel))>>8, 0); // level in range 0...255
 #endif
+
 #ifdef TS_MODE //torque-sensor mode
 
-	  uint16_current_target = (TS_COEF*(int16_t)(KM.Rx.AssistLevel)* (uint32_torque_cumulated>>5)/uint32_PAS)>>8;
+	  uint16_current_target = (TS_COEF*(int16_t)(ui8_AssistLevel)* (uint32_torque_cumulated>>5)/uint32_PAS)>>8;
 	  if(uint16_current_target>PH_CURRENT_MAX) uint16_current_target = PH_CURRENT_MAX;
 	  if(uint32_PAS_counter > PAS_TIMEOUT) uint16_current_target = 0;
 	  //uint16_current_target = 0;
 
-#else
-	  uint16_mapped_throttle = map(ui16_reg_adc_value, THROTTE_OFFSET ,4096, 0, PH_CURRENT_MAX);
-	  if (uint16_mapped_PAS>uint16_mapped_throttle)
+#else		// torque-simulation mode with throttle override
+	  uint16_mapped_throttle = map(ui16_reg_adc_value, THROTTLE_OFFSET , THROTTLE_MAX, 0, PH_CURRENT_MAX);
+	  if (uint16_mapped_PAS>uint16_mapped_throttle)   											//check for throttle override
 
 	  {
-		  if (uint32_PAS_counter < PAS_TIMEOUT) uint16_current_target= uint16_mapped_PAS;
-		  else uint16_current_target= 0;
+		  if (uint32_PAS_counter < PAS_TIMEOUT) uint16_current_target= uint16_mapped_PAS;		//set current target in torque-simulation-mode, if pedals are turning
+		  else uint16_current_target= 0;														//pedals are not turning, stop motor
 	  }
-	  else uint16_current_target = uint16_mapped_throttle;
+	  else uint16_current_target = uint16_mapped_throttle;										//throttle override: set recent throttle value as current target
 
 #endif
-
-	  //enable PWM output, if power is wanted
-	  if (uint16_current_target>0)TIM1->BDTR |= 1L<<15; //set MOE bit
 	  //print values for debugging
-	  	  if(ui32_tim1_counter>800){
+
+#if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG)
+
+	  	  if(ui32_tim1_counter>1600){
 
 
-	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", q31_i_q_fil>>3, q31_u_abs , uint16_current_target, TIM1->CCR4, i16_ph2_current, adcData[2],adcData[3], adcData[4]);
-	  	//	sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5]),(uint16_t)(adcData[6]),(uint16_t)(adcData[7])) ;
+
+	  	 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", temp4, temp5, temp1, uint16_current_target, ui16_timertics, temp3, uint32_PAS, uint32_torque_cumulated>>5);
+		 // recent current iq, current target, duration between two motor hall events, duty cycle, duration between two PAS signals, averaged torque signal for one crank revolution
 	  	 i=0;
 		  while (buffer[i] != '\0')
 		  {i++;}
@@ -404,6 +453,7 @@ int main(void)
 		  ui32_tim1_counter=0;
 		  ui8_print_flag=0;
 	  	  }
+#endif
 
 
   /* USER CODE END WHILE */
@@ -735,7 +785,16 @@ static void MX_USART1_UART_Init(void)
 {
 
   huart1.Instance = USART1;
+
+#if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
   huart1.Init.BaudRate = 9600;
+#elif (DISPLAY_TYPE == BAFANG)
+  huart1.Init.BaudRate = 1200;
+#else
+  huart1.Init.BaudRate = 56000;
+#endif
+
+
   huart1.Init.WordLength = UART_WORDLENGTH_8B;
   huart1.Init.StopBits = UART_STOPBITS_1;
   huart1.Init.Parity = UART_PARITY_NONE;
@@ -836,17 +895,7 @@ static void MX_GPIO_Init(void)
 
 
 
-static void Set_reg_channel(uint16_t ADC_Channel)
-{
-	ADC_ChannelConfTypeDef sConfig;
-	 sConfig.Channel = ADC_Channel;
-	  sConfig.Rank = ADC_REGULAR_RANK_1;
-	  sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
-	  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
-	  {
-	    _Error_Handler(__FILE__, __LINE__);
-	  }
-	}
+
 
 //Timer1 CC Channel4
 void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
@@ -1056,6 +1105,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *UartHandle)
 
 }
 
+#if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
 void kingmeter_update(void)
 {
     /* Prepare Tx parameters */
@@ -1106,7 +1156,7 @@ void kingmeter_update(void)
 
     if(KM.Rx.PushAssist == KM_PUSHASSIST_ON)
     {
-        #if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_901U)
+     /*    #if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_901U)
         throttle_stat = map(KM.Rx.AssistLevel, 0, 255, 0,1023);
         #else
         throttle_stat = 200;
@@ -1116,6 +1166,7 @@ void kingmeter_update(void)
     {
         throttle_stat = 0;
         poti_stat     = map(KM.Rx.AssistLevel, 0, 255, 0,1023);
+        */
     }
 
 
@@ -1130,6 +1181,59 @@ void kingmeter_update(void)
         #endif
     }*/
 }
+
+#endif
+
+#if (DISPLAY_TYPE == DISPLAY_TYPE_BAFANG)
+void bafang_update(void)
+{
+    /* Prepare Tx parameters */
+
+
+    	BF.Tx.Battery = battery_percent_fromcapacity;
+
+
+    if(__HAL_TIM_GET_COUNTER(&htim2) < 12000)
+    {
+        // Adapt wheeltime to match displayed speedo value according config.h setting
+        BF.Tx.Wheeltime_ms = 200;//(ui16_timertics>>1);
+    }
+    else
+    {
+        BF.Tx.Wheeltime_ms = 200; //64000;
+    }
+
+
+       BF.Tx.Power = MS.Current*MS.Voltage;
+
+
+    /* Receive Rx parameters/settings and send Tx parameters */
+    Bafang_Service(&BF,1);
+
+
+
+    /* Apply Rx parameters */
+
+//No headlight supported on my controller hardware.
+    if(BF.Rx.Headlight)
+    {
+       // digitalWrite(lights_pin, 0);
+    }
+    else
+    {
+       // digitalWrite(lights_pin, 1);
+    }
+
+
+    if(BF.Rx.PushAssist)
+    {
+    	//do something later
+    }
+
+    ui8_AssistLevel=BF.Rx.AssistLevel;
+}
+
+#endif
 
 int32_t map (int32_t x, int32_t in_min, int32_t in_max, int32_t out_min, int32_t out_max)
 {

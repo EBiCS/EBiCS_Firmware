@@ -94,6 +94,16 @@
 int32_t map (int32_t x, int32_t in_min, int32_t in_max, int32_t out_min, int32_t out_max);
 
 extern q31_t switchtime[3];
+extern uint32_t ui32_tim1_counter;
+
+typedef struct
+{
+
+	q31_t       	Voltage;
+
+	q31_t          	Current;
+
+}MotorState_t;
 
 /* USER CODE END Private defines */
 
