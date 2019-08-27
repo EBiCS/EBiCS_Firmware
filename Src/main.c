@@ -99,6 +99,8 @@ uint16_t i=0;
 uint16_t j=0;
 uint8_t ui8_overflow_flag=0;
 uint8_t ui8_slowloop_flag=0;
+uint8_t ui8_adc_inj_flag=0;
+uint8_t ui8_adc_offset_done_flag=0;
 uint8_t ui8_print_flag=0;
 uint8_t ui8_UART_flag=0;
 uint8_t ui8_PAS_flag=0;
@@ -276,9 +278,7 @@ int main(void)
       HAL_TIM_PWM_Start_IT(&htim1, TIM_CHANNEL_4);
 
 
-    TIM1->CCR1 = _T>1; //set initial PWM values
-    TIM1->CCR2 = _T>1;
-    TIM1->CCR3 = _T>1;
+
 
     TIM1->CCR4 = _T-10; //ADC sampling just before timer overflow (just before middle of PWM-Cycle)
 //PWM Mode 1: Interrupt at counting down.
@@ -321,6 +321,51 @@ int main(void)
 
     HAL_GPIO_EXTI_Callback(GPIO_PIN_0); //read in initial rotor position
     q31_rotorposition_absolute = q31_rotorposition_hall; // set absolute position to corresponding hall pattern.
+
+
+    TIM1->CCR1 = _T>1; //set initial PWM values
+    TIM1->CCR2 = _T>1;
+    TIM1->CCR3 = _T>1;
+
+// get offset values for adc phase currents
+
+    i=0;
+    for(i=0;i<32;i++){
+    	while(!ui8_adc_inj_flag){}
+    	ui16_ph1_offset+=i16_ph1_current;
+    	ui16_ph2_offset+=i16_ph2_current;
+    	ADC1->JOFR1 = ui16_ph1_offset;
+        ADC2->JOFR1 = ui16_ph2_offset;
+     	ui8_adc_inj_flag=0;
+    }
+
+
+    ADC1->JSQR=0b00110000000000000000; //ADC1 injected reads phase C, JSQ4 = 0b00110, decimal 6
+    ADC1->JOFR1 = ui16_ph3_offset;
+
+    //wait for stable reading on phase 3
+
+    for(i=0;i<8;i++){
+    	while(!ui8_adc_inj_flag){}
+    	ui8_adc_inj_flag=0;
+    }
+
+    i=0;
+    for(i=0;i<32;i++){
+    	while(!ui8_adc_inj_flag){}
+    	ui16_ph3_offset+=i16_ph1_current;
+    	ADC1->JOFR1 = ui16_ph3_offset;
+    	ui8_adc_inj_flag=0;
+
+    }
+
+    ADC1->JSQR=0b00100000000000000000; //ADC1 injected reads phase A JL = 0b00, JSQ4 = 0b00100 (decimal 4 = channel 4)
+   	ADC1->JOFR1 = ui16_ph1_offset;
+
+
+
+   	ui8_adc_offset_done_flag=1;
+
 
 
     printf_("Lishui FOC v0.0 \r\n");
@@ -429,11 +474,10 @@ int main(void)
 
 	  	  if(ui32_tim1_counter>1600){
 
+	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", q31_i_q_fil>>3, q31_u_abs , uint16_current_target, TIM1->CCR4, i16_ph2_current, adcData[2],adcData[3], adcData[4]);
+	  	//	sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5])) ;
 
-
-	  	 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", temp4, temp5, temp1, uint16_current_target, ui16_timertics, temp3, uint32_PAS, uint32_torque_cumulated>>5);
-		 // recent current iq, current target, duration between two motor hall events, duty cycle, duration between two PAS signals, averaged torque signal for one crank revolution
-	  	 i=0;
+	  	  i=0;
 		  while (buffer[i] != '\0')
 		  {i++;}
 		 HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);
@@ -565,7 +609,7 @@ static void MX_ADC1_Init(void)
   sConfigInjected.ExternalTrigInjecConv = ADC_EXTERNALTRIGINJECCONV_T1_CC4; // Hier bin ich nicht sicher ob Trigger out oder direkt CC4
   sConfigInjected.AutoInjectedConv = DISABLE; //muß aus sein
   sConfigInjected.InjectedDiscontinuousConvMode = DISABLE;
-  sConfigInjected.InjectedOffset = OFFSET_A;//1900;
+  sConfigInjected.InjectedOffset = ui16_ph1_offset;//1900;
   HAL_ADC_Stop(&hadc1); //ADC muß gestoppt sein, damit Triggerquelle gesetzt werden kann.
   if (HAL_ADCEx_InjectedConfigChannel(&hadc1, &sConfigInjected) != HAL_OK)
   {
@@ -651,7 +695,7 @@ static void MX_ADC2_Init(void)
   sConfigInjected.ExternalTrigInjecConv = ADC_INJECTED_SOFTWARE_START;
   sConfigInjected.AutoInjectedConv = DISABLE;
   sConfigInjected.InjectedDiscontinuousConvMode = DISABLE;
-  sConfigInjected.InjectedOffset = OFFSET_B;//	1860;
+  sConfigInjected.InjectedOffset = ui16_ph2_offset;//	1860;
   if (HAL_ADCEx_InjectedConfigChannel(&hadc2, &sConfigInjected) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
@@ -929,7 +973,7 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 	ui16_reg_adc_value = ui32_reg_adc_value_filter>>4;
 
 
-	//temp5=ui16_reg_adc_value-665;
+
 }
 
 //injected ADC
@@ -939,11 +983,14 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 	//for oszi-check of used time in FOC procedere
 	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
 
-	//read in phase currents
-	//i16_ph1_current = HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1);
-	//i16_ph2_current = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1);
+	if(!ui8_adc_offset_done_flag)
+	{
+	i16_ph1_current = HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1);
+	i16_ph2_current = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1);
 
-
+	ui8_adc_inj_flag=1;
+	}
+	else{
 	switch (char_dyn_adc_state) //read in according to state
 		{
 		case 1: //Phase C at high dutycycles, read from A+B directly
@@ -974,7 +1021,6 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 
 
 		} // end case
-
 
 
 
@@ -1038,8 +1084,8 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 
 
 	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
-	//read in timer for indication of processor load
-	//temp4=__HAL_TIM_GET_COUNTER(&htim1);
+
+	} // end else
 
 }
 
@@ -1292,26 +1338,26 @@ static void set_inj_channel(char state){
 	case 1: //Phase C at high dutycycles, read current from phase A + B
 		 {
 			 ADC1->JSQR=0b00100000000000000000; //ADC1 injected reads phase A JL = 0b00, JSQ4 = 0b00100 (decimal 4 = channel 4)
-			 ADC1->JOFR1 = OFFSET_A;
+			 ADC1->JOFR1 = ui16_ph1_offset;
 			 ADC2->JSQR=0b00101000000000000000; //ADC2 injected reads phase B, JSQ4 = 0b00101, decimal 5
-			 ADC2->JOFR1 = OFFSET_B;
+			 ADC2->JOFR1 = ui16_ph2_offset;
 		 }
 			break;
 	case 2: //Phase A at high dutycycles, read current from phase C + B
 			 {
 				 ADC1->JSQR=0b00110000000000000000; //ADC1 injected reads phase C, JSQ4 = 0b00110, decimal 6
-				 ADC1->JOFR1 = OFFSET_C;
+				 ADC1->JOFR1 = ui16_ph3_offset;
 				 ADC2->JSQR=0b00101000000000000000; //ADC2 injected reads phase B, JSQ4 = 0b00101, decimal 5
-				 ADC2->JOFR1 = OFFSET_B;
+				 ADC2->JOFR1 = ui16_ph2_offset;
 			 }
 				break;
 
 	case 3: //Phase B at high dutycycles, read current from phase A + C
 			 {
 				 ADC1->JSQR=0b00100000000000000000; //ADC1 injected reads phase A JL = 0b00, JSQ4 = 0b00100 (decimal 4 = channel 4)
-				 ADC1->JOFR1 = OFFSET_A;
+				 ADC1->JOFR1 = ui16_ph1_offset;
 				 ADC2->JSQR=0b00110000000000000000; //ADC2 injected reads phase C, JSQ4 = 0b00110, decimal 6
-				 ADC2->JOFR1 = OFFSET_C;
+				 ADC2->JOFR1 = ui16_ph3_offset;
 			 }
 				break;
 
