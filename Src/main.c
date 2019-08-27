@@ -83,6 +83,7 @@ DMA_HandleTypeDef hdma_usart1_rx;
 
 uint32_t ui32_tim1_counter=0;
 uint8_t ui8_hall_state=0;
+uint8_t ui8_hall_state_old=0;
 uint16_t ui16_tim2_recent=0;
 uint16_t ui16_timertics=5000; 					//timertics between two hall events for 60° interpolation
 uint16_t ui16_reg_adc_value;
@@ -100,6 +101,7 @@ uint16_t j=0;
 uint8_t ui8_overflow_flag=0;
 uint8_t ui8_slowloop_flag=0;
 uint8_t ui8_adc_inj_flag=0;
+
 uint8_t ui8_adc_offset_done_flag=0;
 uint8_t ui8_print_flag=0;
 uint8_t ui8_UART_flag=0;
@@ -116,6 +118,7 @@ uint16_t uint16_current_target=0;
 
 q31_t q31_rotorposition_absolute;
 q31_t q31_rotorposition_hall;
+q31_t q31_rotorposition_motor_specific;
 int16_t i16_sinus=0;
 int16_t i16_cosinus=0;
 char buffer[100];
@@ -150,6 +153,7 @@ BAFANG_t BF;
 #endif
 
 MotorState_t MS;
+
 
 int16_t battery_percent_fromcapacity = 50; 			//Calculation of used watthours not implemented yet
 int16_t wheel_time = 1000;							//duration of one wheel rotation for speed calculation
@@ -232,6 +236,9 @@ int main(void)
   MX_GPIO_Init();
   MX_DMA_Init();
   MX_USART1_UART_Init();
+
+  //initialize MS struct.
+  MS.hall_angle_detect_flag=0;
 
   MX_ADC1_Init();
   /* Run the ADC calibration */
@@ -317,18 +324,12 @@ int main(void)
 
 
 
-
-
-    HAL_GPIO_EXTI_Callback(GPIO_PIN_0); //read in initial rotor position
-    q31_rotorposition_absolute = q31_rotorposition_hall; // set absolute position to corresponding hall pattern.
-
-
     TIM1->CCR1 = _T>1; //set initial PWM values
     TIM1->CCR2 = _T>1;
     TIM1->CCR3 = _T>1;
 
 // get offset values for adc phase currents
-
+// first phase A+B
     i=0;
     for(i=0;i<32;i++){
     	while(!ui8_adc_inj_flag){}
@@ -339,7 +340,7 @@ int main(void)
      	ui8_adc_inj_flag=0;
     }
 
-
+//switch to phase C
     ADC1->JSQR=0b00110000000000000000; //ADC1 injected reads phase C, JSQ4 = 0b00110, decimal 6
     ADC1->JOFR1 = ui16_ph3_offset;
 
@@ -366,7 +367,19 @@ int main(void)
 
    	ui8_adc_offset_done_flag=1;
 
+   	for(i=0;i<360;i++){
+   		q31_rotorposition_absolute+=11930465; //drive motor in open loop with steps of 1°
+   		HAL_Delay(5);
+   		if(ui8_hall_state_old==5&&ui8_hall_state==1){
+   			q31_rotorposition_motor_specific=q31_rotorposition_absolute+357913941;//298261617LL; //offset empiric
+   		}
+   		ui8_hall_state_old=ui8_hall_state;
+   	}
 
+    HAL_GPIO_EXTI_Callback(GPIO_PIN_0); //read in initial rotor position
+    q31_rotorposition_absolute = q31_rotorposition_hall; // set absolute position to corresponding hall pattern.
+
+   	MS.hall_angle_detect_flag=1;
 
     printf_("Lishui FOC v0.0 \r\n");
 
@@ -481,19 +494,7 @@ int main(void)
 		  while (buffer[i] != '\0')
 		  {i++;}
 		 HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);
-	  	/* if (ui8_print_flag==1){
-	  		ui8_print_flag=2;
 
-	  		 for(j=0; j<255; j++){
-	  		sprintf_(buffer, "%d, %d, %d, %d\r\n", angle[j][0] , angle[j][1], angle[j][2], angle[j][3]);
-		  i=0;
-		  while (buffer[i] != '\0')
-		  {i++;}
-		 HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);
-		 HAL_Delay(5);
-
-	  		 }
-	  	 }*/
 		  ui32_tim1_counter=0;
 		  ui8_print_flag=0;
 	  	  }
@@ -1028,38 +1029,19 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 
 	//extrapolate recent rotor position
 	ui16_tim2_recent = __HAL_TIM_GET_COUNTER(&htim2); // read in timertics since last event
-
-	if (ui16_tim2_recent < ui16_timertics && !ui8_overflow_flag){ //prevent angle running away at standstill
+    if(MS.hall_angle_detect_flag){
+	   if (ui16_tim2_recent < ui16_timertics && !ui8_overflow_flag){ //prevent angle running away at standstill
 		// float with division necessary!
+
 		q31_rotorposition_absolute = q31_rotorposition_hall + (q31_t) (715827883.0*((float)ui16_tim2_recent/(float)ui16_timertics)); //interpolate angle between two hallevents by scaling timer2 tics
 
-//debugging
-	/*	if(q31_rotorposition_absolute>>24!=angle_old){
-			angle_old = q31_rotorposition_absolute>>24;
-			if(ui8_print_flag==0){
-				angle[ui32_counter++][0] = q31_rotorposition_absolute>>24;
-				angle[ui32_counter][1] = temp5;
-				angle[ui32_counter][2] = temp6;
-				angle[ui32_counter][3] = temp1;
 
-				if(ui32_counter>255){
-						ui32_counter=0;
-						ui8_print_flag=1;
-					}
-			}
-		}*/
-	}
-	else
-	{ui8_overflow_flag=1;
+	   }
+	   else
+	   {ui8_overflow_flag=1;
 
-	}
-
-	//q31_rotorposition_absolute=-(int32_t)((float)ui16_reg_adc_value/1580.0*2147483647.0);
-
-
-	// float with division! For debugging, not necessary
-	//temp2=(q31_t)((float)q31_rotorposition_absolute/2147483648.0*180.0);
-
+	   }
+    }//end if hall angle detect
 
 	//get the Phase with highest duty cycle for dynamic phase current reading
 	dyn_adc_state(q31_rotorposition_absolute);
@@ -1073,7 +1055,7 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 
 	//uint16_current_target=0;
 	// call FOC procedure
-	FOC_calculation(i16_ph1_current, i16_ph2_current, q31_rotorposition_absolute, uint16_current_target);
+	FOC_calculation(i16_ph1_current, i16_ph2_current, q31_rotorposition_absolute, uint16_current_target, &MS);
 
 	//temp5=__HAL_TIM_GET_COUNTER(&htim1);
 	//set PWM
@@ -1109,22 +1091,22 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 	switch (ui8_hall_state) //according to UM1052 Fig 57, Page 72, 120° setup
 	{
 	case 5: //0°
-		q31_rotorposition_hall = DEG_0 + SPEC_ANGLE;
+		q31_rotorposition_hall = DEG_0 + q31_rotorposition_motor_specific;//SPEC_ANGLE;
 		break;
 	case 1: //60°
-		q31_rotorposition_hall = DEG_plus60 + SPEC_ANGLE;
+		q31_rotorposition_hall = DEG_plus60 + q31_rotorposition_motor_specific;//SPEC_ANGLE;
 		break;
 	case 3: //120°
-		q31_rotorposition_hall = DEG_plus120 + SPEC_ANGLE;
+		q31_rotorposition_hall = DEG_plus120 + q31_rotorposition_motor_specific;//SPEC_ANGLE;
 		break;
 	case 2: //180°
-		q31_rotorposition_hall = DEG_plus180 + SPEC_ANGLE; 	//overflow doesn't matter?!
+		q31_rotorposition_hall = DEG_plus180 + q31_rotorposition_motor_specific;//SPEC_ANGLE; 	//overflow doesn't matter?!
 		break;
 	case 6: //240°-->-120°
-		q31_rotorposition_hall = DEG_minus120 + SPEC_ANGLE;
+		q31_rotorposition_hall = DEG_minus120 + q31_rotorposition_motor_specific;//SPEC_ANGLE;
 		break;
 	case 4: //300°-->-60°
-		q31_rotorposition_hall = DEG_minus60 + SPEC_ANGLE;
+		q31_rotorposition_hall = DEG_minus60 + q31_rotorposition_motor_specific;//SPEC_ANGLE;
 		break;
 
 	} // end case
@@ -1306,7 +1288,7 @@ void dyn_adc_state(q31_t angle){
 			/*if ((switchtime[2]-switchtime[0]<ADC_DUR)||(switchtime[2]-switchtime[1])<ADC_DUR){
 				//char_dyn_adc_state = 0; //time frame to small for ADC
 			}
-			else*/ TIM1->CCR4 = switchtime[2]-ADC_DUR; //set startpoint of ADC to 350 tics before highest phase is switched off
+			else*/ TIM1->CCR4 =  switchtime[2]-ADC_DUR; //set startpoint of ADC to 350 tics before highest phase is switched off
 		}
 		else TIM1->CCR4 =_T-1; //set startpoint of ADC to timer overflow
 	}
@@ -1316,7 +1298,7 @@ void dyn_adc_state(q31_t angle){
 			/*if ((switchtime[0]-switchtime[1]<ADC_DUR)||(switchtime[0]-switchtime[2])<ADC_DUR){
 				//char_dyn_adc_state = 0; //time frame to small for ADC
 			}
-			else*/ TIM1->CCR4 = switchtime[0]-ADC_DUR; //set startpoint of ADC to 350 tics before highest phase is switched off
+			else*/ TIM1->CCR4 =  switchtime[0]-ADC_DUR; //set startpoint of ADC to 350 tics before highest phase is switched off
 		}
 		else TIM1->CCR4 =_T-1; //set startpoint of ADC to timer overflow
 	}

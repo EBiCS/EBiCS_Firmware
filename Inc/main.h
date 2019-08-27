@@ -100,8 +100,8 @@ typedef struct
 {
 
 	q31_t       	Voltage;
-
 	q31_t          	Current;
+	uint8_t 		hall_angle_detect_flag;
 
 }MotorState_t;
 
