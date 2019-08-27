@@ -238,7 +238,7 @@ int main(void)
   MX_USART1_UART_Init();
 
   //initialize MS struct.
-  MS.hall_angle_detect_flag=0;
+  MS.hall_angle_detect_flag=1;
 
   MX_ADC1_Init();
   /* Run the ADC calibration */
@@ -363,10 +363,13 @@ int main(void)
     ADC1->JSQR=0b00100000000000000000; //ADC1 injected reads phase A JL = 0b00, JSQ4 = 0b00100 (decimal 4 = channel 4)
    	ADC1->JOFR1 = ui16_ph1_offset;
 
-
-
    	ui8_adc_offset_done_flag=1;
 
+#if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG)
+
+   	MS.hall_angle_detect_flag=0; //set uq to contstant value in FOC.c for open loop control
+
+   	HAL_Delay(5);
    	for(i=0;i<360;i++){
    		q31_rotorposition_absolute+=11930465; //drive motor in open loop with steps of 1°
    		HAL_Delay(5);
@@ -376,10 +379,19 @@ int main(void)
    		ui8_hall_state_old=ui8_hall_state;
    	}
 
-    HAL_GPIO_EXTI_Callback(GPIO_PIN_0); //read in initial rotor position
-    q31_rotorposition_absolute = q31_rotorposition_hall; // set absolute position to corresponding hall pattern.
 
    	MS.hall_angle_detect_flag=1;
+
+    printf_("Motor specific angle:  %d, \r\n", q31_rotorposition_motor_specific);
+
+#else
+   	q31_rotorposition_motor_specific = SPEC_ANGLE;
+
+#endif
+
+   		 HAL_GPIO_EXTI_Callback(GPIO_PIN_0); //read in initial rotor position
+   		 q31_rotorposition_absolute = q31_rotorposition_hall; // set absolute position to corresponding hall pattern.
+
 
     printf_("Lishui FOC v0.0 \r\n");
 
