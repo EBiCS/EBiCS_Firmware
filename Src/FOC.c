@@ -85,8 +85,8 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 
 //set static volatage for hall angle detection
 if(!MS_FOC->hall_angle_detect_flag){
-	q31_u_q=100;
-	q31_u_d=0;
+	q31_u_q=0;
+	q31_u_d=100;
 	}
 
 	//inverse Park transformation

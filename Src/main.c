@@ -373,8 +373,10 @@ int main(void)
    	for(i=0;i<360;i++){
    		q31_rotorposition_absolute+=11930465; //drive motor in open loop with steps of 1°
    		HAL_Delay(5);
-   		if(ui8_hall_state_old==5&&ui8_hall_state==1){
-   			q31_rotorposition_motor_specific=q31_rotorposition_absolute+357913941;//298261617LL; //offset empiric
+   		if(ui8_hall_state_old!=ui8_hall_state)printf_("hallstate:  %d, \n", ui8_hall_state);
+   		if(ui8_hall_state_old==4&&ui8_hall_state==5)//switch from 4 to 5 is associated with 0°
+   		{
+   			q31_rotorposition_motor_specific=q31_rotorposition_absolute+(1<<31);//+357913941;//298261617LL; //offset empiric
    		}
    		ui8_hall_state_old=ui8_hall_state;
    	}
@@ -382,7 +384,8 @@ int main(void)
 
    	MS.hall_angle_detect_flag=1;
 
-    printf_("Motor specific angle:  %d, \r\n", q31_rotorposition_motor_specific);
+    printf_("Motor specific angle:  %d, \n ", q31_rotorposition_motor_specific);
+    HAL_Delay(5);
 
 #else
    	q31_rotorposition_motor_specific = SPEC_ANGLE;
@@ -393,7 +396,8 @@ int main(void)
    		 q31_rotorposition_absolute = q31_rotorposition_hall; // set absolute position to corresponding hall pattern.
 
 
-    printf_("Lishui FOC v0.0 \r\n");
+    printf_("Lishui FOC v0.0 \n ");
+    HAL_Delay(5);
 
 
 
@@ -791,7 +795,7 @@ static void MX_TIM1_Init(void)
   sBreakDeadTimeConfig.OffStateRunMode = TIM_OSSR_DISABLE;
   sBreakDeadTimeConfig.OffStateIDLEMode = TIM_OSSI_DISABLE;
   sBreakDeadTimeConfig.LockLevel = TIM_LOCKLEVEL_OFF;
-  sBreakDeadTimeConfig.DeadTime = 0;
+  sBreakDeadTimeConfig.DeadTime = 1;
   sBreakDeadTimeConfig.BreakState = TIM_BREAK_DISABLE;
   sBreakDeadTimeConfig.BreakPolarity = TIM_BREAKPOLARITY_HIGH;
   sBreakDeadTimeConfig.AutomaticOutput = TIM_AUTOMATICOUTPUT_DISABLE;
