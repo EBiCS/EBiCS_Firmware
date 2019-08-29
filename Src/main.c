@@ -1233,6 +1233,13 @@ void bafang_update(void)
 {
     /* Prepare Tx parameters */
 
+	if(adcData[0]*CAL_BAT_V>BATTERY_LEVEL_5)battery_percent_fromcapacity=75;
+	else if(adcData[0]*CAL_BAT_V>BATTERY_LEVEL_4)battery_percent_fromcapacity=50;
+	else if(adcData[0]*CAL_BAT_V>BATTERY_LEVEL_3)battery_percent_fromcapacity=30;
+	else if(adcData[0]*CAL_BAT_V>BATTERY_LEVEL_2)battery_percent_fromcapacity=10;
+	else if(adcData[0]*CAL_BAT_V>BATTERY_LEVEL_1)battery_percent_fromcapacity=5;
+	else battery_percent_fromcapacity=0;
+
 
     	BF.Tx.Battery = battery_percent_fromcapacity;
 

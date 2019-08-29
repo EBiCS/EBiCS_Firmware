@@ -11,8 +11,8 @@
 
 //#define DISPLAY_TYPE DISPLAY_TYPE_KINGMETER_618U			//Kingmeter J-LCD
 //#define DISPLAY_TYPE DISPLAY_TYPE_KINGMETER_901U			//Kingmeter KM5S
-//#define DISPLAY_TYPE DISPLAY_TYPE_BAFANG					//Bafang "Blaupunkt"
-#define DISPLAY_TYPE DISPLAY_TYPE_DEBUG					//ASCII Parameter Printout on UART
+#define DISPLAY_TYPE DISPLAY_TYPE_BAFANG					//Bafang "Blaupunkt"
+//#define DISPLAY_TYPE DISPLAY_TYPE_DEBUG					//ASCII Parameter Printout on UART
 
 
 
@@ -36,6 +36,8 @@
 #define OFFSET_B 1932 //1022				//Offset of current sensing phase B
 #define OFFSET_C 1925 //1042				//Offset of current sensing phase C
 
+#define CAL_BAT_V 256LL
+
 //LeftShift um bei R*L in vernünftigen Ganzzahlbereich zu kommen
 #define CAL_V 15LL<<8			  		// ADC*25,6 mV/Digit*1/SQRT(3)=15,  bei Übergabe an Observerfunktion >>11 um Dutycycle reinzurechnen.  Im Oberserver kommt Spannung in mV *2^-8 an.
 #define CAL_I 38LL<<8					// ADC * 37,5 mA/Digit. Strom kommt in mA *2^-8 im Observer an. Siehe Post Nr. 99 im Thread (für 12 FET)
@@ -46,4 +48,9 @@
 #define FLUX_LINKAGE 1200LL			//V*s/rad von Hand angepasst
 #define GAMMA 9LL					//per trial and error
 
+#define BATTERY_LEVEL_1 323000        //Voltage in mV*10
+#define BATTERY_LEVEL_2 329000
+#define BATTERY_LEVEL_3 344000
+#define BATTERY_LEVEL_4 368000
+#define BATTERY_LEVEL_5 380000
 #endif

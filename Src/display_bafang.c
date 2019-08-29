@@ -38,7 +38,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 UART_HandleTypeDef huart1;
 
 // Local function prototypes
-static void BAFANG_Service(BAFANG_t* BF_ctx);
+//static void BAFANG_Service(BAFANG_t* BF_ctx, uint8_t  rx);
 
 uint8_t TxBuff[BF_MAX_TXBUFF];
 uint16_t spd_tmp;
@@ -83,15 +83,7 @@ void Bafang_Init (BAFANG_t* BF_ctx)
 void Bafang_Service(BAFANG_t* BF_ctx, uint8_t  rx)
 {
 
-	 /* static uint8_t j=0;
-	  	static uint8_t TxBuff[36];
-	  	TxBuff[j++]=BF_ctx->ByteReceived[0];
-	  	if(j>35){
-	  		HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuff, 36);
-	  		j=0;
-	  	}*/
 
-	uint8_t  i;
     //wait for gap
 	if(BF_ctx->RxState == RXSTATE_WAITGAP){
 
