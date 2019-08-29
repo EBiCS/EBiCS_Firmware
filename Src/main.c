@@ -468,7 +468,7 @@ int main(void)
 	  //throttle and PAS current target setting
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_BAFANG)
-	  uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, (PH_CURRENT_MAX*(int32_t)(ui8_AssistLevel))>>2, 0); // level in range 0...5
+	  uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, (PH_CURRENT_MAX*(int32_t)(ui8_AssistLevel))/5, 0); // level in range 0...5
 #endif
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_618U)
