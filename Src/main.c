@@ -503,7 +503,7 @@ int main(void)
 
 	  	  if(ui32_tim1_counter>1600){
 
-	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", q31_i_q_fil>>3, q31_u_abs , uint16_current_target, TIM1->CCR4, i16_ph2_current, adcData[2],adcData[3], adcData[4]);
+	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", q31_i_q_fil>>3, q31_u_abs , uint16_current_target, (q31_i_q_fil*q31_u_abs)>>8, i16_ph2_current, adcData[2],adcData[3], adcData[4]);
 	  	//	sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5])) ;
 
 	  	  i=0;
