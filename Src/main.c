@@ -503,7 +503,7 @@ int main(void)
 
 	  	  if(ui32_tim1_counter>1600){
 
-	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", q31_i_q_fil>>3, q31_u_abs , uint16_current_target, (q31_i_q_fil*q31_u_abs)>>8, uint32_PAS, uint32_SPEED, adcData[0], adcData[1]);
+	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", q31_i_q_fil>>3, q31_u_abs , uint16_current_target, (q31_i_q_fil*q31_u_abs)>>8, uint32_PAS, uint32_SPEED,adcData[0], adcData[1]);
 	  	//	sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5])) ;
 
 	  	  i=0;
@@ -1247,11 +1247,12 @@ void bafang_update(void)
     if(__HAL_TIM_GET_COUNTER(&htim2) < 12000)
     {
         // Adapt wheeltime to match displayed speedo value according config.h setting
-        BF.Tx.Wheeltime_ms = 200;//(ui16_timertics>>1);
+        BF.Tx.Wheeltime_ms = WHEEL_CIRCUMFERENCE*433/uint32_SPEED; // Geschwindigkeit ist Weg pro Zeit Radumfang durch Dauer einer Radumdrehung --> Umfang * 16000*3600/(n*1000000) * Skalierung Bafang Display 200/26,6
+
     }
     else
     {
-        BF.Tx.Wheeltime_ms = 200; //64000;
+        BF.Tx.Wheeltime_ms = 0; //64000;
     }
 
 

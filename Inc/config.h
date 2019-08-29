@@ -16,7 +16,7 @@
 
 
 
-#define wheel_circumference 2.202 		//wheel circumference in m
+#define WHEEL_CIRCUMFERENCE 2202L 		//wheel circumference in mm
 #define THROTTLE_OFFSET 720 			//ADC-value at closed throttle 670 for throttle, 1255 for TS
 #define THROTTLE_MAX 3015 				//ADC-value at closed throttle 670 for throttle, 1255 for TS
 #define TS_COEF 2000					//coefficient for torque-sensor-mode
