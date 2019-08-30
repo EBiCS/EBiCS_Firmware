@@ -11,8 +11,8 @@
 
 //#define DISPLAY_TYPE DISPLAY_TYPE_KINGMETER_618U			//Kingmeter J-LCD
 //#define DISPLAY_TYPE DISPLAY_TYPE_KINGMETER_901U			//Kingmeter KM5S
-#define DISPLAY_TYPE DISPLAY_TYPE_BAFANG					//Bafang "Blaupunkt"
-//#define DISPLAY_TYPE DISPLAY_TYPE_DEBUG					//ASCII Parameter Printout on UART
+//#define DISPLAY_TYPE DISPLAY_TYPE_BAFANG					//Bafang "Blaupunkt"
+#define DISPLAY_TYPE DISPLAY_TYPE_DEBUG					//ASCII Parameter Printout on UART
 
 
 
