@@ -11,12 +11,13 @@
 
 //#define DISPLAY_TYPE DISPLAY_TYPE_KINGMETER_618U			//Kingmeter J-LCD
 //#define DISPLAY_TYPE DISPLAY_TYPE_KINGMETER_901U			//Kingmeter KM5S
-//#define DISPLAY_TYPE DISPLAY_TYPE_BAFANG					//Bafang "Blaupunkt"
-#define DISPLAY_TYPE DISPLAY_TYPE_DEBUG					//ASCII Parameter Printout on UART
+#define DISPLAY_TYPE DISPLAY_TYPE_BAFANG					//Bafang "Blaupunkt"
+//#define DISPLAY_TYPE DISPLAY_TYPE_DEBUG					//ASCII Parameter Printout on UART
 
 
 
 #define WHEEL_CIRCUMFERENCE 2202L 		//wheel circumference in mm
+#define PULSES_PER_REVOLUTION 6
 #define THROTTLE_OFFSET 720 			//ADC-value at closed throttle 670 for throttle, 1255 for TS
 #define THROTTLE_MAX 3015 				//ADC-value at closed throttle 670 for throttle, 1255 for TS
 #define TS_COEF 2000					//coefficient for torque-sensor-mode

@@ -1247,7 +1247,7 @@ void bafang_update(void)
     if(__HAL_TIM_GET_COUNTER(&htim2) < 12000)
     {
         // Adapt wheeltime to match displayed speedo value according config.h setting
-        BF.Tx.Wheeltime_ms = WHEEL_CIRCUMFERENCE*433/uint32_SPEED; // Geschwindigkeit ist Weg pro Zeit Radumfang durch Dauer einer Radumdrehung --> Umfang * 16000*3600/(n*1000000) * Skalierung Bafang Display 200/26,6
+        BF.Tx.Wheeltime_ms = WHEEL_CIRCUMFERENCE*433/(uint32_SPEED*PULSES_PER_REVOLUTION); // Geschwindigkeit ist Weg pro Zeit Radumfang durch Dauer einer Radumdrehung --> Umfang * 16000*3600/(n*1000000) * Skalierung Bafang Display 200/26,6
 
     }
     else
