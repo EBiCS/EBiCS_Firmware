@@ -1008,6 +1008,13 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 	ui8_adc_inj_flag=1;
 	}
 	else{
+
+#ifdef DISABLE_DYNAMIC_ADC
+
+		i16_ph1_current = HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1);
+		i16_ph2_current = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1);
+
+#else
 	switch (char_dyn_adc_state) //read in according to state
 		{
 		case 1: //Phase C at high dutycycles, read from A+B directly
@@ -1037,8 +1044,10 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 			break;
 
 
-		} // end case
 
+
+		} // end case
+#endif
 
 
 
@@ -1059,6 +1068,8 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 	   }
     }//end if hall angle detect
 
+#ifndef DISABLE_DYNAMIC_ADC
+
 	//get the Phase with highest duty cycle for dynamic phase current reading
 	dyn_adc_state(q31_rotorposition_absolute);
 	//set the according injected channels to read current at Low-Side active time
@@ -1067,7 +1078,7 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 		set_inj_channel(char_dyn_adc_state);
 		char_dyn_adc_state_old = char_dyn_adc_state;
 		}
-
+#endif
 
 	//uint16_current_target=0;
 	// call FOC procedure
