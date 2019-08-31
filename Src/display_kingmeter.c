@@ -134,7 +134,7 @@ void KingMeter_Init (KINGMETER_t* KM_ctx)
     KM_ctx->Tx.Current_x10                  = 0;
 
     //Start UART with DMA, for startup with length 1
-    if (HAL_UART_Receive_DMA(&huart1, (uint8_t *)KM_ctx->RxBuff, ui8_RxLength) != HAL_OK)
+    if (HAL_UART_Receive_DMA(&huart1, (uint8_t *)KM_ctx->RxBuff, 10) != HAL_OK)
      {
  	   Error_Handler();
      }
@@ -285,41 +285,79 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
 {
     uint8_t  i;
     static uint8_t  j=0;
+    static uint8_t  first_run_flag=0;
+
     static uint8_t  SOM_Flag = 0;
     uint16_t CheckSum;
     static  uint8_t  TxBuff[KM_MAX_TXBUFF];
     uint8_t  TxCnt;
 
-// initial message sorting, necessary as setup message (0x53) has different length than normal operation message (0x52)
-    if(SOM_Flag==0||SOM_Flag==1){
-    //search for start of message
-    if(KM_ctx->RxBuff[0] == 0x3A)
-                {
-                   j=1;
-                   SOM_Flag=1;
-                }
+	switch (first_run_flag)
+	{
 
-    //search for end of message
-    else if(KM_ctx->RxBuff[0] == 0x0A && KM_ctx->RxBuff[j-1]==0x0D)
-    			{
+	case 0:
+	j++;
+	if(j>3)first_run_flag=1;
+	break;
 
-                   if(SOM_Flag){
-                	   ui8_RxLength = j+1;
-                	   //HAL_UART_DMAStop(&huart1);
-                	  /* if (HAL_UART_Receive_DMA(&huart1, (uint8_t *)KM_ctx->RxBuff, ui8_RxLength) != HAL_OK) //Start UART DMA with right message lenght
-                	        {
-                	    	   Error_Handler();
-                	        }*/
-                	   SOM_Flag=2;
-                   }
-                   j=0;
-                } // end of else if
-    else
-    	{
-    		KM_ctx->RxBuff[j]=KM_ctx->RxBuff[0];
-    		j++;
-    	} //end else
-    } // end initial message sorting
+	case 1:
+		TxBuff[0] = 0XFD;                                       // StartCode
+		TxBuff[1] = 0x5B;                                       // SrcAdd:  Controller
+		TxBuff[2] = 0xFD;                                      	// CmdCode
+		TxBuff[3] = 0x00;
+		//FD 5B FD 00
+	    HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuff, 4);
+	    HAL_Delay(5);
+	    first_run_flag=2;
+		break;
+
+	case 2:
+    // Prepare Tx message with handshake code
+    TxBuff[0] = 0X3A;                                       // StartCode
+    TxBuff[1] = 0x1A;                                       // SrcAdd:  Controller
+    TxBuff[2] = 0x53;                                      	// CmdCode
+    TxBuff[3] = 0x05;                                       // Number of Databytes
+    TxBuff[4] = 0x00;
+    TxBuff[5] = 0x00;
+    TxBuff[6] = 0x0D;
+    TxBuff[7] = 0x8D;
+    TxBuff[8] = 0x00;
+    TxBuff[9] = 0x0C;
+    TxBuff[10] = 0x01;
+    TxBuff[11] = 0x0D;
+    TxBuff[12] = 0x0A;
+
+    HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuff, 13);
+    HAL_Delay(5);
+    first_run_flag=3;
+    break;
+
+
+	case 3:
+/*
+        TxBuff[0] = 0X3A;                                       // StartCode
+        TxBuff[1] = 0x1A;                                       // SrcAdd:  Controller
+        TxBuff[2] = 0x52;                                      	// CmdCode
+        TxBuff[3] = 0x05;                                       // Number of Databytes
+        TxBuff[4] = 0x00;
+        TxBuff[5] = 0x00;
+        TxBuff[6] = 0x0D;
+        TxBuff[7] = 0xAC;
+        TxBuff[8] = 0x00;
+        TxBuff[9] = 0x2A;
+        TxBuff[10] = 0x01;
+        TxBuff[11] = 0x0D;
+        TxBuff[12] = 0x0A;
+
+      //  3A 1A 52 05 00 00 0D AC 00 2A 01 0D 0A
+      //  if(KM_ctx->RxBuff[0] == 0x3A){
+        HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuff, 13);
+        }
+        break;
+
+	}*/
+
+
 
     switch(KM_ctx->RxBuff[2])
             {
@@ -430,17 +468,21 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
                 TxBuff[1] = 0x1A;                                       // SrcAdd:  Controller
                 TxBuff[2] = 0x53;                                      	// CmdCode
                 TxBuff[3] = 0x05;                                       // Number of Databytes
-                TxBuff[4] = 0x80;
+                TxBuff[4] = 0x00;
                 TxBuff[5] = 0x00;
                 TxBuff[6] = 0x0D;
-                TxBuff[7] = 0x91;
-                TxBuff[8] = 0x26;
+                TxBuff[7] = 0x8D;
+                TxBuff[8] = 0x00;
+                TxBuff[9] = 0x0C;
+                TxBuff[10] = 0x01;
+                TxBuff[11] = 0x0D;
+                TxBuff[12] = 0x0A;
 
 
                // 3A 1A 53 05 00 00 0D 91 00 10 01 0D 0A
                 //3A 1A 53 05 80 00 0D 91 26 B6 01 0D 0A
                 //3A 1A 53 05 00 00 0D 91 00 10 01 0D 0A
-
+               // 3A 1A 53 05 00 00 0D 8D 00 0C 01 0D 0A
                 														// DataSize
                 //TxBuff[5] = KM_901U_HANDSHAKE[KM_ctx->RxBuff[14]];      // Handshake answer
                 TxCnt = 9;
@@ -471,6 +513,8 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
             HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuff, TxCnt+4);
         }
     }
+    break; //end of case 3, normal operation
+	}
 }
 #endif
 

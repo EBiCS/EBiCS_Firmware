@@ -113,6 +113,8 @@ q31_t q31_rotorposition_absolute;
 q31_t q31_rotorposition_hall;
 
 char buffer[100];
+char TxBuff[14];
+uint8_t  first_run_flag=1;
 char char_dyn_adc_state=1;
 char char_dyn_adc_state_old=1;
 q31_t	q31_u_abs=0;
@@ -305,7 +307,7 @@ int main(void) {
     q31_rotorposition_absolute = q31_rotorposition_hall; // set absolute position to corresponding hall pattern.
 
 
-    printf_("Lishui FOC v0.0 \r\n");
+   // printf_("Lishui FOC v0.0 \r\n");
 
 
 
@@ -421,7 +423,7 @@ int main(void) {
 			while (buffer[i] != '\0')
 			{i++;}
 			ui8_UART_TxCplt_flag=0;
-			HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);
+			//HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);
 			k++;
 			if (k>299){
 				k=0;
@@ -431,6 +433,56 @@ int main(void) {
 		}
 	  //print values for debugging
 	  	  if(ui32_tim1_counter>800){
+
+/*	  	    if(first_run_flag){
+
+	  	    // Prepare Tx message with handshake code
+	  	    TxBuff[0] = 0X3A;                                       // StartCode
+	  	    TxBuff[1] = 0x1A;                                       // SrcAdd:  Controller
+	  	    TxBuff[2] = 0x53;                                      	// CmdCode
+	  	    TxBuff[3] = 0x05;                                       // Number of Databytes
+	  	    TxBuff[4] = 0x00;
+	  	    TxBuff[5] = 0x00;
+	  	    TxBuff[6] = 0x0D;
+	  	    TxBuff[7] = 0x8D;
+	  	    TxBuff[8] = 0x00;
+	  	    TxBuff[9] = 0x0C;
+	  	    TxBuff[10] = 0x01;
+	  	    TxBuff[11] = 0x0D;
+	  	    TxBuff[12] = 0x0A;
+
+	  	    if(ui8_UART_TxCplt_flag){
+	  	    HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuff, 13);
+	  	    ui8_UART_TxCplt_flag=0;
+	  	    }
+	  	    first_run_flag=0;
+
+	  	    }
+	  	    else {
+
+	  	        TxBuff[0] = 0X3A;                                       // StartCode
+	  	        TxBuff[1] = 0x1A;                                       // SrcAdd:  Controller
+	  	        TxBuff[2] = 0x52;                                      	// CmdCode
+	  	        TxBuff[3] = 0x05;                                       // Number of Databytes
+	  	        TxBuff[4] = 0x00;
+	  	        TxBuff[5] = 0x00;
+	  	        TxBuff[6] = 0x0D;
+	  	        TxBuff[7] = 0xAC;
+	  	        TxBuff[8] = 0x00;
+	  	        TxBuff[9] = 0x2A;
+	  	        TxBuff[10] = 0x01;
+	  	        TxBuff[11] = 0x0D;
+	  	        TxBuff[12] = 0x0A;
+
+	  	      //  3A 1A 52 05 00 00 0D AC 00 2A 01 0D 0A
+
+		  	    if(ui8_UART_TxCplt_flag){
+		  	    HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuff, 13);
+		  	    ui8_UART_TxCplt_flag=0;
+		  	    }
+
+
+	  	    }*/
 /*
 
 	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", (int16_t)q31_i_q_fil>>3, (int16_t)((q31_i_q_fil>>3)*q31_u_abs/_T) , i16_ph1_current, i16_ph2_current,  (int16_t)temp1, q31_teta_obs,(int16_t)q31_e_d_obs, q31_delta_teta);
@@ -824,7 +876,7 @@ static void MX_USART1_UART_Init(void)
 {
 
   huart1.Instance = USART1;
-  huart1.Init.BaudRate = 56000;//9600;
+  huart1.Init.BaudRate = 9600;//9600;
   huart1.Init.WordLength = UART_WORDLENGTH_8B;
   huart1.Init.StopBits = UART_STOPBITS_1;
   huart1.Init.Parity = UART_PARITY_NONE;

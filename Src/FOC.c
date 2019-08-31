@@ -40,7 +40,7 @@ q31_t q31_e_d_obs = 0;
 q31_t q31_e_d_obs_fil = 0;
 
 char PI_flag=0;
-char Obs_flag=0;
+char Obs_flag=1;
 
 uint16_t LUT_atan[101]={0,
 		209,
@@ -204,7 +204,10 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 	q31_i_d_fil -= q31_i_d_fil>>3;
 	q31_i_d_fil += q31_i_d;
 
-
+	if(q31_i_q>(PH_CURRENT_MAX<<2)){
+		TIM1->BDTR &= ~(1L<<15);		//disable PWM if overcurrent detected
+		while(1){}						//stay here until hard reset
+	}
 	//Control iq
 
 	PI_flag=1;
@@ -247,7 +250,7 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 	observer_update(((long long)q31_u_alpha*(long long)adcData[0]*CAL_V)>>11, ((long long)(-q31_u_beta*(long long)adcData[0]*CAL_V))>>11, (long long)((-q31_i_alpha)*CAL_I), (long long)((-q31_i_beta)*CAL_I), &fl_e_alpha_obs, &fl_e_beta_obs);
 
 
-	q31_teta_obs=atan2_LUT(-fl_e_beta_obs,fl_e_alpha_obs)-930576247;
+	q31_teta_obs=atan2_LUT(-fl_e_beta_obs,fl_e_alpha_obs)-1431655765;//-930576247;
 
 	//temp1=fl_e_alpha_obs;
 	//temp2=fl_e_beta_obs;
