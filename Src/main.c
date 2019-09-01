@@ -319,6 +319,10 @@ int main(void) {
   while (1)
   {
 
+	  if(!HAL_GPIO_ReadPin(PAS2_GPIO_Port, PAS2_Pin)) HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
+
+	  else HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
+
 	  //PI-control processing
 	  if(PI_flag){
 
@@ -945,6 +949,13 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(LED_GPIO_Port, &GPIO_InitStruct);
 
+  /*Configure GPIO pin : LIGHT_Pin */
+  GPIO_InitStruct.Pin = LIGHT_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(LIGHT_GPIO_Port, &GPIO_InitStruct);
+
   /*Configure GPIO pin : PAS_Pin */ // für Debug PAS als Ausgang
  /* GPIO_InitStruct.Pin = PAS_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -954,6 +965,12 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pins : Speed_EXTI5_Pin PAS_EXTI8_Pin */
   GPIO_InitStruct.Pin = Speed_EXTI5_Pin|PAS_EXTI8_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PAS2_Pin */
+  GPIO_InitStruct.Pin = PAS2_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
@@ -987,7 +1004,7 @@ void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
 		  if (uint32_PAS_counter < PAS_TIMEOUT+1)uint32_PAS_counter++;
 		  uint32_SPEED_counter++;
 
-		  HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
+		//  HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
 
 	  }
 
@@ -1041,7 +1058,7 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 {
 	//for oszi-check of used time in FOC procedere
-	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
+	//HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
 
 	//read in phase currents
 	i16_ph1_current = HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1);
