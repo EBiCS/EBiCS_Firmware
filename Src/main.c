@@ -287,7 +287,7 @@ int main(void)
 
 
 
-    TIM1->CCR4 = _T-10; //ADC sampling just before timer overflow (just before middle of PWM-Cycle)
+    TIM1->CCR4 = 2000; //ADC sampling just before timer overflow (just before middle of PWM-Cycle)
 //PWM Mode 1: Interrupt at counting down.
 
     //TIM1->BDTR |= 1L<<15;
@@ -327,6 +327,8 @@ int main(void)
     TIM1->CCR1 = _T>1; //set initial PWM values
     TIM1->CCR2 = _T>1;
     TIM1->CCR3 = _T>1;
+
+
 
 // get offset values for adc phase currents
 // first phase A+B
