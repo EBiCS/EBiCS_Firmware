@@ -396,7 +396,7 @@ int main(void)
    		 q31_rotorposition_absolute = q31_rotorposition_hall; // set absolute position to corresponding hall pattern.
 
 
-    printf_("Lishui FOC v0.0 \n ");
+    printf_("Lishui FOC v0.1 \n ");
     HAL_Delay(5);
 
 
