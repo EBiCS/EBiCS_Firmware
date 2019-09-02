@@ -148,7 +148,7 @@ int16_t poti_stat;									//scaled assist level
 
 int16_t tim1cc4=1948;									//cc4 value of timer 1 for injected ADC timing
 
-
+MotorState_t MS;
 
 /* USER CODE END PV */
 
@@ -1021,12 +1021,12 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		if(!Obs_flag)
 		{
 			// call FOC procedure
-			FOC_calculation(i16_ph1_current, i16_ph2_current, q31_rotorposition_absolute, uint16_current_target);
+			FOC_calculation(i16_ph1_current, i16_ph2_current, q31_rotorposition_absolute, uint16_current_target, &MS);
 
 		}
 
 		else{
-			FOC_calculation(i16_ph1_current, i16_ph2_current, q31_teta_obs, uint16_current_target); //q31_teta_obs
+			FOC_calculation(i16_ph1_current, i16_ph2_current, q31_teta_obs, uint16_current_target, &MS); //q31_teta_obs
 		}
 		//FOC_calculation(i16_ph1_current, i16_ph2_current, q31_rotorposition_absolute, uint16_current_target);
 

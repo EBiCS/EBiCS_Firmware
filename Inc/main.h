@@ -108,6 +108,19 @@ extern q31_t q31_delta_teta_obs;
 extern q31_t q31_teta_obs;
 /* USER CODE END Private defines */
 
+
+typedef struct
+{
+
+	q31_t       	Voltage;
+	q31_t          	Current;
+	q31_t          	Speed;
+	q31_t          	Obs_Angle;
+	q31_t          	Hall_Angle;
+	uint8_t 		hall_angle_detect_flag;
+
+}MotorState_t;
+
 #ifdef __cplusplus
  extern "C" {
 #endif

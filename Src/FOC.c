@@ -151,7 +151,7 @@ uint16_t LUT_atan[101]={0,
 TIM_HandleTypeDef htim1;
 
 
-void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int16_t int16_i_q_target);
+void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int16_t int16_i_q_target, MotorState_t* MS_FOC);
 void svpwm(q31_t q31_u_alpha, q31_t q31_u_beta);
 q31_t PI_control_i_q (q31_t ist, q31_t soll);
 q31_t PI_control_i_d (q31_t ist, q31_t soll);
@@ -165,7 +165,7 @@ int utils_truncate_number_abs(long long *number, q31_t max);
 
 
 
-void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int16_t int16_i_q_target)
+void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int16_t int16_i_q_target, MotorState_t* MS_FOC)
 {
 
 	 q31_t q31_i_alpha = 0;
@@ -176,6 +176,8 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 	 q31_t q31_u_beta = 0;
 	 q31_t q31_i_d = 0;
 	 q31_t q31_i_q = 0;
+	 static q31_t q31_angle_old = 0;
+
 
 	 q31_t sinevalue=0, cosinevalue = 0;
 
@@ -251,6 +253,9 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 
 
 	q31_teta_obs=atan2_LUT(-fl_e_beta_obs,fl_e_alpha_obs)-1431655765;//-930576247;
+
+	MS_FOC->Speed=q31_teta_obs-q31_angle_old;
+	q31_angle_old=q31_teta_obs;
 
 	//temp1=fl_e_alpha_obs;
 	//temp2=fl_e_beta_obs;
