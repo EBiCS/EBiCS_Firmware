@@ -400,7 +400,7 @@ int main(void)
    		 q31_rotorposition_absolute = q31_rotorposition_hall; // set absolute position to corresponding hall pattern.
 
 
-    printf_("Lishui FOC v0.3 \n ");
+    printf_("Lishui FOC v0.4 \n ");
     HAL_Delay(5);
 
 
@@ -1032,7 +1032,7 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 
 #ifdef DISABLE_DYNAMIC_ADC
 
-		i16_ph2_current = HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1);
+		i16_ph2_current = -HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1);
 		i16_ph1_current = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1);
 
 #else
