@@ -98,6 +98,7 @@ int16_t i16_ph2_current_filter=0;
 int16_t i16_ph3_current=0;
 uint16_t i=0;
 uint16_t j=0;
+uint16_t k=0;
 uint8_t ui8_overflow_flag=0;
 uint8_t ui8_slowloop_flag=0;
 uint8_t ui8_adc_inj_flag=0;
@@ -105,6 +106,7 @@ uint8_t ui8_adc_inj_flag=0;
 uint8_t ui8_adc_offset_done_flag=0;
 uint8_t ui8_print_flag=0;
 uint8_t ui8_UART_flag=0;
+uint8_t ui8_UART_TxCplt_flag=1;
 uint8_t ui8_PAS_flag=0;
 uint8_t ui8_SPEED_flag=0;
 uint32_t uint32_PAS_counter= PAS_TIMEOUT+1;
@@ -287,7 +289,7 @@ int main(void)
 
 
 
-    TIM1->CCR4 = 2000; //ADC sampling just before timer overflow (just before middle of PWM-Cycle)
+    TIM1->CCR4 = 2020; //ADC sampling just before timer overflow (just before middle of PWM-Cycle)
 //PWM Mode 1: Interrupt at counting down.
 
     //TIM1->BDTR |= 1L<<15;
@@ -324,9 +326,9 @@ int main(void)
 
 
 
-    TIM1->CCR1 = _T>1; //set initial PWM values
-    TIM1->CCR2 = _T>1;
-    TIM1->CCR3 = _T>1;
+    TIM1->CCR1 = 1023; //set initial PWM values
+    TIM1->CCR2 = 1023;
+    TIM1->CCR3 = 1023;
 
 
 
@@ -398,7 +400,7 @@ int main(void)
    		 q31_rotorposition_absolute = q31_rotorposition_hall; // set absolute position to corresponding hall pattern.
 
 
-    printf_("Lishui FOC v0.1 \n ");
+    printf_("Lishui FOC v0.2 \n ");
     HAL_Delay(5);
 
 
@@ -431,9 +433,9 @@ int main(void)
 		  	if (q31_u_abs > _U_MAX){
 		  		q31_u_q = (q31_u_q*_U_MAX)/q31_u_abs; //division!
 		  		q31_u_d = (q31_u_d*_U_MAX)/q31_u_abs; //division!
-		  		temp4=1;
+		  		q31_u_abs = _U_MAX;
 		  	}
-		  	else temp4=0;
+
 		  	PI_flag=0;
 	  }
 	  //display message processing
@@ -466,6 +468,23 @@ int main(void)
 		  uint32_SPEED_counter =0;
 		  ui8_SPEED_flag=0;
 	  }
+
+#if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG && defined(FAST_LOOP_LOG))
+		if(ui8_debug_state==3 && ui8_UART_TxCplt_flag){
+	        sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n", e_log[k][0], e_log[k][1], e_log[k][2],e_log[k][3],e_log[k][4],e_log[k][5]); //>>24
+			i=0;
+			while (buffer[i] != '\0')
+			{i++;}
+			ui8_UART_TxCplt_flag=0;
+			HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);
+			k++;
+			if (k>299){
+				k=0;
+				ui8_debug_state=0;
+				//Obs_flag=0;
+			}
+		}
+#endif
 
 	  //throttle and PAS current target setting
 
@@ -501,7 +520,7 @@ int main(void)
 #endif
 	  //print values for debugging
 
-#if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG)
+#if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG && !defined(FAST_LOOP_LOG))
 
 	  	  if(ui32_tim1_counter>1600){
 
@@ -788,7 +807,7 @@ static void MX_TIM1_Init(void)
   }
 
   //sConfigOC.OCMode = TIM_OCMODE_ACTIVE; // war hier ein Bock?!
-  sConfigOC.OCPolarity = TIM_OCPOLARITY_LOW;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   if (HAL_TIM_OC_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_4) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
@@ -1161,6 +1180,12 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *UartHandle)
 	ui8_UART_flag=1;
 
 }
+
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *UartHandle)
+{
+	ui8_UART_TxCplt_flag=1;
+}
+
 
 #if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
 void kingmeter_update(void)

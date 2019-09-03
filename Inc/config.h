@@ -15,6 +15,8 @@
 #define DISPLAY_TYPE DISPLAY_TYPE_DEBUG					//ASCII Parameter Printout on UART
 
 #define DISABLE_DYNAMIC_ADC
+#define FAST_LOOP_LOG
+
 #define WHEEL_CIRCUMFERENCE 2202L 		//wheel circumference in mm
 #define PULSES_PER_REVOLUTION 6
 #define THROTTLE_OFFSET 720 			//ADC-value at closed throttle 670 for throttle, 1255 for TS

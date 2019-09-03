@@ -28,6 +28,11 @@ q31_t x1;
 q31_t x2;
 q31_t teta_obs;
 
+q31_t e_log[300][6];
+q31_t z;
+char Obs_flag=1;
+uint8_t ui8_debug_state=0;
+
 char PI_flag=0;
 
 //const q31_t _T = 2048;
@@ -92,7 +97,30 @@ if(!MS_FOC->hall_angle_detect_flag){
 	//inverse Park transformation
 	arm_inv_park_q31(q31_u_d, q31_u_q, &q31_u_alpha, &q31_u_beta, -sinevalue, cosinevalue);
 
+	temp1=int16_i_as;
+	temp2=int16_i_bs;
+	temp3=q31_i_alpha;
+	temp4=q31_i_beta;
+	temp5=q31_u_alpha;
+	temp6=q31_u_beta;
 	//observer_update(q31_u_alpha, q31_u_beta, q31_i_alpha, q31_i_beta , x1, x2, teta_obs);
+
+	if(uint32_PAS_counter < PAS_TIMEOUT&&ui8_debug_state==0)
+			{
+		e_log[z][0]=temp1;//fl_e_alpha_obs;
+		e_log[z][1]=temp2;//fl_e_beta_obs;
+		e_log[z][2]=temp3;//(q31_t)q31_teta_obs>>24;
+		e_log[z][3]=temp4;
+		e_log[z][4]=temp5;
+		e_log[z][5]=temp6;
+		z++;
+		if(z>150) Obs_flag=1;
+		if (z>299)
+		{z=0;
+
+		ui8_debug_state=2;}
+			}
+	else {if(ui8_debug_state==2)ui8_debug_state=3;;}
 
 	//call SVPWM calculation
 	svpwm(q31_u_alpha, q31_u_beta);
