@@ -99,10 +99,10 @@ if(!MS_FOC->hall_angle_detect_flag){
 
 	temp1=int16_i_as;
 	temp2=int16_i_bs;
-	temp3=q31_i_alpha;
-	temp4=q31_i_beta;
-	temp5=q31_u_alpha;
-	temp6=q31_u_beta;
+	temp3=q31_i_q_fil>>3;
+	temp4=q31_i_d_fil>>3;
+	temp5=q31_u_d;
+	temp6=q31_teta>>24;
 	//observer_update(q31_u_alpha, q31_u_beta, q31_i_alpha, q31_i_beta , x1, x2, teta_obs);
 
 	if(uint32_PAS_counter < PAS_TIMEOUT&&ui8_debug_state==0)
