@@ -93,14 +93,14 @@ if(!MS_FOC->hall_angle_detect_flag){
 	q31_u_q=0;
 	q31_u_d=100;
 	}
-	
+
 	//inverse Park transformation
 	arm_inv_park_q31(q31_u_d, q31_u_q, &q31_u_alpha, &q31_u_beta, -sinevalue, cosinevalue);
 
 	temp1=int16_i_as;
 	temp2=int16_i_bs;
-	temp3=q31_u_d;
-	temp4=q31_u_q;
+	temp3=q31_u_alpha;
+	temp4=q31_u_beta;
 	temp5=int16_i_q_target;
 	temp6=q31_teta>>24;
 	//observer_update(q31_u_alpha, q31_u_beta, q31_i_alpha, q31_i_beta , x1, x2, teta_obs);

@@ -25,7 +25,7 @@
 //#define TS_MODE						//Torquesensor-Mode
 #define PAS_TIMEOUT 12000				//time tics @ 16kHz untils motor stops
 #define RAMP_END 4000					//time tics @ 16kHz where motor reaches full level power
-#define PH_CURRENT_MAX 200				//iq value (phase current in rotating frame), not calibrated yet
+#define PH_CURRENT_MAX 400				//iq value (phase current in rotating frame), not calibrated yet
 
 #define P_FACTOR_I_Q 1L					//proportional factor for PI control of iq
 #define I_FACTOR_I_Q 0.001L				//integral factor for PI control of iq
