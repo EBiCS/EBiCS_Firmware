@@ -22,8 +22,7 @@ q31_t	temp6;
 
 q31_t q31_i_q_fil = 0;
 q31_t q31_i_d_fil = 0;
-q31_t q31_u_d = 0;
-q31_t q31_u_q = 0;
+
 q31_t x1;
 q31_t x2;
 q31_t teta_obs;
@@ -80,9 +79,11 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 
 	q31_i_q_fil -= q31_i_q_fil>>3;
 	q31_i_q_fil += q31_i_q;
+	MS_FOC->i_q=q31_i_q_fil>>3;
+
 	q31_i_d_fil -= q31_i_d_fil>>3;
 	q31_i_d_fil += q31_i_d;
-
+	MS_FOC->i_d=q31_i_d_fil>>3;
 
 	//Control iq
 
@@ -90,17 +91,17 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 
 //set static volatage for hall angle detection
 if(!MS_FOC->hall_angle_detect_flag){
-	q31_u_q=0;
-	q31_u_d=100;
+	MS_FOC->u_q=0;
+	MS_FOC->u_d=100;
 	}
 
 	//inverse Park transformation
-	arm_inv_park_q31(q31_u_d, q31_u_q, &q31_u_alpha, &q31_u_beta, -sinevalue, cosinevalue);
+	arm_inv_park_q31(MS_FOC->u_d, MS_FOC->u_q, &q31_u_alpha, &q31_u_beta, -sinevalue, cosinevalue);
 
-	temp1=int16_i_as;
-	temp2=int16_i_bs;
-	temp3=q31_u_alpha;
-	temp4=q31_u_beta;
+	temp1=MS_FOC->i_d;
+	temp2=MS_FOC->i_q;
+	temp3=MS_FOC->u_d;
+	temp4=MS_FOC->u_q;
 	temp5=int16_i_q_target;
 	temp6=q31_teta>>24;
 	//observer_update(q31_u_alpha, q31_u_beta, q31_i_alpha, q31_i_beta , x1, x2, teta_obs);
@@ -162,8 +163,8 @@ q31_t PI_control_i_d (q31_t ist, q31_t soll)
     q31_p=((soll - ist)*P_FACTOR_I_D)>>4;
     q31_d_i+=((soll - ist)*I_FACTOR_I_D)>>4;
 
-    if (q31_d_i<-127)q31_d_i=-127;
-    if (q31_d_i>127)q31_d_i=127;
+    if (q31_d_i<-1270)q31_d_i=-1270;
+    if (q31_d_i>1270)q31_d_i=1270;
     //avoid too big steps in one loop run
     if (q31_p+q31_d_i>q31_d_dc+5) q31_d_dc+=5;
     else if  (q31_p+q31_d_i<q31_d_dc-5) q31_d_dc-=5;

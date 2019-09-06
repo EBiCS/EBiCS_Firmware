@@ -118,6 +118,8 @@ uint16_t uint16_mapped_throttle=0;
 uint16_t uint16_mapped_PAS=0;
 uint16_t uint16_current_target=0;
 
+uint32_t uint32_Battery_Current_accumulated=0;
+
 q31_t q31_rotorposition_absolute;
 q31_t q31_rotorposition_hall;
 q31_t q31_rotorposition_motor_specific;
@@ -417,22 +419,25 @@ int main(void)
 	  if(PI_flag){
 
 
-		  q31_u_q =  PI_control_i_q(q31_i_q_fil>>3, (q31_t) uint16_current_target);
+		  MS.u_q =  PI_control_i_q(MS.i_q, (q31_t) uint16_current_target);
 
+		  uint32_Battery_Current_accumulated -= uint32_Battery_Current_accumulated>>8;
+		  uint32_Battery_Current_accumulated += ((MS.i_q*q31_u_abs)>>11)*(uint16_t)(CAL_I>>8);
 
+		  MS.Battery_Current = uint32_Battery_Current_accumulated>>8;
 
 		  	//Control id
-		  	q31_u_d = -PI_control_i_d(q31_i_d_fil>>3, 0); //control direct current to zero
+		  MS.u_d = -PI_control_i_d(MS.i_d, 0); //control direct current to zero
 
 		  	//limit voltage in rotating frame, refer chapter 4.10.1 of UM1052
 
-		  	q31_u_abs = hypot(q31_u_q, q31_u_d); //absolute value of U in static frame
+		  	q31_u_abs = hypot(MS.u_q, MS.u_d); //absolute value of U in static frame
 
 
 
 		  	if (q31_u_abs > _U_MAX){
-		  		q31_u_q = (q31_u_q*_U_MAX)/q31_u_abs; //division!
-		  		q31_u_d = (q31_u_d*_U_MAX)/q31_u_abs; //division!
+		  		MS.u_q = (MS.u_q*_U_MAX)/q31_u_abs; //division!
+		  		MS.u_d = (MS.u_d*_U_MAX)/q31_u_abs; //division!
 		  		q31_u_abs = _U_MAX;
 		  	}
 
@@ -524,7 +529,7 @@ int main(void)
 
 	  	  if(ui32_tim1_counter>1600){
 
-	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", q31_i_q_fil>>3, q31_u_abs , uint16_current_target,((q31_i_q_fil*q31_u_abs)>>14)*(uint16_t)(CAL_I>>8), uint32_PAS, uint32_SPEED,adcData[0], adcData[1]);//((q31_i_q_fil*q31_u_abs)>>14)*
+	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", MS.i_q, q31_u_abs , uint16_current_target, MS.Battery_Current, uint32_PAS, uint32_SPEED,adcData[0], adcData[1]);//((q31_i_q_fil*q31_u_abs)>>14)*
 	  	//	sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5])) ;
 
 	  	  i=0;
