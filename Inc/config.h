@@ -14,7 +14,7 @@
 //#define DISPLAY_TYPE DISPLAY_TYPE_BAFANG					//Bafang "Blaupunkt"
 #define DISPLAY_TYPE DISPLAY_TYPE_DEBUG					//ASCII Parameter Printout on UART
 
-#define DISABLE_DYNAMIC_ADC
+//#define DISABLE_DYNAMIC_ADC
 //#define FAST_LOOP_LOG
 
 #define WHEEL_CIRCUMFERENCE 2202L 		//wheel circumference in mm
