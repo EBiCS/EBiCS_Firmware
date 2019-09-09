@@ -104,7 +104,7 @@ void KingMeter_Init (KINGMETER_t* KM_ctx)
     KM_ctx->Settings.SYS_SSP_SlowStart      = 1;
     KM_ctx->Settings.SPS_SpdMagnets         = (uint8_t) wheel_magnets;
     KM_ctx->Settings.VOL_1_UnderVolt_x10    = (uint16_t) (vcutoff * 10);
-    KM_ctx->Settings.WheelSize_mm           = (uint16_t) (wheel_circumference * 1000);
+    KM_ctx->Settings.WheelSize_mm           = (uint16_t) (WHEEL_CIRCUMFERENCE * 1000);
 
     // Parameters received from display in operation mode:
 

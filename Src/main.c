@@ -54,6 +54,7 @@
 #include "FOC.h"
 #include "config.h"
 
+
 #if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
   #include "display_kingmeter.h"
 #endif
@@ -61,6 +62,7 @@
 #if (DISPLAY_TYPE == BAFANG)
   #include "display_BAFANG.h"
 #endif
+
 
 #include <arm_math.h>
 /* USER CODE END Includes */
@@ -1299,7 +1301,7 @@ void bafang_update(void)
     }
 
 
-       BF.Tx.Power = MS.Current*MS.Voltage;
+       BF.Tx.Power = MS.i_q*MS.Voltage;
 
 
     /* Receive Rx parameters/settings and send Tx parameters */
@@ -1322,7 +1324,7 @@ void bafang_update(void)
 
     if(BF.Rx.PushAssist)
     {
-    	//do something later
+    	BF.//do something later
     }
 
     ui8_AssistLevel=BF.Rx.AssistLevel;
