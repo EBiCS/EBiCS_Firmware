@@ -1324,7 +1324,7 @@ void bafang_update(void)
 
     if(BF.Rx.PushAssist)
     {
-    	BF.//do something later
+    	//do something later
     }
 
     ui8_AssistLevel=BF.Rx.AssistLevel;
