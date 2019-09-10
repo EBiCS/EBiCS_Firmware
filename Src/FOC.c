@@ -98,8 +98,8 @@ if(!MS_FOC->hall_angle_detect_flag){
 	//inverse Park transformation
 	arm_inv_park_q31(MS_FOC->u_d, MS_FOC->u_q, &q31_u_alpha, &q31_u_beta, -sinevalue, cosinevalue);
 
-	temp1=MS_FOC->i_d;
-	temp2=MS_FOC->i_q;
+	temp1=q31_i_alpha;
+	temp2=q31_i_beta;
 	temp3=MS_FOC->u_d;
 	temp4=MS_FOC->u_q;
 	temp5=int16_i_q_target;
