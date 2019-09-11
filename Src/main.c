@@ -814,7 +814,7 @@ static void MX_TIM1_Init(void)
   }
 
   //sConfigOC.OCMode = TIM_OCMODE_ACTIVE; // war hier ein Bock?!
-  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_LOW;
   if (HAL_TIM_OC_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_4) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
@@ -993,8 +993,6 @@ void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
 		  ui32_tim1_counter++;
 		  if (uint32_PAS_counter < PAS_TIMEOUT+1)uint32_PAS_counter++;
 		  uint32_SPEED_counter++;
-		  temp5=__HAL_TIM_GET_COUNTER(&htim1);
-
 
 	  }
 
@@ -1043,25 +1041,34 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 		i16_ph2_current = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1);
 
 #else
-	switch (char_dyn_adc_state) //read in according to state
+	switch (MS.char_dyn_adc_state) //read in according to state
 		{
 		case 1: //Phase C at high dutycycles, read from A+B directly
 			{
-				i16_ph1_current = HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1);
-				i16_ph2_current = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1);
+				temp1=(q31_t)HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1);
+				i16_ph1_current = temp1 ;
+
+				temp2=(q31_t)HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1);
+				i16_ph2_current = temp2;
 			}
 			break;
 		case 2: //Phase A at high dutycycles, read from B+C (A = -B -C)
 			{
-				i16_ph2_current = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1);
-				i16_ph1_current = -i16_ph2_current-HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1);
+
+				temp2=(q31_t)HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1);
+				i16_ph2_current = temp2;
+
+				temp1=(q31_t)HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1);
+				i16_ph1_current = -i16_ph2_current-temp1;
 
 			}
 			break;
 		case 3: //Phase B at high dutycycles, read from A+C (B=-A-C)
 			{
-				i16_ph1_current = HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1);
-				i16_ph2_current = -i16_ph1_current-HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1);
+				temp1=(q31_t)HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1);
+				i16_ph1_current = temp1 ;
+				temp2=(q31_t)HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1);
+				i16_ph2_current = -i16_ph1_current-temp2;
 			}
 			break;
 
@@ -1102,9 +1109,9 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 	dyn_adc_state(q31_rotorposition_absolute);
 	//set the according injected channels to read current at Low-Side active time
 
-	if (char_dyn_adc_state!=char_dyn_adc_state_old){
-		set_inj_channel(char_dyn_adc_state);
-		char_dyn_adc_state_old = char_dyn_adc_state;
+	if (MS.char_dyn_adc_state!=char_dyn_adc_state_old){
+		set_inj_channel(MS.char_dyn_adc_state);
+		char_dyn_adc_state_old = MS.char_dyn_adc_state;
 		}
 #endif
 
@@ -1352,15 +1359,15 @@ int32_t map (int32_t x, int32_t in_min, int32_t in_max, int32_t out_min, int32_t
 //assuming, a proper AD conversion takes 350 timer tics, to be confirmed. DT+TR+TS deadtime + noise subsiding + sample time
 void dyn_adc_state(q31_t angle){
 	if (switchtime[2]>switchtime[0] && switchtime[2]>switchtime[1]){
-		char_dyn_adc_state = 1; // -90° .. +30°: Phase C at high dutycycles
+		MS.char_dyn_adc_state = 1; // -90° .. +30°: Phase C at high dutycycles
 
 	}
 	if (switchtime[0]>switchtime[1] && switchtime[0]>switchtime[2]) {
-		char_dyn_adc_state = 2; // +30° .. 150° Phase A at high dutycycles
+		MS.char_dyn_adc_state = 2; // +30° .. 150° Phase A at high dutycycles
 
 	}
 	if (switchtime[1]>switchtime[0] && switchtime[1]>switchtime[2]){
-		char_dyn_adc_state = 3; // +150 .. -90° Phase B at high dutycycles
+		MS.char_dyn_adc_state = 3; // +150 .. -90° Phase B at high dutycycles
 
 	}
 }
@@ -1374,6 +1381,8 @@ static void set_inj_channel(char state){
 			 ADC1->JOFR1 = ui16_ph1_offset;
 			 ADC2->JSQR=0b00101000000000000000; //ADC2 injected reads phase B, JSQ4 = 0b00101, decimal 5
 			 ADC2->JOFR1 = ui16_ph2_offset;
+
+
 		 }
 			break;
 	case 2: //Phase A at high dutycycles, read current from phase C + B
@@ -1382,6 +1391,8 @@ static void set_inj_channel(char state){
 				 ADC1->JOFR1 = ui16_ph3_offset;
 				 ADC2->JSQR=0b00101000000000000000; //ADC2 injected reads phase B, JSQ4 = 0b00101, decimal 5
 				 ADC2->JOFR1 = ui16_ph2_offset;
+
+
 			 }
 				break;
 
@@ -1391,6 +1402,8 @@ static void set_inj_channel(char state){
 				 ADC1->JOFR1 = ui16_ph1_offset;
 				 ADC2->JSQR=0b00110000000000000000; //ADC2 injected reads phase C, JSQ4 = 0b00110, decimal 6
 				 ADC2->JOFR1 = ui16_ph3_offset;
+
+
 			 }
 				break;
 
