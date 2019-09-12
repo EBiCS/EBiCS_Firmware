@@ -120,7 +120,7 @@ uint16_t uint16_mapped_throttle=0;
 uint16_t uint16_mapped_PAS=0;
 uint16_t uint16_current_target=0;
 
-uint32_t uint32_Battery_Current_accumulated=0;
+q31_t q31_t_Battery_Current_accumulated=0;
 
 q31_t q31_rotorposition_absolute;
 q31_t q31_rotorposition_hall;
@@ -423,10 +423,10 @@ int main(void)
 
 		  MS.u_q =  PI_control_i_q(MS.i_q, (q31_t) uint16_current_target);
 
-		  uint32_Battery_Current_accumulated -= uint32_Battery_Current_accumulated>>8;
-		  uint32_Battery_Current_accumulated += ((MS.i_q*MS.u_abs)>>11)*(uint16_t)(CAL_I>>8);
+		  q31_t_Battery_Current_accumulated -= q31_t_Battery_Current_accumulated>>8;
+		  q31_t_Battery_Current_accumulated += ((MS.i_q*MS.u_abs)>>11)*(uint16_t)(CAL_I>>8);
 
-		  MS.Battery_Current = uint32_Battery_Current_accumulated>>8;
+		  MS.Battery_Current = q31_t_Battery_Current_accumulated>>8;
 
 		  	//Control id
 		  MS.u_d = -PI_control_i_d(MS.i_d, 0); //control direct current to zero
@@ -521,7 +521,7 @@ int main(void)
 
 	  	  if(ui32_tim1_counter>1600){
 
-	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", MS.i_q, q31_u_abs , uint16_current_target, MS.Battery_Current, uint32_PAS, uint32_SPEED,adcData[0], adcData[1]);//((q31_i_q_fil*q31_u_abs)>>14)*
+	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", MS.i_q, MS.u_abs , uint16_current_target, MS.Battery_Current, MS.u_d, MS.u_q, uint32_PAS, uint32_SPEED);//((q31_i_q_fil*q31_u_abs)>>14)*
 	  	//	sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5])) ;
 
 	  	  i=0;
