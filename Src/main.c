@@ -130,7 +130,7 @@ int16_t i16_cosinus=0;
 char buffer[100];
 char char_dyn_adc_state=1;
 char char_dyn_adc_state_old=1;
-q31_t	q31_u_abs=0;
+
 
 q31_t switchtime[3];
 volatile uint16_t adcData[8]; //Buffer for ADC1 Input
@@ -424,7 +424,7 @@ int main(void)
 		  MS.u_q =  PI_control_i_q(MS.i_q, (q31_t) uint16_current_target);
 
 		  uint32_Battery_Current_accumulated -= uint32_Battery_Current_accumulated>>8;
-		  uint32_Battery_Current_accumulated += ((MS.i_q*q31_u_abs)>>11)*(uint16_t)(CAL_I>>8);
+		  uint32_Battery_Current_accumulated += ((MS.i_q*MS.u_abs)>>11)*(uint16_t)(CAL_I>>8);
 
 		  MS.Battery_Current = uint32_Battery_Current_accumulated>>8;
 
@@ -432,16 +432,6 @@ int main(void)
 		  MS.u_d = -PI_control_i_d(MS.i_d, 0); //control direct current to zero
 
 		  	//limit voltage in rotating frame, refer chapter 4.10.1 of UM1052
-
-		  	q31_u_abs = hypot(MS.u_q, MS.u_d); //absolute value of U in static frame
-
-
-
-		  	if (q31_u_abs > _U_MAX){
-		  		MS.u_q = (MS.u_q*_U_MAX)/q31_u_abs; //division!
-		  		MS.u_d = (MS.u_d*_U_MAX)/q31_u_abs; //division!
-		  		q31_u_abs = _U_MAX;
-		  	}
 
 		  	PI_flag=0;
 	  }

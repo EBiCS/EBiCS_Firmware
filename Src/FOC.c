@@ -77,13 +77,13 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 	arm_park_q31(q31_i_alpha, q31_i_beta, &q31_i_d, &q31_i_q, sinevalue, cosinevalue);
 
 
-	q31_i_q_fil -= q31_i_q_fil>>3;
+	q31_i_q_fil -= q31_i_q_fil>>4;
 	q31_i_q_fil += q31_i_q;
-	MS_FOC->i_q=q31_i_q_fil>>3;
+	MS_FOC->i_q=q31_i_q_fil>>4;
 
-	q31_i_d_fil -= q31_i_d_fil>>1;
+	q31_i_d_fil -= q31_i_d_fil>>4;
 	q31_i_d_fil += q31_i_d;
-	MS_FOC->i_d=q31_i_d_fil>>1;
+	MS_FOC->i_d=q31_i_d_fil>>4;
 
 	//Control iq
 
@@ -93,6 +93,16 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 if(!MS_FOC->hall_angle_detect_flag){
 	MS_FOC->u_q=0;
 	MS_FOC->u_d=100;
+	}
+
+	MS_FOC->u_abs = hypot(MS_FOC->u_q, MS_FOC->u_d); //absolute value of U in static frame
+
+
+
+	if (MS_FOC->u_abs > _U_MAX){
+		MS_FOC->u_q = (MS_FOC->u_q*_U_MAX)/MS_FOC->u_abs; //division!
+		MS_FOC->u_d = (MS_FOC->u_d*_U_MAX)/MS_FOC->u_abs; //division!
+		MS_FOC->u_abs = _U_MAX;
 	}
 
 	//inverse Park transformation
@@ -160,11 +170,11 @@ q31_t PI_control_i_d (q31_t ist, q31_t soll)
     static q31_t q31_d_i = 0;
     static q31_t q31_d_dc = 0;
 
-    q31_p=((soll - ist)*P_FACTOR_I_D)>>4;
-    q31_d_i+=((soll - ist)*I_FACTOR_I_D)>>4;
+    q31_p=((soll - ist)*P_FACTOR_I_D)>>5;
+    q31_d_i+=((soll - ist)*I_FACTOR_I_D)>>5;
 
-    if (q31_d_i<-12700)q31_d_i=-12700;
-    if (q31_d_i>12700)q31_d_i=12700;
+    if (q31_d_i<-1270)q31_d_i=-1270;
+    if (q31_d_i>1270)q31_d_i=1270;
     //avoid too big steps in one loop run
     if (q31_p+q31_d_i>q31_d_dc+5) q31_d_dc+=5;
     else if  (q31_p+q31_d_i<q31_d_dc-5) q31_d_dc-=5;
