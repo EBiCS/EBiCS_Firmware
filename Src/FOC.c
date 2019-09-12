@@ -170,8 +170,8 @@ q31_t PI_control_i_d (q31_t ist, q31_t soll)
     else if  (q31_p+q31_d_i<q31_d_dc-5) q31_d_dc-=5;
     else q31_d_dc=q31_p+q31_d_i;
 
-    if (q31_d_dc>_U_MAX>>2) q31_d_dc = _U_MAX>>2;
-    if (q31_d_dc<-(_U_MAX>>2)) q31_d_dc =- (_U_MAX>>2);
+    if (q31_d_dc>_U_MAX>>1) q31_d_dc = _U_MAX>>1;
+    if (q31_d_dc<-(_U_MAX>>1)) q31_d_dc =- (_U_MAX>>1);
 
     return (q31_d_dc);
   }
