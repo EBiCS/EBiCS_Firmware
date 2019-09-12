@@ -112,8 +112,8 @@ if(!MS_FOC->hall_angle_detect_flag){
 	temp2=int16_i_bs;
 	temp3=MS_FOC->i_d;
 	temp4=MS_FOC->i_q;
-	temp5=MS_FOC->char_dyn_adc_state;
-	temp6=q31_teta>>24;
+	temp5=MS_FOC->u_d;
+	temp6=MS_FOC->u_q;
 	//observer_update(q31_u_alpha, q31_u_beta, q31_i_alpha, q31_i_beta , x1, x2, teta_obs);
 
 	if(uint32_PAS_counter < PAS_TIMEOUT&&ui8_debug_state==0)
@@ -173,15 +173,15 @@ q31_t PI_control_i_d (q31_t ist, q31_t soll)
     q31_p=((soll - ist)*P_FACTOR_I_D)>>5;
     q31_d_i+=((soll - ist)*I_FACTOR_I_D)>>5;
 
-    if (q31_d_i<-1600)q31_d_i=-1600;
-    if (q31_d_i>1600)q31_d_i=1600;
+    if (q31_d_i<-1800)q31_d_i=-1800;
+    if (q31_d_i>1800)q31_d_i=1800;
     //avoid too big steps in one loop run
     if (q31_p+q31_d_i>q31_d_dc+5) q31_d_dc+=5;
     else if  (q31_p+q31_d_i<q31_d_dc-5) q31_d_dc-=5;
     else q31_d_dc=q31_p+q31_d_i;
 
-    if (q31_d_dc>_U_MAX>>1) q31_d_dc = _U_MAX>>1;
-    if (q31_d_dc<-(_U_MAX>>1)) q31_d_dc =- (_U_MAX>>1);
+    if (q31_d_dc>_U_MAX) q31_d_dc = _U_MAX;
+    if (q31_d_dc<-(_U_MAX)) q31_d_dc =- (_U_MAX);
 
     return (q31_d_dc);
   }
