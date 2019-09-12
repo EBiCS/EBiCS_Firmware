@@ -173,8 +173,8 @@ q31_t PI_control_i_d (q31_t ist, q31_t soll)
     q31_p=((soll - ist)*P_FACTOR_I_D)>>5;
     q31_d_i+=((soll - ist)*I_FACTOR_I_D)>>5;
 
-    if (q31_d_i<-1270)q31_d_i=-1270;
-    if (q31_d_i>1270)q31_d_i=1270;
+    if (q31_d_i<-1600)q31_d_i=-1600;
+    if (q31_d_i>1600)q31_d_i=1600;
     //avoid too big steps in one loop run
     if (q31_p+q31_d_i>q31_d_dc+5) q31_d_dc+=5;
     else if  (q31_p+q31_d_i<q31_d_dc-5) q31_d_dc-=5;
