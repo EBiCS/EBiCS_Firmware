@@ -293,7 +293,7 @@ int main(void)
 
 
 
-    TIM1->CCR4 = 2020; //ADC sampling just before timer overflow (just before middle of PWM-Cycle)
+    TIM1->CCR4 = TRIGGER_DEFAULT; //ADC sampling just before timer overflow (just before middle of PWM-Cycle)
 //PWM Mode 1: Interrupt at counting down.
 
     //TIM1->BDTR |= 1L<<15;
@@ -521,7 +521,7 @@ int main(void)
 
 	  	  if(ui32_tim1_counter>1600){
 
-	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", MS.i_q, MS.u_abs , uint16_current_target, MS.Battery_Current, MS.u_d, MS.u_q, uint32_PAS, uint32_SPEED);//((q31_i_q_fil*q31_u_abs)>>14)*
+	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", MS.i_q, MS.u_abs , uint16_current_target, MS.Battery_Current, MS.u_d, MS.i_d, uint32_PAS, uint32_SPEED);//((q31_i_q_fil*q31_u_abs)>>14)*
 	  	//	sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5])) ;
 
 	  	  i=0;
@@ -1350,15 +1350,20 @@ int32_t map (int32_t x, int32_t in_min, int32_t in_max, int32_t out_min, int32_t
 void dyn_adc_state(q31_t angle){
 	if (switchtime[2]>switchtime[0] && switchtime[2]>switchtime[1]){
 		MS.char_dyn_adc_state = 1; // -90° .. +30°: Phase C at high dutycycles
-
+		if(switchtime[2]>1500)TIM1->CCR4 =  switchtime[2]-TRIGGER_OFFSET_ADC;
+		else TIM1->CCR4 = TRIGGER_DEFAULT;
 	}
+
 	if (switchtime[0]>switchtime[1] && switchtime[0]>switchtime[2]) {
 		MS.char_dyn_adc_state = 2; // +30° .. 150° Phase A at high dutycycles
-
+		if(switchtime[0]>1500)TIM1->CCR4 =  switchtime[0]-TRIGGER_OFFSET_ADC;
+		else TIM1->CCR4 = TRIGGER_DEFAULT;
 	}
+
 	if (switchtime[1]>switchtime[0] && switchtime[1]>switchtime[2]){
 		MS.char_dyn_adc_state = 3; // +150 .. -90° Phase B at high dutycycles
-
+		if(switchtime[1]>1500)TIM1->CCR4 =  switchtime[1]-TRIGGER_OFFSET_ADC;
+		else TIM1->CCR4 = TRIGGER_DEFAULT;
 	}
 }
 
