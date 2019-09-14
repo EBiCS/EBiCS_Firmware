@@ -53,7 +53,11 @@
 
 #include "print.h"
 #include "FOC.h"
+
+#if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
 #include "display_kingmeter.h"
+#endif
+
 #include "config.h"
 #include <arm_math.h>
 /* USER CODE END Includes */
@@ -138,8 +142,9 @@ const q31_t DEG_minus60= -715827883;
 const q31_t DEG_minus120= -1431655765;
 
 //variables for display communication
-
+#if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
 KINGMETER_t KM;
+#endif
 int16_t battery_percent_fromcapacity = 11; 			//Calculation of used watthours not implemented yet
 int16_t wheel_time = 1000;							//duration of one wheel rotation for speed calculation
 int16_t current_display;							//pepared battery current for display
@@ -169,8 +174,9 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
-
+#if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
 void kingmeter_update(void);
+#endif
 static void dyn_adc_state(q31_t angle);
 static void set_inj_channel(char state);
 int32_t map (int32_t x, int32_t in_min, int32_t in_max, int32_t out_min, int32_t out_max);
@@ -295,10 +301,10 @@ int main(void) {
        SET_BIT(ADC1->CR2, ADC_CR2_JEXTTRIG);//external trigger enable
 
 */
-
+#if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
        //Init KingMeter Display
        KingMeter_Init (&KM);
-
+#endif
 
 
 
@@ -307,7 +313,7 @@ int main(void) {
     q31_rotorposition_absolute = q31_rotorposition_hall; // set absolute position to corresponding hall pattern.
 
 
-   // printf_("Lishui FOC v0.0 \r\n");
+    printf_("Lishui FOC Sensorless v0.1 \r\n");
 
 
 
@@ -352,7 +358,9 @@ int main(void) {
 
 	  //display message processing
 	  if(ui8_UART_flag){
+#if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
 	  kingmeter_update();
+#endif
 	  ui8_UART_flag=0;
 	  }
 
@@ -421,13 +429,14 @@ int main(void) {
 
 	  }
 */
-		if(ui8_debug_state==3 && ui8_UART_TxCplt_flag){
+#if (DISPLAY_TYPE == DEBUG_FAST_LOOP)
+	   if(ui8_debug_state==3 && ui8_UART_TxCplt_flag){
 	        sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n", e_log[k][0], e_log[k][1], e_log[k][2],e_log[k][3],e_log[k][4],e_log[k][5]); //>>24
 			i=0;
 			while (buffer[i] != '\0')
 			{i++;}
 			ui8_UART_TxCplt_flag=0;
-			//HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);
+			HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);
 			k++;
 			if (k>299){
 				k=0;
@@ -435,59 +444,11 @@ int main(void) {
 				//Obs_flag=0;
 			}
 		}
+#endif
 	  //print values for debugging
 	  	  if(ui32_tim1_counter>800){
 
-/*	  	    if(first_run_flag){
-
-	  	    // Prepare Tx message with handshake code
-	  	    TxBuff[0] = 0X3A;                                       // StartCode
-	  	    TxBuff[1] = 0x1A;                                       // SrcAdd:  Controller
-	  	    TxBuff[2] = 0x53;                                      	// CmdCode
-	  	    TxBuff[3] = 0x05;                                       // Number of Databytes
-	  	    TxBuff[4] = 0x00;
-	  	    TxBuff[5] = 0x00;
-	  	    TxBuff[6] = 0x0D;
-	  	    TxBuff[7] = 0x8D;
-	  	    TxBuff[8] = 0x00;
-	  	    TxBuff[9] = 0x0C;
-	  	    TxBuff[10] = 0x01;
-	  	    TxBuff[11] = 0x0D;
-	  	    TxBuff[12] = 0x0A;
-
-	  	    if(ui8_UART_TxCplt_flag){
-	  	    HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuff, 13);
-	  	    ui8_UART_TxCplt_flag=0;
-	  	    }
-	  	    first_run_flag=0;
-
-	  	    }
-	  	    else {
-
-	  	        TxBuff[0] = 0X3A;                                       // StartCode
-	  	        TxBuff[1] = 0x1A;                                       // SrcAdd:  Controller
-	  	        TxBuff[2] = 0x52;                                      	// CmdCode
-	  	        TxBuff[3] = 0x05;                                       // Number of Databytes
-	  	        TxBuff[4] = 0x00;
-	  	        TxBuff[5] = 0x00;
-	  	        TxBuff[6] = 0x0D;
-	  	        TxBuff[7] = 0xAC;
-	  	        TxBuff[8] = 0x00;
-	  	        TxBuff[9] = 0x2A;
-	  	        TxBuff[10] = 0x01;
-	  	        TxBuff[11] = 0x0D;
-	  	        TxBuff[12] = 0x0A;
-
-	  	      //  3A 1A 52 05 00 00 0D AC 00 2A 01 0D 0A
-
-		  	    if(ui8_UART_TxCplt_flag){
-		  	    HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuff, 13);
-		  	    ui8_UART_TxCplt_flag=0;
-		  	    }
-
-
-	  	    }*/
-/*
+#if (DISPLAY_TYPE == DEBUG_SLOW_LOOP)
 
 	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", (int16_t)q31_i_q_fil>>3, (int16_t)((q31_i_q_fil>>3)*q31_u_abs/_T) , i16_ph1_current, i16_ph2_current,  (int16_t)temp1, q31_teta_obs,(int16_t)q31_e_d_obs, q31_delta_teta);
 	  	//	sprintf_(buffer, "%d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4])) ;
@@ -496,20 +457,8 @@ int main(void) {
 		  {i++;}
 		 HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);
 
-*/
-	  	/* if (ui8_print_flag==1){
-	  		ui8_print_flag=2;
+#endif
 
-	  		 for(j=0; j<255; j++){
-	  		sprintf_(buffer, "%d, %d, %d, %d\r\n", angle[j][0] , angle[j][1], angle[j][2], angle[j][3]);
-		  i=0;
-		  while (buffer[i] != '\0')
-		  {i++;}
-		 HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);
-		 HAL_Delay(5);
-
-	  		 }
-	  	 }*/
 		  ui32_tim1_counter=0;
 		  ui8_print_flag=0;
 	  	  }
@@ -880,7 +829,11 @@ static void MX_USART1_UART_Init(void)
 {
 
   huart1.Instance = USART1;
+#if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
   huart1.Init.BaudRate = 9600;//9600;
+#else
+  huart1.Init.BaudRate = 56000;
+#endif
   huart1.Init.WordLength = UART_WORDLENGTH_8B;
   huart1.Init.StopBits = UART_STOPBITS_1;
   huart1.Init.Parity = UART_PARITY_NONE;
@@ -1246,7 +1199,7 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *UartHandle)
 	ui8_UART_TxCplt_flag=1;
 }
 
-
+#if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
 void kingmeter_update(void)
 {
     /* Prepare Tx parameters */
@@ -1321,6 +1274,7 @@ void kingmeter_update(void)
         #endif
     }*/
 }
+#endif //end of kingmeter update
 
 int32_t map (int32_t x, int32_t in_min, int32_t in_max, int32_t out_min, int32_t out_max)
 {

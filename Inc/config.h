@@ -6,7 +6,14 @@
 #define DISPLAY_TYPE_KINGMETER_618U (1<<4)                  // King-Meter 618U protocol (KM5s, EBS-LCD2, J-LCD, SW-LCD)
 #define DISPLAY_TYPE_KINGMETER_901U (1<<8)                  // King-Meter 901U protocol (KM5s)
 #define DISPLAY_TYPE_KINGMETER      (DISPLAY_TYPE_KINGMETER_618U|DISPLAY_TYPE_KINGMETER_901U)
-#define DISPLAY_TYPE DISPLAY_TYPE_KINGMETER_901U
+#define DEBUG_SLOW_LOOP (1<<2)
+#define DEBUG_FAST_LOOP (1<<3)
+
+//#define DISPLAY_TYPE DISPLAY_TYPE_KINGMETER_901U
+
+//#define DISPLAY_TYPE DEBUG_SLOW_LOOP
+#define DISPLAY_TYPE DEBUG_FAST_LOOP
+
 
 #define wheel_circumference 2.202 	//wheel circumference in m
 #define THROTTLE_OFFSET 690//1210 			//ADC-value at closed throttle 670 for throttle, 1255 for TS
@@ -37,9 +44,9 @@
 #define CAL_I 38LL<<8					// ADC * 37,5 mA/Digit. Strom kommt in mA *2^-8 im Observer an. Siehe Post Nr. 99 im Thread (für 12 FET)
 
 //Constants for Motor model of observer
-#define INDUCTANCE	24>>2LL		//war nach Messung 13 (mit einfachem LCR-Tester)		//H = V*s/A Induktivität in µH/100 Shengyi hat 200µHenry Induktivität 2^16*0,0002 -->>>16 in Observer um auf Henry zukommen
-#define RESISTANCE 120LL		//war nach Messung 60	//Ohm = V/A Widerstand in Shengi ist 117mOhm -->2^9*0,117 >>9 in Observer um auf Ohm zu kommen.
-#define FLUX_LINKAGE 1800LL			//V*s/rad von Hand angepasst
+#define INDUCTANCE	40LL		//war nach Messung 13 (mit einfachem LCR-Tester)		//H = V*s/A Induktivität in µH/100 Shengyi hat 200µHenry Induktivität 2^16*0,0002 -->>>16 in Observer um auf Henry zukommen
+#define RESISTANCE 160LL		//war nach Messung 60	//Ohm = V/A Widerstand in Shengi ist 117mOhm -->2^9*0,117 >>9 in Observer um auf Ohm zu kommen.
+#define FLUX_LINKAGE 900LL			//V*s/rad von Hand angepasst
 #define GAMMA 9LL					//per trial and error
 
 

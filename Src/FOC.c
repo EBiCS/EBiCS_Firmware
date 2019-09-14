@@ -252,16 +252,16 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 	observer_update(((long long)q31_u_alpha*(long long)adcData[0]*CAL_V)>>11, ((long long)(-q31_u_beta*(long long)adcData[0]*CAL_V))>>11, (long long)((-q31_i_alpha)*CAL_I), (long long)((-q31_i_beta)*CAL_I), &fl_e_alpha_obs, &fl_e_beta_obs);
 
 
-	q31_teta_obs=atan2_LUT(-fl_e_beta_obs,fl_e_alpha_obs)-1431655765;//-930576247;
+	q31_teta_obs=atan2_LUT(-fl_e_beta_obs,fl_e_alpha_obs)-1312351118;//-930576247;//-1431655765;
 
 	MS_FOC->Speed=q31_teta_obs-q31_angle_old;
 	q31_angle_old=q31_teta_obs;
 
-	//temp1=fl_e_alpha_obs;
-	//temp2=fl_e_beta_obs;
+	temp5=fl_e_alpha_obs;
+	temp6=fl_e_beta_obs;
 	//temp3=q31_teta_obs>>24;
 	//temp5=q31_teta>>24;
-	temp6=q31_teta_obs>>24;
+	//temp6=q31_teta_obs>>24;
 
 
 	//temp1=int16_i_as;
@@ -334,8 +334,8 @@ q31_t PI_control_i_d (q31_t ist, q31_t soll)
     else if  (q31_p+q31_d_i<q31_d_dc-5) q31_d_dc-=5;
     else q31_d_dc=q31_p+q31_d_i;
 
-    if (q31_d_dc>_U_MAX>>2) q31_d_dc = _U_MAX>>2;
-    if (q31_d_dc<-(_U_MAX>>2)) q31_d_dc =- (_U_MAX>>2);
+    if (q31_d_dc>_U_MAX) q31_d_dc = _U_MAX;
+    if (q31_d_dc<-(_U_MAX)) q31_d_dc =- (_U_MAX);
 
     return (q31_d_dc);
   }
@@ -431,12 +431,12 @@ void observer_update(long long v_alpha, long long v_beta, long long i_alpha, lon
 	const long long lambda_2 = lambda*lambda;
 	const long long gamma_half = GAMMA;
 	//temp2=v_alpha;
-	//temp1=R_ia;
-	//temp2=L_ia;
+	temp1=R_ia;
+	temp2=L_ia;
 
-	temp1=i_alpha;
+	//temp1=i_alpha;
 	//temp4=i_beta;
-	temp2=v_alpha;
+	//temp2=v_alpha;
 	//temp4=v_beta;
 
 
