@@ -95,15 +95,6 @@ if(!MS_FOC->hall_angle_detect_flag){
 	MS_FOC->u_d=100;
 	}
 
-	MS_FOC->u_abs = hypot(MS_FOC->u_q, MS_FOC->u_d); //absolute value of U in static frame
-
-
-
-	if (MS_FOC->u_abs > _U_MAX){
-		MS_FOC->u_q = (MS_FOC->u_q*_U_MAX)/MS_FOC->u_abs; //division!
-		MS_FOC->u_d = (MS_FOC->u_d*_U_MAX)/MS_FOC->u_abs; //division!
-		MS_FOC->u_abs = _U_MAX;
-	}
 
 	//inverse Park transformation
 	arm_inv_park_q31(MS_FOC->u_d, MS_FOC->u_q, &q31_u_alpha, &q31_u_beta, -sinevalue, cosinevalue);

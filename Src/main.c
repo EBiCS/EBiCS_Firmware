@@ -125,6 +125,8 @@ q31_t q31_t_Battery_Current_accumulated=0;
 q31_t q31_rotorposition_absolute;
 q31_t q31_rotorposition_hall;
 q31_t q31_rotorposition_motor_specific;
+q31_t q31_u_d_temp=0;
+q31_t q31_u_q_temp=0;
 int16_t i16_sinus=0;
 int16_t i16_cosinus=0;
 char buffer[100];
@@ -421,7 +423,7 @@ int main(void)
 	  if(PI_flag){
 
 
-		  MS.u_q =  PI_control_i_q(MS.i_q, (q31_t) uint16_current_target);
+		  q31_u_q_temp =  PI_control_i_q(MS.i_q, (q31_t) uint16_current_target);
 
 		  q31_t_Battery_Current_accumulated -= q31_t_Battery_Current_accumulated>>8;
 		  q31_t_Battery_Current_accumulated += ((MS.i_q*MS.u_abs)>>11)*(uint16_t)(CAL_I>>8);
@@ -429,10 +431,22 @@ int main(void)
 		  MS.Battery_Current = q31_t_Battery_Current_accumulated>>8;
 
 		  	//Control id
-		  MS.u_d = -PI_control_i_d(MS.i_d, 0); //control direct current to zero
+		  q31_u_d_temp = -PI_control_i_d(MS.i_d, 0); //control direct current to zero
 
 		  	//limit voltage in rotating frame, refer chapter 4.10.1 of UM1052
+		  MS.u_abs = (q31_t)hypot((double)q31_u_d_temp, (double)q31_u_q_temp); //absolute value of U in static frame
 
+
+
+			if (MS.u_abs > _U_MAX){
+				MS.u_q = (q31_u_q_temp*_U_MAX)/MS.u_abs; //division!
+				MS.u_d = (q31_u_d_temp*_U_MAX)/MS.u_abs; //division!
+				MS.u_abs = _U_MAX;
+			}
+			else{
+				MS.u_q=q31_u_q_temp;
+				MS.u_d=q31_u_d_temp;
+			}
 		  	PI_flag=0;
 	  }
 	  //display message processing
