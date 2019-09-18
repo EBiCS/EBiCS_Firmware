@@ -31,8 +31,8 @@ q31_t fl_e_alpha_obs;
 q31_t fl_e_beta_obs;
 q31_t e_log[300][6];
 
-q31_t q31_ed_i = 0; //integral part of observer ed control
-
+q31_t q31_erps_counter;
+q31_t q31_erps_filtered=5000;
 
 
 q31_t q31_e_q_obs = 0;
@@ -252,9 +252,16 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 	observer_update(((long long)q31_u_alpha*(long long)adcData[0]*CAL_V)>>11, ((long long)(-q31_u_beta*(long long)adcData[0]*CAL_V))>>11, (long long)((-q31_i_alpha)*CAL_I), (long long)((-q31_i_beta)*CAL_I), &fl_e_alpha_obs, &fl_e_beta_obs);
 
 
-	q31_teta_obs=atan2_LUT(-fl_e_beta_obs,fl_e_alpha_obs)-1312351118;//-930576247;//-1431655765;
+	q31_teta_obs=atan2_LUT(-fl_e_beta_obs,fl_e_alpha_obs)-930576247;//-930576247;//-1431655765;
 
-	MS_FOC->Speed=q31_teta_obs-q31_angle_old;
+	q31_erps_counter++;
+	if (q31_angle_old>(1<<25)&&q31_teta_obs<-(1<<25)&&q31_erps_counter>25){   //Find switch from +180° to -179,999° to detect one completed electric revolution.
+
+		q31_erps_filtered-=q31_erps_filtered>>4;
+		q31_erps_filtered+=q31_erps_counter;
+		MS_FOC->Speed=q31_erps_filtered>>4;
+		q31_erps_counter=0;
+	}
 	q31_angle_old=q31_teta_obs;
 
 	temp5=fl_e_alpha_obs;

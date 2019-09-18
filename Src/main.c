@@ -155,6 +155,7 @@ int16_t tim1cc4=1948;									//cc4 value of timer 1 for injected ADC timing
 
 MotorState_t MS;
 
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -312,7 +313,7 @@ int main(void) {
     HAL_GPIO_EXTI_Callback(GPIO_PIN_0); //read in initial rotor position
     q31_rotorposition_absolute = q31_rotorposition_hall; // set absolute position to corresponding hall pattern.
 
-
+    MS.Speed=5000;
     printf_("Lishui FOC Sensorless v0.1 \r\n");
 
 
@@ -450,9 +451,8 @@ int main(void) {
 
 #if (DISPLAY_TYPE == DEBUG_SLOW_LOOP)
 
-	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", (int16_t)q31_i_q_fil>>3, (int16_t)((q31_i_q_fil>>3)*q31_u_abs/_T) , i16_ph1_current, i16_ph2_current,  (int16_t)temp1, q31_teta_obs,(int16_t)q31_e_d_obs, q31_delta_teta);
-	  	//	sprintf_(buffer, "%d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4])) ;
-	  	 i=0;
+	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", (int16_t)q31_i_q_fil>>3, (int16_t)((q31_i_q_fil>>3)*q31_u_abs/_T) , MS.Speed, q31_u_abs,  (int16_t)temp1, q31_teta_obs,(int16_t)q31_e_d_obs, q31_delta_teta);
+	  		i=0;
 		  while (buffer[i] != '\0')
 		  {i++;}
 		 HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);

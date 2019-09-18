@@ -118,6 +118,8 @@ typedef struct
 	q31_t          	Obs_Angle;
 	q31_t          	Hall_Angle;
 	uint8_t 		hall_angle_detect_flag;
+	q31_t       	sin_delay_filter;
+	q31_t       	cos_delay_filter;
 
 }MotorState_t;
 
