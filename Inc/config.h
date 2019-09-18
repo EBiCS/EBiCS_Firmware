@@ -11,8 +11,8 @@
 
 //#define DISPLAY_TYPE DISPLAY_TYPE_KINGMETER_901U
 
-#define DISPLAY_TYPE DEBUG_SLOW_LOOP
-//#define DISPLAY_TYPE DEBUG_FAST_LOOP
+//#define DISPLAY_TYPE DEBUG_SLOW_LOOP
+#define DISPLAY_TYPE DEBUG_FAST_LOOP
 
 
 #define wheel_circumference 2.202 	//wheel circumference in m
@@ -31,6 +31,7 @@
 
 
 #define SPEC_ANGLE  -715827882L		//motor specific angle, refer to chapter 8.3.3 of UM1052.shengyi:-715827882L, 715827882 536870912 357913941L; //357913941 298261617 119304647L // 30° BionX IGH3 motor specific angle, refer to chapter 8.8.3 of UM1052 180° maped to 2^31
+#define FILTER_DELAY 536870912L	// for angle correction of i_alfa + i_beta
 
 #define OFFSET_A 1993 //1025 				//Offset of current sensing phase A
 #define OFFSET_B 1977 //1022				//Offset of current sensing phase B

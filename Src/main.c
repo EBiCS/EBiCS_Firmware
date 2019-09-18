@@ -446,11 +446,15 @@ int main(void) {
 			}
 		}
 #endif
-	  //print values for debugging
-	  	  if(ui32_tim1_counter>800){
+	  //slow loop for non time critical operations
+	   if(ui32_tim1_counter>800){
+
+		   arm_sin_cos_q31(FILTER_DELAY/(MS.Speed>>4), &MS.sin_delay_filter, &MS.cos_delay_filter);
+
+
 
 #if (DISPLAY_TYPE == DEBUG_SLOW_LOOP)
-
+		   //print values for debugging
 	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", (int16_t)q31_i_q_fil>>3, (int16_t)((q31_i_q_fil>>3)*q31_u_abs/_T) , MS.Speed, q31_u_abs,  (int16_t)temp1, q31_teta_obs,(int16_t)q31_e_d_obs, q31_delta_teta);
 	  		i=0;
 		  while (buffer[i] != '\0')

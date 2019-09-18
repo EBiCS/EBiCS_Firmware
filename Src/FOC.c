@@ -169,9 +169,11 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 {
 
 	 q31_t q31_i_alpha = 0;
-	 q31_t q31_i_alpha_fil = 0;
 	 q31_t q31_i_beta = 0;
-	 q31_t q31_i_beta_fil = 0;
+
+	 q31_t q31_i_alpha_corr = 0;
+	 q31_t q31_i_beta_corr = 0;
+
 	 q31_t q31_u_alpha = 0;
 	 q31_t q31_u_beta = 0;
 	 q31_t q31_i_d = 0;
@@ -189,16 +191,12 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 	arm_clarke_q31((q31_t)int16_i_as, (q31_t)int16_i_bs, &q31_i_alpha, &q31_i_beta);
 
 	arm_sin_cos_q31(q31_teta, &sinevalue, &cosinevalue);
-/*
-	q31_i_alpha_fil-=q31_i_alpha_fil>>3;
-	q31_i_alpha_fil+=q31_i_alpha;
-	q31_i_beta_fil-=q31_i_beta_fil>>3;
-	q31_i_beta_fil+=q31_i_beta;*/
 
 
+	arm_park_q31(q31_i_alpha, q31_i_beta, &q31_i_alpha_corr, &q31_i_beta_corr, MS_FOC->sin_delay_filter,  MS_FOC->cos_delay_filter);
 
 	// Park transformation
-	arm_park_q31(q31_i_alpha, q31_i_beta, &q31_i_d, &q31_i_q, sinevalue, cosinevalue);
+	arm_park_q31(q31_i_alpha_corr, q31_i_beta_corr, &q31_i_d, &q31_i_q, sinevalue, cosinevalue);
 
 
 	q31_i_q_fil -= q31_i_q_fil>>3;
@@ -241,15 +239,15 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 	//arm_sin_cos_q31(q31_teta, &sinevalue, &cosinevalue);
 	//inverse Park transformation
 	arm_inv_park_q31(q31_u_d, q31_u_q, &q31_u_alpha, &q31_u_beta, -sinevalue, cosinevalue);
-/*
-	temp1= -q31_i_alpha;
-	temp2= q31_i_beta;
-	temp3= q31_u_alpha;
-    temp4= q31_u_beta;
 
-*/
+	temp1= q31_i_alpha;
+	temp2= q31_i_alpha_corr;
+	//temp3= q31_u_alpha;
+    //temp4= q31_u_beta;
 
-	observer_update(((long long)q31_u_alpha*(long long)adcData[0]*CAL_V)>>11, ((long long)(-q31_u_beta*(long long)adcData[0]*CAL_V))>>11, (long long)((-q31_i_alpha)*CAL_I), (long long)((-q31_i_beta)*CAL_I), &fl_e_alpha_obs, &fl_e_beta_obs);
+
+
+	observer_update(((long long)q31_u_alpha*(long long)adcData[0]*CAL_V)>>11, ((long long)(-q31_u_beta*(long long)adcData[0]*CAL_V))>>11, (long long)((-q31_i_alpha_corr)*CAL_I), (long long)((-q31_i_beta_corr)*CAL_I), &fl_e_alpha_obs, &fl_e_beta_obs);
 
 
 	q31_teta_obs=atan2_LUT(-fl_e_beta_obs,fl_e_alpha_obs)-930576247;//-930576247;//-1431655765;
@@ -438,8 +436,8 @@ void observer_update(long long v_alpha, long long v_beta, long long i_alpha, lon
 	const long long lambda_2 = lambda*lambda;
 	const long long gamma_half = GAMMA;
 	//temp2=v_alpha;
-	temp1=R_ia;
-	temp2=L_ia;
+	//temp1=R_ia;
+	//temp2=L_ia;
 
 	//temp1=i_alpha;
 	//temp4=i_beta;
