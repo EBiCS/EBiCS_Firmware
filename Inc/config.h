@@ -42,8 +42,8 @@
 #define CAL_I 38LL<<8					// ADC * 37,5 mA/Digit. Strom kommt in mA *2^-8 im Observer an. Siehe Post Nr. 99 im Thread (für 12 FET)
 
 //Constants for Motor model of observer
-#define INDUCTANCE	6LL		//war nach Messung 13 (mit einfachem LCR-Tester)		//H = V*s/A Induktivität in µH/100 Shengyi hat 200µHenry Induktivität 2^16*0,0002 -->>>16 in Observer um auf Henry zukommen
-#define RESISTANCE 40LL		//war nach Messung 60	//Ohm = V/A Widerstand in Shengi ist 117mOhm -->2^9*0,117 >>9 in Observer um auf Ohm zu kommen.
+#define INDUCTANCE	2LL		//war nach Messung 13 (mit einfachem LCR-Tester)		//H = V*s/A Induktivität in µH/100 Shengyi hat 200µHenry Induktivität 2^16*0,0002 -->>>16 in Observer um auf Henry zukommen
+#define RESISTANCE 100LL		//war nach Messung 60	//Ohm = V/A Widerstand in Shengi ist 117mOhm -->2^9*0,117 >>9 in Observer um auf Ohm zu kommen.
 #define FLUX_LINKAGE 1600LL			//V*s/rad von Hand angepasst
 #define GAMMA 10LL					//per trial and error
 
