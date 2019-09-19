@@ -20,6 +20,7 @@ q31_t	temp4;
 q31_t	temp5;
 q31_t	temp6;
 q31_t z;
+q31_t startup_counter=0;	//counter for start up routine
 
 q31_t q31_i_q_fil = 0;
 q31_t q31_i_d_fil = 0;
@@ -31,7 +32,7 @@ q31_t fl_e_alpha_obs;
 q31_t fl_e_beta_obs;
 q31_t e_log[300][6];
 
-q31_t q31_erps_counter;
+q31_t q31_erps_counter=10000;
 q31_t q31_erps_filtered=5000;
 
 
@@ -233,10 +234,19 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 	}
 	else temp4=0;
 	*/
+if(!MS_FOC->Motor_state&&int16_i_q_target>0){
 
-	//q31_u_q=250;
-	//q31_u_d=0;
-	//arm_sin_cos_q31(q31_teta, &sinevalue, &cosinevalue);
+	q31_u_d=200;
+	q31_teta_obs+=(2684354<<3);
+	startup_counter++;
+	if (startup_counter>5000){
+		MS_FOC->Motor_state=1;
+		startup_counter=0;
+	}
+}
+
+
+
 	//inverse Park transformation
 	arm_inv_park_q31(q31_u_d, q31_u_q, &q31_u_alpha, &q31_u_beta, -sinevalue, cosinevalue);
 
@@ -249,12 +259,16 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 
 	observer_update(((long long)q31_u_alpha*(long long)adcData[0]*CAL_V)>>11, ((long long)(-q31_u_beta*(long long)adcData[0]*CAL_V))>>11, (long long)((-q31_i_alpha_corr)*CAL_I), (long long)((-q31_i_beta_corr)*CAL_I), &fl_e_alpha_obs, &fl_e_beta_obs);
 
-
+if(MS_FOC->Motor_state){
 	q31_teta_obs=atan2_LUT(-fl_e_beta_obs,fl_e_alpha_obs)-811271600;//-930576247;//-1431655765;
-
-	if(q31_erps_counter<5000)q31_erps_counter++;
-	else MS_FOC->Speed=5000;
-
+}
+	if(q31_erps_counter<10000)q31_erps_counter++;
+	else {
+		MS_FOC->Speed=10000;
+		MS_FOC->Motor_state=0;
+		startup_counter=0;
+	}
+temp5=q31_erps_counter;
 	if (q31_angle_old>(1<<25)&&q31_teta_obs<-(1<<25)&&q31_erps_counter>25){   //Find switch from +180° to -179,999° to detect one completed electric revolution.
 
 		q31_erps_filtered-=q31_erps_filtered>>4;
@@ -266,8 +280,8 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 
 
 
-	temp5=fl_e_alpha_obs;
-	temp6=fl_e_beta_obs;
+	//temp5=fl_e_alpha_obs;
+	//temp6=fl_e_beta_obs;
 	//temp3=q31_teta_obs>>24;
 	//temp5=q31_teta>>24;
 	//temp6=q31_teta_obs>>24;

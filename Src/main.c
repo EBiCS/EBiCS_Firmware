@@ -314,6 +314,7 @@ int main(void) {
     q31_rotorposition_absolute = q31_rotorposition_hall; // set absolute position to corresponding hall pattern.
 
     MS.Speed=5000;
+    MS.Motor_state=0;
     printf_("Lishui FOC Sensorless v0.1 \r\n");
 
 
@@ -333,10 +334,9 @@ int main(void) {
 	  //PI-control processing
 	  if(PI_flag){
 
+		  if(!MS.Motor_state&&uint16_current_target>0){ q31_u_q =  PI_control_i_q(q31_i_q_fil>>3, 160);}
 
-		  q31_u_q =  PI_control_i_q(q31_i_q_fil>>3, (q31_t) uint16_current_target);
-
-
+		  else { q31_u_q = PI_control_i_q(q31_i_q_fil>>3, (q31_t) uint16_current_target);}
 
 		  	//Control id
 		  	q31_u_d = -PI_control_i_d(q31_i_d_fil>>3, 0); //control direct current to zero
@@ -455,11 +455,11 @@ int main(void) {
 
 #if (DISPLAY_TYPE == DEBUG_SLOW_LOOP)
 		   //print values for debugging
-	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", (int16_t)q31_i_q_fil>>3, (int16_t)((q31_i_q_fil>>3)*q31_u_abs/_T) , MS.Speed, q31_u_abs,  FILTER_DELAY/(MS.Speed>>2), q31_teta_obs,(int16_t)q31_e_d_obs, q31_delta_teta);
+	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", (int16_t)q31_i_q_fil>>3, (int16_t)((q31_i_q_fil>>3)*q31_u_abs/_T) , MS.Speed, temp5,  uint16_current_target, q31_teta_obs>>24,q31_u_abs, q31_delta_teta);
 	  		i=0;
 		  while (buffer[i] != '\0')
 		  {i++;}
-		 HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);
+		  if(ui8_UART_TxCplt_flag) HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);
 
 #endif
 
@@ -974,7 +974,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		//HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
 		//HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
 
-		temp5=q31_rotorposition_absolute>>24;
+		//temp5=q31_rotorposition_absolute>>24;
 		if(!Obs_flag)
 		{
 			// call FOC procedure
