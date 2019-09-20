@@ -449,7 +449,7 @@ int main(void) {
 	  //slow loop for non time critical operations
 	   if(ui32_tim1_counter>800){
 
-		   arm_sin_cos_q31(FILTER_DELAY/(MS.Speed>>4), &MS.sin_delay_filter, &MS.cos_delay_filter);
+		   arm_sin_cos_q31(FILTER_DELAY/(MS.Speed>>5), &MS.sin_delay_filter, &MS.cos_delay_filter);
 
 
 

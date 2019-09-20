@@ -11,8 +11,8 @@
 
 //#define DISPLAY_TYPE DISPLAY_TYPE_KINGMETER_901U
 
-#define DISPLAY_TYPE DEBUG_SLOW_LOOP
-//#define DISPLAY_TYPE DEBUG_FAST_LOOP
+//#define DISPLAY_TYPE DEBUG_SLOW_LOOP
+#define DISPLAY_TYPE DEBUG_FAST_LOOP
 
 
 #define wheel_circumference 2.202 	//wheel circumference in m
@@ -24,8 +24,8 @@
 #define RAMP_END 4000					//time tics @ 16kHz where motor reaches full level power
 #define PH_CURRENT_MAX 400			//iq value (phase current in rotating frame), not calibrated yet
 
-#define P_FACTOR_I_Q 1L				//proportional factor for PI control of iq
-#define I_FACTOR_I_Q 0.1F			//integral factor for PI control of iq
+#define P_FACTOR_I_Q 1.0				//proportional factor for PI control of iq
+#define I_FACTOR_I_Q 0.05			//integral factor for PI control of iq
 #define P_FACTOR_I_D 1L				//proportional factor for PI control of id
 #define I_FACTOR_I_D 1L				//integral factor for PI control of id
 
@@ -43,8 +43,8 @@
 
 //Constants for Motor model of observer
 #define INDUCTANCE	2LL		//war nach Messung 13 (mit einfachem LCR-Tester)		//H = V*s/A Induktivität in µH/100 Shengyi hat 200µHenry Induktivität 2^16*0,0002 -->>>16 in Observer um auf Henry zukommen
-#define RESISTANCE 100LL		//war nach Messung 60	//Ohm = V/A Widerstand in Shengi ist 117mOhm -->2^9*0,117 >>9 in Observer um auf Ohm zu kommen.
-#define FLUX_LINKAGE 1600LL			//V*s/rad von Hand angepasst
+#define RESISTANCE 80LL		//war nach Messung 60	//Ohm = V/A Widerstand in Shengi ist 117mOhm -->2^9*0,117 >>9 in Observer um auf Ohm zu kommen.
+#define FLUX_LINKAGE 1800LL			//V*s/rad von Hand angepasst
 #define GAMMA 10LL					//per trial and error
 
 

@@ -250,7 +250,7 @@ if(!MS_FOC->Motor_state&&int16_i_q_target>0){
 	//inverse Park transformation
 	arm_inv_park_q31(q31_u_d, q31_u_q, &q31_u_alpha, &q31_u_beta, -sinevalue, cosinevalue);
 
-	temp1= q31_i_alpha;
+	temp1= q31_i_q;
 	temp2= q31_i_alpha_corr;
 	//temp3= q31_u_alpha;
     //temp4= q31_u_beta;
@@ -260,7 +260,7 @@ if(!MS_FOC->Motor_state&&int16_i_q_target>0){
 	observer_update(((long long)q31_u_alpha*(long long)adcData[0]*CAL_V)>>11, ((long long)(-q31_u_beta*(long long)adcData[0]*CAL_V))>>11, (long long)((-q31_i_alpha_corr)*CAL_I), (long long)((-q31_i_beta_corr)*CAL_I), &fl_e_alpha_obs, &fl_e_beta_obs);
 
 if(MS_FOC->Motor_state){
-	q31_teta_obs=atan2_LUT(-fl_e_beta_obs,fl_e_alpha_obs)-811271600;//-930576247;//-1431655765;
+	q31_teta_obs=atan2_LUT(-fl_e_beta_obs,fl_e_alpha_obs)-811271600;//-811271600;//-930576247;//-1431655765;
 }
 	if(q31_erps_counter<10000)q31_erps_counter++;
 	else {
@@ -268,7 +268,7 @@ if(MS_FOC->Motor_state){
 		MS_FOC->Motor_state=0;
 		startup_counter=0;
 	}
-temp5=q31_erps_counter;
+	//temp5=q31_erps_counter;
 	if (q31_angle_old>(1<<25)&&q31_teta_obs<-(1<<25)&&q31_erps_counter>25){   //Find switch from +180° to -179,999° to detect one completed electric revolution.
 
 		q31_erps_filtered-=q31_erps_filtered>>4;
@@ -280,8 +280,8 @@ temp5=q31_erps_counter;
 
 
 
-	//temp5=fl_e_alpha_obs;
-	//temp6=fl_e_beta_obs;
+	temp5=fl_e_alpha_obs;
+	temp6=fl_e_beta_obs;
 	//temp3=q31_teta_obs>>24;
 	//temp5=q31_teta>>24;
 	//temp6=q31_teta_obs>>24;
