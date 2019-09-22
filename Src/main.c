@@ -455,7 +455,7 @@ int main(void) {
 
 #if (DISPLAY_TYPE == DEBUG_SLOW_LOOP)
 		   //print values for debugging
-	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", (int16_t)q31_i_q_fil>>3, (int16_t)((q31_i_q_fil>>3)*q31_u_abs/_T) , MS.Speed, temp5,  uint16_current_target, q31_teta_obs>>24,q31_u_abs, q31_delta_teta);
+	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", (int16_t)q31_i_q_fil>>3, q31_u_abs , MS.Speed, temp5,  uint16_current_target, q31_teta_obs>>24,q31_u_abs, q31_delta_teta);
 	  		i=0;
 		  while (buffer[i] != '\0')
 		  {i++;}
