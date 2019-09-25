@@ -7,12 +7,14 @@
 #define DISPLAY_TYPE_KINGMETER_901U (1<<8)                  // King-Meter 901U protocol (KM5s)
 #define DISPLAY_TYPE_KINGMETER      (DISPLAY_TYPE_KINGMETER_618U|DISPLAY_TYPE_KINGMETER_901U)
 #define DISPLAY_TYPE_BAFANG (1<<2)							// For "Blaupunkt" Display of Prophete Entdecker
+#define DISPLAY_TYPE_KUNTENG (1<<1)							// For ASCII-Output in Debug mode
 #define DISPLAY_TYPE_DEBUG (1<<0)							// For ASCII-Output in Debug mode
 
 //#define DISPLAY_TYPE DISPLAY_TYPE_KINGMETER_618U			//Kingmeter J-LCD
 //#define DISPLAY_TYPE DISPLAY_TYPE_KINGMETER_901U			//Kingmeter KM5S
 //#define DISPLAY_TYPE DISPLAY_TYPE_BAFANG					//Bafang "Blaupunkt"
-#define DISPLAY_TYPE DISPLAY_TYPE_DEBUG					//ASCII Parameter Printout on UART
+#define DISPLAY_TYPE DISPLAY_TYPE_KUNTENG					//Bafang "Blaupunkt"
+//#define DISPLAY_TYPE DISPLAY_TYPE_DEBUG					//ASCII Parameter Printout on UART
 
 //#define DISABLE_DYNAMIC_ADC
 //#define FAST_LOOP_LOG

@@ -101,6 +101,7 @@ typedef struct
 {
 
 	q31_t       	Voltage;
+	q31_t       	Speed;
 	q31_t          	i_d;
 	q31_t          	i_q;
 	q31_t          	u_d;

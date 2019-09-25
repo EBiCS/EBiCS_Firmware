@@ -59,8 +59,12 @@
   #include "display_kingmeter.h"
 #endif
 
-#if (DISPLAY_TYPE == BAFANG)
-  #include "display_BAFANG.h"
+#if (DISPLAY_TYPE == DISPLAY_TYPE_BAFANG)
+  #include "display_bafang.h"
+#endif
+
+#if (DISPLAY_TYPE == DISPLAY_TYPE_KUNTENG)
+  #include "display_kunteng.h"
 #endif
 
 
@@ -156,9 +160,11 @@ KINGMETER_t KM;
 #endif
 
 //variables for display communication
-#if (DISPLAY_TYPE == BAFANG)
+#if (DISPLAY_TYPE == DISPLAY_TYPE_BAFANG)
 BAFANG_t BF;
 #endif
+
+
 
 MotorState_t MS;
 
@@ -329,7 +335,9 @@ int main(void)
        Bafang_Init (&BF);
 #endif
 
-
+#if (DISPLAY_TYPE == DISPLAY_TYPE_KUNTENG)
+       kunteng_init();
+#endif
 
 
     TIM1->CCR1 = 1023; //set initial PWM values
@@ -458,6 +466,10 @@ int main(void)
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_BAFANG)
 	  bafang_update();
+#endif
+
+#if (DISPLAY_TYPE == DISPLAY_TYPE_KUNTENG)
+	  check_message(&MS);
 #endif
 
 	  ui8_UART_flag=0;
@@ -881,7 +893,7 @@ static void MX_USART1_UART_Init(void)
 
 #if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
   huart1.Init.BaudRate = 9600;
-#elif (DISPLAY_TYPE == BAFANG)
+#elif (DISPLAY_TYPE == DISPLAY_TYPE_BAFANG)
   huart1.Init.BaudRate = 1200;
 #else
   huart1.Init.BaudRate = 56000;
