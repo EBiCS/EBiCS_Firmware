@@ -110,6 +110,7 @@ typedef struct
 	q31_t          	Battery_Current;
 	uint8_t 		hall_angle_detect_flag;
 	uint8_t 		char_dyn_adc_state;
+	uint8_t 		assist_level;
 
 }MotorState_t;
 

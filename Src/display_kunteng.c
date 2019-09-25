@@ -62,14 +62,14 @@ void display_update(MotorState_t* MS_U)
 #endif
 
   // calc battery pack state of charge (SOC)
-  ui16_battery_volts = ((uint16_t) MS_U->Voltage);
+  ui16_battery_volts = ((uint16_t) MS_U->Voltage);  //hier noch die richtige Kalibrierung einbauen
   if (ui16_battery_volts > ((uint16_t) BATTERY_PACK_VOLTS_80)) { ui8_battery_soc = 16; } // 4 bars | full
   else if (ui16_battery_volts > ((uint16_t) BATTERY_PACK_VOLTS_60)) { ui8_battery_soc = 12; } // 3 bars
   else if (ui16_battery_volts > ((uint16_t) BATTERY_PACK_VOLTS_40)) { ui8_battery_soc = 8; } // 2 bars
   else if (ui16_battery_volts > ((uint16_t) BATTERY_PACK_VOLTS_20)) { ui8_battery_soc = 4; } // 1 bar
   else { ui8_battery_soc = 3; } // empty
 
-  ui16_wheel_period_ms=MS_U->Speed;
+  ui16_wheel_period_ms=MS_U->Speed; //hier noch die richtige Kalibrierung einbauen
 
 ui8_tx_buffer [0] = 65;
   // B1: battery level
@@ -149,7 +149,7 @@ void check_message(MotorState_t* MS_D)
      lcd_configuration_variables.ui8_max_speed = (10 + ((ui8_rx_buffer [4] & 248) >> 3)) | (ui8_rx_buffer [6] & 32);
      lcd_configuration_variables.ui8_power_assist_control_mode = ui8_rx_buffer [6] & 8;
      lcd_configuration_variables.ui8_controller_max_current = (ui8_rx_buffer [9] & 15);
-     //ui8_assistlevel_global=lcd_configuration_variables.ui8_assist_level;
+     MS_D->assist_level=lcd_configuration_variables.ui8_assist_level;
      display_update(MS_D);
    }
  }
