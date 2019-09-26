@@ -13,7 +13,7 @@ uint8_t ui8_tx_buffer[12];
 uint8_t ui8_j;
 uint8_t ui8_crc;
 uint16_t ui16_wheel_period_ms =4500;
-uint16_t ui16_battery_volts= 36;
+uint32_t ui32_battery_volts= 36;
 uint8_t ui8_battery_soc = 12;
 uint8_t ui16_error;
 uint8_t ui8_rx_buffer[13];
@@ -62,14 +62,14 @@ void display_update(MotorState_t* MS_U)
 #endif
 
   // calc battery pack state of charge (SOC)
-  ui16_battery_volts = ((uint16_t) MS_U->Voltage);  //hier noch die richtige Kalibrierung einbauen
-  if (ui16_battery_volts > ((uint16_t) BATTERY_PACK_VOLTS_80)) { ui8_battery_soc = 16; } // 4 bars | full
-  else if (ui16_battery_volts > ((uint16_t) BATTERY_PACK_VOLTS_60)) { ui8_battery_soc = 12; } // 3 bars
-  else if (ui16_battery_volts > ((uint16_t) BATTERY_PACK_VOLTS_40)) { ui8_battery_soc = 8; } // 2 bars
-  else if (ui16_battery_volts > ((uint16_t) BATTERY_PACK_VOLTS_20)) { ui8_battery_soc = 4; } // 1 bar
+  ui32_battery_volts =  (MS_U->Voltage*CAL_BAT_V*256)/10000;  //hier noch die richtige Kalibrierung einbauen (*256 für bessere Auflösung)
+  if (ui32_battery_volts > ((uint16_t) BATTERY_PACK_VOLTS_80)) { ui8_battery_soc = 16; } // 4 bars | full
+  else if (ui32_battery_volts > ((uint16_t) BATTERY_PACK_VOLTS_60)) { ui8_battery_soc = 12; } // 3 bars
+  else if (ui32_battery_volts > ((uint16_t) BATTERY_PACK_VOLTS_40)) { ui8_battery_soc = 8; } // 2 bars
+  else if (ui32_battery_volts > ((uint16_t) BATTERY_PACK_VOLTS_20)) { ui8_battery_soc = 4; } // 1 bar
   else { ui8_battery_soc = 3; } // empty
 
-  ui16_wheel_period_ms=MS_U->Speed; //hier noch die richtige Kalibrierung einbauen
+  ui16_wheel_period_ms = (MS_U->Speed*PULSES_PER_REVOLUTION)>>4; //hier noch die richtige Kalibrierung einbauen
 
 ui8_tx_buffer [0] = 65;
   // B1: battery level
@@ -78,7 +78,7 @@ ui8_tx_buffer [0] = 65;
   ui8_tx_buffer [2] = (uint8_t) COMMUNICATIONS_BATTERY_VOLTAGE;
   // B3: speed, wheel rotation period, ms; period(ms)=B3*256+B4;
   ui8_tx_buffer [3] = (ui16_wheel_period_ms >> 8) & 0xff;
-  ui8_tx_buffer [4] = ui16_wheel_period_ms & 0xff;
+  ui8_tx_buffer [4] = (ui16_wheel_period_ms) & 0xff;
 
 
 
@@ -99,7 +99,7 @@ ui8_tx_buffer [0] = 65;
 
 
   //ui8_tx_buffer [8] =  (uint8_t)(((ui16_BatteryCurrent-ui16_current_cal_b+1)<<2)/current_cal_a);
-  ui8_tx_buffer [8] =  (uint8_t)MS_U->Battery_Current;   //hier noch die richtige Umrechnung einfügen
+  ui8_tx_buffer [8] =  (uint8_t)(MS_U->Battery_Current*MS_U->Voltage*CAL_BAT_V/13000000);   //hier noch die richtige Umrechnung einfügen Strom und Spannung in Milli, 13W pro digit
   // B9: motor temperature
   //ui8_tx_buffer [9] = i8_motor_temperature-15; //according to documentation at endless sphere
   // B10 and B11: 0
@@ -115,7 +115,7 @@ ui8_tx_buffer [0] = 65;
   ui8_tx_buffer [6] = ui8_crc;
 
   // send the package over UART
-  HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&ui8_tx_buffer, 13);
+  HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&ui8_tx_buffer, 12);
 }
 
 /********************************************************************************************/

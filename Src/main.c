@@ -118,7 +118,9 @@ uint8_t ui8_SPEED_flag=0;
 uint32_t uint32_PAS_counter= PAS_TIMEOUT+1;
 uint32_t uint32_SPEED_counter=32000;
 uint32_t uint32_PAS=32000;
-uint32_t uint32_SPEED=32000;
+
+uint8_t ui8_UART_Counter=0;
+
 uint32_t uint32_torque_cumulated=0;
 uint16_t uint16_mapped_throttle=0;
 uint16_t uint16_mapped_PAS=0;
@@ -253,6 +255,7 @@ int main(void)
 
   //initialize MS struct.
   MS.hall_angle_detect_flag=1;
+  MS.Speed=32000;
 
   MX_ADC1_Init();
   /* Run the ADC calibration */
@@ -436,7 +439,7 @@ int main(void)
 		  q31_t_Battery_Current_accumulated -= q31_t_Battery_Current_accumulated>>8;
 		  q31_t_Battery_Current_accumulated += ((MS.i_q*MS.u_abs)>>11)*(uint16_t)(CAL_I>>8);
 
-		  MS.Battery_Current = q31_t_Battery_Current_accumulated>>8;
+		  MS.Battery_Current = q31_t_Battery_Current_accumulated>>8; //Battery current in mA
 
 		  	//Control id
 		  q31_u_d_temp = -PI_control_i_d(MS.i_d, 0); //control direct current to zero
@@ -469,7 +472,11 @@ int main(void)
 #endif
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_KUNTENG)
+	  ui8_UART_Counter++;
+	  if(ui8_UART_Counter>5){
 	  check_message(&MS);
+	  ui8_UART_Counter=0;
+	  }
 #endif
 
 	  ui8_UART_flag=0;
@@ -487,9 +494,14 @@ int main(void)
 
 	  //SPEED signal processing
 	  if(ui8_SPEED_flag){
-		  uint32_SPEED = uint32_SPEED_counter;
+
+		  if(uint32_SPEED_counter>200){
+		  MS.Speed = uint32_SPEED_counter;
+
 		  uint32_SPEED_counter =0;
 		  ui8_SPEED_flag=0;
+
+		  }
 	  }
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG && defined(FAST_LOOP_LOG))
@@ -545,13 +557,18 @@ int main(void)
 	  else uint16_current_target = uint16_mapped_throttle;										//throttle override: set recent throttle value as current target
 
 #endif
-	  //print values for debugging
+
+	  //slow loop procedere
+	  if(ui32_tim1_counter>1600){
+
+		  MS.Voltage=adcData[0];
+		  if(uint32_SPEED_counter>31999)MS.Speed = 32000;
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG && !defined(FAST_LOOP_LOG))
+		  //print values for debugging
 
-	  	  if(ui32_tim1_counter>1600){
 
-	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", MS.i_q, MS.u_abs , uint16_current_target, MS.Battery_Current, MS.u_d, MS.i_d, uint32_PAS, uint32_SPEED);//((q31_i_q_fil*q31_u_abs)>>14)*
+	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", MS.i_q, MS.u_abs , uint16_current_target, MS.Battery_Current, MS.u_d, MS.i_d, uint32_PAS, MS.Speed);//((q31_i_q_fil*q31_u_abs)>>14)*
 	  	//	sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5])) ;
 
 	  	  i=0;
@@ -561,9 +578,9 @@ int main(void)
 
 		  ui32_tim1_counter=0;
 		  ui8_print_flag=0;
-	  	  }
-#endif
 
+#endif
+	  }
 
   /* USER CODE END WHILE */
 
@@ -895,7 +912,7 @@ static void MX_USART1_UART_Init(void)
 
   huart1.Instance = USART1;
 
-#if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
+#if ((DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER) ||DISPLAY_TYPE==DISPLAY_TYPE_KUNTENG)
   huart1.Init.BaudRate = 9600;
 #elif (DISPLAY_TYPE == DISPLAY_TYPE_BAFANG)
   huart1.Init.BaudRate = 1200;
@@ -1012,7 +1029,8 @@ void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
 	  if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_4) {
 		  ui32_tim1_counter++;
 		  if (uint32_PAS_counter < PAS_TIMEOUT+1)uint32_PAS_counter++;
-		  uint32_SPEED_counter++;
+		  if (uint32_SPEED_counter<32000)uint32_SPEED_counter++;
+		  HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
 
 	  }
 
@@ -1044,7 +1062,7 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 {
 	//for oszi-check of used time in FOC procedere
-	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
+	//HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
 
 	if(!ui8_adc_offset_done_flag)
 	{
@@ -1147,7 +1165,7 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 	//TIM1->CCR4 =  (uint16_t) q31_startpoint_conversion;
 
 
-	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
+	//HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
 
 	} // end else
 
@@ -1204,7 +1222,10 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 	//Speed processing
 	if(GPIO_Pin == Speed_EXTI5_Pin)
 	{
-		ui8_SPEED_flag = 1;
+
+
+			ui8_SPEED_flag = 1; //with debounce
+
 	}
 
 }
@@ -1319,7 +1340,7 @@ void bafang_update(void)
     if(__HAL_TIM_GET_COUNTER(&htim2) < 12000)
     {
         // Adapt wheeltime to match displayed speedo value according config.h setting
-        BF.Tx.Wheeltime_ms = WHEEL_CIRCUMFERENCE*433/(uint32_SPEED*PULSES_PER_REVOLUTION); // Geschwindigkeit ist Weg pro Zeit Radumfang durch Dauer einer Radumdrehung --> Umfang * 16000*3600/(n*1000000) * Skalierung Bafang Display 200/26,6
+        BF.Tx.Wheeltime_ms = WHEEL_CIRCUMFERENCE*433/(MS.Speed*PULSES_PER_REVOLUTION); // Geschwindigkeit ist Weg pro Zeit Radumfang durch Dauer einer Radumdrehung --> Umfang * 16000*3600/(n*1000000) * Skalierung Bafang Display 200/26,6
 
     }
     else
