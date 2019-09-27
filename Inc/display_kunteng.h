@@ -28,14 +28,14 @@ typedef struct _lcd_configuration_variables
 
 // Considering the follow voltage values for each li-ion battery cell
 // State of charge 		| voltage
-#define LI_ION_CELL_VOLTS_MAX 	4.20
-#define LI_ION_CELL_VOLTS_100 	4.20
-#define LI_ION_CELL_VOLTS_80 	4.02
-#define LI_ION_CELL_VOLTS_60 	3.87
-#define LI_ION_CELL_VOLTS_40 	3.80
-#define LI_ION_CELL_VOLTS_20 	3.73
-#define LI_ION_CELL_VOLTS_0 	3.27
-#define LI_ION_CELL_VOLTS_MIN 	3.10
+#define LI_ION_CELL_VOLTS_MAX 4.20
+#define LI_ION_CELL_VOLTS_100 4.20
+#define LI_ION_CELL_VOLTS_80 3.86 // 4.02
+#define LI_ION_CELL_VOLTS_60 3.68 // 3.87
+#define LI_ION_CELL_VOLTS_40 3.46 // 3.80
+#define LI_ION_CELL_VOLTS_20 3.28 // 3.73
+#define LI_ION_CELL_VOLTS_0 3.10 // 3.27
+#define LI_ION_CELL_VOLTS_MIN 3.10
 
 #define BATTERY_PACK_VOLTS_100	(LI_ION_CELL_VOLTS_100 * BATTERY_LI_ION_CELLS_NUMBER) * 256
 #define BATTERY_PACK_VOLTS_80 	(LI_ION_CELL_VOLTS_80 * BATTERY_LI_ION_CELLS_NUMBER) * 256

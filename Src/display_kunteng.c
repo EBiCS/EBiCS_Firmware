@@ -133,22 +133,22 @@ void check_message(MotorState_t* MS_D)
    {
        //putchar (ui8_j);
        //putchar (ui8_rx_buffer[ui8_j]);
-     if (ui8_j == 7) continue; // don't xor B5 (B7 in our case)
+     if (ui8_j == 5) continue; // don't xor B5 (B7 in our case)
      ui8_crc ^= ui8_rx_buffer[ui8_j];
    }
 
    // see if CRC is ok
-   if (((ui8_crc ^ 10) == ui8_rx_buffer [7]) 	|| // some versions of CRC LCD5 (??)
-	((ui8_crc ^ 5) == ui8_rx_buffer [7]) 	|| // CRC LCD3 (tested with KT36/48SVPR, from PSWpower)
-	((ui8_crc ^ 9) == ui8_rx_buffer [7]) 	|| // CRC LCD5
-	((ui8_crc ^ 2) == ui8_rx_buffer [7])) 	   // CRC LCD3
+   if (((ui8_crc ^ 10) == ui8_rx_buffer [5]) 	|| // some versions of CRC LCD5 (??)
+	((ui8_crc ^ 5) == ui8_rx_buffer [5]) 	|| // CRC LCD3 (tested with KT36/48SVPR, from PSWpower)
+	((ui8_crc ^ 9) == ui8_rx_buffer [5]) 	|| // CRC LCD5
+	((ui8_crc ^ 2) == ui8_rx_buffer [5])) 	   // CRC LCD3
    { //printf("message valid \r\n");
-     lcd_configuration_variables.ui8_assist_level = ui8_rx_buffer [3] & 7;
-     lcd_configuration_variables.ui8_motor_characteristic = ui8_rx_buffer [5];
-     lcd_configuration_variables.ui8_wheel_size = ((ui8_rx_buffer [6] & 192) >> 6) | ((ui8_rx_buffer [4] & 7) << 2);
-     lcd_configuration_variables.ui8_max_speed = (10 + ((ui8_rx_buffer [4] & 248) >> 3)) | (ui8_rx_buffer [6] & 32);
-     lcd_configuration_variables.ui8_power_assist_control_mode = ui8_rx_buffer [6] & 8;
-     lcd_configuration_variables.ui8_controller_max_current = (ui8_rx_buffer [9] & 15);
+     lcd_configuration_variables.ui8_assist_level = ui8_rx_buffer [1] & 7;
+     lcd_configuration_variables.ui8_motor_characteristic = ui8_rx_buffer [3];
+     lcd_configuration_variables.ui8_wheel_size = ((ui8_rx_buffer [4] & 192) >> 6) | ((ui8_rx_buffer [2] & 7) << 2);
+     lcd_configuration_variables.ui8_max_speed = (10 + ((ui8_rx_buffer [2] & 248) >> 3)) | (ui8_rx_buffer [4] & 32);
+     lcd_configuration_variables.ui8_power_assist_control_mode = ui8_rx_buffer [4] & 8;
+     lcd_configuration_variables.ui8_controller_max_current = (ui8_rx_buffer [7] & 15);
      MS_D->assist_level=lcd_configuration_variables.ui8_assist_level;
      display_update(MS_D);
    }

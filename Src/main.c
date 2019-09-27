@@ -255,7 +255,7 @@ int main(void)
 
   //initialize MS struct.
   MS.hall_angle_detect_flag=1;
-  MS.Speed=32000;
+  MS.Speed=128000;
 
   MX_ADC1_Init();
   /* Run the ADC calibration */
@@ -497,7 +497,7 @@ int main(void)
 
 		  if(uint32_SPEED_counter>200){
 		  MS.Speed = uint32_SPEED_counter;
-
+		  //HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
 		  uint32_SPEED_counter =0;
 		  ui8_SPEED_flag=0;
 
@@ -562,7 +562,7 @@ int main(void)
 	  if(ui32_tim1_counter>1600){
 
 		  MS.Voltage=adcData[0];
-		  if(uint32_SPEED_counter>31999)MS.Speed = 32000;
+		  if(uint32_SPEED_counter>127999)MS.Speed =128000;
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG && !defined(FAST_LOOP_LOG))
 		  //print values for debugging
@@ -1023,28 +1023,6 @@ static void MX_GPIO_Init(void)
 
 
 
-//Timer1 CC Channel4
-void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
-{
-	  if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_4) {
-		  ui32_tim1_counter++;
-		  if (uint32_PAS_counter < PAS_TIMEOUT+1)uint32_PAS_counter++;
-		  if (uint32_SPEED_counter<32000)uint32_SPEED_counter++;
-		  HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-
-	  }
-
-}
-
-//Timer2 Counter for speed measurement, callback handling not necessary
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
-	if (htim == &htim2) {
-		//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_2);
-		//ui32_tim2_counter++;
-
-	}
-}
 
 // regular ADC callback
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
@@ -1063,6 +1041,15 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 {
 	//for oszi-check of used time in FOC procedere
 	//HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
+	  ui32_tim1_counter++;
+	  if (uint32_PAS_counter < PAS_TIMEOUT+1)uint32_PAS_counter++;
+	  if (uint32_SPEED_counter<128000){
+		  uint32_SPEED_counter++;
+	  }
+	/*  else {
+	  HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+	  uint32_SPEED_counter=0;
+	  }*/
 
 	if(!ui8_adc_offset_done_flag)
 	{
