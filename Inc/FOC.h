@@ -18,7 +18,7 @@ q31_t PI_control_i_d (q31_t ist, q31_t soll);
 q31_t PI_control_e_d (q31_t ist, q31_t soll);
 
 // Maximum Voltage applyed
-#define _U_MAX	1500L  //little lower than period of timer1 for proper phase current reading. Could be improved by dynamic timing of AD-conversion
+#define _U_MAX	2000L  //little lower than period of timer1 for proper phase current reading. Could be improved by dynamic timing of AD-conversion
 // Square Root of 3
 #define _SQRT3	1.73205081
 

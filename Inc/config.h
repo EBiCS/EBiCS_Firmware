@@ -49,5 +49,9 @@
 
 
 #define _T 2048						//Periode des Timers1 zur Einstellung der PWM Frequenz 2048 ergibt 16kHz
+#define TRIGGER_OFFSET_ADC 100
+#define TRIGGER_DEFAULT 2020
+#define TRIGGER_THRESHOLD 1800
+
 
 #endif

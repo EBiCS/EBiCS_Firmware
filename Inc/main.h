@@ -119,6 +119,7 @@ typedef struct
 	q31_t          	Hall_Angle;
 	uint8_t 		hall_angle_detect_flag;
 	uint8_t 		Motor_state;
+	uint8_t 		char_dyn_adc_state;
 	q31_t       	sin_delay_filter;
 	q31_t       	cos_delay_filter;
 

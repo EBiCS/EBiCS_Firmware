@@ -91,8 +91,11 @@ uint16_t ui16_ph3_offset=0;
 int16_t i16_ph1_current=0;
 
 int16_t i16_ph2_current=0;
-int16_t i16_ph2_current_filter=0;
+
 int16_t i16_ph3_current=0;
+
+q31_t q31_u_d_temp=0;
+q31_t q31_u_q_temp=0;
 uint16_t i=0;
 uint16_t j=0;
 uint16_t k=0;
@@ -113,14 +116,17 @@ uint16_t uint16_mapped_throttle=0;
 uint16_t uint16_mapped_PAS=0;
 uint16_t uint16_current_target=0;
 
+uint8_t ui8_adc_inj_flag=0;
+uint8_t ui8_adc_offset_done_flag=0;
+
 q31_t q31_rotorposition_absolute;
 q31_t q31_rotorposition_hall;
 
 char buffer[100];
 char TxBuff[14];
-uint8_t  first_run_flag=1;
-char char_dyn_adc_state=1;
-char char_dyn_adc_state_old=1;
+//uint8_t  first_run_flag=1;
+//char char_dyn_adc_state=1;
+uint8_t char_dyn_adc_state_old=1;
 q31_t	q31_u_abs=0;
 q31_t q31_teta_obs;
 q31_t q31_delta_teta;
@@ -129,7 +135,7 @@ q31_t q31_delta_teta_obs;
 q31_t switchtime[3];
 uint16_t adcData[5];
 //static int8_t angle[256][4];
-static int8_t angle_old;
+//static int8_t angle_old;
 
 //q31_t q31_startpoint_conversion = 2048;
 
@@ -272,8 +278,7 @@ int main(void) {
     TIM1->CCR2 = 1024;
     TIM1->CCR3 = 1024;
 
-    TIM1->CCR4 = tim1cc4;//1014; //ADC sampling just before timer overflow (just before middle of PWM-Cycle)
-//PWM Mode 1: Interrupt at counting down.
+    TIM1->CCR4 = TRIGGER_DEFAULT; //ADC sampling just before timer overflow (just before middle of PWM-Cycle)
 
     //TIM1->BDTR |= 1L<<15;
    // TIM1->BDTR &= ~(1L<<15); //reset MOE (Main Output Enable) bit to disable PWM output
@@ -308,6 +313,49 @@ int main(void) {
 #endif
 
 
+       // get offset values for adc phase currents
+       // first phase A+B
+           i=0;
+
+           for(i=0;i<8;i++){
+           	while(!ui8_adc_inj_flag){}
+           	ui8_adc_inj_flag=0;
+           }
+
+           for(i=0;i<32;i++){
+           	while(!ui8_adc_inj_flag){}
+           	ui16_ph1_offset+=i16_ph1_current;
+           	ui16_ph2_offset+=i16_ph2_current;
+           	ADC1->JOFR1 = ui16_ph1_offset;
+            ADC2->JOFR1 = ui16_ph2_offset;
+            	ui8_adc_inj_flag=0;
+           }
+
+       //switch to phase C
+           ADC1->JSQR=0b00110000000000000000; //ADC1 injected reads phase C, JSQ4 = 0b00110, decimal 6
+           ADC1->JOFR1 = ui16_ph3_offset;
+
+           //wait for stable reading on phase 3
+
+           for(i=0;i<8;i++){
+           	while(!ui8_adc_inj_flag){}
+           	ui8_adc_inj_flag=0;
+           }
+
+           i=0;
+           for(i=0;i<32;i++){
+           	while(!ui8_adc_inj_flag){}
+           	ui16_ph3_offset+=i16_ph1_current;
+           	ADC1->JOFR1 = ui16_ph3_offset;
+           	ui8_adc_inj_flag=0;
+
+           }
+
+           ADC1->JSQR=0b00100000000000000000; //ADC1 injected reads phase A JL = 0b00, JSQ4 = 0b00100 (decimal 4 = channel 4)
+          	ADC1->JOFR1 = ui16_ph1_offset;
+
+          	ui8_adc_offset_done_flag=1;
+
 
 
     HAL_GPIO_EXTI_Callback(GPIO_PIN_0); //read in initial rotor position
@@ -327,19 +375,19 @@ int main(void) {
   while (1)
   {
 
-	  if(!HAL_GPIO_ReadPin(PAS2_GPIO_Port, PAS2_Pin)) HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
-
-	  else HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
 
 	  //PI-control processing
 	  if(PI_flag){
 
 		  if(!MS.Motor_state&&uint16_current_target>0){ q31_u_q =  PI_control_i_q(q31_i_q_fil>>3, 160);}
 
-		  else { q31_u_q = PI_control_i_q(q31_i_q_fil>>3, (q31_t) uint16_current_target);}
+		  else {
+
+
+			  q31_u_q = PI_control_i_q(q31_i_q_fil>>3, (q31_t) uint16_current_target);}
 
 		  	//Control id
-		  	q31_u_d = -PI_control_i_d(q31_i_d_fil>>3, 0); //control direct current to zero
+		  	  q31_u_d = -PI_control_i_d(q31_i_d_fil>>3, 0); //control direct current to zero
 
 		  	//limit voltage in rotating frame, refer chapter 4.10.1 of UM1052
 
@@ -350,9 +398,9 @@ int main(void) {
 		  	if (q31_u_abs > _U_MAX){
 		  		q31_u_q = (q31_u_q*_U_MAX)/q31_u_abs; //division!
 		  		q31_u_d = (q31_u_d*_U_MAX)/q31_u_abs; //division!
-		  		//temp4=1;
-		  	}
-		  	else //temp4=0;
+		  		q31_u_abs = _U_MAX;
+		  		}
+
 		  	PI_flag=0;
 	  }
 
@@ -455,7 +503,7 @@ int main(void) {
 
 #if (DISPLAY_TYPE == DEBUG_SLOW_LOOP)
 		   //print values for debugging
-	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", (int16_t)q31_i_q_fil>>3, q31_u_abs , MS.Speed, temp5,  uint16_current_target, q31_teta_obs>>24,q31_u_abs, q31_delta_teta);
+	  		sprintf_(buffer, "%d, %d, %d, %d, %d\r\n", (int16_t)q31_i_q_fil>>3, uint16_current_target, MS.Speed, q31_u_abs, TIM1->CCR4 );
 	  		i=0;
 		  while (buffer[i] != '\0')
 		  {i++;}
@@ -1015,37 +1063,52 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 {
 	//for oszi-check of used time in FOC procedere
-	//HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
 
-	//read in phase currents
+
+	if(!ui8_adc_offset_done_flag)
+	{
 	i16_ph1_current = HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1);
 	i16_ph2_current = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1);
 
+	ui8_adc_inj_flag=1;
+	}
+	else{
 
+#ifdef DISABLE_DYNAMIC_ADC
 
-	//temp3=char_dyn_adc_state;
-	//temp4=__HAL_TIM_GET_COUNTER(&htim1);
+		i16_ph1_current = HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1);
+		i16_ph2_current = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1);
 
-/*
-	switch (char_dyn_adc_state) //read in according to state
+#else
+	switch (MS.char_dyn_adc_state) //read in according to state
 		{
 		case 1: //Phase C at high dutycycles, read from A+B directly
 			{
-				i16_ph1_current = HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1);
-				i16_ph2_current = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1);
+				temp1=(q31_t)HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1);
+				i16_ph1_current = temp1 ;
+
+				temp2=(q31_t)HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1);
+				i16_ph2_current = temp2;
 			}
 			break;
 		case 2: //Phase A at high dutycycles, read from B+C (A = -B -C)
 			{
-				i16_ph2_current = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1);
-				i16_ph1_current = -i16_ph2_current-HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1);
+
+				temp2=(q31_t)HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1);
+				i16_ph2_current = temp2;
+
+				temp1=(q31_t)HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1);
+				i16_ph1_current = -i16_ph2_current-temp1;
 
 			}
 			break;
 		case 3: //Phase B at high dutycycles, read from A+C (B=-A-C)
 			{
-				i16_ph1_current = HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1);
-				i16_ph2_current = -i16_ph1_current-HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1);
+				temp1=(q31_t)HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1);
+				i16_ph1_current = temp1 ;
+				temp2=(q31_t)HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1);
+				i16_ph2_current = -i16_ph1_current-temp2;
 			}
 			break;
 
@@ -1056,9 +1119,11 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 			break;
 
 
-		} // end case
-*/
 
+
+		} // end case
+
+#endif
 
 
 
@@ -1074,65 +1139,27 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 		q31_delta_teta=(q31_t) (715827883/ui16_timertics); //60deg / timertics between two hall events
 		q31_rotorposition_absolute = q31_rotorposition_hall + ui16_tim2_recent*q31_delta_teta; //interpolate angle between two hallevents by scaling timer2 tics
 
-//debugging
-	/*	if(q31_rotorposition_absolute>>24!=angle_old){
-			angle_old = q31_rotorposition_absolute>>24;
-			if(ui8_print_flag==0){
-				angle[ui32_counter++][0] = q31_rotorposition_absolute>>24;
-				angle[ui32_counter][1] = temp5;
-				angle[ui32_counter][2] = temp6;
-				angle[ui32_counter][3] = temp1;
 
-				if(ui32_counter>255){
-						ui32_counter=0;
-						ui8_print_flag=1;
-					}
-			}
-		}*/
 	}
 	else
 	{ui8_overflow_flag=1;
 
 	}
+	}//end if angle detect
 
-	//q31_rotorposition_absolute=-(int32_t)((float)ui16_reg_adc_value/1580.0*2147483647.0);
-
-
-	// float with division! For debugging, not necessary
-	//temp2=(q31_t)((float)q31_rotorposition_absolute/2147483648.0*180.0);
-
+#ifndef DISABLE_DYNAMIC_ADC
 
 	//get the Phase with highest duty cycle for dynamic phase current reading
-	//dyn_adc_state(q31_rotorposition_absolute);
+	dyn_adc_state(q31_rotorposition_absolute);
 	//set the according injected channels to read current at Low-Side active time
-    //temp3=char_dyn_adc_state;
-/*
-	if (char_dyn_adc_state!=char_dyn_adc_state_old){
-		set_inj_channel(char_dyn_adc_state);
-		char_dyn_adc_state_old = char_dyn_adc_state;
+
+	if (MS.char_dyn_adc_state!=char_dyn_adc_state_old){
+		set_inj_channel(MS.char_dyn_adc_state);
+		char_dyn_adc_state_old = MS.char_dyn_adc_state;
+		HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
 		}
-*/
+#endif
 
-/*
-	//uint16_current_target=0;
-	// call FOC procedure
-	FOC_calculation(i16_ph1_current, i16_ph2_current, q31_rotorposition_absolute, uint16_current_target);
-
-	q31_teta_obs += q31_delta_teta;
-
-	//temp5=__HAL_TIM_GET_COUNTER(&htim1);
-	//set PWM
-	TIM1->CCR1 =  (uint16_t) switchtime[0];
-	TIM1->CCR2 =  (uint16_t) switchtime[1];
-	TIM1->CCR3 =  (uint16_t) switchtime[2];
-	//TIM1->CCR4 =  (uint16_t) q31_startpoint_conversion;
-
-
-	//HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
-	//read in timer for indication of processor load
-	//temp4=__HAL_TIM_GET_COUNTER(&htim1);*/
-
-	//HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
 
 }
 
@@ -1300,34 +1327,21 @@ int32_t map (int32_t x, int32_t in_min, int32_t in_max, int32_t out_min, int32_t
 //assuming, a proper AD conversion takes 350 timer tics, to be confirmed. DT+TR+TS deadtime + noise subsiding + sample time
 void dyn_adc_state(q31_t angle){
 	if (switchtime[2]>switchtime[0] && switchtime[2]>switchtime[1]){
-		char_dyn_adc_state = 1; // -90° .. +30°: Phase C at high dutycycles
-		if(q31_u_abs>1700){
-			/*if ((switchtime[2]-switchtime[0]<ADC_DUR)||(switchtime[2]-switchtime[1])<ADC_DUR){
-				//char_dyn_adc_state = 0; //time frame to small for ADC
-			}
-			else*/ TIM1->CCR4 = tim1cc4;//switchtime[2]-ADC_DUR; //set startpoint of ADC to 350 tics before highest phase is switched off
-		}
-		else TIM1->CCR4 =tim1cc4; //set startpoint of ADC to timer overflow
+		MS.char_dyn_adc_state = 1; // -90° .. +30°: Phase C at high dutycycles
+		if(switchtime[2]>1500)TIM1->CCR4 =  switchtime[2]-TRIGGER_OFFSET_ADC;
+		else TIM1->CCR4 = TRIGGER_DEFAULT;
 	}
+
 	if (switchtime[0]>switchtime[1] && switchtime[0]>switchtime[2]) {
-		char_dyn_adc_state = 2; // +30° .. 150° Phase A at high dutycycles
-		if(q31_u_abs>1700){
-			/*if ((switchtime[0]-switchtime[1]<ADC_DUR)||(switchtime[0]-switchtime[2])<ADC_DUR){
-				//char_dyn_adc_state = 0; //time frame to small for ADC
-			}
-			else*/ TIM1->CCR4 = tim1cc4;//switchtime[0]-ADC_DUR; //set startpoint of ADC to 350 tics before highest phase is switched off
-		}
-		else TIM1->CCR4 =tim1cc4; //set startpoint of ADC to timer overflow
+		MS.char_dyn_adc_state = 2; // +30° .. 150° Phase A at high dutycycles
+		if(switchtime[0]>1500)TIM1->CCR4 =  switchtime[0]-TRIGGER_OFFSET_ADC;
+		else TIM1->CCR4 = TRIGGER_DEFAULT;
 	}
+
 	if (switchtime[1]>switchtime[0] && switchtime[1]>switchtime[2]){
-		char_dyn_adc_state = 3; // +150 .. -90° Phase B at high dutycycles
-		if(q31_u_abs>1700){
-			/*if ((switchtime[1]-switchtime[0]<ADC_DUR)||(switchtime[1]-switchtime[2])<ADC_DUR){
-				//char_dyn_adc_state = 0; //time frame to small for ADC
-			}
-			else*/ TIM1->CCR4 = tim1cc4; //switchtime[1]-ADC_DUR; //set startpoint of ADC to 350 tics before highest phase is switched off
-		}
-		else TIM1->CCR4 =tim1cc4; //set startpoint of ADC to timer overflow
+		MS.char_dyn_adc_state = 3; // +150 .. -90° Phase B at high dutycycles
+		if(switchtime[1]>1500)TIM1->CCR4 =  switchtime[1]-TRIGGER_OFFSET_ADC;
+		else TIM1->CCR4 = TRIGGER_DEFAULT;
 	}
 }
 
@@ -1337,26 +1351,32 @@ static void set_inj_channel(char state){
 	case 1: //Phase C at high dutycycles, read current from phase A + B
 		 {
 			 ADC1->JSQR=0b00100000000000000000; //ADC1 injected reads phase A JL = 0b00, JSQ4 = 0b00100 (decimal 4 = channel 4)
-			 ADC1->JOFR1 = OFFSET_A;
+			 ADC1->JOFR1 = ui16_ph1_offset;
 			 ADC2->JSQR=0b00101000000000000000; //ADC2 injected reads phase B, JSQ4 = 0b00101, decimal 5
-			 ADC2->JOFR1 = OFFSET_B;
+			 ADC2->JOFR1 = ui16_ph2_offset;
+
+
 		 }
 			break;
 	case 2: //Phase A at high dutycycles, read current from phase C + B
 			 {
 				 ADC1->JSQR=0b00110000000000000000; //ADC1 injected reads phase C, JSQ4 = 0b00110, decimal 6
-				 ADC1->JOFR1 = OFFSET_C;
+				 ADC1->JOFR1 = ui16_ph3_offset;
 				 ADC2->JSQR=0b00101000000000000000; //ADC2 injected reads phase B, JSQ4 = 0b00101, decimal 5
-				 ADC2->JOFR1 = OFFSET_B;
+				 ADC2->JOFR1 = ui16_ph2_offset;
+
+
 			 }
 				break;
 
 	case 3: //Phase B at high dutycycles, read current from phase A + C
 			 {
 				 ADC1->JSQR=0b00100000000000000000; //ADC1 injected reads phase A JL = 0b00, JSQ4 = 0b00100 (decimal 4 = channel 4)
-				 ADC1->JOFR1 = OFFSET_A;
+				 ADC1->JOFR1 = ui16_ph1_offset;
 				 ADC2->JSQR=0b00110000000000000000; //ADC2 injected reads phase C, JSQ4 = 0b00110, decimal 6
-				 ADC2->JOFR1 = OFFSET_C;
+				 ADC2->JOFR1 = ui16_ph3_offset;
+
+
 			 }
 				break;
 
