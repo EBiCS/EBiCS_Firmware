@@ -144,12 +144,22 @@ void check_message(MotorState_t* MS_D)
 	((ui8_crc ^ 2) == ui8_rx_buffer [5])) 	   // CRC LCD3
    { //printf("message valid \r\n");
      lcd_configuration_variables.ui8_assist_level = ui8_rx_buffer [1] & 7;
+     lcd_configuration_variables.ui8_light = ui8_rx_buffer [1]>>7 & 1;
      lcd_configuration_variables.ui8_motor_characteristic = ui8_rx_buffer [3];
      lcd_configuration_variables.ui8_wheel_size = ((ui8_rx_buffer [4] & 192) >> 6) | ((ui8_rx_buffer [2] & 7) << 2);
      lcd_configuration_variables.ui8_max_speed = (10 + ((ui8_rx_buffer [2] & 248) >> 3)) | (ui8_rx_buffer [4] & 32);
      lcd_configuration_variables.ui8_power_assist_control_mode = ui8_rx_buffer [4] & 8;
      lcd_configuration_variables.ui8_controller_max_current = (ui8_rx_buffer [7] & 15);
      MS_D->assist_level=lcd_configuration_variables.ui8_assist_level;
+     if(lcd_configuration_variables.ui8_light){
+    	 HAL_GPIO_WritePin(LIGHT_GPIO_Port, LIGHT_Pin, GPIO_PIN_SET);
+    	 HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
+     }
+     else{
+    	 HAL_GPIO_WritePin(LIGHT_GPIO_Port, LIGHT_Pin, GPIO_PIN_RESET);
+    	 HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
+     }
+
      display_update(MS_D);
    }
  }

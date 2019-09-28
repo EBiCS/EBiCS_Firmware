@@ -70,6 +70,8 @@
 #define Phase_Current_3_GPIO_Port GPIOA
 #define LED_Pin GPIO_PIN_2
 #define LED_GPIO_Port GPIOB
+#define LIGHT_Pin GPIO_PIN_9
+#define LIGHT_GPIO_Port GPIOB
 #define PAS_Pin GPIO_PIN_8
 #define PAS_GPIO_Port GPIOB
 #define Speed_EXTI5_Pin GPIO_PIN_5

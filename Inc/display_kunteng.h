@@ -17,6 +17,7 @@ void check_message(MotorState_t* MS_D);
 typedef struct _lcd_configuration_variables
 {
   uint8_t ui8_assist_level;
+  uint8_t ui8_light;
   uint8_t ui8_motor_characteristic;
   uint8_t ui8_wheel_size;
   uint8_t ui8_max_speed;
