@@ -199,43 +199,26 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 	arm_park_q31(q31_i_alpha_corr, q31_i_beta_corr, &q31_i_d, &q31_i_q, sinevalue, cosinevalue);
 
 
-	q31_i_q_fil -= q31_i_q_fil>>3;
+	q31_i_q_fil -= q31_i_q_fil>>4;
 	q31_i_q_fil += q31_i_q;
-	q31_i_d_fil -= q31_i_d_fil>>3;
+	MS_FOC->i_q=q31_i_q_fil>>4;
+
+	q31_i_d_fil -= q31_i_d_fil>>4;
 	q31_i_d_fil += q31_i_d;
+	MS_FOC->i_d=q31_i_d_fil>>4;
 
 	if(q31_i_q>(PH_CURRENT_MAX<<2)){
 		TIM1->BDTR &= ~(1L<<15);		//disable PWM if overcurrent detected
 		while(1){}						//stay here until hard reset
 	}
-	//Control iq
+	//Control iq and id
 
 	PI_flag=1;
 
-	/*
-	q31_u_q =  PI_control_i_q(q31_i_q_fil>>3, (q31_t) int16_i_q_target);
 
-
-
-	//Control id
-	q31_u_d = -PI_control_i_d(q31_i_d_fil>>3, 0); //control direct current to zero
-
-	//limit voltage in rotating frame, refer chapter 4.10.1 of UM1052
-
-	q31_t	q31_u_abs = hypot(q31_u_q, q31_u_d); //absolute value of U in static frame
-	temp3 = q31_u_abs;
-
-
-	if (q31_u_abs > _U_MAX){
-		q31_u_q = (q31_u_q*_U_MAX)/q31_u_abs; //division!
-		q31_u_d = (q31_u_d*_U_MAX)/q31_u_abs; //division!
-		temp4=1;
-	}
-	else temp4=0;
-	*/
 if(!MS_FOC->Motor_state&&int16_i_q_target>0){
 
-	q31_u_d=200;
+	MS_FOC->u_d=200;
 	q31_teta_obs+=(2684354<<3);
 	startup_counter++;
 	if (startup_counter>5000){
@@ -247,10 +230,10 @@ if(!MS_FOC->Motor_state&&int16_i_q_target>0){
 
 
 	//inverse Park transformation
-	arm_inv_park_q31(q31_u_d, q31_u_q, &q31_u_alpha, &q31_u_beta, -sinevalue, cosinevalue);
+	arm_inv_park_q31(MS_FOC->u_d, MS_FOC->u_q, &q31_u_alpha, &q31_u_beta, -sinevalue, cosinevalue);
 
-	temp1= q31_i_q;
-	temp2= q31_i_alpha_corr;
+	//temp1= q31_i_q;
+	//temp2= q31_i_alpha_corr;
 	//temp3= q31_u_alpha;
     //temp4= q31_u_beta;
 
@@ -346,7 +329,7 @@ q31_t PI_control_i_d (q31_t ist, q31_t soll)
     static q31_t q31_d_i = 0;
     static q31_t q31_d_dc = 0;
 
-    q31_p=((soll - ist)*P_FACTOR_I_D)>>4;
+    q31_p=((soll - ist)*P_FACTOR_I_D)>>6;
     q31_d_i+=((soll - ist)*I_FACTOR_I_D)>>4;
 
     if (q31_d_i<-127)q31_d_i=-127;
@@ -409,12 +392,6 @@ void observer_update(long long v_alpha, long long v_beta, long long i_alpha, lon
 	long long dT = 13LL;
 	static long long x1=0;
 	static long long x2=0;
-	static long long iaf=0;
-	static long long ibf=0;
-	static long long vaf=0;
-	static long long vbf=0;
-	static long long eaf=0;
-	static long long ebf=0;
 
 
 
@@ -429,20 +406,6 @@ void observer_update(long long v_alpha, long long v_beta, long long i_alpha, lon
 		R += R * 0.00386 * (t - m_conf->foc_temp_comp_base_temp);
 	}*/
 
-
-
-	const char fact =4;
-	iaf +=i_alpha;
-	iaf -=iaf>>fact;
-
-	ibf +=i_beta;
-	ibf -=ibf>>fact;
-
-	vaf +=v_alpha;
-	vaf -=vaf>>fact;
-
-	vbf +=v_beta;
-	vbf -=vbf>>fact;
 
 
 

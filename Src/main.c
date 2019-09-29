@@ -88,6 +88,7 @@ uint32_t ui32_reg_adc_value_filter;
 uint16_t ui16_ph1_offset=0;
 uint16_t ui16_ph2_offset=0;
 uint16_t ui16_ph3_offset=0;
+q31_t q31_t_Battery_Current_accumulated;
 int16_t i16_ph1_current=0;
 
 int16_t i16_ph2_current=0;
@@ -352,7 +353,7 @@ int main(void) {
            }
 
            ADC1->JSQR=0b00100000000000000000; //ADC1 injected reads phase A JL = 0b00, JSQ4 = 0b00100 (decimal 4 = channel 4)
-          	ADC1->JOFR1 = ui16_ph1_offset;
+          ADC1->JOFR1 = ui16_ph1_offset;
 
           	ui8_adc_offset_done_flag=1;
 
@@ -379,29 +380,36 @@ int main(void) {
 	  //PI-control processing
 	  if(PI_flag){
 
-		  if(!MS.Motor_state&&uint16_current_target>0){ q31_u_q =  PI_control_i_q(q31_i_q_fil>>3, 160);}
+		  if(!MS.Motor_state&&uint16_current_target>0){ MS.u_q =  PI_control_i_q(MS.i_q, 160);}
 
 		  else {
 
+			  q31_u_q_temp =  PI_control_i_q(MS.i_q, (q31_t) uint16_current_target);
 
-			  q31_u_q = PI_control_i_q(q31_i_q_fil>>3, (q31_t) uint16_current_target);}
+			  q31_t_Battery_Current_accumulated -= q31_t_Battery_Current_accumulated>>8;
+			  q31_t_Battery_Current_accumulated += ((MS.i_q*MS.u_abs)>>11)*(uint16_t)(CAL_I>>8);
 
-		  	//Control id
-		  	  q31_u_d = -PI_control_i_d(q31_i_d_fil>>3, 0); //control direct current to zero
+			  MS.Battery_Current = q31_t_Battery_Current_accumulated>>8; //Battery current in mA
 
-		  	//limit voltage in rotating frame, refer chapter 4.10.1 of UM1052
+			  	//Control id
+			  q31_u_d_temp = -PI_control_i_d(MS.i_d, 0); //control direct current to zero
 
-		  	q31_u_abs = hypot(q31_u_q, q31_u_d); //absolute value of U in static frame
+			  	//limit voltage in rotating frame, refer chapter 4.10.1 of UM1052
+			  MS.u_abs = (q31_t)hypot((double)q31_u_d_temp, (double)q31_u_q_temp); //absolute value of U in static frame
 
 
 
-		  	if (q31_u_abs > _U_MAX){
-		  		q31_u_q = (q31_u_q*_U_MAX)/q31_u_abs; //division!
-		  		q31_u_d = (q31_u_d*_U_MAX)/q31_u_abs; //division!
-		  		q31_u_abs = _U_MAX;
-		  		}
-
-		  	PI_flag=0;
+				if (MS.u_abs > _U_MAX){
+					MS.u_q = (q31_u_q_temp*_U_MAX)/MS.u_abs; //division!
+					MS.u_d = (q31_u_d_temp*_U_MAX)/MS.u_abs; //division!
+					MS.u_abs = _U_MAX;
+				}
+				else{
+					MS.u_q=q31_u_q_temp;
+					MS.u_d=q31_u_d_temp;
+				}
+		  }
+			  	PI_flag=0;
 	  }
 
 
@@ -503,7 +511,7 @@ int main(void) {
 
 #if (DISPLAY_TYPE == DEBUG_SLOW_LOOP)
 		   //print values for debugging
-	  		sprintf_(buffer, "%d, %d, %d, %d, %d\r\n", (int16_t)q31_i_q_fil>>3, uint16_current_target, MS.Speed, q31_u_abs, TIM1->CCR4 );
+	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n", MS.i_q, uint16_current_target, MS.Speed, q31_u_abs, TIM1->CCR4 ,MS.u_q,MS.u_d);
 	  		i=0;
 		  while (buffer[i] != '\0')
 		  {i++;}
@@ -1109,6 +1117,7 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 				i16_ph1_current = temp1 ;
 				temp2=(q31_t)HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1);
 				i16_ph2_current = -i16_ph1_current-temp2;
+
 			}
 			break;
 
@@ -1156,7 +1165,6 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 	if (MS.char_dyn_adc_state!=char_dyn_adc_state_old){
 		set_inj_channel(MS.char_dyn_adc_state);
 		char_dyn_adc_state_old = MS.char_dyn_adc_state;
-		HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
 		}
 #endif
 
@@ -1328,19 +1336,19 @@ int32_t map (int32_t x, int32_t in_min, int32_t in_max, int32_t out_min, int32_t
 void dyn_adc_state(q31_t angle){
 	if (switchtime[2]>switchtime[0] && switchtime[2]>switchtime[1]){
 		MS.char_dyn_adc_state = 1; // -90° .. +30°: Phase C at high dutycycles
-		if(switchtime[2]>1500)TIM1->CCR4 =  switchtime[2]-TRIGGER_OFFSET_ADC;
+		if(switchtime[2]>TRIGGER_THRESHOLD)TIM1->CCR4 =  switchtime[2]-TRIGGER_OFFSET_ADC;
 		else TIM1->CCR4 = TRIGGER_DEFAULT;
 	}
 
 	if (switchtime[0]>switchtime[1] && switchtime[0]>switchtime[2]) {
 		MS.char_dyn_adc_state = 2; // +30° .. 150° Phase A at high dutycycles
-		if(switchtime[0]>1500)TIM1->CCR4 =  switchtime[0]-TRIGGER_OFFSET_ADC;
+		if(switchtime[0]>TRIGGER_THRESHOLD)TIM1->CCR4 =  switchtime[0]-TRIGGER_OFFSET_ADC;
 		else TIM1->CCR4 = TRIGGER_DEFAULT;
 	}
 
 	if (switchtime[1]>switchtime[0] && switchtime[1]>switchtime[2]){
 		MS.char_dyn_adc_state = 3; // +150 .. -90° Phase B at high dutycycles
-		if(switchtime[1]>1500)TIM1->CCR4 =  switchtime[1]-TRIGGER_OFFSET_ADC;
+		if(switchtime[1]>TRIGGER_THRESHOLD)TIM1->CCR4 =  switchtime[1]-TRIGGER_OFFSET_ADC;
 		else TIM1->CCR4 = TRIGGER_DEFAULT;
 	}
 }

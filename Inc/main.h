@@ -114,6 +114,12 @@ typedef struct
 
 	q31_t       	Voltage;
 	q31_t          	Current;
+	q31_t			Battery_Current;
+	q31_t			i_d;
+	q31_t			i_q;
+	q31_t			u_d;
+	q31_t			u_q;
+	q31_t			u_abs;
 	q31_t          	Speed;
 	q31_t          	Obs_Angle;
 	q31_t          	Hall_Angle;
