@@ -464,6 +464,8 @@ int main(void) {
 		  else uint16_current_target= 0;
 	  }
 	  else uint16_current_target = uint16_mapped_throttle;
+//reduce target, if speed goes to values where current measurement doesn't wo
+	  uint16_current_target = map(MS.Speed, 25 , 30, 0, uint16_current_target);
 
 #endif
 
@@ -505,7 +507,7 @@ int main(void) {
 	  //slow loop for non time critical operations
 	   if(ui32_tim1_counter>800){
 
-		   arm_sin_cos_q31(FILTER_DELAY/(MS.Speed>>5), &MS.sin_delay_filter, &MS.cos_delay_filter);
+		   arm_sin_cos_q31(FILTER_DELAY/((MS.Speed)+1), &MS.sin_delay_filter, &MS.cos_delay_filter);
 
 
 
@@ -1034,6 +1036,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		if(!Obs_flag)
 		{
 			// call FOC procedure
+
 			FOC_calculation(i16_ph1_current, i16_ph2_current, q31_rotorposition_absolute, uint16_current_target, &MS);
 
 		}

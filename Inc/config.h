@@ -31,7 +31,7 @@
 
 
 #define SPEC_ANGLE  -715827882L		//motor specific angle, refer to chapter 8.3.3 of UM1052.shengyi:-715827882L, 715827882 536870912 357913941L; //357913941 298261617 119304647L // 30° BionX IGH3 motor specific angle, refer to chapter 8.8.3 of UM1052 180° maped to 2^31
-#define FILTER_DELAY 119304647	 //1073741824L	// for angle correction of i_alfa + i_beta
+#define FILTER_DELAY 59652323<<5	 //1073741824L	// for angle correction of i_alfa + i_beta
 
 #define OFFSET_A 1993 //1025 				//Offset of current sensing phase A
 #define OFFSET_B 1977 //1022				//Offset of current sensing phase B
@@ -49,7 +49,7 @@
 
 
 #define _T 2048						//Periode des Timers1 zur Einstellung der PWM Frequenz 2048 ergibt 16kHz
-#define TRIGGER_OFFSET_ADC 50
+#define TRIGGER_OFFSET_ADC 75
 #define TRIGGER_DEFAULT 2020
 #define TRIGGER_THRESHOLD 1600
 
