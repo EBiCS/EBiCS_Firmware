@@ -242,7 +242,7 @@ if(!MS_FOC->Motor_state&&int16_i_q_target>20){
 	observer_update(((long long)q31_u_alpha*(long long)adcData[0]*CAL_V)>>11, ((long long)(-q31_u_beta*(long long)adcData[0]*CAL_V))>>11, (long long)((-q31_i_alpha_corr)*CAL_I), (long long)((-q31_i_beta_corr)*CAL_I), &fl_e_alpha_obs, &fl_e_beta_obs);
 
 if(MS_FOC->Motor_state){
-	q31_teta_obs=atan2_LUT(-fl_e_beta_obs,fl_e_alpha_obs)-811271600;//-811271600;//-930576247;//-1431655765;
+	q31_teta_obs=atan2_LUT(-fl_e_beta_obs,fl_e_alpha_obs)-1312351118;//-811271600;//-930576247;//-1431655765;
 }
 	if(q31_erps_counter<10000)q31_erps_counter++;
 	else {
