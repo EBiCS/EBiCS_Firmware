@@ -54,7 +54,7 @@
 #include "print.h"
 #include "FOC.h"
 
-#if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
+#if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_901U)
 #include "display_kingmeter.h"
 #endif
 
@@ -149,9 +149,7 @@ const q31_t DEG_minus60= -715827883;
 const q31_t DEG_minus120= -1431655765;
 
 //variables for display communication
-#if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
-KINGMETER_t KM;
-#endif
+
 int16_t battery_percent_fromcapacity = 11; 			//Calculation of used watthours not implemented yet
 int16_t wheel_time = 1000;							//duration of one wheel rotation for speed calculation
 int16_t current_display;							//pepared battery current for display
@@ -161,6 +159,9 @@ int16_t poti_stat;									//scaled assist level
 int16_t tim1cc4=1948;									//cc4 value of timer 1 for injected ADC timing
 
 MotorState_t MS;
+#if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
+KINGMETER_t KM;
+#endif
 
 
 /* USER CODE END PV */
@@ -188,6 +189,7 @@ void kingmeter_update(void);
 static void dyn_adc_state(q31_t angle);
 static void set_inj_channel(char state);
 int32_t map (int32_t x, int32_t in_min, int32_t in_max, int32_t out_min, int32_t out_max);
+
 
 
 /* USER CODE END PFP */
@@ -513,7 +515,7 @@ int main(void) {
 
 #if (DISPLAY_TYPE == DEBUG_SLOW_LOOP)
 		   //print values for debugging
-	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n", MS.i_q, uint16_current_target, MS.Speed, q31_u_abs, TIM1->CCR4 ,MS.u_q,MS.u_d);
+	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n", MS.i_q, uint16_current_target, MS.Speed, MS.u_abs, uint32_SPEED ,MS.u_q,MS.u_d);
 	  		i=0;
 		  while (buffer[i] != '\0')
 		  {i++;}
@@ -1258,7 +1260,7 @@ void kingmeter_update(void)
     if(__HAL_TIM_GET_COUNTER(&htim2) < 12000)
     {
         // Adapt wheeltime to match displayed speedo value according config.h setting
-        KM.Tx.Wheeltime_ms = (ui16_timertics>>1);
+        KM.Tx.Wheeltime_ms = (uint32_SPEED>>4); //16 kHz counter frequency, so 16 tics per ms
     }
     else
     {
@@ -1270,7 +1272,7 @@ void kingmeter_update(void)
 
     KM.Tx.Error = KM_ERROR_NONE;
 
-    KM.Tx.Current_x10 = (uint16_t) (temp1>>1);
+    KM.Tx.Current_x10 = (uint16_t) (MS.Battery_Current/100);
 
 
     /* Receive Rx parameters/settings and send Tx parameters */
@@ -1279,24 +1281,20 @@ void kingmeter_update(void)
 
     /* Apply Rx parameters */
 
-    #ifdef SUPPORT_LIGHTS_SWITCH
+
     if(KM.Rx.Headlight == KM_HEADLIGHT_OFF)
     {
-        digitalWrite(lights_pin, 0);
+    	HAL_GPIO_WritePin(LIGHT_GPIO_Port, LIGHT_Pin, GPIO_PIN_RESET);
     }
     else // KM_HEADLIGHT_ON, KM_HEADLIGHT_LOW, KM_HEADLIGHT_HIGH
     {
-        digitalWrite(lights_pin, 1);
+    	HAL_GPIO_WritePin(LIGHT_GPIO_Port, LIGHT_Pin, GPIO_PIN_SET);
     }
-    #endif
+
 
     if(KM.Rx.PushAssist == KM_PUSHASSIST_ON)
     {
-        #if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_901U)
-        throttle_stat = map(KM.Rx.AssistLevel, 0, 255, 0,1023);
-        #else
-        throttle_stat = 200;
-        #endif
+
     }
     else
     {
