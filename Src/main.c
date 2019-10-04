@@ -109,7 +109,7 @@ uint8_t ui8_UART_TxCplt_flag=1;
 uint8_t ui8_PAS_flag=0;
 uint8_t ui8_SPEED_flag=0;
 uint32_t uint32_PAS_counter= PAS_TIMEOUT+1;
-uint32_t uint32_SPEED_counter=32000;
+uint32_t uint32_SPEED_counter=64000;
 uint32_t uint32_PAS=32000;
 uint32_t uint32_SPEED=32000;
 uint32_t uint32_torque_cumulated=0;
@@ -366,7 +366,7 @@ int main(void) {
 
     MS.Speed=5000;
     MS.Motor_state=0;
-    printf_("Lishui FOC Sensorless v0.1 \r\n");
+  //  printf_("Lishui FOC Sensorless v0.1 \r\n");
 
 
 
@@ -510,7 +510,7 @@ int main(void) {
 	   if(ui32_tim1_counter>800){
 
 		   arm_sin_cos_q31(FILTER_DELAY/((MS.Speed)+1), &MS.sin_delay_filter, &MS.cos_delay_filter);
-
+		   if(uint32_SPEED_counter>63999)uint32_SPEED=64000;
 
 
 #if (DISPLAY_TYPE == DEBUG_SLOW_LOOP)
@@ -1019,7 +1019,7 @@ void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
 	  if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_4) {
 		  ui32_tim1_counter++;
 		  if (uint32_PAS_counter < PAS_TIMEOUT+1)uint32_PAS_counter++;
-		  uint32_SPEED_counter++;
+		  if(uint32_SPEED_counter<64000)uint32_SPEED_counter++;
 
 		//  HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
 
