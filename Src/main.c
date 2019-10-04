@@ -980,16 +980,17 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(PAS_GPIO_Port, &GPIO_InitStruct);*/
 
   /*Configure GPIO pins : Speed_EXTI5_Pin PAS_EXTI8_Pin */
-  GPIO_InitStruct.Pin = Speed_EXTI5_Pin|PAS_EXTI8_Pin;
+  GPIO_InitStruct.Pin = Speed_EXTI5_Pin|PAS_EXTI8_Pin|PAS2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pin : PAS2_Pin */
-  GPIO_InitStruct.Pin = PAS2_Pin;
+/*  GPIO_InitStruct.Pin = PAS2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+  */
 
 
   /* EXTI interrupt init*/
@@ -1004,6 +1005,9 @@ static void MX_GPIO_Init(void)
 
   HAL_NVIC_SetPriority(EXTI9_5_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
+
+  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 
 }
 
@@ -1221,7 +1225,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 	//PAS processing
 	if(GPIO_Pin == PAS_EXTI8_Pin)
 	{
-		//ui8_PAS_flag = 1;
+		ui8_PAS_flag = 1;
 	}
 
 	//Speed processing
