@@ -46,10 +46,70 @@ UART_HandleTypeDef huart1;
 #if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_901U)
 const uint8_t KM_901U_HANDSHAKE[64] =
 {
-    201, 107,  13, 229, 241, 198, 108, 230, 186,  67,  39,  92, 217, 140, 177,  36,
-     22,  71, 174,  39, 161, 151,   7, 140, 107, 155, 189, 195, 209, 106,  63, 191,
-    218,  47, 221,  46, 135, 145,  98,  82,  35,  42,  85,  99,  35,  43, 180,  12,
-      3, 126,  94, 103, 198,  10, 182, 249, 253,  86, 105, 196, 217, 183, 195, 115
+		137,
+		159,
+		134,
+		249,
+		88,
+		11,
+		250,
+		61,
+		33,
+		150,
+		3,
+		193,
+		118,
+		141,
+		209,
+		94,
+		226,
+		68,
+		146,
+		158,
+		145,
+		127,
+		216,
+		62,
+		116,
+		230,
+		101,
+		211,
+		251,
+		54,
+		229,
+		247,
+		20,
+		222,
+		59,
+		63,
+		35,
+		252,
+		142,
+		238,
+		23,
+		197,
+		84,
+		77,
+		147,
+		173,
+		210,
+		57,
+		142,
+		223,
+		157,
+		97,
+		36,
+		160,
+		229,
+		237,
+		75,
+		80,
+		37,
+		113,
+		154,
+		88,
+		23,
+		120
 };
 #endif
 
@@ -292,6 +352,8 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
     static  uint8_t  TxBuff[KM_MAX_TXBUFF];
     uint8_t  TxCnt;
 
+    i=KM_ctx->RxBuff[2];
+
 	switch (first_run_flag)
 	{
 
@@ -320,16 +382,27 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
     TxBuff[4] = 0x00;
     TxBuff[5] = 0x00;
     TxBuff[6] = 0x0D;
-    TxBuff[7] = 0xD1;
+    TxBuff[7] = KM_901U_HANDSHAKE[KM_ctx->RxBuff[4]];
     TxBuff[8] = 0x00;
-    TxBuff[9] = 0x50;
-    TxBuff[10] = 0x01;
+
+    CheckSum = 0x0000;
+    for(i=1; i<8; i++)
+                {
+
+                    CheckSum = CheckSum + TxBuff[i];                        // Calculate CheckSum
+                }
+    TxBuff[9]=lowByte(CheckSum);							// Low Byte of checksum
+    TxBuff[10]=highByte(CheckSum);
+    //TxBuff[9] = 0x50;
+    //TxBuff[10] = 0x01;
     TxBuff[11] = 0x0D;
     TxBuff[12] = 0x0A;
 
    // 3A 1A 53 05 00 00 0D D1 00 50 01 0D 0A
 
     HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuff, 13);
+   // HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&KM_ctx->RxBuff, 10);
+
     HAL_Delay(5);
     first_run_flag=3;
     break;
