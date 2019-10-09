@@ -284,7 +284,7 @@ int main(void) {
     TIM1->CCR4 = TRIGGER_DEFAULT; //ADC sampling just before timer overflow (just before middle of PWM-Cycle)
 
     //TIM1->BDTR |= 1L<<15;
-   // TIM1->BDTR &= ~(1L<<15); //reset MOE (Main Output Enable) bit to disable PWM output
+
     // Start Timer 2
        if(HAL_TIM_Base_Start_IT(&htim2) != HAL_OK)
          {
@@ -293,23 +293,14 @@ int main(void) {
          }
 
        // Start Timer 3
-          if(HAL_TIM_Base_Start_IT(&htim3) != HAL_OK)
+
+       if(HAL_TIM_Base_Start_IT(&htim3) != HAL_OK)
             {
               /* Counter Enable Error */
               Error_Handler();
             }
 
-/*
-      // HAL_TIM_GenerateEvent(&htim1, TIM_EVENTSOURCE_CC4);
-       __HAL_LOCK(&htim1);
-       SET_BIT(TIM1->EGR, TIM_EGR_CC4G);//capture compare ch 4 event
-       SET_BIT(TIM1->EGR, TIM_EGR_TG);//Trigger generation
-       SET_BIT(TIM1->BDTR, TIM_AUTOMATICOUTPUT_ENABLE);//Trigger generation
 
-       __HAL_UNLOCK(&htim1);
-       SET_BIT(ADC1->CR2, ADC_CR2_JEXTTRIG);//external trigger enable
-
-*/
 #if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
        //Init KingMeter Display
        KingMeter_Init (&KM);
@@ -367,6 +358,8 @@ int main(void) {
     MS.Speed=5000;
     MS.Motor_state=0;
   //  printf_("Lishui FOC Sensorless v0.1 \r\n");
+
+    TIM1->BDTR &= ~(1L<<15); //reset MOE (Main Output Enable) bit to disable PWM output
 
 
 
@@ -515,7 +508,7 @@ int main(void) {
 
 #if (DISPLAY_TYPE == DEBUG_SLOW_LOOP)
 		   //print values for debugging
-	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n", MS.i_q, uint16_current_target, MS.Speed, MS.u_abs, uint32_SPEED ,MS.u_q,MS.u_d);
+	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n", i16_ph1_current, adcData[2], MS.Speed, MS.u_abs, uint32_SPEED ,MS.u_q,MS.u_d);
 	  		i=0;
 		  while (buffer[i] != '\0')
 		  {i++;}
@@ -609,7 +602,7 @@ static void MX_ADC1_Init(void)
   hadc1.Init.ScanConvMode = ADC_SCAN_ENABLE; //Scan muß für getriggerte Wandlung gesetzt sein
   hadc1.Init.ContinuousConvMode = DISABLE;
   hadc1.Init.DiscontinuousConvMode = DISABLE;
-  hadc1.Init.ExternalTrigConv = ADC_EXTERNALTRIGCONV_T1_CC1;// // ADC_SOFTWARE_START; //
+  hadc1.Init.ExternalTrigConv = ADC_EXTERNALTRIGCONV_T3_TRGO;//ADC_EXTERNALTRIGCONV_T1_CC1;// // ADC_SOFTWARE_START; //
   hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
   hadc1.Init.NbrOfConversion = 5;
   hadc1.Init.NbrOfDiscConversion = 0;
@@ -876,7 +869,7 @@ static void MX_TIM3_Init(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
-  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_OC1;
   sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
   if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig) != HAL_OK)
   {
