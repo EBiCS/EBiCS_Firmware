@@ -13,8 +13,8 @@
 //#define DISPLAY_TYPE DISPLAY_TYPE_KINGMETER_618U			//Kingmeter J-LCD
 //#define DISPLAY_TYPE DISPLAY_TYPE_KINGMETER_901U			//Kingmeter KM5S
 //#define DISPLAY_TYPE DISPLAY_TYPE_BAFANG					//Bafang "Blaupunkt"
-#define DISPLAY_TYPE DISPLAY_TYPE_KUNTENG					//Kunteng LCD3/5
-//#define DISPLAY_TYPE DISPLAY_TYPE_DEBUG					//ASCII Parameter Printout on UART
+//#define DISPLAY_TYPE DISPLAY_TYPE_KUNTENG					//Kunteng LCD3/5
+#define DISPLAY_TYPE DISPLAY_TYPE_DEBUG					//ASCII Parameter Printout on UART
 
 //#define DISABLE_DYNAMIC_ADC
 //#define FAST_LOOP_LOG
@@ -23,20 +23,22 @@
 #define TRIGGER_DEFAULT 2020
 
 #define WHEEL_CIRCUMFERENCE 2202L 		//wheel circumference in mm
+#define GEAR_RATIO 60					// number of pole pairs x mechanical gear ratio
+#define SPEEDLIMIT 25
 #define PULSES_PER_REVOLUTION 1
-#define THROTTLE_OFFSET 950 			//ADC-value at closed throttle 670 for throttle, 1255 for TS
-#define THROTTLE_MAX 3015 				//ADC-value at closed throttle 670 for throttle, 1255 for TS
+#define THROTTLE_OFFSET 10 			//ADC-value at closed throttle 670 for throttle, 1255 for TS
+#define THROTTLE_MAX 4096 				//ADC-value at closed throttle 670 for throttle, 1255 for TS
 #define TS_COEF 2000					//coefficient for torque-sensor-mode
 //#define TS_MODE						//Torquesensor-Mode
 #define PAS_TIMEOUT 12000				//time tics @ 16kHz untils motor stops
 #define RAMP_END 4000					//time tics @ 16kHz where motor reaches full level power
-#define PH_CURRENT_MAX 450				//iq value (phase current in rotating frame), not calibrated yet
+#define PH_CURRENT_MAX 150				//iq value (phase current in rotating frame), not calibrated yet
 
 #define P_FACTOR_I_Q 0.1L					//proportional factor for PI control of iq
 #define I_FACTOR_I_Q 0.01L				//integral factor for PI control of iq
 #define P_FACTOR_I_D 1L					//proportional factor for PI control of id
 #define I_FACTOR_I_D 1L					//integral factor for PI control of id
-#define SPEC_ANGLE -357913855  			//-715827882LL	for Shengyi Middrive, -357913855 for BionX IGH3		//motor specific angle, refer to chapter 8.3.3 of UM1052.shengyi:-715827882L, 715827882 536870912 357913941L; //357913941 298261617 119304647L // 30° BionX IGH3 motor specific angle, refer to chapter 8.8.3 of UM1052 180° maped to 2^31
+#define SPEC_ANGLE -715827882LL  			//-715827882LL	for Shengyi Middrive, -357913855 for BionX IGH3		//motor specific angle, refer to chapter 8.3.3 of UM1052.shengyi:-715827882L, 715827882 536870912 357913941L; //357913941 298261617 119304647L // 30° BionX IGH3 motor specific angle, refer to chapter 8.8.3 of UM1052 180° maped to 2^31
 
 #define _T 2028
 #define OFFSET_A 1980 //1025 				//Offset of current sensing phase A

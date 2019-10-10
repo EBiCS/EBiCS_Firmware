@@ -154,6 +154,9 @@ const q31_t DEG_plus180= 2147483647;
 const q31_t DEG_minus60= -715827883;
 const q31_t DEG_minus120= -1431655765;
 
+const q31_t tics_lower_limit = WHEEL_CIRCUMFERENCE*5*3600/(6*GEAR_RATIO*SPEEDLIMIT*10);
+const q31_t tics_higher_limit = WHEEL_CIRCUMFERENCE*5*3600/(6*GEAR_RATIO*(SPEEDLIMIT+2)*10);
+q31_t q31_tics_filtered=128000;
 //variables for display communication
 
 //variables for display communication
@@ -557,8 +560,10 @@ int main(void)
 	  else uint16_current_target = uint16_mapped_throttle;										//throttle override: set recent throttle value as current target
 
 #endif
+	 uint16_current_target=map(q31_tics_filtered>>3,tics_higher_limit,tics_lower_limit,0,uint16_current_target); //ramp down current at speed limit
 
-	  //slow loop procedere
+
+	 //slow loop procedere
 	  if(ui32_tim1_counter>1600){
 
 		  MS.Voltage=adcData[0];
@@ -568,7 +573,7 @@ int main(void)
 		  //print values for debugging
 
 
-	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", MS.i_q, MS.u_abs , uint16_current_target, MS.Battery_Current, MS.u_d, MS.i_d, uint32_PAS, MS.Speed);//((q31_i_q_fil*q31_u_abs)>>14)*
+	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", MS.i_q, MS.u_abs , uint16_current_target, MS.Battery_Current, q31_tics_filtered>>3,tics_lower_limit,tics_higher_limit, MS.Speed);//((q31_i_q_fil*q31_u_abs)>>14)*
 	  	//	sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5])) ;
 
 	  	  i=0;
@@ -1170,6 +1175,8 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 
 	if(ui16_tim2_recent>100){//debounce
 		ui16_timertics = ui16_tim2_recent; //save timertics since last hall event
+		q31_tics_filtered-=q31_tics_filtered>>3;
+		q31_tics_filtered+=ui16_timertics;
 	   __HAL_TIM_SET_COUNTER(&htim2,0); //reset tim2 counter
 	   ui8_overflow_flag=0;
 
