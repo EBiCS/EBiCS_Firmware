@@ -359,9 +359,9 @@ int main(void) {
     MS.Motor_state=0;
   //  printf_("Lishui FOC Sensorless v0.1 \r\n");
 
-    TIM1->BDTR &= ~(1L<<15); //reset MOE (Main Output Enable) bit to disable PWM output
+    //TIM1->BDTR &= ~(1L<<15); //reset MOE (Main Output Enable) bit to disable PWM output
 
-
+    CLEAR_BIT(TIM1->BDTR, TIM_BDTR_MOE);
 
 
   /* USER CODE END 2 */
@@ -465,7 +465,7 @@ int main(void) {
 #endif
 
 	  //enable PWM output, if power is wanted
-	  if (uint16_current_target>0)TIM1->BDTR |= 1L<<15; //set MOE bit
+	  if (uint16_current_target>0) SET_BIT(TIM1->BDTR, TIM_BDTR_MOE);//TIM1->BDTR |= 1L<<15; //set MOE bit
 /*
 	  if(q31_rotorposition_absolute>>24!=angle_old){
 	  			angle_old = q31_rotorposition_absolute>>24;
@@ -505,6 +505,7 @@ int main(void) {
 		   arm_sin_cos_q31(FILTER_DELAY/((MS.Speed)+1), &MS.sin_delay_filter, &MS.cos_delay_filter);
 		   if(uint32_SPEED_counter>63999)uint32_SPEED=64000;
 
+		   if(!MS.Motor_state&&READ_BIT(TIM1->BDTR, TIM_BDTR_MOE))CLEAR_BIT(TIM1->BDTR, TIM_BDTR_MOE); //disable
 
 #if (DISPLAY_TYPE == DEBUG_SLOW_LOOP)
 		   //print values for debugging
@@ -1034,10 +1035,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		//temp5=q31_rotorposition_absolute>>24;
 		if(!Obs_flag)
 		{
-			// call FOC procedure
-
-			FOC_calculation(i16_ph1_current, i16_ph2_current, q31_rotorposition_absolute, uint16_current_target, &MS);
-
+			// call FOC procedure, if PWM is enabled
+			if(READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)){
+				FOC_calculation(i16_ph1_current, i16_ph2_current, q31_rotorposition_absolute, uint16_current_target, &MS);
+			}
 		}
 
 		else{
