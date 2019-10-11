@@ -78,6 +78,8 @@ DMA_HandleTypeDef hdma_adc1;
 
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
+TIM_HandleTypeDef htim3;
+
 
 UART_HandleTypeDef huart1;
 DMA_HandleTypeDef hdma_usart1_tx;
@@ -88,6 +90,7 @@ DMA_HandleTypeDef hdma_usart1_rx;
 
 
 uint32_t ui32_tim1_counter=0;
+uint32_t ui32_tim3_counter=0;
 uint8_t ui8_hall_state=0;
 uint8_t ui8_hall_state_old=0;
 uint16_t ui16_tim2_recent=0;
@@ -196,6 +199,7 @@ static void MX_TIM1_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_ADC2_Init(void);
 static void MX_TIM2_Init(void);
+static void MX_TIM3_Init(void);
 
 
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
@@ -287,6 +291,7 @@ int main(void)
   HAL_ADC_Start_IT(&hadc2);
   MX_TIM1_Init(); //Hier die Reihenfolge getauscht!
   MX_TIM2_Init();
+  MX_TIM3_Init();
 
  // Start Timer 1
     if(HAL_TIM_Base_Start_IT(&htim1) != HAL_OK)
@@ -318,6 +323,15 @@ int main(void)
            /* Counter Enable Error */
            Error_Handler();
          }
+
+       // Start Timer 3
+
+       if(HAL_TIM_Base_Start_IT(&htim3) != HAL_OK)
+            {
+              /* Counter Enable Error */
+              Error_Handler();
+            }
+
 
 /*
       // HAL_TIM_GenerateEvent(&htim1, TIM_EVENTSOURCE_CC4);
@@ -422,6 +436,7 @@ int main(void)
 
     printf_("Lishui FOC v0.9 \n ");
     HAL_Delay(5);
+    CLEAR_BIT(TIM1->BDTR, TIM_BDTR_MOE);//Disable PWM
 
 
 
@@ -562,12 +577,16 @@ int main(void)
 #endif
 	 uint16_current_target=map(q31_tics_filtered>>3,tics_higher_limit,tics_lower_limit,0,uint16_current_target); //ramp down current at speed limit
 
-
+	 if (uint16_current_target>0) SET_BIT(TIM1->BDTR, TIM_BDTR_MOE); //enable PWM if power is wanted
 	 //slow loop procedere
-	  if(ui32_tim1_counter>1600){
+	  if(ui32_tim3_counter>800){
+
+
 
 		  MS.Voltage=adcData[0];
 		  if(uint32_SPEED_counter>127999)MS.Speed =128000;
+
+		  if(__HAL_TIM_GET_COUNTER(&htim2)>60000&&READ_BIT(TIM1->BDTR, TIM_BDTR_MOE))CLEAR_BIT(TIM1->BDTR, TIM_BDTR_MOE); //Disable PWM if motor is not turning
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG && !defined(FAST_LOOP_LOG))
 		  //print values for debugging
@@ -581,7 +600,7 @@ int main(void)
 		  {i++;}
 		 HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);
 
-		  ui32_tim1_counter=0;
+		  ui32_tim3_counter=0;
 		  ui8_print_flag=0;
 
 #endif
@@ -668,7 +687,7 @@ static void MX_ADC1_Init(void)
   hadc1.Init.ScanConvMode = ADC_SCAN_ENABLE; //Scan muß für getriggerte Wandlung gesetzt sein
   hadc1.Init.ContinuousConvMode = DISABLE;
   hadc1.Init.DiscontinuousConvMode = DISABLE;
-  hadc1.Init.ExternalTrigConv = ADC_EXTERNALTRIGCONV_T1_CC1;// // ADC_SOFTWARE_START; //
+  hadc1.Init.ExternalTrigConv = ADC_EXTERNALTRIGCONV_T3_TRGO;// Trigger regular ADC with timer 3 ADC_EXTERNALTRIGCONV_T1_CC1;// // ADC_SOFTWARE_START; //
   hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
   hadc1.Init.NbrOfConversion = 5;
   hadc1.Init.NbrOfDiscConversion = 0;
@@ -911,6 +930,41 @@ static void MX_TIM2_Init(void)
 
 }
 
+/* TIM3 init function 8kHz interrupt frequency for regular adc triggering */
+static void MX_TIM3_Init(void)
+{
+
+  TIM_ClockConfigTypeDef sClockSourceConfig;
+  TIM_MasterConfigTypeDef sMasterConfig;
+
+  htim3.Instance = TIM3;
+  htim3.Init.Prescaler = 0;
+  htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim3.Init.Period = 7813;
+  htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim3, &sClockSourceConfig) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_OC1;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+  HAL_TIM_MspPostInit(&htim3);
+
+}
+
 /* USART1 init function */
 static void MX_USART1_UART_Init(void)
 {
@@ -1024,7 +1078,13 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+	if (htim == &htim3) {
+		if(ui32_tim3_counter<32000)ui32_tim3_counter++;
 
+	}
+}
 
 
 
@@ -1146,9 +1206,11 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 #endif
 
 	//uint16_current_target=0;
-	// call FOC procedure
-	FOC_calculation(i16_ph1_current, i16_ph2_current, q31_rotorposition_absolute, uint16_current_target, &MS);
+	// call FOC procedure if PWM is enabled
 
+	if (READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)){
+	FOC_calculation(i16_ph1_current, i16_ph2_current, q31_rotorposition_absolute, uint16_current_target, &MS);
+	}
 	//temp5=__HAL_TIM_GET_COUNTER(&htim1);
 	//set PWM
 	TIM1->CCR1 =  (uint16_t) switchtime[0];
