@@ -465,7 +465,11 @@ int main(void) {
 #endif
 
 	  //enable PWM output, if power is wanted
-	  if (uint16_current_target>0) SET_BIT(TIM1->BDTR, TIM_BDTR_MOE);//TIM1->BDTR |= 1L<<15; //set MOE bit
+	  if (uint16_current_target>0&&!READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)) {
+
+		  SET_BIT(TIM1->BDTR, TIM_BDTR_MOE);//TIM1->BDTR |= 1L<<15; //set MOE bit
+
+	  }
 /*
 	  if(q31_rotorposition_absolute>>24!=angle_old){
 	  			angle_old = q31_rotorposition_absolute>>24;
@@ -506,10 +510,11 @@ int main(void) {
 		   if(uint32_SPEED_counter>63999)uint32_SPEED=64000;
 
 		   if(!MS.Motor_state&&READ_BIT(TIM1->BDTR, TIM_BDTR_MOE))CLEAR_BIT(TIM1->BDTR, TIM_BDTR_MOE); //disable
-
+		   if(READ_BIT(TIM1->BDTR, TIM_BDTR_MOE))temp3=1;
+		   else temp3=0;
 #if (DISPLAY_TYPE == DEBUG_SLOW_LOOP)
 		   //print values for debugging
-	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n", i16_ph1_current, adcData[2], MS.Speed, MS.u_abs, uint32_SPEED ,MS.u_q,MS.u_d);
+	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n", i16_ph1_current, adcData[1], MS.Speed, MS.u_abs, MS.Motor_state, uint16_current_target, MS.i_q);
 	  		i=0;
 		  while (buffer[i] != '\0')
 		  {i++;}
@@ -774,7 +779,7 @@ static void MX_TIM1_Init(void)
   sConfigOC.OCNPolarity = TIM_OCNPOLARITY_LOW;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
   sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
-  sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_RESET;
+  sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_SET;
   if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);

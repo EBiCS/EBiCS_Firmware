@@ -242,7 +242,7 @@ if(!MS_FOC->Motor_state&&int16_i_q_target>20){
 	observer_update(((long long)q31_u_alpha*(long long)adcData[0]*CAL_V)>>11, ((long long)(-q31_u_beta*(long long)adcData[0]*CAL_V))>>11, (long long)((-q31_i_alpha_corr)*CAL_I), (long long)((-q31_i_beta_corr)*CAL_I), &fl_e_alpha_obs, &fl_e_beta_obs);
 
 if(MS_FOC->Motor_state){
-	q31_teta_obs=atan2_LUT(-fl_e_beta_obs,fl_e_alpha_obs)-1312351118;//-811271600;//-930576247;//-1431655765;
+	q31_teta_obs=atan2_LUT(-fl_e_beta_obs,fl_e_alpha_obs)-811271600;//1312351118;//-811271600;//-930576247;//-1431655765;
 }
 	if(q31_erps_counter<10000)q31_erps_counter++;
 	else {
@@ -309,6 +309,8 @@ q31_t PI_control_i_q (q31_t ist, q31_t soll)
   if ((q31_t)flt_q_i>_U_MAX) flt_q_i=(float)_U_MAX;
   if ((q31_t)flt_q_i<0) flt_q_i = 0 ;
 
+  if(!READ_BIT(TIM1->BDTR, TIM_BDTR_MOE))flt_q_i = 0;
+
     //avoid too big steps in one loop run
   if (q31_p+(q31_t)flt_q_i>q31_q_dc+5) q31_q_dc+=5;
   else if  (q31_p+(q31_t)flt_q_i<q31_q_dc-5)q31_q_dc-=5;
@@ -335,6 +337,7 @@ q31_t PI_control_i_d (q31_t ist, q31_t soll)
 
     if (q31_d_i<-127)q31_d_i=-127;
     if (q31_d_i>127)q31_d_i=127;
+    if(!READ_BIT(TIM1->BDTR, TIM_BDTR_MOE))q31_d_i=0;
     //avoid too big steps in one loop run
     if (q31_p+q31_d_i>q31_d_dc+5) q31_d_dc+=5;
     else if  (q31_p+q31_d_i<q31_d_dc-5) q31_d_dc-=5;
@@ -475,7 +478,7 @@ void observer_update(long long v_alpha, long long v_beta, long long i_alpha, lon
 
 	//temp1 =-R_ia;
 	//temp2 =v_alpha;
-	temp3 =((*e_alpha * err)>>gamma_tmp);
+	//temp3 =((*e_alpha * err)>>gamma_tmp);
 	temp4 =err;
 
 
