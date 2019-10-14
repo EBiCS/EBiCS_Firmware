@@ -9,9 +9,9 @@
 #define DEBUG_SLOW_LOOP (1<<2)
 #define DEBUG_FAST_LOOP (1<<3)
 
-//#define DISPLAY_TYPE DISPLAY_TYPE_KINGMETER_901U
+#define DISPLAY_TYPE DISPLAY_TYPE_KINGMETER_901U
 
-#define DISPLAY_TYPE DEBUG_SLOW_LOOP
+//#define DISPLAY_TYPE DEBUG_SLOW_LOOP
 //#define DISPLAY_TYPE DEBUG_FAST_LOOP
 
 
@@ -30,7 +30,8 @@
 #define I_FACTOR_I_D 1L				//integral factor for PI control of id
 
 
-#define SPEC_ANGLE  -715827882L		//motor specific angle, refer to chapter 8.3.3 of UM1052.shengyi:-715827882L, 715827882 536870912 357913941L; //357913941 298261617 119304647L // 30° BionX IGH3 motor specific angle, refer to chapter 8.8.3 of UM1052 180° maped to 2^31
+//#define SPEC_ANGLE  -811271600L		//Shengyi Mittelmotor per trial and error
+#define SPEC_ANGLE  -1312351118L		//Shengyi Heckmotor aus Fischer ETH1606 per trial and error
 #define FILTER_DELAY 59652323<<5	 //1073741824L	// for angle correction of i_alfa + i_beta
 
 #define OFFSET_A 1993 //1025 				//Offset of current sensing phase A
@@ -43,9 +44,9 @@
 
 //Constants for Motor model of observer
 #define INDUCTANCE	2LL		//war nach Messung 13 (mit einfachem LCR-Tester)		//H = V*s/A Induktivität in µH/100 Shengyi hat 200µHenry Induktivität 2^16*0,0002 -->>>16 in Observer um auf Henry zukommen
-#define RESISTANCE 80LL		//war nach Messung 60	//Ohm = V/A Widerstand in Shengi ist 117mOhm -->2^9*0,117 >>9 in Observer um auf Ohm zu kommen.
-#define FLUX_LINKAGE 1800LL			//V*s/rad von Hand angepasst
-#define GAMMA 10LL					//per trial and error
+#define RESISTANCE 120LL		//war nach Messung 60	//Ohm = V/A Widerstand in Shengi ist 117mOhm -->2^9*0,117 >>9 in Observer um auf Ohm zu kommen.
+#define FLUX_LINKAGE 2400LL			//V*s/rad von Hand angepasst
+#define GAMMA 13LL					//per trial and error
 
 
 #define _T 2048						//Periode des Timers1 zur Einstellung der PWM Frequenz 2048 ergibt 16kHz
