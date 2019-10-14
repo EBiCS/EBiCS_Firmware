@@ -141,6 +141,7 @@ q31_t PI_control_i_q (q31_t ist, q31_t soll)
 
   if ((q31_t)flt_q_i>_U_MAX) flt_q_i=(float)_U_MAX;
   if ((q31_t)flt_q_i<0) flt_q_i = 0 ;
+  if(!READ_BIT(TIM1->BDTR, TIM_BDTR_MOE))flt_q_i = 0 ; //reset integral part if PWM is disabled
 
     //avoid too big steps in one loop run
   if (q31_p+(q31_t)flt_q_i>q31_q_dc+5) q31_q_dc+=5;
@@ -150,6 +151,7 @@ q31_t PI_control_i_q (q31_t ist, q31_t soll)
 
   if (q31_q_dc>_U_MAX) q31_q_dc = _U_MAX;
   if (q31_q_dc<0) q31_q_dc = 0; // allow no negative voltage.
+
 
   return (q31_q_dc);
 }
@@ -166,6 +168,8 @@ q31_t PI_control_i_d (q31_t ist, q31_t soll)
 
     if (q31_d_i<-1800)q31_d_i=-1800;
     if (q31_d_i>1800)q31_d_i=1800;
+
+    if(!READ_BIT(TIM1->BDTR, TIM_BDTR_MOE))q31_d_i = 0 ; //reset integral part if PWM is disabled
     //avoid too big steps in one loop run
     if (q31_p+q31_d_i>q31_d_dc+5) q31_d_dc+=5;
     else if  (q31_p+q31_d_i<q31_d_dc-5) q31_d_dc-=5;

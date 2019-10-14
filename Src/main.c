@@ -577,7 +577,7 @@ int main(void)
 #endif
 	 uint16_current_target=map(q31_tics_filtered>>3,tics_higher_limit,tics_lower_limit,0,uint16_current_target); //ramp down current at speed limit
 
-	 if (uint16_current_target>0) SET_BIT(TIM1->BDTR, TIM_BDTR_MOE); //enable PWM if power is wanted
+	 if (uint16_current_target>0&&!READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)) SET_BIT(TIM1->BDTR, TIM_BDTR_MOE); //enable PWM if power is wanted
 	 //slow loop procedere
 	  if(ui32_tim3_counter>800){
 
@@ -858,7 +858,7 @@ static void MX_TIM1_Init(void)
   sConfigOC.OCNPolarity = TIM_OCNPOLARITY_LOW;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
   sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
-  sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_RESET;
+  sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_SET;
   if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
