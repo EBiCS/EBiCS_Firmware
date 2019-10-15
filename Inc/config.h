@@ -25,14 +25,14 @@
 #define PH_CURRENT_MAX 300			//iq value (phase current in rotating frame), not calibrated yet
 
 #define P_FACTOR_I_Q 0.01				//proportional factor for PI control of iq
-#define I_FACTOR_I_Q 0.004			//integral factor for PI control of iq
+#define I_FACTOR_I_Q 0.008			//integral factor for PI control of iq
 #define P_FACTOR_I_D 1L				//proportional factor for PI control of id
 #define I_FACTOR_I_D 1L				//integral factor for PI control of id
 
 
 //#define SPEC_ANGLE  -811271600L		//Shengyi Mittelmotor per trial and error
 #define SPEC_ANGLE  -1312351118L		//Shengyi Heckmotor aus Fischer ETH1606 per trial and error
-#define FILTER_DELAY 59652323<<5	 //1073741824L	// for angle correction of i_alfa + i_beta
+#define FILTER_DELAY 59652323<<4	 //1073741824L	// for angle correction of i_alfa + i_beta
 
 #define OFFSET_A 1993 //1025 				//Offset of current sensing phase A
 #define OFFSET_B 1977 //1022				//Offset of current sensing phase B

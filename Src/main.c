@@ -460,7 +460,7 @@ int main(void) {
 	  }
 	  else uint16_current_target = uint16_mapped_throttle;
 //reduce target, if speed goes to values where current measurement doesn't wo
-	  uint16_current_target = map(MS.Speed, 25 , 30, 0, uint16_current_target);
+	  uint16_current_target = map(MS.Speed, 25 , 45, 0, uint16_current_target);
 
 #endif
 
@@ -514,7 +514,7 @@ int main(void) {
 		   else temp3=0;
 #if (DISPLAY_TYPE == DEBUG_SLOW_LOOP)
 		   //print values for debugging
-	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n", i16_ph1_current, adcData[1], MS.Speed, MS.u_abs, MS.Motor_state, uint16_current_target, MS.i_q);
+	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n", uint16_current_target, MS.i_q, adcData[0], adcData[1], MS.Speed, MS.u_abs, MS.Motor_state);
 	  		i=0;
 		  while (buffer[i] != '\0')
 		  {i++;}
