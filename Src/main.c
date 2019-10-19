@@ -445,7 +445,15 @@ int main(void) {
 #endif
 #ifdef TS_MODE //torque-sensor mode
 
+#if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_901U)
+
 	  uint16_current_target = (TS_COEF*(int16_t)(KM.Rx.AssistLevel)* (uint32_torque_cumulated>>5)/uint32_PAS)>>8;
+
+#else
+
+	  uint16_current_target = (TS_COEF* (uint32_torque_cumulated>>5)/uint32_PAS)>>8;
+#endif
+
 	  if(uint16_current_target>PH_CURRENT_MAX) uint16_current_target = PH_CURRENT_MAX;
 	  if(uint32_PAS_counter > PAS_TIMEOUT) uint16_current_target = 0;
 	  //uint16_current_target = 0;
@@ -460,10 +468,11 @@ int main(void) {
 	  }
 	  else uint16_current_target = uint16_mapped_throttle;
 //reduce target, if speed goes to values where current measurement doesn't wo
-	  uint16_current_target = map(MS.Speed, 25 , 45, 0, uint16_current_target);
+
 
 #endif
 
+	  uint16_current_target = map(MS.Speed, 25 , 45, 0, uint16_current_target);
 	  //enable PWM output, if power is wanted
 	  if (uint16_current_target>0&&!READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)) {
 
@@ -514,7 +523,7 @@ int main(void) {
 		   else temp3=0;
 #if (DISPLAY_TYPE == DEBUG_SLOW_LOOP)
 		   //print values for debugging
-	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n", uint16_current_target, MS.i_q, adcData[0], adcData[1], MS.Speed, MS.u_abs, MS.Motor_state);
+	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n", uint16_current_target, MS.i_q, uint32_torque_cumulated, adcData[1], MS.Speed, MS.u_abs, uint32_PAS);
 	  		i=0;
 		  while (buffer[i] != '\0')
 		  {i++;}
