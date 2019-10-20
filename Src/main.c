@@ -451,7 +451,7 @@ int main(void) {
 
 #else
 
-	  uint16_current_target = (TS_COEF* (uint32_torque_cumulated>>5)/uint32_PAS)>>8;
+	  uint16_current_target = (TS_COEF* (uint32_torque_cumulated>>5)/uint32_PAS)>>1;
 #endif
 
 	  if(uint16_current_target>PH_CURRENT_MAX) uint16_current_target = PH_CURRENT_MAX;

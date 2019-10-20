@@ -9,16 +9,16 @@
 #define DEBUG_SLOW_LOOP (1<<2)
 #define DEBUG_FAST_LOOP (1<<3)
 
-//#define DISPLAY_TYPE DISPLAY_TYPE_KINGMETER_901U
+#define DISPLAY_TYPE DISPLAY_TYPE_KINGMETER_901U
 
-#define DISPLAY_TYPE DEBUG_SLOW_LOOP
+//#define DISPLAY_TYPE DEBUG_SLOW_LOOP
 //#define DISPLAY_TYPE DEBUG_FAST_LOOP
 
 
 #define wheel_circumference 2.202 	//wheel circumference in m
 #define THROTTLE_OFFSET 1275//950//1210 			//ADC-value at closed throttle 670 for throttle, 1255 for TS
 #define THROTTLE_MAX 3015
-#define TS_COEF 100000				//coefficient for torque-sensor-mode
+#define TS_COEF 800					//coefficient for torque-sensor-mode
 #define TS_MODE						//Torquesensor-Mode
 #define PAS_TIMEOUT 12000			//time tics @ 16kHz untils motor stops
 #define RAMP_END 4000					//time tics @ 16kHz where motor reaches full level power
