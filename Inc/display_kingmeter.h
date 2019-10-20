@@ -44,6 +44,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  #define KM_MAX_TXBUFF 13
 #endif
 
+#if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_FISCHER_1822)
+ #define KM_MAX_RXBUFF 28
+ #define KM_MAX_TXBUFF 13
+#endif
 
 
 #define KM_PASDIR_FORWARD       0x00
