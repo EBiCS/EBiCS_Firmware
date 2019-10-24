@@ -627,8 +627,9 @@ static void KM_FISCHER_1822(KINGMETER_t* KM_ctx)
     uint16_t CheckSum;
     static  uint8_t  TxBuff[KM_MAX_TXBUFF];
     uint8_t  TxCnt;
+    uint8_t         TempBuff[3];
 
-    i=KM_ctx->RxBuff[2];
+
 
 	switch (first_run_flag)
 	{
@@ -664,7 +665,7 @@ static void KM_FISCHER_1822(KINGMETER_t* KM_ctx)
     TxBuff[4] = 0x00;
     TxBuff[5] = 0x00;
     TxBuff[6] = 0x0D;
-    TxBuff[7] = 0x91;//KM_901U_HANDSHAKE[KM_ctx->RxBuff[4]];
+    TxBuff[7] = 0xD8;//KM_901U_HANDSHAKE[KM_ctx->RxBuff[4]];
     TxBuff[8] = 0x00;
 
     CheckSum = 0x0000;
@@ -680,7 +681,8 @@ static void KM_FISCHER_1822(KINGMETER_t* KM_ctx)
     TxBuff[11] = 0x0D;
     TxBuff[12] = 0x0A;
    // 3A 1A 53 05 00 00 0D 91 00 10 01 0D 0A
-
+   // 3A 1A 53 05 00 00 0D 7F 00 FE 00 0D 0A
+   // 3A 1A 53 05 00 00 0D D8 00 57 01 0D 0A
 
     HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuff, 13);
    // HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&KM_ctx->RxBuff, 10);
@@ -690,7 +692,7 @@ static void KM_FISCHER_1822(KINGMETER_t* KM_ctx)
 
     HAL_UART_DMAStop(&huart1);
 
-    if (HAL_UART_Receive_DMA(&huart1, (uint8_t *)KM_ctx->RxBuff, 25) != HAL_OK)
+    if (HAL_UART_Receive_DMA(&huart1, (uint8_t *)KM_ctx->RxBuff, 28) != HAL_OK)
      {
  	   Error_Handler();
      }
@@ -698,83 +700,42 @@ static void KM_FISCHER_1822(KINGMETER_t* KM_ctx)
 
 
 	case 2:
-/*
-        TxBuff[0] = 0X3A;                                       // StartCode
-        TxBuff[1] = 0x1A;                                       // SrcAdd:  Controller
-        TxBuff[2] = 0x52;                                      	// CmdCode
-        TxBuff[3] = 0x05;                                       // Number of Databytes
-        TxBuff[4] = 0x00;
-        TxBuff[5] = 0x00;
-        TxBuff[6] = 0x0D;
-        TxBuff[7] = 0xAC;
-        TxBuff[8] = 0x00;
-        TxBuff[9] = 0x2A;
-        TxBuff[10] = 0x01;
-        TxBuff[11] = 0x0D;
-        TxBuff[12] = 0x0A;
 
-      //  3A 1A 52 05 00 00 0D AC 00 2A 01 0D 0A
-      //  if(KM_ctx->RxBuff[0] == 0x3A){
-        HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuff, 13);
-        }
-        break;
-
-	}*/
+    	//HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&KM_ctx->RxBuff, 28);
+    	//HAL_Delay(10);
 
 		for(i=0; i<28; i++){
-			if(KM_ctx->RxBuff[i]==  0x1A && KM_ctx->RxBuff[i+1]==0x52)j=i+1;
+			if(KM_ctx->RxBuff[i]==  0x1A && KM_ctx->RxBuff[i+1]==0x52){
+				j=i+1;
+
+			}
 			if(KM_ctx->RxBuff[i]==  0x1A && KM_ctx->RxBuff[i+1]==0x53)j=i+1;
 		}
+
 
     switch(KM_ctx->RxBuff[j])
             {
                 case 0x52:      // Operation mode
-                    TxBuff[0] = 0X3A;                                       // StartCode
-                    TxBuff[1] = 0x1A;                                       // SrcAdd:  Controller
-                    TxBuff[2] = 0x52;                                      	// CmdCode
-                    TxBuff[3] = 0x05;                                       // Number of Databytes
-                    TxBuff[4] = 0x00;
-                    TxBuff[5] = 0x00;
-                    TxBuff[6] = 0x0D;
-                    TxBuff[7] = 0x91;//KM_901U_HANDSHAKE[KM_ctx->RxBuff[4]];
-                    TxBuff[8] = 0x00;
-
-                    CheckSum = 0x0000;
-                    for(i=1; i<8; i++)
-                                {
-
-                                    CheckSum = CheckSum + TxBuff[i];                        // Calculate CheckSum
-                                }
-                    TxBuff[9]=lowByte(CheckSum);							// Low Byte of checksum
-                    TxBuff[10]=highByte(CheckSum);
-                    //TxBuff[9] = 0x50;
-                    //TxBuff[10] = 0x01;
-                    TxBuff[11] = 0x0D;
-                    TxBuff[12] = 0x0A;
-                   // 3A 1A 53 05 00 00 0D 91 00 10 01 0D 0A
-
-
-                    HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuff, 13);
-                   // HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&KM_ctx->RxBuff, 10);
-
-
-
-
 
                 	CheckSum = 0x0000;
-                	for(i=1; i<(4+KM_ctx->RxBuff[j+1]); i++)
+                	for(i=1; i<6; i++)
                 		{
-                		CheckSum = CheckSum + KM_ctx->RxBuff[i];            // Calculate CheckSum
+                		CheckSum = CheckSum + KM_ctx->RxBuff[i+j-2];            // Calculate CheckSum
                 		}
+    				/*TempBuff[0]=i+j-2;
+    				TempBuff[1]=lowByte(CheckSum);
+    				TempBuff[2]=KM_ctx->RxBuff[i+j-2];
+    				HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TempBuff,3 );
+    				HAL_Delay(5);*/
 
-                	if((lowByte(CheckSum)) == KM_ctx->RxBuff[i] && (highByte(CheckSum)) == KM_ctx->RxBuff[i+1]) //low-byte and high-byte
+                	if((lowByte(CheckSum)) == KM_ctx->RxBuff[i+j-2] && (highByte(CheckSum)) == KM_ctx->RxBuff[i+j-1]) //low-byte and high-byte
                 		{
                 		KM_ctx->RxState = RXSTATE_DONE;
                 		}
                 	else
                 		{
-                			KM_ctx->RxState = RXSTATE_DONE;
-                			//KM_ctx->RxState = RXSTATE_STARTCODE;                // Invalid CheckSum, ignore message
+                			//KM_ctx->RxState = RXSTATE_DONE;
+                			KM_ctx->RxState = RXSTATE_STARTCODE;                // Invalid CheckSum, ignore message
                 		}
                 break;
 
@@ -805,7 +766,7 @@ static void KM_FISCHER_1822(KINGMETER_t* KM_ctx)
     {
         KM_ctx->RxState = RXSTATE_STARTCODE;
 
-        switch(KM_ctx->RxBuff[2])
+        switch(KM_ctx->RxBuff[j])
         {
             case 0x52:      // Operation mode
 
@@ -837,7 +798,7 @@ static void KM_FISCHER_1822(KINGMETER_t* KM_ctx)
                 {
                     TxBuff[4]  = 0x00;                                  // State data (only UnderVoltage bit has influence on display)
                 }
-
+                KM_ctx->Tx.Wheeltime_ms=1000;
                 TxBuff[5]  = (uint8_t) ((KM_ctx->Tx.Current_x10 * 3) / 10);        			// Current low Strom in 1/3 Ampere, nur ein Byte
                 TxBuff[6]  = highByte(KM_ctx->Tx.Wheeltime_ms);         // WheelSpeed high Hinweis
                 TxBuff[7]  = lowByte (KM_ctx->Tx.Wheeltime_ms);         // WheelSpeed low
