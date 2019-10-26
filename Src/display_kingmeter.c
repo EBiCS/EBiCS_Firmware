@@ -665,7 +665,7 @@ static void KM_FISCHER_1822(KINGMETER_t* KM_ctx)
     TxBuff[4] = 0x00;
     TxBuff[5] = 0x00;
     TxBuff[6] = 0x0D;
-    TxBuff[7] = 0xD8;//KM_901U_HANDSHAKE[KM_ctx->RxBuff[4]];
+    TxBuff[7] = 0x3E;//KM_901U_HANDSHAKE[KM_ctx->RxBuff[4]];
     TxBuff[8] = 0x00;
 
     CheckSum = 0x0000;
@@ -683,6 +683,7 @@ static void KM_FISCHER_1822(KINGMETER_t* KM_ctx)
    // 3A 1A 53 05 00 00 0D 91 00 10 01 0D 0A
    // 3A 1A 53 05 00 00 0D 7F 00 FE 00 0D 0A
    // 3A 1A 53 05 00 00 0D D8 00 57 01 0D 0A
+   // 3A 1A 53 05 00 00 0D 3E 00 BD 00 0D 0A
 
     HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuff, 13);
    // HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&KM_ctx->RxBuff, 10);
@@ -771,16 +772,16 @@ static void KM_FISCHER_1822(KINGMETER_t* KM_ctx)
             case 0x52:      // Operation mode
 
                 // Decode Rx message
-                KM_ctx->Rx.AssistLevel        =  KM_ctx->RxBuff[4];                 // 0..255
-                KM_ctx->Rx.Headlight          = (KM_ctx->RxBuff[5] & 0xC0) >> 6;    // KM_HEADLIGHT_OFF / KM_HEADLIGHT_ON / KM_HEADLIGHT_LOW / KM_HEADLIGHT_HIGH
-                KM_ctx->Rx.Battery            = (KM_ctx->RxBuff[5] & 0x20) >> 5;    // KM_BATTERY_NORMAL / KM_BATTERY_LOW
-                KM_ctx->Rx.PushAssist         = (KM_ctx->RxBuff[5] & 0x10) >> 4;    // KM_PUSHASSIST_OFF / KM_PUSHASSIST_ON
-                KM_ctx->Rx.PowerAssist        = (KM_ctx->RxBuff[5] & 0x08) >> 3;    // KM_POWERASSIST_OFF / KM_POWERASSIST_ON
-                KM_ctx->Rx.Throttle           = (KM_ctx->RxBuff[5] & 0x04) >> 2;    // KM_THROTTLE_OFF / KM_THROTTLE_ON
-                KM_ctx->Rx.CruiseControl      = (KM_ctx->RxBuff[5] & 0x02) >> 1;    // KM_CRUISE_OFF / KM_CRUISE_ON
-                KM_ctx->Rx.OverSpeed          = (KM_ctx->RxBuff[5] & 0x01);         // KM_OVERSPEED_NO / KM_OVERSPEED_YES
-                KM_ctx->Rx.SPEEDMAX_Limit_x10 = (((uint16_t) KM_ctx->RxBuff[7])<<8)  | KM_ctx->RxBuff[6];
-                KM_ctx->Rx.CUR_Limit_x10      = (((uint16_t) KM_ctx->RxBuff[9])<<8) | KM_ctx->RxBuff[8];
+                KM_ctx->Rx.AssistLevel        =  KM_ctx->RxBuff[4+j-2];                 // 0..255
+                KM_ctx->Rx.Headlight          = (KM_ctx->RxBuff[5+j-2] & 0xC0) >> 6;    // KM_HEADLIGHT_OFF / KM_HEADLIGHT_ON / KM_HEADLIGHT_LOW / KM_HEADLIGHT_HIGH
+                KM_ctx->Rx.Battery            = (KM_ctx->RxBuff[5+j-2] & 0x20) >> 5;    // KM_BATTERY_NORMAL / KM_BATTERY_LOW
+                KM_ctx->Rx.PushAssist         = (KM_ctx->RxBuff[5+j-2] & 0x10) >> 4;    // KM_PUSHASSIST_OFF / KM_PUSHASSIST_ON
+                KM_ctx->Rx.PowerAssist        = (KM_ctx->RxBuff[5+j-2] & 0x08) >> 3;    // KM_POWERASSIST_OFF / KM_POWERASSIST_ON
+                KM_ctx->Rx.Throttle           = (KM_ctx->RxBuff[5+j-2] & 0x04) >> 2;    // KM_THROTTLE_OFF / KM_THROTTLE_ON
+                KM_ctx->Rx.CruiseControl      = (KM_ctx->RxBuff[5+j-2] & 0x02) >> 1;    // KM_CRUISE_OFF / KM_CRUISE_ON
+                KM_ctx->Rx.OverSpeed          = (KM_ctx->RxBuff[5+j-2] & 0x01);         // KM_OVERSPEED_NO / KM_OVERSPEED_YES
+                KM_ctx->Rx.SPEEDMAX_Limit_x10 = (((uint16_t) KM_ctx->RxBuff[7+j-2])<<8)  | KM_ctx->RxBuff[6+j-2];
+                KM_ctx->Rx.CUR_Limit_x10      = (((uint16_t) KM_ctx->RxBuff[9+j-2])<<8) | KM_ctx->RxBuff[8+j-2];
 
 
                 // Prepare Tx message
