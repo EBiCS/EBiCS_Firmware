@@ -43,7 +43,7 @@ UART_HandleTypeDef huart1;
 
 
 // Hashtable used for handshaking in 901U protocol
-#if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_901U)
+#if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_901U || DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_FISCHER_1822)
 const uint8_t KM_901U_HANDSHAKE[64] =
 {
 		137,
@@ -627,7 +627,7 @@ static void KM_FISCHER_1822(KINGMETER_t* KM_ctx)
     uint16_t CheckSum;
     static  uint8_t  TxBuff[KM_MAX_TXBUFF];
     uint8_t  TxCnt;
-    uint8_t         TempBuff[3];
+    static uint8_t  handshake_position;
 
 
 
@@ -635,7 +635,11 @@ static void KM_FISCHER_1822(KINGMETER_t* KM_ctx)
 	{
 
 	case 0:
-
+		handshake_position=KM_ctx->RxBuff[9];
+		//TxBuff[0]=KM_ctx->RxBuff[9];
+		//TxBuff[1]=KM_901U_HANDSHAKE[handshake_position];
+	   // HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuff, 2);
+	    //HAL_Delay(15);
 
 		TxBuff[0] = 0XFD;                                       // StartCode
 		TxBuff[1] = 0xFB;                                       // SrcAdd:  Controller
@@ -665,7 +669,7 @@ static void KM_FISCHER_1822(KINGMETER_t* KM_ctx)
     TxBuff[4] = 0x00;
     TxBuff[5] = 0x00;
     TxBuff[6] = 0x0D;
-    TxBuff[7] = 0x3E;//KM_901U_HANDSHAKE[KM_ctx->RxBuff[4]];
+    TxBuff[7] = KM_901U_HANDSHAKE[handshake_position];
     TxBuff[8] = 0x00;
 
     CheckSum = 0x0000;
@@ -799,7 +803,7 @@ static void KM_FISCHER_1822(KINGMETER_t* KM_ctx)
                 {
                     TxBuff[4]  = 0x00;                                  // State data (only UnderVoltage bit has influence on display)
                 }
-                KM_ctx->Tx.Wheeltime_ms=1000;
+                //KM_ctx->Tx.Wheeltime_ms=1000;
                 TxBuff[5]  = (uint8_t) ((KM_ctx->Tx.Current_x10 * 3) / 10);        			// Current low Strom in 1/3 Ampere, nur ein Byte
                 TxBuff[6]  = highByte(KM_ctx->Tx.Wheeltime_ms);         // WheelSpeed high Hinweis
                 TxBuff[7]  = lowByte (KM_ctx->Tx.Wheeltime_ms);         // WheelSpeed low
