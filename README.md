@@ -1,4 +1,12 @@
-This project is just for personal backup yet. There's only very basic functionality implemented.
+This project is still experimental. The Master-branch supports sensored motors and Bafang-, Kunteng- and Kingmeter-Displays and debugging.
+
+All user relevant settings have to be done in the config.h
+
+throttle, "torque-simulation" and torquesensor-modes are available.
+
+The sensorless_VESC-branch has adapted the sensorless control of the VESC. Recently optimized for a Fischer ETH 1606 bike. If will work with other motors also, of course.
+
+A short tutorial can be found in the wiki.
 
 Helpful links:
 
@@ -11,3 +19,10 @@ Helpful links:
 [RM0008 Reference Manual STM32F103xx](https://www.st.com/content/ccc/resource/technical/document/reference_manual/59/b9/ba/7f/11/af/43/d5/CD00171190.pdf/files/CD00171190.pdf/jcr:content/translations/en.CD00171190.pdf)
 
 [System Workbench for STM32](https://www.st.com/en/development-tools/sw4stm32.html)
+
+[Sensorless approach VESC](http://cas.ensmp.fr/~praly/Telechargement/Journaux/2010-IEEE_TPEL-Lee-Hong-Nam-Ortega-Praly-Astolfi.pdf)
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
