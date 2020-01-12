@@ -125,6 +125,8 @@ uint32_t uint32_PAS=32000;
 uint8_t ui8_UART_Counter=0;
 
 uint32_t uint32_torque_cumulated=0;
+uint32_t uint32_PAS_cumulated=0;
+
 uint16_t uint16_mapped_throttle=0;
 uint16_t uint16_mapped_PAS=0;
 uint16_t uint16_current_target=0;
@@ -502,7 +504,10 @@ int main(void)
 
 	  //PAS signal processing
 	  if(ui8_PAS_flag){
-		  uint32_PAS = uint32_PAS_counter;
+
+		  uint32_PAS_cumulated -= uint32_PAS_cumulated>>5;
+		  uint32_PAS_cumulated += uint32_PAS_counter;
+		  uint32_PAS = uint32_PAS_cumulated>>5;
 		  uint32_PAS_counter =0;
 		  ui8_PAS_flag=0;
 		  //read in and sum up torque-signal within one crank revolution (for sempu sensor 32 PAS pulses/revolution, 2^5=32)
@@ -557,6 +562,11 @@ int main(void)
 	  uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, (PH_CURRENT_MAX*(int32_t)(ui8_AssistLevel))>>8, 0); // level in range 0...255
 #endif
 
+#if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG)
+	  if (uint32_PAS_counter < PAS_TIMEOUT) uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, PH_CURRENT_MAX, 0); // Full amps in debug mode
+	  else uint16_mapped_PAS = 0;
+#endif
+
 #ifdef TS_MODE //torque-sensor mode
 
 	  uint16_current_target = (TS_COEF*(int16_t)(ui8_AssistLevel)* (uint32_torque_cumulated>>5)/uint32_PAS)>>8;
@@ -565,12 +575,13 @@ int main(void)
 	  //uint16_current_target = 0;
 
 #else		// torque-simulation mode with throttle override
+
 	  uint16_mapped_throttle = map(ui16_reg_adc_value, THROTTLE_OFFSET , THROTTLE_MAX, 0, PH_CURRENT_MAX);
 	  if (uint16_mapped_PAS>uint16_mapped_throttle)   											//check for throttle override
 
 	  {
 		  if (uint32_PAS_counter < PAS_TIMEOUT) uint16_current_target= uint16_mapped_PAS;		//set current target in torque-simulation-mode, if pedals are turning
-		  else uint16_current_target= 0;														//pedals are not turning, stop motor
+		  else  uint16_current_target= 0;//pedals are not turning, stop motor
 	  }
 	  else uint16_current_target = uint16_mapped_throttle;										//throttle override: set recent throttle value as current target
 
@@ -592,7 +603,7 @@ int main(void)
 		  //print values for debugging
 
 
-	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", MS.i_q, MS.u_abs , uint16_current_target, MS.Battery_Current, q31_tics_filtered>>3,tics_lower_limit,tics_higher_limit, MS.Speed);//((q31_i_q_fil*q31_u_abs)>>14)*
+	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n", MS.i_q,uint16_current_target, MS.Battery_Current, (uint16_t)uint32_PAS, MS.Speed, (uint16_t)adcData[0], ui16_reg_adc_value);//((q31_i_q_fil*q31_u_abs)>>14)*
 	  	//	sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5])) ;
 
 	  	  i=0;

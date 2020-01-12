@@ -26,13 +26,13 @@
 #define GEAR_RATIO 60					// number of pole pairs x mechanical gear ratio
 #define SPEEDLIMIT 25
 #define PULSES_PER_REVOLUTION 1
-#define THROTTLE_OFFSET 10 			//ADC-value at closed throttle 670 for throttle, 1255 for TS
+#define THROTTLE_OFFSET 1255 			//ADC-value at closed throttle 670 for throttle, 1255 for TS
 #define THROTTLE_MAX 4096 				//ADC-value at closed throttle 670 for throttle, 1255 for TS
-#define TS_COEF 2000					//coefficient for torque-sensor-mode
-//#define TS_MODE						//Torquesensor-Mode
-#define PAS_TIMEOUT 12000				//time tics @ 16kHz untils motor stops
-#define RAMP_END 4000					//time tics @ 16kHz where motor reaches full level power
-#define PH_CURRENT_MAX 150				//iq value (phase current in rotating frame), not calibrated yet
+#define TS_COEF 60000					//coefficient for torque-sensor-mode
+#define TS_MODE						//Torquesensor-Mode
+#define PAS_TIMEOUT 8000				//time tics @ 16kHz untils motor stops
+#define RAMP_END 1600					//time tics @ 16kHz where motor reaches full level power
+#define PH_CURRENT_MAX 300				//iq value (phase current in rotating frame), not calibrated yet
 
 #define P_FACTOR_I_Q 0.1L					//proportional factor for PI control of iq
 #define I_FACTOR_I_Q 0.01L				//integral factor for PI control of iq
