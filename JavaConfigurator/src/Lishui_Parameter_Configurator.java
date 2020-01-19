@@ -245,7 +245,7 @@ public void AddListItem(File newFile) {
 
 					if (n == JOptionPane.YES_OPTION) {
 						try {
-							Process process = Runtime.getRuntime().exec("cmd /c start WriteOptionBytes");
+							Process process = Runtime.getRuntime().exec("cmd /c start WriteOptionBytes " + TF_PATH_STM32_UTILITY.getText());
 						} catch (IOException e1) {
 							TF_TS_COEF.setText("Error");
 							e1.printStackTrace();
