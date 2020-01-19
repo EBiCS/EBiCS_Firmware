@@ -1,4 +1,4 @@
-PATH = %PATH%;%1\eclipse\plugins\fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628\tools\make;%1\eclipse\plugins\fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628\tools\compiler\bin;%2\STM32 ST-LINK Utility\ST-LINK Utility
+PATH = %PATH%;%1\plugins\fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628\tools\make;%1\plugins\fr.ac6.mcu.externaltools.arm-none.win32_1.16.0.201807130628\tools\compiler\bin;%2\STM32 ST-LINK Utility\ST-LINK Utility
 cd debug
 
 make clean
