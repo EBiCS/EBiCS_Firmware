@@ -408,7 +408,7 @@ int main(void)
 #if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG)
 
    	MS.hall_angle_detect_flag=0; //set uq to contstant value in FOC.c for open loop control
-   	q31_rotorposition_absolute=-(1<<31);
+   	q31_rotorposition_absolute=1<<31;
    	HAL_Delay(5);
    	for(i=0;i<360;i++){
    		q31_rotorposition_absolute+=11930465; //drive motor in open loop with steps of 1°
@@ -1207,7 +1207,6 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 		// float with division necessary!
 
 		q31_rotorposition_absolute = q31_rotorposition_hall + (q31_t) (715827883.0*((float)ui16_tim2_recent/(float)ui16_timertics)); //interpolate angle between two hallevents by scaling timer2 tics
-		temp6= q31_rotorposition_absolute>>23;
 
 	   }
 	   else

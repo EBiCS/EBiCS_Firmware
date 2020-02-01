@@ -34,7 +34,7 @@ all: LishuiFOC_01.elf
 LishuiFOC_01.elf: $(OBJS) $(USER_OBJS) ../STM32F103C6Tx_FLASH.ld
 	@echo 'Building target: $@'
 	@echo 'Invoking: MCU GCC Linker'
-	arm-none-eabi-gcc -mcpu=cortex-m3 -mthumb -mfloat-abi=soft -L"C:\LishuiFOC\git\Drivers\CMSIS" -L"C:\CMSIS_5-develop\CMSIS_5-develop\CMSIS\Lib\GCC" -specs=nosys.specs -specs=nano.specs -T"../STM32F103C6Tx_FLASH.ld" -Wl,-Map=output.map -Wl,--gc-sections -o "LishuiFOC_01.elf" @"objects.list" $(USER_OBJS) $(LIBS) -lm
+	arm-none-eabi-gcc -mcpu=cortex-m3 -mthumb -mfloat-abi=soft -L"C:\Users\Gaswerke\git\LishuiFOC\Drivers\CMSIS" -L"C:\CMSIS_5-develop\CMSIS_5-develop\CMSIS\Lib\GCC" -specs=nosys.specs -specs=nano.specs -T"../STM32F103C6Tx_FLASH.ld" -Wl,-Map=output.map -Wl,--gc-sections -o "LishuiFOC_01.elf" @"objects.list" $(USER_OBJS) $(LIBS) -lm
 	@echo 'Finished building target: $@'
 	@echo ' '
 	$(MAKE) --no-print-directory post-build
