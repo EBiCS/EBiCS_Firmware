@@ -1,0 +1,1 @@
+Start_Compiling.bat C:\Ac6\SystemWorkbench C:\Program Files (x86)\STMicroelectronics
