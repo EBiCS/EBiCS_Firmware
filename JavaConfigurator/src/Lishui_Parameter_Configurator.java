@@ -142,6 +142,7 @@ public void loadSettings(File f) throws IOException {
                 RB_DEBUG.setSelected(Boolean.parseBoolean(in.readLine()));
                 RB_DISABLE_DYN_ADC.setSelected(Boolean.parseBoolean(in.readLine()));
                 RB_FAST_LOOP_LOG.setSelected(Boolean.parseBoolean(in.readLine()));
+                RB_REVERSE.setSelected(Boolean.parseBoolean(in.readLine()));
                 TF_PATH_ECLIPSE.setText(in.readLine());
                 TF_PATH_STM32_UTILITY.setText(in.readLine());
 		in.close();
@@ -473,7 +474,17 @@ public void AddListItem(File newFile) {
 						text_to_save = "#define FAST_LOOP_LOG";
 						pWriter.println(text_to_save);
 					}
-					iWriter.println(RB_FAST_LOOP_LOG.isSelected());   
+					iWriter.println(RB_FAST_LOOP_LOG.isSelected()); 
+                                        
+                                        if (RB_REVERSE.isSelected()) {
+						text_to_save = "#define REVERSE -1";
+						pWriter.println(text_to_save);
+					}
+                                        else{
+                                                text_to_save = "#define REVERSE 1";
+						pWriter.println(text_to_save);
+                                        }
+					iWriter.println(RB_REVERSE.isSelected());                                         
                                         
                                         pWriter.println("\r\n#endif /* CONFIG_H_ */");
                                         
@@ -565,6 +576,8 @@ public void AddListItem(File newFile) {
         jLabel42 = new javax.swing.JLabel();
         TF_PATH_ECLIPSE = new javax.swing.JTextField();
         TF_PATH_STM32_UTILITY = new javax.swing.JTextField();
+        RB_REVERSE = new javax.swing.JRadioButton();
+        jLabel44 = new javax.swing.JLabel();
         TAB2 = new javax.swing.JPanel();
         TF_TRIGGER_OFFSET = new javax.swing.JTextField();
         Label_Param3 = new javax.swing.JLabel();
@@ -709,6 +722,10 @@ public void AddListItem(File newFile) {
 
         TF_PATH_STM32_UTILITY.setText("jTextField1");
 
+        RB_REVERSE.setText("Reverse");
+
+        jLabel44.setText("Motor direction");
+
         javax.swing.GroupLayout TAB1Layout = new javax.swing.GroupLayout(TAB1);
         TAB1.setLayout(TAB1Layout);
         TAB1Layout.setHorizontalGroup(
@@ -739,25 +756,29 @@ public void AddListItem(File newFile) {
                     .addGroup(TAB1Layout.createSequentialGroup()
                         .addGap(25, 25, 25)
                         .addGroup(TAB1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(TAB1Layout.createSequentialGroup()
-                                .addGroup(TAB1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(Label_Parameter1)
-                                    .addComponent(RB_JLCD)
-                                    .addComponent(RB_KM5S))
-                                .addGap(79, 79, 79)
-                                .addGroup(TAB1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jLabel30)
-                                    .addComponent(jLabel29))
-                                .addGap(18, 18, 18)
-                                .addGroup(TAB1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                    .addComponent(TF_PAS_TIMEOUT, javax.swing.GroupLayout.DEFAULT_SIZE, 64, Short.MAX_VALUE)
-                                    .addComponent(TF_PAS_RAMP_END)))
-                            .addComponent(RB_DEBUG)
                             .addComponent(RB_KUNTENG)
                             .addComponent(RB_BAFANG)
                             .addGroup(TAB1Layout.createSequentialGroup()
                                 .addGap(132, 132, 132)
-                                .addComponent(jLabel28)))
+                                .addComponent(jLabel28))
+                            .addGroup(TAB1Layout.createSequentialGroup()
+                                .addGroup(TAB1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(Label_Parameter1)
+                                    .addComponent(RB_JLCD)
+                                    .addComponent(RB_KM5S)
+                                    .addComponent(RB_DEBUG))
+                                .addGap(75, 75, 75)
+                                .addGroup(TAB1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel44)
+                                    .addGroup(TAB1Layout.createSequentialGroup()
+                                        .addGroup(TAB1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addComponent(jLabel30)
+                                            .addComponent(jLabel29))
+                                        .addGap(18, 18, 18)
+                                        .addGroup(TAB1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                            .addComponent(TF_PAS_TIMEOUT, javax.swing.GroupLayout.DEFAULT_SIZE, 64, Short.MAX_VALUE)
+                                            .addComponent(TF_PAS_RAMP_END)))
+                                    .addComponent(RB_REVERSE))))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 56, Short.MAX_VALUE)
                         .addGroup(TAB1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(TAB1Layout.createSequentialGroup()
@@ -839,11 +860,13 @@ public void AddListItem(File newFile) {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(TAB1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(jLabel39)
-                            .addComponent(TF_PH_CURRENT_MAX, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(TF_PH_CURRENT_MAX, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel44))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(TAB1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(jLabel40)
-                            .addComponent(TF_SPEC_ANGLE, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                            .addComponent(TF_SPEC_ANGLE, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(RB_REVERSE)))
                     .addGroup(TAB1Layout.createSequentialGroup()
                         .addComponent(jLabel31)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
@@ -1306,6 +1329,7 @@ public void AddListItem(File newFile) {
     private javax.swing.JRadioButton RB_JLCD;
     private javax.swing.JRadioButton RB_KM5S;
     private javax.swing.JRadioButton RB_KUNTENG;
+    private javax.swing.JRadioButton RB_REVERSE;
     private javax.swing.JRadioButton RB_TORQUESENSOR;
     private javax.swing.JPanel TAB1;
     private javax.swing.JPanel TAB2;
@@ -1382,6 +1406,7 @@ public void AddListItem(File newFile) {
     private javax.swing.JLabel jLabel41;
     private javax.swing.JLabel jLabel42;
     private javax.swing.JLabel jLabel43;
+    private javax.swing.JLabel jLabel44;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
