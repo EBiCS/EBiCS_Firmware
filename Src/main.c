@@ -111,6 +111,7 @@ uint16_t k=0;
 uint8_t ui8_overflow_flag=0;
 uint8_t ui8_slowloop_flag=0;
 uint8_t ui8_adc_inj_flag=0;
+uint8_t ui8_direction= REVERSE;
 
 uint8_t ui8_adc_offset_done_flag=0;
 uint8_t ui8_print_flag=0;
@@ -414,18 +415,12 @@ int main(void)
    		q31_rotorposition_absolute+=11930465; //drive motor in open loop with steps of 1°
    		HAL_Delay(5);
    		if(ui8_hall_state_old!=ui8_hall_state)printf_("hallstate:  %d, \n", ui8_hall_state);
-#ifdef REVERSE
-   		if(ui8_hall_state_old==5&&ui8_hall_state==4)//switch from 4 to 5 is associated with 0°
-   		{
-   			q31_rotorposition_motor_specific=q31_rotorposition_absolute+(1<<31);//+357913941;//298261617LL; //offset empiric
-   		}
 
-#else
    		if(ui8_hall_state_old==4&&ui8_hall_state==5)//switch from 4 to 5 is associated with 0°
    		{
    			q31_rotorposition_motor_specific=q31_rotorposition_absolute+(1<<31);//+357913941;//298261617LL; //offset empiric
    		}
-#endif
+
    		ui8_hall_state_old=ui8_hall_state;
    	}
 
@@ -1145,13 +1140,10 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 	else{
 
 #ifdef DISABLE_DYNAMIC_ADC
-#ifdef REVERSE
-		i16_ph1_current = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1);
-		i16_ph2_current = HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1);
-#else
+
 		i16_ph1_current = HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1);
 		i16_ph2_current = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1);
-#endif
+
 
 #else
 	switch (MS.char_dyn_adc_state) //read in according to state
@@ -1206,7 +1198,7 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 	   if (ui16_tim2_recent < ui16_timertics && !ui8_overflow_flag){ //prevent angle running away at standstill
 		// float with division necessary!
 
-		q31_rotorposition_absolute = q31_rotorposition_hall + (q31_t) (715827883.0*((float)ui16_tim2_recent/(float)ui16_timertics)); //interpolate angle between two hallevents by scaling timer2 tics
+		q31_rotorposition_absolute = q31_rotorposition_hall + (q31_t)(ui8_direction * (715827883.0*((float)ui16_tim2_recent/(float)ui16_timertics))); //interpolate angle between two hallevents by scaling timer2 tics
 
 	   }
 	   else
@@ -1231,21 +1223,16 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 	// call FOC procedure if PWM is enabled
 
 	if (READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)){
-	FOC_calculation(i16_ph1_current, i16_ph2_current, q31_rotorposition_absolute, uint16_current_target, &MS);
+	FOC_calculation(i16_ph1_current, i16_ph2_current, q31_rotorposition_absolute, (ui8_direction*uint16_current_target), &MS);
 	}
 	//temp5=__HAL_TIM_GET_COUNTER(&htim1);
 	//set PWM
-#ifdef REVERSE
-	TIM1->CCR1 =  (uint16_t) switchtime[1];
-	TIM1->CCR2 =  (uint16_t) switchtime[0];
-	TIM1->CCR3 =  (uint16_t) switchtime[2];
 
-#else
 	TIM1->CCR1 =  (uint16_t) switchtime[0];
 	TIM1->CCR2 =  (uint16_t) switchtime[1];
 	TIM1->CCR3 =  (uint16_t) switchtime[2];
 
-#endif
+
 
 	//HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
 
@@ -1273,30 +1260,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 	}
 	//temp6=ui16_timertics;
 
-#ifdef REVERSE
-	switch (ui8_hall_state) //according to UM1052 Fig 57, Page 72, 120° setup
-	{
-	case 5: //0°
-		q31_rotorposition_hall = DEG_minus60 + q31_rotorposition_motor_specific;//SPEC_ANGLE;
-		break;
-	case 1: //60°
-		q31_rotorposition_hall = DEG_minus120 + q31_rotorposition_motor_specific;//SPEC_ANGLE;
-		break;
-	case 3: //120°
-		q31_rotorposition_hall = DEG_plus180 + q31_rotorposition_motor_specific;//SPEC_ANGLE;
-		break;
-	case 2: //180°
-		q31_rotorposition_hall = DEG_plus120 + q31_rotorposition_motor_specific;//SPEC_ANGLE; 	//overflow doesn't matter?!
-		break;
-	case 6: //240°-->-120°
-		q31_rotorposition_hall = DEG_plus60 + q31_rotorposition_motor_specific;//SPEC_ANGLE;
-		break;
-	case 4: //300°-->-60°
-		q31_rotorposition_hall = DEG_0 + q31_rotorposition_motor_specific;//SPEC_ANGLE;
-		break;
 
-	} // end case
-#else
 	switch (ui8_hall_state) //according to UM1052 Fig 57, Page 72, 120° setup
 	{
 	case 5: //0°
@@ -1320,8 +1284,6 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 
 	} // end case
 
-
-#endif
 
 	} //end if
 

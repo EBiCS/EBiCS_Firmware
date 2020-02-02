@@ -47,6 +47,6 @@
 #define SPEC_ANGLE -715827882LL
 //#define TS_MODE
 #define DISPLAY_TYPE DISPLAY_TYPE_DEBUG //ASCII Printout for debugging
-//#define REVERSE
+#define REVERSE -1
 //#define DISABLE_DYNAMIC_ADC
 #endif /* CONFIG_H_ */
