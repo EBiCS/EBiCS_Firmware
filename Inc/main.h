@@ -81,6 +81,9 @@
 #define PAS_EXTI8_GPIO_Port GPIOB
 #define PAS_EXTI8_EXTI_IRQn EXTI9_5_IRQn
 
+#define FRAC_HIGH 60
+#define FRAC_LOW 25
+
 /* ########################## Assert Selection ############################## */
 /**
   * @brief Uncomment the line below to expanse the "assert_param" macro in the 

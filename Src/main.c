@@ -120,6 +120,8 @@ uint8_t ui8_UART_TxCplt_flag=1;
 uint8_t ui8_PAS_flag=0;
 uint8_t ui8_SPEED_flag=0;
 uint32_t uint32_PAS_counter= PAS_TIMEOUT+1;
+uint32_t uint32_PAS_HIGH_counter= 0;
+uint32_t uint32_PAS_fraction= 0;
 uint32_t uint32_SPEED_counter=32000;
 uint32_t uint32_PAS=32000;
 
@@ -507,15 +509,18 @@ int main(void)
 
 	  //PAS signal processing
 	  if(ui8_PAS_flag){
-
+		  if(uint32_PAS_counter>100){ //debounce
 		  uint32_PAS_cumulated -= uint32_PAS_cumulated>>5;
 		  uint32_PAS_cumulated += uint32_PAS_counter;
 		  uint32_PAS = uint32_PAS_cumulated>>5;
 		  uint32_PAS_counter =0;
+		  uint32_PAS_fraction=uint32_PAS_HIGH_counter*100/uint32_PAS;
+		  uint32_PAS_HIGH_counter=0;
 		  ui8_PAS_flag=0;
 		  //read in and sum up torque-signal within one crank revolution (for sempu sensor 32 PAS pulses/revolution, 2^5=32)
 		  uint32_torque_cumulated -= uint32_torque_cumulated>>5;
 		  uint32_torque_cumulated += (ui16_reg_adc_value-THROTTLE_OFFSET);
+		  }
 	  }
 
 	  //SPEED signal processing
@@ -580,15 +585,23 @@ int main(void)
 #else		// torque-simulation mode with throttle override
 
 	  uint16_mapped_throttle = map(ui16_reg_adc_value, THROTTLE_OFFSET , THROTTLE_MAX, 0, PH_CURRENT_MAX);
-	  if (uint16_mapped_PAS>uint16_mapped_throttle)   											//check for throttle override
+	  if (uint32_PAS_counter< PAS_TIMEOUT){
+		  if ((uint32_PAS_fraction < FRAC_LOW ||uint32_PAS_fraction > FRAC_HIGH)){
+			  uint16_mapped_PAS= 0;//pedals are turning backwards, stop motor
+		  }
+	  }
+	  if(uint16_mapped_PAS>uint16_mapped_throttle)   											//check for throttle override
 
 	  {
 		  if (uint32_PAS_counter < PAS_TIMEOUT) uint16_current_target= uint16_mapped_PAS;		//set current target in torque-simulation-mode, if pedals are turning
 		  else  uint16_current_target= 0;//pedals are not turning, stop motor
 	  }
-	  else uint16_current_target = uint16_mapped_throttle;										//throttle override: set recent throttle value as current target
+	  else uint16_current_target = uint16_mapped_throttle;//throttle override: set recent throttle value as current target
+
 
 #endif
+
+
 	 uint16_current_target=map(q31_tics_filtered>>3,tics_higher_limit,tics_lower_limit,0,uint16_current_target); //ramp down current at speed limit
 
 	 if (uint16_current_target>0&&!READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)) SET_BIT(TIM1->BDTR, TIM_BDTR_MOE); //enable PWM if power is wanted
@@ -606,7 +619,7 @@ int main(void)
 		  //print values for debugging
 
 
-	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n", MS.i_q,uint16_current_target, MS.Battery_Current, (uint16_t)uint32_PAS, MS.Speed,ui8_hall_state, ui16_reg_adc_value);//((q31_i_q_fil*q31_u_abs)>>14)*
+	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n", MS.i_q,uint16_current_target, MS.Battery_Current, (uint16_t)uint32_PAS, (uint16_t)uint32_PAS_fraction,ui8_hall_state, ui16_reg_adc_value);//((q31_i_q_fil*q31_u_abs)>>14)*
 	  	//	sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5])) ;
 
 	  	  i=0;
@@ -1096,6 +1109,13 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 	if (htim == &htim3) {
 		if(ui32_tim3_counter<32000)ui32_tim3_counter++;
+		if (uint32_PAS_counter < PAS_TIMEOUT+1){
+			  uint32_PAS_counter++;
+			  if(HAL_GPIO_ReadPin(PAS_GPIO_Port, PAS_Pin))uint32_PAS_HIGH_counter++;
+		}
+		if (uint32_SPEED_counter<128000){
+			  uint32_SPEED_counter++;
+		}
 
 	}
 }
@@ -1121,10 +1141,7 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 	//for oszi-check of used time in FOC procedere
 	//HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
 	  ui32_tim1_counter++;
-	  if (uint32_PAS_counter < PAS_TIMEOUT+1)uint32_PAS_counter++;
-	  if (uint32_SPEED_counter<128000){
-		  uint32_SPEED_counter++;
-	  }
+
 	/*  else {
 	  HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
 	  uint32_SPEED_counter=0;
