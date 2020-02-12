@@ -121,7 +121,8 @@ uint8_t ui8_PAS_flag=0;
 uint8_t ui8_SPEED_flag=0;
 uint32_t uint32_PAS_counter= PAS_TIMEOUT+1;
 uint32_t uint32_PAS_HIGH_counter= 0;
-uint32_t uint32_PAS_fraction= 0;
+uint32_t uint32_PAS_HIGH_accumulated= 32000;
+uint32_t uint32_PAS_fraction= 100;
 uint32_t uint32_SPEED_counter=32000;
 uint32_t uint32_PAS=32000;
 
@@ -510,11 +511,15 @@ int main(void)
 	  //PAS signal processing
 	  if(ui8_PAS_flag){
 		  if(uint32_PAS_counter>100){ //debounce
-		  uint32_PAS_cumulated -= uint32_PAS_cumulated>>5;
+		  uint32_PAS_cumulated -= uint32_PAS_cumulated>>2;
 		  uint32_PAS_cumulated += uint32_PAS_counter;
-		  uint32_PAS = uint32_PAS_cumulated>>5;
+		  uint32_PAS = uint32_PAS_cumulated>>2;
+
+		  uint32_PAS_HIGH_accumulated-=uint32_PAS_HIGH_accumulated>>2;
+		  uint32_PAS_HIGH_accumulated+=uint32_PAS_HIGH_counter;
+
+		  uint32_PAS_fraction=(uint32_PAS_HIGH_accumulated>>2)*100/uint32_PAS;
 		  uint32_PAS_counter =0;
-		  uint32_PAS_fraction=uint32_PAS_HIGH_counter*100/uint32_PAS;
 		  uint32_PAS_HIGH_counter=0;
 		  ui8_PAS_flag=0;
 		  //read in and sum up torque-signal within one crank revolution (for sempu sensor 32 PAS pulses/revolution, 2^5=32)
@@ -590,6 +595,8 @@ int main(void)
 			  uint16_mapped_PAS= 0;//pedals are turning backwards, stop motor
 		  }
 	  }
+	  else uint32_PAS_HIGH_accumulated=32000;
+
 	  if(uint16_mapped_PAS>uint16_mapped_throttle)   											//check for throttle override
 
 	  {

@@ -81,8 +81,8 @@
 #define PAS_EXTI8_GPIO_Port GPIOB
 #define PAS_EXTI8_EXTI_IRQn EXTI9_5_IRQn
 
-#define FRAC_HIGH 60
-#define FRAC_LOW 25
+#define FRAC_HIGH 30
+#define FRAC_LOW 15
 
 /* ########################## Assert Selection ############################## */
 /**
