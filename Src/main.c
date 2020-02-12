@@ -129,7 +129,7 @@ uint32_t uint32_PAS=32000;
 uint8_t ui8_UART_Counter=0;
 
 uint32_t uint32_torque_cumulated=0;
-uint32_t uint32_PAS_cumulated=0;
+uint32_t uint32_PAS_cumulated=32000;
 
 uint16_t uint16_mapped_throttle=0;
 uint16_t uint16_mapped_PAS=0;
@@ -595,7 +595,7 @@ int main(void)
 			  uint16_mapped_PAS= 0;//pedals are turning backwards, stop motor
 		  }
 	  }
-	  else uint32_PAS_HIGH_accumulated=32000;
+	  else uint32_PAS_HIGH_accumulated=uint32_PAS_cumulated;
 
 	  if(uint16_mapped_PAS>uint16_mapped_throttle)   											//check for throttle override
 
