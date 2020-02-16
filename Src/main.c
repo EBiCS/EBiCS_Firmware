@@ -519,8 +519,8 @@ int main(void)
 		  uint32_PAS_HIGH_accumulated+=uint32_PAS_HIGH_counter;
 
 		  uint32_PAS_fraction=(uint32_PAS_HIGH_accumulated>>2)*100/uint32_PAS;
-		  uint32_PAS_counter =0;
 		  uint32_PAS_HIGH_counter=0;
+		  uint32_PAS_counter =0;
 		  ui8_PAS_flag=0;
 		  //read in and sum up torque-signal within one crank revolution (for sempu sensor 32 PAS pulses/revolution, 2^5=32)
 		  uint32_torque_cumulated -= uint32_torque_cumulated>>5;
@@ -590,12 +590,15 @@ int main(void)
 #else		// torque-simulation mode with throttle override
 
 	  uint16_mapped_throttle = map(ui16_reg_adc_value, THROTTLE_OFFSET , THROTTLE_MAX, 0, PH_CURRENT_MAX);
+
+#ifdef DIRDET
 	  if (uint32_PAS_counter< PAS_TIMEOUT){
 		  if ((uint32_PAS_fraction < FRAC_LOW ||uint32_PAS_fraction > FRAC_HIGH)){
 			  uint16_mapped_PAS= 0;//pedals are turning backwards, stop motor
 		  }
 	  }
 	  else uint32_PAS_HIGH_accumulated=uint32_PAS_cumulated;
+#endif //end direction detection
 
 	  if(uint16_mapped_PAS>uint16_mapped_throttle)   											//check for throttle override
 

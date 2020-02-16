@@ -45,6 +45,9 @@
 #define PULSES_PER_REVOLUTION 1
 #define PH_CURRENT_MAX 300
 #define SPEC_ANGLE -715827882LL
+//#define DIRDET
+#define FRAC_HIGH 30
+#define FRAC_LOW 15
 //#define TS_MODE
 #define DISPLAY_TYPE DISPLAY_TYPE_DEBUG //ASCII Printout for debugging
 #define REVERSE 1
