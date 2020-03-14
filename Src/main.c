@@ -111,7 +111,7 @@ uint16_t k=0;
 uint8_t ui8_overflow_flag=0;
 uint8_t ui8_slowloop_flag=0;
 uint8_t ui8_adc_inj_flag=0;
-uint8_t ui8_direction= REVERSE;
+int8_t i8_direction= REVERSE;
 
 uint8_t ui8_adc_offset_done_flag=0;
 uint8_t ui8_print_flag=0;
@@ -133,7 +133,7 @@ uint32_t uint32_PAS_cumulated=32000;
 
 uint16_t uint16_mapped_throttle=0;
 uint16_t uint16_mapped_PAS=0;
-uint16_t uint16_current_target=0;
+int16_t int16_current_target=0;
 
 q31_t q31_t_Battery_Current_accumulated=0;
 
@@ -419,10 +419,17 @@ int main(void)
    		HAL_Delay(5);
    		if(ui8_hall_state_old!=ui8_hall_state)printf_("hallstate:  %d, \n", ui8_hall_state);
 
-   		if(ui8_hall_state_old==4&&ui8_hall_state==5)//switch from 4 to 5 is associated with 0°
+
+   		if(i8_direction==-1){
+   		if(ui8_hall_state_old==5&&ui8_hall_state==1)//switch from 5 to 1 is associated with 0°
    		{
    			q31_rotorposition_motor_specific=q31_rotorposition_absolute+(1<<31);//+357913941;//298261617LL; //offset empiric
-   		}
+   		}}
+   		else{
+   	   		if(ui8_hall_state_old==4&&ui8_hall_state==5)//switch from 4 to 5 is associated with 0°
+   	   		{
+   	   			q31_rotorposition_motor_specific=q31_rotorposition_absolute+(1<<31);//+357913941;//298261617LL; //offset empiric
+   	   		}}
 
    		ui8_hall_state_old=ui8_hall_state;
    	}
@@ -460,7 +467,7 @@ int main(void)
 	  if(PI_flag){
 
 
-		  q31_u_q_temp =  PI_control_i_q(MS.i_q, (q31_t) uint16_current_target);
+		  q31_u_q_temp =  PI_control_i_q(MS.i_q, (q31_t) i8_direction*int16_current_target);
 
 		  q31_t_Battery_Current_accumulated -= q31_t_Battery_Current_accumulated>>8;
 		  q31_t_Battery_Current_accumulated += ((MS.i_q*MS.u_abs)>>11)*(uint16_t)(CAL_I>>8);
@@ -469,6 +476,7 @@ int main(void)
 
 		  	//Control id
 		  q31_u_d_temp = -PI_control_i_d(MS.i_d, 0); //control direct current to zero
+
 
 		  	//limit voltage in rotating frame, refer chapter 4.10.1 of UM1052
 		  MS.u_abs = (q31_t)hypot((double)q31_u_d_temp, (double)q31_u_q_temp); //absolute value of U in static frame
@@ -582,10 +590,10 @@ int main(void)
 
 #ifdef TS_MODE //torque-sensor mode
 
-	  uint16_current_target = (TS_COEF*(int16_t)(ui8_AssistLevel)* (uint32_torque_cumulated>>5)/uint32_PAS)>>8;
-	  if(uint16_current_target>PH_CURRENT_MAX) uint16_current_target = PH_CURRENT_MAX;
-	  if(uint32_PAS_counter > PAS_TIMEOUT) uint16_current_target = 0;
-	  //uint16_current_target = 0;
+	  int16_current_target = (TS_COEF*(int16_t)(ui8_AssistLevel)* (uint32_torque_cumulated>>5)/uint32_PAS)>>8;
+	  if(int16_current_target>PH_CURRENT_MAX) int16_current_target = PH_CURRENT_MAX;
+	  if(uint32_PAS_counter > PAS_TIMEOUT) int16_current_target = 0;
+	  //int16_current_target = 0;
 
 #else		// torque-simulation mode with throttle override
 
@@ -603,18 +611,18 @@ int main(void)
 	  if(uint16_mapped_PAS>uint16_mapped_throttle)   											//check for throttle override
 
 	  {
-		  if (uint32_PAS_counter < PAS_TIMEOUT) uint16_current_target= uint16_mapped_PAS;		//set current target in torque-simulation-mode, if pedals are turning
-		  else  uint16_current_target= 0;//pedals are not turning, stop motor
+		  if (uint32_PAS_counter < PAS_TIMEOUT) int16_current_target= uint16_mapped_PAS;		//set current target in torque-simulation-mode, if pedals are turning
+		  else  int16_current_target= 0;//pedals are not turning, stop motor
 	  }
-	  else uint16_current_target = uint16_mapped_throttle;//throttle override: set recent throttle value as current target
+	  else int16_current_target = uint16_mapped_throttle;//throttle override: set recent throttle value as current target
 
 
 #endif
 
 
-	 uint16_current_target=map(q31_tics_filtered>>3,tics_higher_limit,tics_lower_limit,0,uint16_current_target); //ramp down current at speed limit
+	 int16_current_target=map(q31_tics_filtered>>3,tics_higher_limit,tics_lower_limit,0,int16_current_target); //ramp down current at speed limit
 
-	 if (uint16_current_target>0&&!READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)) SET_BIT(TIM1->BDTR, TIM_BDTR_MOE); //enable PWM if power is wanted
+	 if (int16_current_target>0&&!READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)) SET_BIT(TIM1->BDTR, TIM_BDTR_MOE); //enable PWM if power is wanted
 	 //slow loop procedere
 	  if(ui32_tim3_counter>800){
 
@@ -629,7 +637,7 @@ int main(void)
 		  //print values for debugging
 
 
-	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n", MS.i_q,uint16_current_target, MS.Battery_Current, (uint16_t)uint32_PAS, (uint16_t)uint32_PAS_fraction,ui8_hall_state, ui16_reg_adc_value);//((q31_i_q_fil*q31_u_abs)>>14)*
+	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n", MS.i_q,MS.i_d,int16_current_target, MS.Battery_Current, q31_u_q_temp, q31_u_d_temp, ui16_reg_adc_value);//((q31_i_q_fil*q31_u_abs)>>14)*
 	  	//	sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5])) ;
 
 	  	  i=0;
@@ -1225,7 +1233,7 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 	   if (ui16_tim2_recent < ui16_timertics && !ui8_overflow_flag){ //prevent angle running away at standstill
 		// float with division necessary!
 
-		q31_rotorposition_absolute = q31_rotorposition_hall + (q31_t)(ui8_direction * (715827883.0*((float)ui16_tim2_recent/(float)ui16_timertics))); //interpolate angle between two hallevents by scaling timer2 tics
+		q31_rotorposition_absolute = q31_rotorposition_hall + (q31_t)(i8_direction * (715827883.0*((float)ui16_tim2_recent/(float)ui16_timertics))); //interpolate angle between two hallevents by scaling timer2 tics
 
 	   }
 	   else
@@ -1246,11 +1254,11 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 		}
 #endif
 
-	//uint16_current_target=0;
+	//int16_current_target=0;
 	// call FOC procedure if PWM is enabled
 
 	if (READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)){
-	FOC_calculation(i16_ph1_current, i16_ph2_current, q31_rotorposition_absolute, (ui8_direction*uint16_current_target), &MS);
+	FOC_calculation(i16_ph1_current, i16_ph2_current, q31_rotorposition_absolute, (((int16_t)i8_direction)*int16_current_target), &MS);
 	}
 	//temp5=__HAL_TIM_GET_COUNTER(&htim1);
 	//set PWM

@@ -41,7 +41,7 @@
 #define THROTTLE_MAX 4096
 #define WHEEL_CIRCUMFERENCE 2200
 #define GEAR_RATIO 60
-#define SPEEDLIMIT 25
+#define SPEEDLIMIT 255
 #define PULSES_PER_REVOLUTION 1
 #define PH_CURRENT_MAX 300
 #define SPEC_ANGLE -715827882LL
@@ -50,6 +50,7 @@
 #define FRAC_LOW 15
 //#define TS_MODE
 #define DISPLAY_TYPE DISPLAY_TYPE_DEBUG //ASCII Printout for debugging
-#define REVERSE 1
+#define REVERSE -1
+//#define FAST_LOOP_LOG
 //#define DISABLE_DYNAMIC_ADC
 #endif /* CONFIG_H_ */
