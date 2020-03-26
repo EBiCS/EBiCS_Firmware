@@ -1,7 +1,7 @@
 PATH = %PATH%;%1\plugins\fr.ac6.mcu.externaltools.arm-none.win32_1.17.0.201812190825\tools\make;%1\plugins\fr.ac6.mcu.externaltools.arm-none.win32_1.17.0.201812190825\tools\compiler\bin;%2\STM32 ST-LINK Utility\ST-LINK Utility
 IF NOT exist Debug (md Debug)
 cd Debug
-make clean
+make -f ..\make\Makefile clean
 
 
 cd..\make
