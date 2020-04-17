@@ -34,23 +34,23 @@
 #define I_FACTOR_I_Q 0.01L
 #define P_FACTOR_I_D 1
 #define I_FACTOR_I_D 1
-#define TS_COEF 60000
+#define TS_COEF 30000
 #define PAS_TIMEOUT 8000
 #define RAMP_END 1600
-#define THROTTLE_OFFSET 1255
-#define THROTTLE_MAX 4096
+#define THROTTLE_OFFSET 1260
+#define THROTTLE_MAX 3000
 #define WHEEL_CIRCUMFERENCE 2200
 #define GEAR_RATIO 60
 #define SPEEDLIMIT 255
 #define PULSES_PER_REVOLUTION 1
 #define PH_CURRENT_MAX 300
-#define SPEC_ANGLE -715827882LL
+#define SPEC_ANGLE 1908874354 //160°
 //#define DIRDET
 #define FRAC_HIGH 30
 #define FRAC_LOW 15
-//#define TS_MODE
+#define TS_MODE
 #define DISPLAY_TYPE DISPLAY_TYPE_DEBUG //ASCII Printout for debugging
-#define REVERSE -1
+#define REVERSE 1
 //#define FAST_LOOP_LOG
 //#define DISABLE_DYNAMIC_ADC
 #endif /* CONFIG_H_ */

@@ -139,7 +139,7 @@ q31_t q31_t_Battery_Current_accumulated=0;
 
 q31_t q31_rotorposition_absolute;
 q31_t q31_rotorposition_hall;
-q31_t q31_rotorposition_motor_specific;
+q31_t q31_rotorposition_motor_specific = SPEC_ANGLE;
 q31_t q31_u_d_temp=0;
 q31_t q31_u_q_temp=0;
 int16_t i16_sinus=0;
@@ -532,7 +532,7 @@ int main(void)
 		  ui8_PAS_flag=0;
 		  //read in and sum up torque-signal within one crank revolution (for sempu sensor 32 PAS pulses/revolution, 2^5=32)
 		  uint32_torque_cumulated -= uint32_torque_cumulated>>5;
-		  uint32_torque_cumulated += (ui16_reg_adc_value-THROTTLE_OFFSET);
+		  if(ui16_reg_adc_value>THROTTLE_OFFSET)uint32_torque_cumulated += (ui16_reg_adc_value-THROTTLE_OFFSET);
 		  }
 	  }
 
@@ -590,7 +590,7 @@ int main(void)
 
 #ifdef TS_MODE //torque-sensor mode
 
-	  int16_current_target = (TS_COEF*(int16_t)(ui8_AssistLevel)* (uint32_torque_cumulated>>5)/uint32_PAS)>>8;
+	  int16_current_target = (TS_COEF*(int16_t)(ui8_AssistLevel)* (uint32_torque_cumulated>>5)/uint32_PAS)>>8; //>>5 aus Mittelung über eine Kurbelumdrehung, >>8 aus KM5S-Protokoll Assistlevel 0..255
 	  if(int16_current_target>PH_CURRENT_MAX) int16_current_target = PH_CURRENT_MAX;
 	  if(uint32_PAS_counter > PAS_TIMEOUT) int16_current_target = 0;
 	  //int16_current_target = 0;
@@ -637,7 +637,7 @@ int main(void)
 		  //print values for debugging
 
 
-	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n", MS.i_q,MS.i_d,int16_current_target, MS.Battery_Current, q31_u_q_temp, q31_u_d_temp, ui16_reg_adc_value);//((q31_i_q_fil*q31_u_abs)>>14)*
+	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n", MS.i_q,int16_current_target, MS.Battery_Current,(uint16_t) q31_tics_filtered, (uint16_t)uint32_PAS, MS.u_abs, (uint16_t) (ui16_reg_adc_value-THROTTLE_OFFSET));//((q31_i_q_fil*q31_u_abs)>>14)*
 	  	//	sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5])) ;
 
 	  	  i=0;
