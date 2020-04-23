@@ -520,7 +520,15 @@ public void AddListItem(File newFile) {
 					}
 				}  
                                 try {
-					Process process = Runtime.getRuntime().exec("cmd /c start Start_Compiling " + TF_PATH_ECLIPSE.getText() + " " + TF_PATH_STM32_UTILITY.getText());
+                                    String Flashoption;
+				if (RB_UART.isSelected()) {
+					Flashoption = "UART";
+					}
+                                else{
+                                        Flashoption = "STLink";
+						
+                                        }	
+                                    Process process = Runtime.getRuntime().exec("cmd /c start Start_Compiling " + TF_PATH_ECLIPSE.getText() + " " + TF_PATH_STM32_UTILITY.getText()+ " " + Flashoption);
 				} catch (IOException e1) {
 					TF_TS_COEF.setText("Error");
 					e1.printStackTrace();
@@ -554,6 +562,7 @@ public void AddListItem(File newFile) {
     private void initComponents() {
 
         BG_DISPLAYS = new javax.swing.ButtonGroup();
+        BG_FLASHOPTIONS = new javax.swing.ButtonGroup();
         jTabbedPane1 = new javax.swing.JTabbedPane();
         TAB1 = new javax.swing.JPanel();
         TF_TS_COEF = new javax.swing.JTextField();
@@ -656,6 +665,8 @@ public void AddListItem(File newFile) {
         jButton1 = new javax.swing.JButton();
         jButton2 = new javax.swing.JButton();
         jLabel43 = new javax.swing.JLabel();
+        RB_UART = new javax.swing.JRadioButton();
+        RB_STLINK = new javax.swing.JRadioButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -767,21 +778,21 @@ public void AddListItem(File newFile) {
                 .addGroup(TAB1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(TAB1Layout.createSequentialGroup()
                         .addComponent(jLabel21)
-                        .addGap(484, 484, 484))
+                        .addGap(545, 545, 545))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, TAB1Layout.createSequentialGroup()
                         .addGroup(TAB1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(TAB1Layout.createSequentialGroup()
                                 .addGroup(TAB1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addGroup(TAB1Layout.createSequentialGroup()
                                         .addComponent(jLabel27, javax.swing.GroupLayout.PREFERRED_SIZE, 84, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                         .addComponent(TF_TS_COEF, javax.swing.GroupLayout.PREFERRED_SIZE, 69, javax.swing.GroupLayout.PREFERRED_SIZE))
                                     .addComponent(RB_TORQUESENSOR))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 162, Short.MAX_VALUE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addGroup(TAB1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(jLabel41)
                                     .addComponent(jLabel42))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED))
                             .addGroup(TAB1Layout.createSequentialGroup()
                                 .addGap(15, 15, 15)
                                 .addGroup(TAB1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -815,7 +826,7 @@ public void AddListItem(File newFile) {
                                                 .addGroup(TAB1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                                                     .addComponent(TF_PAS_TIMEOUT, javax.swing.GroupLayout.DEFAULT_SIZE, 64, Short.MAX_VALUE)
                                                     .addComponent(TF_PAS_RAMP_END))))))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 51, Short.MAX_VALUE)))
                         .addGroup(TAB1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addGroup(TAB1Layout.createSequentialGroup()
                                 .addGroup(TAB1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -852,8 +863,8 @@ public void AddListItem(File newFile) {
                                     .addComponent(TF_GEAR_RATIO)
                                     .addComponent(TF_SPEED_LIMIT, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)))
                             .addComponent(TF_PATH_STM32_UTILITY)
-                            .addComponent(TF_PATH_ECLIPSE, javax.swing.GroupLayout.PREFERRED_SIZE, 406, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                .addGap(61, 61, 61))
+                            .addComponent(TF_PATH_ECLIPSE, javax.swing.GroupLayout.PREFERRED_SIZE, 406, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(61, 61, 61))))
         );
         TAB1Layout.setVerticalGroup(
             TAB1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -947,7 +958,7 @@ public void AddListItem(File newFile) {
                         .addGroup(TAB1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(TF_PATH_STM32_UTILITY, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jLabel42))))
-                .addContainerGap(64, Short.MAX_VALUE))
+                .addContainerGap(77, Short.MAX_VALUE))
         );
 
         RB_JLCD.getAccessibleContext().setAccessibleName("RB_J-LCD");
@@ -1267,6 +1278,13 @@ public void AddListItem(File newFile) {
 
         jLabel43.setText("     ");
 
+        BG_FLASHOPTIONS.add(RB_UART);
+        RB_UART.setText("UART");
+
+        BG_FLASHOPTIONS.add(RB_STLINK);
+        RB_STLINK.setSelected(true);
+        RB_STLINK.setText("STLink");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -1279,16 +1297,20 @@ public void AddListItem(File newFile) {
                         .addGap(50, 50, 50)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jLabel1)
-                                    .addComponent(jLabel2))
-                                .addGap(0, 0, Short.MAX_VALUE))
-                            .addGroup(layout.createSequentialGroup()
                                 .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 129, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 136, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addComponent(jScrollPane2)
-                            .addComponent(jScrollPane1)))
+                            .addComponent(jScrollPane1)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel1)
+                                    .addComponent(jLabel2)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(RB_UART)
+                                        .addGap(18, 18, 18)
+                                        .addComponent(RB_STLINK)))
+                                .addGap(0, 0, Short.MAX_VALUE))))
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(label1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -1305,6 +1327,9 @@ public void AddListItem(File newFile) {
                 .addGap(20, 20, 20)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
+                        .addComponent(jTabbedPane1)
+                        .addGap(40, 40, 40))
+                    .addGroup(layout.createSequentialGroup()
                         .addComponent(jLabel1)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 109, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -1312,13 +1337,15 @@ public void AddListItem(File newFile) {
                         .addComponent(jLabel2)
                         .addGap(3, 3, 3)
                         .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 113, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(45, 45, 45)
+                        .addGap(20, 20, 20)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(RB_UART)
+                            .addComponent(RB_STLINK))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 47, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addComponent(jTabbedPane1))
-                .addGap(40, 40, 40))
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
         );
 
         jTabbedPane1.getAccessibleContext().setAccessibleName("MotorConfiguration");
@@ -1372,6 +1399,7 @@ public void AddListItem(File newFile) {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup BG_DISPLAYS;
+    private javax.swing.ButtonGroup BG_FLASHOPTIONS;
     private javax.swing.JLabel Label_Param3;
     private javax.swing.JLabel Label_Parameter1;
     private javax.swing.JRadioButton RB_BAFANG;
@@ -1383,7 +1411,9 @@ public void AddListItem(File newFile) {
     private javax.swing.JRadioButton RB_KM5S;
     private javax.swing.JRadioButton RB_KUNTENG;
     private javax.swing.JRadioButton RB_REVERSE;
+    private javax.swing.JRadioButton RB_STLINK;
     private javax.swing.JRadioButton RB_TORQUESENSOR;
+    private javax.swing.JRadioButton RB_UART;
     private javax.swing.JPanel TAB1;
     private javax.swing.JPanel TAB2;
     private javax.swing.JTextField TF_BATTERY_LEVEL_1;

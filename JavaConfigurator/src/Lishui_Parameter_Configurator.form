@@ -4,6 +4,8 @@
   <NonVisualComponents>
     <Component class="javax.swing.ButtonGroup" name="BG_DISPLAYS">
     </Component>
+    <Component class="javax.swing.ButtonGroup" name="BG_FLASHOPTIONS">
+    </Component>
   </NonVisualComponents>
   <Properties>
     <Property name="defaultCloseOperation" type="int" value="3"/>
@@ -35,19 +37,24 @@
                       <EmptySpace min="-2" pref="50" max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Group type="102" alignment="0" attributes="0">
-                              <Group type="103" groupAlignment="0" attributes="0">
-                                  <Component id="jLabel1" min="-2" max="-2" attributes="0"/>
-                                  <Component id="jLabel2" min="-2" max="-2" attributes="0"/>
-                              </Group>
-                              <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
-                          </Group>
-                          <Group type="102" alignment="0" attributes="0">
                               <Component id="jButton1" min="-2" pref="129" max="-2" attributes="0"/>
                               <EmptySpace max="32767" attributes="0"/>
                               <Component id="jButton2" min="-2" pref="136" max="-2" attributes="0"/>
                           </Group>
                           <Component id="jScrollPane2" alignment="0" max="32767" attributes="0"/>
                           <Component id="jScrollPane1" alignment="0" max="32767" attributes="0"/>
+                          <Group type="102" attributes="0">
+                              <Group type="103" groupAlignment="0" attributes="0">
+                                  <Component id="jLabel1" min="-2" max="-2" attributes="0"/>
+                                  <Component id="jLabel2" min="-2" max="-2" attributes="0"/>
+                                  <Group type="102" alignment="0" attributes="0">
+                                      <Component id="RB_UART" min="-2" max="-2" attributes="0"/>
+                                      <EmptySpace type="separate" max="-2" attributes="0"/>
+                                      <Component id="RB_STLINK" min="-2" max="-2" attributes="0"/>
+                                  </Group>
+                              </Group>
+                              <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
+                          </Group>
                       </Group>
                   </Group>
                   <Group type="102" attributes="0">
@@ -71,6 +78,10 @@
               <EmptySpace min="-2" pref="20" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
                   <Group type="102" attributes="0">
+                      <Component id="jTabbedPane1" max="32767" attributes="0"/>
+                      <EmptySpace min="-2" pref="40" max="-2" attributes="0"/>
+                  </Group>
+                  <Group type="102" attributes="0">
                       <Component id="jLabel1" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="jScrollPane1" min="-2" pref="109" max="-2" attributes="0"/>
@@ -78,16 +89,19 @@
                       <Component id="jLabel2" min="-2" max="-2" attributes="0"/>
                       <EmptySpace min="-2" pref="3" max="-2" attributes="0"/>
                       <Component id="jScrollPane2" min="-2" pref="113" max="-2" attributes="0"/>
-                      <EmptySpace min="-2" pref="45" max="-2" attributes="0"/>
+                      <EmptySpace min="-2" pref="20" max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="3" attributes="0">
+                          <Component id="RB_UART" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="RB_STLINK" alignment="3" min="-2" max="-2" attributes="0"/>
+                      </Group>
+                      <EmptySpace max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="3" attributes="0">
                           <Component id="jButton1" alignment="3" min="-2" pref="50" max="-2" attributes="0"/>
                           <Component id="jButton2" alignment="3" min="-2" pref="47" max="-2" attributes="0"/>
                       </Group>
-                      <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
+                      <EmptySpace min="30" max="32767" attributes="0"/>
                   </Group>
-                  <Component id="jTabbedPane1" max="32767" attributes="0"/>
               </Group>
-              <EmptySpace min="-2" pref="40" max="-2" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -117,7 +131,7 @@
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Group type="102" alignment="0" attributes="0">
                               <Component id="jLabel21" min="-2" max="-2" attributes="0"/>
-                              <EmptySpace min="484" pref="484" max="-2" attributes="0"/>
+                              <EmptySpace min="-2" pref="545" max="-2" attributes="0"/>
                           </Group>
                           <Group type="102" alignment="1" attributes="0">
                               <Group type="103" groupAlignment="0" attributes="0">
@@ -125,17 +139,17 @@
                                       <Group type="103" groupAlignment="0" attributes="0">
                                           <Group type="102" alignment="0" attributes="0">
                                               <Component id="jLabel27" min="-2" pref="84" max="-2" attributes="0"/>
-                                              <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                                              <EmptySpace max="-2" attributes="0"/>
                                               <Component id="TF_TS_COEF" min="-2" pref="69" max="-2" attributes="0"/>
                                           </Group>
                                           <Component id="RB_TORQUESENSOR" alignment="0" min="-2" max="-2" attributes="0"/>
                                       </Group>
-                                      <EmptySpace pref="162" max="32767" attributes="0"/>
+                                      <EmptySpace max="32767" attributes="0"/>
                                       <Group type="103" groupAlignment="0" attributes="0">
                                           <Component id="jLabel41" min="-2" max="-2" attributes="0"/>
                                           <Component id="jLabel42" min="-2" max="-2" attributes="0"/>
                                       </Group>
-                                      <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                                      <EmptySpace max="-2" attributes="0"/>
                                   </Group>
                                   <Group type="102" alignment="0" attributes="0">
                                       <EmptySpace min="-2" pref="15" max="-2" attributes="0"/>
@@ -180,7 +194,7 @@
                                               </Group>
                                           </Group>
                                       </Group>
-                                      <EmptySpace max="32767" attributes="0"/>
+                                      <EmptySpace pref="51" max="32767" attributes="0"/>
                                   </Group>
                               </Group>
                               <Group type="103" groupAlignment="0" max="-2" attributes="0">
@@ -231,9 +245,9 @@
                                   <Component id="TF_PATH_STM32_UTILITY" max="32767" attributes="0"/>
                                   <Component id="TF_PATH_ECLIPSE" min="-2" pref="406" max="-2" attributes="0"/>
                               </Group>
+                              <EmptySpace min="-2" pref="61" max="-2" attributes="0"/>
                           </Group>
                       </Group>
-                      <EmptySpace min="-2" pref="61" max="-2" attributes="0"/>
                   </Group>
               </Group>
             </DimensionLayout>
@@ -354,7 +368,7 @@
                               </Group>
                           </Group>
                       </Group>
-                      <EmptySpace pref="64" max="32767" attributes="0"/>
+                      <EmptySpace pref="77" max="32767" attributes="0"/>
                   </Group>
               </Group>
             </DimensionLayout>
@@ -1173,6 +1187,23 @@
     <Component class="javax.swing.JLabel" name="jLabel43">
       <Properties>
         <Property name="text" type="java.lang.String" value="     "/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JRadioButton" name="RB_UART">
+      <Properties>
+        <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
+          <ComponentRef name="BG_FLASHOPTIONS"/>
+        </Property>
+        <Property name="text" type="java.lang.String" value="UART"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JRadioButton" name="RB_STLINK">
+      <Properties>
+        <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
+          <ComponentRef name="BG_FLASHOPTIONS"/>
+        </Property>
+        <Property name="selected" type="boolean" value="true"/>
+        <Property name="text" type="java.lang.String" value="STLink"/>
       </Properties>
     </Component>
   </SubComponents>
