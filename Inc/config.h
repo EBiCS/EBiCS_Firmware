@@ -37,8 +37,8 @@
 #define TS_COEF 30000
 #define PAS_TIMEOUT 8000
 #define RAMP_END 1600
-#define THROTTLE_OFFSET 1260
-#define THROTTLE_MAX 3000
+#define THROTTLE_OFFSET 0
+#define THROTTLE_MAX 4000
 #define WHEEL_CIRCUMFERENCE 2200
 #define GEAR_RATIO 60
 #define SPEEDLIMIT 255
@@ -48,7 +48,7 @@
 //#define DIRDET
 #define FRAC_HIGH 30
 #define FRAC_LOW 15
-#define TS_MODE
+//#define TS_MODE
 #define DISPLAY_TYPE DISPLAY_TYPE_DEBUG //ASCII Printout for debugging
 #define REVERSE 1
 //#define FAST_LOOP_LOG
