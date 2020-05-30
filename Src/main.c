@@ -147,6 +147,7 @@ int16_t i16_cosinus=0;
 char buffer[100];
 char char_dyn_adc_state=1;
 char char_dyn_adc_state_old=1;
+int8_t assist_factor[9]={51, 102, 153, 204, 255, 255, 255, 255};
 
 
 q31_t switchtime[3];
@@ -568,7 +569,7 @@ int main(void)
 	  //throttle and PAS current target setting
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_BAFANG)
-	  uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, (PH_CURRENT_MAX*(int32_t)(ui8_AssistLevel))/9, 0); // level in range 0...5
+	  uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, (PH_CURRENT_MAX*(int32_t)(assist_factor[ui8_AssistLevel]))>>8, 0); // level in range 0...5
 #endif
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_KUNTENG)

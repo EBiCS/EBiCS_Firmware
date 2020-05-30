@@ -49,7 +49,7 @@
 #define FRAC_HIGH 30
 #define FRAC_LOW 15
 //#define TS_MODE
-#define DISPLAY_TYPE DISPLAY_TYPE_DEBUG //ASCII Printout for debugging
+#define DISPLAY_TYPE DISPLAY_TYPE_BAFANG //ASCII Printout for debugging
 #define REVERSE 1
 //#define FAST_LOOP_LOG
 //#define DISABLE_DYNAMIC_ADC
