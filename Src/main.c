@@ -147,7 +147,7 @@ int16_t i16_cosinus=0;
 char buffer[100];
 char char_dyn_adc_state=1;
 char char_dyn_adc_state_old=1;
-int8_t assist_factor[9]={51, 102, 153, 204, 255, 255, 255, 255, 255};
+int8_t assist_factor[10]={0, 51, 102, 153, 204, 255, 255, 255, 255, 255};
 
 
 q31_t switchtime[3];
