@@ -247,6 +247,9 @@ void Bafang_Service(BAFANG_t* BF_ctx, uint8_t  rx)
               case BF_PUSHASSIST:
               BF_ctx->Rx.PushAssist=1;
               break;
+              default:
+              BF_ctx->Rx.AssistLevel=0;
+              break;
             }
           }
           break;
