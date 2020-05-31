@@ -147,8 +147,8 @@ int16_t i16_cosinus=0;
 char buffer[100];
 char char_dyn_adc_state=1;
 char char_dyn_adc_state_old=1;
-int8_t assist_factor[10]={0, 51, 102, 153, 204, 255, 255, 255, 255, 255};
-
+uint8_t assist_factor[10]={0, 51, 102, 153, 204, 255, 255, 255, 255, 255};
+int32_t help_calculation;
 
 q31_t switchtime[3];
 volatile uint16_t adcData[8]; //Buffer for ADC1 Input
@@ -569,7 +569,7 @@ int main(void)
 	  //throttle and PAS current target setting
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_BAFANG)
-	  uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, ((int32_t)PH_CURRENT_MAX*(int32_t)(assist_factor[ui8_AssistLevel]))>>8, 0); // level in range 0...5
+	  uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, (PH_CURRENT_MAX*(int32_t)(assist_factor[ui8_AssistLevel]))>>8, 0); // level in range 0...5
 #endif
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_KUNTENG)
@@ -581,12 +581,14 @@ int main(void)
 #endif
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_901U)
-	  uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, ((int32_t)PH_CURRENT_MAX*(int32_t)(ui8_AssistLevel))>>8, 0); // level in range 0...255
+	  uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, ((PH_CURRENT_MAX*(int32_t)(ui8_AssistLevel))>>8, 0); // level in range 0...255
 #endif
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG)
-	  if (uint32_PAS_counter < PAS_TIMEOUT) uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, PH_CURRENT_MAX, 0); // Full amps in debug mode
-	  else uint16_mapped_PAS = 0;
+	  //uint32_PAS= RAMP_END;
+	  //uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, (PH_CURRENT_MAX*(int32_t)(assist_factor[7]))>>8, 0); // level in range 0...9
+	 if (uint32_PAS_counter < PAS_TIMEOUT) uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, PH_CURRENT_MAX, 0); // Full amps in debug mode
+	 else uint16_mapped_PAS = 0;
 #endif
 
 #ifdef TS_MODE //torque-sensor mode
@@ -638,7 +640,7 @@ int main(void)
 		  //print values for debugging
 
 
-	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n", MS.i_q,int16_current_target, MS.Battery_Current,(uint16_t) q31_tics_filtered, (uint16_t)uint32_PAS, MS.u_abs, (uint16_t) (ui16_reg_adc_value-THROTTLE_OFFSET));//((q31_i_q_fil*q31_u_abs)>>14)*
+	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n", MS.i_q,int16_current_target, uint16_mapped_PAS,(uint16_t) q31_tics_filtered, (uint16_t)uint32_PAS, MS.u_abs, (uint16_t) (ui16_reg_adc_value-THROTTLE_OFFSET));//((q31_i_q_fil*q31_u_abs)>>14)*
 	  	//	sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5])) ;
 
 	  	  i=0;
