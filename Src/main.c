@@ -148,7 +148,6 @@ char buffer[100];
 char char_dyn_adc_state=1;
 char char_dyn_adc_state_old=1;
 uint8_t assist_factor[10]={0, 51, 102, 153, 204, 255, 255, 255, 255, 255};
-int32_t help_calculation;
 
 q31_t switchtime[3];
 volatile uint16_t adcData[8]; //Buffer for ADC1 Input
@@ -615,7 +614,11 @@ int main(void)
 
 	  {
 		  if (uint32_PAS_counter < PAS_TIMEOUT) int16_current_target= uint16_mapped_PAS;		//set current target in torque-simulation-mode, if pedals are turning
-		  else  int16_current_target= 0;//pedals are not turning, stop motor
+		  else  {
+			  int16_current_target= 0;//pedals are not turning, stop motor
+			  uint32_PAS_cumulated=32000;
+			  uint32_PAS=32000;
+		  }
 	  }
 	  else int16_current_target = uint16_mapped_throttle;//throttle override: set recent throttle value as current target
 
