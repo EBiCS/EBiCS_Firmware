@@ -157,8 +157,13 @@ void Bafang_Service(BAFANG_t* BF_ctx, uint8_t  rx)
               break;
               
               case BF_CMD_GET2:
-              TxBuff[0]=47;
-              TxBuff[1]=47;
+            	  if (BF_ctx->Tx.Power>30000){
+            		  TxBuff[0]=49;
+            		  TxBuff[1]=49;}
+            	  else{
+            		  TxBuff[0]=48;
+            		  TxBuff[1]=48;
+            	  }
               HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuff, 2);
               break;
             }
