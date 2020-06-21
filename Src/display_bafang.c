@@ -139,8 +139,9 @@ void Bafang_Service(BAFANG_t* BF_ctx, uint8_t  rx)
               break;
               
               case BF_CMD_GETERROR:
-              TxBuff[0]=1;
-             // HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuff, 1);
+              TxBuff[0]=0;
+              TxBuff[1]=0;
+              HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuff, 2);
               break;
               
               case BF_CMD_GETBAT:
@@ -156,8 +157,8 @@ void Bafang_Service(BAFANG_t* BF_ctx, uint8_t  rx)
               break;
               
               case BF_CMD_GET2:
-              TxBuff[0]=48;
-              TxBuff[1]=48;
+              TxBuff[0]=47;
+              TxBuff[1]=47;
               HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuff, 2);
               break;
             }
