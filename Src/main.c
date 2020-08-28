@@ -116,6 +116,7 @@ int8_t i8_direction= REVERSE;
 uint8_t ui8_adc_offset_done_flag=0;
 uint8_t ui8_print_flag=0;
 uint8_t ui8_UART_flag=0;
+uint8_t ui8_Push_Assist_flag=0;
 uint8_t ui8_UART_TxCplt_flag=1;
 uint8_t ui8_PAS_flag=0;
 uint8_t ui8_SPEED_flag=0;
@@ -626,9 +627,13 @@ int main(void)
 #endif
 
 
-	 int16_current_target=map(q31_tics_filtered>>3,tics_higher_limit,tics_lower_limit,0,int16_current_target); //ramp down current at speed limit
 
-	 if (int16_current_target>0&&!READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)) SET_BIT(TIM1->BDTR, TIM_BDTR_MOE); //enable PWM if power is wanted
+
+	  int16_current_target=map(q31_tics_filtered>>3,tics_higher_limit,tics_lower_limit,0,int16_current_target); //ramp down current at speed limit
+
+	  if(ui8_Push_Assist_flag)int16_current_target=PUSHASSIST_CURRENT;
+
+	  if (int16_current_target>0&&!READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)) SET_BIT(TIM1->BDTR, TIM_BDTR_MOE); //enable PWM if power is wanted
 	 //slow loop procedere
 	  if(ui32_tim3_counter>800){
 
@@ -1485,10 +1490,8 @@ void bafang_update(void)
     }
 
 
-    if(BF.Rx.PushAssist)
-    {
-    	//do something later
-    }
+    if(BF.Rx.PushAssist) ui8_Push_Assist_flag=1;
+    else ui8_Push_Assist_flag=0;
 
     ui8_AssistLevel=BF.Rx.AssistLevel;
 }
