@@ -62,14 +62,14 @@ void display_update(MotorState_t* MS_U)
 #endif
 
   // calc battery pack state of charge (SOC)
-  ui32_battery_volts =  (MS_U->Voltage*CAL_BAT_V*256)/10000;  //hier noch die richtige Kalibrierung einbauen (*256 f�r bessere Aufl�sung)
+  ui32_battery_volts =  (MS_U->Voltage*CAL_BAT_V*256)/10000;  //hier noch die richtige Kalibrierung einbauen (*256 für bessere Auflösung)
   if (ui32_battery_volts > ((uint16_t) BATTERY_PACK_VOLTS_80)) { ui8_battery_soc = 16; } // 4 bars | full
   else if (ui32_battery_volts > ((uint16_t) BATTERY_PACK_VOLTS_60)) { ui8_battery_soc = 12; } // 3 bars
   else if (ui32_battery_volts > ((uint16_t) BATTERY_PACK_VOLTS_40)) { ui8_battery_soc = 8; } // 2 bars
   else if (ui32_battery_volts > ((uint16_t) BATTERY_PACK_VOLTS_20)) { ui8_battery_soc = 4; } // 1 bar
   else { ui8_battery_soc = 3; } // empty
 
-  ui16_wheel_period_ms = (MS_U->Speed*PULSES_PER_REVOLUTION)>>4; //hier noch die richtige Kalibrierung einbauen
+  ui16_wheel_period_ms = (MS_U->Speed*PULSES_PER_REVOLUTION)>>3; //Speed Zähler wird mit 8kHz hochgezählt
 
 ui8_tx_buffer [0] = 65;
   // B1: battery level
