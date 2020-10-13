@@ -638,7 +638,7 @@ int main(void)
 	  if(ui32_tim3_counter>800){
 
 
-
+		  MS.Temperature = gain*adcData[2]-offset; //MS.Temperature = gain*adcData[2]-offset (gain and offset are calibration constants depending on the sensor)
 		  MS.Voltage=adcData[0];
 		  if(uint32_SPEED_counter>127999)MS.Speed =128000;
 
@@ -800,7 +800,7 @@ _Error_Handler(__FILE__, __LINE__);
 }
 /**Configure Regular Channel
 */
-sConfig.Channel = ADC_CHANNEL_4;
+sConfig.Channel = ADC_CHANNEL_9;
 sConfig.Rank = ADC_REGULAR_RANK_3;
 sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;//ADC_SAMPLETIME_239CYCLES_5;
 if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
