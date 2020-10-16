@@ -131,7 +131,6 @@ uint8_t ui8_UART_Counter=0;
 
 uint32_t uint32_torque_cumulated=0;
 uint32_t uint32_PAS_cumulated=32000;
-uint16_t uint16_mapped_temperature=0;
 uint16_t uint16_mapped_throttle=0;
 uint16_t uint16_mapped_PAS=0;
 int16_t int16_current_target=0;
@@ -638,7 +637,7 @@ int main(void)
 	  if(ui32_tim3_counter>800){
 
 
-		  MS.Temperature = gain*adcData[2]-offset; //MS.Temperature = gain*adcData[2]-offset (gain and offset are calibration constants depending on the sensor)
+		  MS.Temperature = 0.16*adcData[2]; //0.16 is calibration constant: Analog_in[10mV/°C]/ADC value. Depending on the sensor LM35)
 		  MS.Voltage=adcData[0];
 		  if(uint32_SPEED_counter>127999)MS.Speed =128000;
 
