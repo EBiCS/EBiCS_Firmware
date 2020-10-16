@@ -22,7 +22,6 @@ uint8_t ui8_byte_received;
 uint8_t ui8_moving_indication = 0;
 uint8_t ui8_UARTCounter = 0;
 uint8_t ui8_msg_received=0;
-uint8_t i8_motor_temperature=0;
 
 volatile struc_lcd_configuration_variables lcd_configuration_variables;
 
