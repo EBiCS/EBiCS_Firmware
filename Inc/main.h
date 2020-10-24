@@ -62,14 +62,14 @@
 #define Hall_3_EXTI_IRQn EXTI2_IRQn
 #define Throttle_Pin GPIO_PIN_3
 #define Throttle_GPIO_Port GPIOA
-#define Temperature_Pin GPIO_PIN_9
-#define Temperature_GPIO_Port GPIOA
 #define Phase_Current1_Pin GPIO_PIN_4
 #define Phase_Current1_GPIO_Port GPIOA
 #define Phase_Current_2_Pin GPIO_PIN_5
 #define Phase_Current_2_GPIO_Port GPIOA
 #define Phase_Current_3_Pin GPIO_PIN_6
 #define Phase_Current_3_GPIO_Port GPIOA
+#define Temperature_Pin GPIO_PIN_1
+#define Temperature_GPIO_Port GPIOB
 #define LED_Pin GPIO_PIN_2
 #define LED_GPIO_Port GPIOB
 #define LIGHT_Pin GPIO_PIN_9
