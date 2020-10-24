@@ -1151,7 +1151,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
 
 
-
 // regular ADC callback
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 {
@@ -1379,7 +1378,7 @@ void kingmeter_update(void)
     if(__HAL_TIM_GET_COUNTER(&htim2) < 12000)
     {
         // Adapt wheeltime to match displayed speedo value according config.h setting
-        KM.Tx.Wheeltime_ms = (ui16_timertics>>1);
+    	KM.Tx.Wheeltime_ms = (MS.Speed>>4); //16 kHz counter frequency, so 16 tics per ms
     }
     else
     {
@@ -1400,43 +1399,29 @@ void kingmeter_update(void)
 
     /* Apply Rx parameters */
 
-    #ifdef SUPPORT_LIGHTS_SWITCH
     if(KM.Rx.Headlight == KM_HEADLIGHT_OFF)
-    {
-        digitalWrite(lights_pin, 0);
-    }
-    else // KM_HEADLIGHT_ON, KM_HEADLIGHT_LOW, KM_HEADLIGHT_HIGH
-    {
-        digitalWrite(lights_pin, 1);
-    }
-    #endif
+        {
+        	HAL_GPIO_WritePin(LIGHT_GPIO_Port, LIGHT_Pin, GPIO_PIN_RESET);
+        	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
+        }
+        else // KM_HEADLIGHT_ON, KM_HEADLIGHT_LOW, KM_HEADLIGHT_HIGH
+        {
+        	HAL_GPIO_WritePin(LIGHT_GPIO_Port, LIGHT_Pin, GPIO_PIN_SET);
+        	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
+        }
+
 
     if(KM.Rx.PushAssist == KM_PUSHASSIST_ON)
     {
-     /*    #if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_901U)
-        throttle_stat = map(KM.Rx.AssistLevel, 0, 255, 0,1023);
-        #else
-        throttle_stat = 200;
-        #endif
+    	ui8_Push_Assist_flag=1;
     }
     else
     {
-        throttle_stat = 0;
-        poti_stat     = map(KM.Rx.AssistLevel, 0, 255, 0,1023);
-        */
+    	ui8_Push_Assist_flag=0;
     }
 
 
-    /* Shutdown in case we received no message in the last 3s */
-/*
-    if((millis() - KM.LastRx) > 3000)
-    {
-        poti_stat     = 0;
-        throttle_stat = 0;
-        #if HARDWARE_REV >=2
-        save_shutdown();
-        #endif
-    }*/
+
 }
 
 #endif
