@@ -472,7 +472,7 @@ int main(void)
 		  q31_t_Battery_Current_accumulated -= q31_t_Battery_Current_accumulated>>8;
 		  q31_t_Battery_Current_accumulated += ((MS.i_q*MS.u_abs)>>11)*(uint16_t)(CAL_I>>8);
 
-		  MS.Battery_Current = q31_t_Battery_Current_accumulated>>8; //Battery current in mA
+		  MS.Battery_Current = abs(q31_t_Battery_Current_accumulated>>8); //Battery current in mA
 
 		  	//Control id
 		  q31_u_d_temp = -PI_control_i_d(MS.i_d, 0); //control direct current to zero
@@ -637,7 +637,7 @@ int main(void)
 	  if(ui32_tim3_counter>800){
 
 
-		  MS.Temperature = 0.16*adcData[2]; //0.16 is calibration constant: Analog_in[10mV/°C]/ADC value. Depending on the sensor LM35)
+		  MS.Temperature = adcData[2]*41>>8; //0.16 is calibration constant: Analog_in[10mV/°C]/ADC value. Depending on the sensor LM35)
 		  MS.Voltage=adcData[0];
 		  if(uint32_SPEED_counter>127999)MS.Speed =128000;
 
