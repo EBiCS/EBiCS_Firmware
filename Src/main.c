@@ -131,7 +131,6 @@ uint8_t ui8_UART_Counter=0;
 
 uint32_t uint32_torque_cumulated=0;
 uint32_t uint32_PAS_cumulated=32000;
-
 uint16_t uint16_mapped_throttle=0;
 uint16_t uint16_mapped_PAS=0;
 int16_t int16_current_target=0;
@@ -473,7 +472,7 @@ int main(void)
 		  q31_t_Battery_Current_accumulated -= q31_t_Battery_Current_accumulated>>8;
 		  q31_t_Battery_Current_accumulated += ((MS.i_q*MS.u_abs)>>11)*(uint16_t)(CAL_I>>8);
 
-		  MS.Battery_Current = q31_t_Battery_Current_accumulated>>8; //Battery current in mA
+		  MS.Battery_Current = abs(q31_t_Battery_Current_accumulated>>8); //Battery current in mA
 
 		  	//Control id
 		  q31_u_d_temp = -PI_control_i_d(MS.i_d, 0); //control direct current to zero
@@ -638,7 +637,7 @@ int main(void)
 	  if(ui32_tim3_counter>800){
 
 
-
+		  MS.Temperature = adcData[2]*41>>8; //0.16 is calibration constant: Analog_in[10mV/°C]/ADC value. Depending on the sensor LM35)
 		  MS.Voltage=adcData[0];
 		  if(uint32_SPEED_counter>127999)MS.Speed =128000;
 
@@ -800,7 +799,7 @@ _Error_Handler(__FILE__, __LINE__);
 }
 /**Configure Regular Channel
 */
-sConfig.Channel = ADC_CHANNEL_4;
+sConfig.Channel = ADC_CHANNEL_9;
 sConfig.Rank = ADC_REGULAR_RANK_3;
 sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;//ADC_SAMPLETIME_239CYCLES_5;
 if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
