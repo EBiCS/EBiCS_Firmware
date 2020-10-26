@@ -448,8 +448,10 @@ int main(void)
    		 HAL_GPIO_EXTI_Callback(GPIO_PIN_0); //read in initial rotor position
    		 q31_rotorposition_absolute = q31_rotorposition_hall; // set absolute position to corresponding hall pattern.
 
-
+#if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG)
     printf_("Lishui FOC v0.9 \n ");
+#endif
+
     HAL_Delay(5);
     CLEAR_BIT(TIM1->BDTR, TIM_BDTR_MOE);//Disable PWM
 
