@@ -430,8 +430,8 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
                     }
                     else
                     {
-                    	//KM_ctx->RxState = RXSTATE_DONE;
-                    	KM_ctx->RxState = RXSTATE_STARTCODE;                // Invalid CheckSum, ignore message
+                    	KM_ctx->RxState = RXSTATE_DONE;
+                    	//KM_ctx->RxState = RXSTATE_STARTCODE;                // Invalid CheckSum, ignore message
                     }
                break;
             }
@@ -507,13 +507,14 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
                 TxBuff[4] = 0x00;
                 TxBuff[5] = 0x00;
                 TxBuff[6] = 0x0D;
-                TxBuff[7] = 0x8D;
+                TxBuff[7] = handshake_position;
                 TxBuff[8] = 0x00;
                 TxBuff[9] = 0x0C;
                 TxBuff[10] = 0x01;
                 TxBuff[11] = 0x0D;
                 TxBuff[12] = 0x0A;
 
+                handshake_position++;
 
                // 3A 1A 53 05 00 00 0D 91 00 10 01 0D 0A
                 //3A 1A 53 05 80 00 0D 91 26 B6 01 0D 0A
