@@ -116,7 +116,7 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* hadc)
     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-    GPIO_InitStruct.Pin =  GPIO_PIN_0|GPIO_PIN_1; //for ADC8+9
+    GPIO_InitStruct.Pin =  Temperature_Pin|GPIO_PIN_0|GPIO_PIN_1; //for ADC8+9
     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 

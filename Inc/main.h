@@ -68,6 +68,8 @@
 #define Phase_Current_2_GPIO_Port GPIOA
 #define Phase_Current_3_Pin GPIO_PIN_6
 #define Phase_Current_3_GPIO_Port GPIOA
+#define Temperature_Pin GPIO_PIN_1
+#define Temperature_GPIO_Port GPIOB
 #define LED_Pin GPIO_PIN_2
 #define LED_GPIO_Port GPIOB
 #define LIGHT_Pin GPIO_PIN_9
@@ -117,6 +119,7 @@ typedef struct
 	uint8_t 		hall_angle_detect_flag;
 	uint8_t 		char_dyn_adc_state;
 	uint8_t 		assist_level;
+	int8_t         		Temperature;
 
 }MotorState_t;
 

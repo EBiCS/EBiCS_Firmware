@@ -101,7 +101,7 @@ ui8_tx_buffer [0] = 65;
   //ui8_tx_buffer [8] =  (uint8_t)(((ui16_BatteryCurrent-ui16_current_cal_b+1)<<2)/current_cal_a);
   ui8_tx_buffer [8] =  (uint8_t)(MS_U->Battery_Current*MS_U->Voltage*CAL_BAT_V/82010000);   //Kalibrierung nach Binatone, empririsch ermittelt. Strom und Spannung in Milli, 13W pro digit
   // B9: motor temperature
-  //ui8_tx_buffer [9] = i8_motor_temperature-15; //according to documentation at endless sphere
+  ui8_tx_buffer [9] = MS_U->Temperature-15; //according to documentation at endless sphere	
   // B10 and B11: 0
   ui8_tx_buffer [10] = 0;
   ui8_tx_buffer [11] = 0;
