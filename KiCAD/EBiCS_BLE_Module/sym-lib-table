@@ -1,0 +1,5 @@
+(sym_lib_table
+  (lib (name HM-10)(type Legacy)(uri C:/Users/Gaswerke/git/EBiCS_Firmware/KiCAD/HM-10.pretty/HM-10.lib)(options "")(descr ""))
+  (lib (name DC-DC)(type Legacy)(uri C:/Users/Gaswerke/git/EBiCS_Firmware/KiCAD/Converters_DCDC_ACDC.pretty/dc-dc.lib)(options "")(descr ""))
+  (lib (name JST)(type Legacy)(uri C:/Users/Gaswerke/git/EBiCS_Firmware/KiCAD/Connectors_JST.pretty/w_connectors.lib)(options "")(descr ""))
+)
