@@ -361,6 +361,7 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
     uint16_t CheckSum;
     static  uint8_t  TxBuff[KM_MAX_TXBUFF];
     uint8_t  TxCnt;
+    static uint8_t  handshake_position;
 
     i=KM_ctx->RxBuff[2];
 
@@ -368,81 +369,76 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
 	{
 
 	case 0:
-	j++;
-	if(j>3)first_run_flag=1;
-	break;
+		handshake_position=KM_ctx->RxBuff[9];
+		//TxBuff[0]=KM_ctx->RxBuff[9];
+		//TxBuff[1]=KM_901U_HANDSHAKE[handshake_position];
+	   // HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuff, 2);
+	    //HAL_Delay(15);
 
-	case 1:
 		TxBuff[0] = 0XFD;                                       // StartCode
-		TxBuff[1] = 0x5B;                                       // SrcAdd:  Controller
+		TxBuff[1] = 0xFB;                                       // SrcAdd:  Controller
 		TxBuff[2] = 0xFD;                                      	// CmdCode
-		TxBuff[3] = 0x00;
-		//FD 5B FD 00
-	    HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuff, 4);
+		TxBuff[3] = 0xFD;
+		TxBuff[4] = 0x00;
+		//FD FB FD FD 00
+	    HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuff, 5);
 	    HAL_Delay(5);
-	    first_run_flag=2;
+	    first_run_flag=1;
+
+	    HAL_UART_DMAStop(&huart1);
+
+	    if (HAL_UART_Receive_DMA(&huart1, (uint8_t *)KM_ctx->RxBuff, 9) != HAL_OK)
+	     {
+	 	   Error_Handler();
+	     }
+
 		break;
 
+	case 1:
+		// Prepare Tx message with handshake code
+		    TxBuff[0] = 0X3A;                                       // StartCode
+		    TxBuff[1] = 0x1A;                                       // SrcAdd:  Controller
+		    TxBuff[2] = 0x53;                                      	// CmdCode
+		    TxBuff[3] = 0x05;                                       // Number of Databytes
+		    TxBuff[4] = 0x00;
+		    TxBuff[5] = 0x00;
+		    TxBuff[6] = 0x0D;
+		    TxBuff[7] = KM_901U_HANDSHAKE[handshake_position];
+		    TxBuff[8] = 0x00;
+
+		    CheckSum = 0x0000;
+		    for(i=1; i<8; i++)
+		                {
+
+		                    CheckSum = CheckSum + TxBuff[i];                        // Calculate CheckSum
+		                }
+		    TxBuff[9]=lowByte(CheckSum);							// Low Byte of checksum
+		    TxBuff[10]=highByte(CheckSum);
+		    //TxBuff[9] = 0x50;
+		    //TxBuff[10] = 0x01;
+		    TxBuff[11] = 0x0D;
+		    TxBuff[12] = 0x0A;
+		   // 3A 1A 53 05 00 00 0D 91 00 10 01 0D 0A
+		   // 3A 1A 53 05 00 00 0D 7F 00 FE 00 0D 0A
+		   // 3A 1A 53 05 00 00 0D D8 00 57 01 0D 0A
+		   // 3A 1A 53 05 00 00 0D 3E 00 BD 00 0D 0A
+
+		    HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuff, 13);
+		   // HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&KM_ctx->RxBuff, 10);
+
+		    HAL_Delay(25);
+		    first_run_flag=2;
+
+		    HAL_UART_DMAStop(&huart1);
+
+		    if (HAL_UART_Receive_DMA(&huart1, (uint8_t *)KM_ctx->RxBuff, 15) != HAL_OK)
+		     {
+		 	   Error_Handler();
+		     }
+		    break;
+
 	case 2:
-    // Prepare Tx message with handshake code
-    TxBuff[0] = 0X3A;                                       // StartCode
-    TxBuff[1] = 0x1A;                                       // SrcAdd:  Controller
-    TxBuff[2] = 0x53;                                      	// CmdCode
-    TxBuff[3] = 0x05;                                       // Number of Databytes
-    TxBuff[4] = 0x00;
-    TxBuff[5] = 0x00;
-    TxBuff[6] = 0x0D;
-    TxBuff[7] = KM_901U_HANDSHAKE[KM_ctx->RxBuff[4]];
-    TxBuff[8] = 0x00;
-
-    CheckSum = 0x0000;
-    for(i=1; i<8; i++)
-                {
-
-                    CheckSum = CheckSum + TxBuff[i];                        // Calculate CheckSum
-                }
-    TxBuff[9]=lowByte(CheckSum);							// Low Byte of checksum
-    TxBuff[10]=highByte(CheckSum);
-    //TxBuff[9] = 0x50;
-    //TxBuff[10] = 0x01;
-    TxBuff[11] = 0x0D;
-    TxBuff[12] = 0x0A;
-
-   // 3A 1A 53 05 00 00 0D D1 00 50 01 0D 0A
-
-    HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuff, 13);
-   // HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&KM_ctx->RxBuff, 10);
-
-    HAL_Delay(5);
-    first_run_flag=3;
-    break;
-
-
-	case 3:
-/*
-        TxBuff[0] = 0X3A;                                       // StartCode
-        TxBuff[1] = 0x1A;                                       // SrcAdd:  Controller
-        TxBuff[2] = 0x52;                                      	// CmdCode
-        TxBuff[3] = 0x05;                                       // Number of Databytes
-        TxBuff[4] = 0x00;
-        TxBuff[5] = 0x00;
-        TxBuff[6] = 0x0D;
-        TxBuff[7] = 0xAC;
-        TxBuff[8] = 0x00;
-        TxBuff[9] = 0x2A;
-        TxBuff[10] = 0x01;
-        TxBuff[11] = 0x0D;
-        TxBuff[12] = 0x0A;
-      //  3A 1A 52 05 00 00 0D AC 00 2A 01 0D 0A
-      //  if(KM_ctx->RxBuff[0] == 0x3A){
-        HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuff, 13);
-        }
-        break;
-	}*/
-
-
-
-    switch(KM_ctx->RxBuff[2])
+       switch(KM_ctx->RxBuff[2])
             {
                 case 0x52:      // Operation mode
 
@@ -477,8 +473,8 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
                     }
                     else
                     {
-                    	//KM_ctx->RxState = RXSTATE_DONE;
-                    	KM_ctx->RxState = RXSTATE_STARTCODE;                // Invalid CheckSum, ignore message
+                    	KM_ctx->RxState = RXSTATE_DONE;
+                    	//KM_ctx->RxState = RXSTATE_STARTCODE;                // Invalid CheckSum, ignore message
                     }
                break;
             }
@@ -554,7 +550,7 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
                 TxBuff[4] = 0x00;
                 TxBuff[5] = 0x00;
                 TxBuff[6] = 0x0D;
-                TxBuff[7] = 0x8D;
+                TxBuff[7] = KM_901U_HANDSHAKE[handshake_position++];
                 TxBuff[8] = 0x00;
                 TxBuff[9] = 0x0C;
                 TxBuff[10] = 0x01;
