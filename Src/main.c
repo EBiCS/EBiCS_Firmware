@@ -703,6 +703,7 @@ int main(void)
 			  	  }
 			  	  break;
 			  }//end switch
+
 			  send_ant_page(ui8_LEV_Page_to_send, &MS, &MP);
 
 			  ui8_main_LEV_Page_counter++;
@@ -1078,7 +1079,7 @@ static void MX_USART1_UART_Init(void)
 
   huart1.Instance = USART1;
 
-#if ((DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER) ||DISPLAY_TYPE==DISPLAY_TYPE_KUNTENG)
+#if ((DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER) ||DISPLAY_TYPE==DISPLAY_TYPE_KUNTENG||DISPLAY_TYPE==DISPLAY_TYPE_EBiCS)
   huart1.Init.BaudRate = 9600;
 #elif (DISPLAY_TYPE == DISPLAY_TYPE_BAFANG)
   huart1.Init.BaudRate = 1200;
