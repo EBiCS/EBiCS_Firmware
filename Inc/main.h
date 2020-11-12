@@ -119,9 +119,35 @@ typedef struct
 	uint8_t 		hall_angle_detect_flag;
 	uint8_t 		char_dyn_adc_state;
 	uint8_t 		assist_level;
-	int8_t         		Temperature;
+	uint8_t 		regen_level;
+	int8_t         	Temperature;
+	int8_t         	system_state;
+	int8_t         	gear_state;
+	int8_t         	error_state;
 
 }MotorState_t;
+
+typedef struct
+{
+
+	uint16_t       	wheel_cirumference;
+	uint16_t       	p_Iq;
+	uint16_t       	i_Iq;
+	uint16_t       	p_Id;
+	uint16_t       	i_Id;
+	uint16_t       	TS_coeff;
+	uint16_t       	PAS_timeout;
+	uint16_t       	ramp_end;
+	uint16_t       	throttle_offset;
+	uint16_t       	throttle_max;
+	uint16_t       	gear_ratio;
+	uint8_t       	speedLimit;
+	uint8_t       	pulses_per_revolution;
+	uint16_t       	phase_current_max;
+	uint16_t       	spec_angle;
+
+
+}MotorParams_t;
 
 /* USER CODE END Private defines */
 

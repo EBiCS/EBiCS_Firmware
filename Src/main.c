@@ -67,6 +67,10 @@
   #include "display_kunteng.h"
 #endif
 
+#if (DISPLAY_TYPE == DISPLAY_TYPE_EBiCS)
+  #include "display_ebics.h"
+#endif
+
 
 #include <arm_math.h>
 /* USER CODE END Includes */
@@ -109,7 +113,7 @@ uint16_t i=0;
 uint16_t j=0;
 uint16_t k=0;
 uint8_t ui8_overflow_flag=0;
-uint8_t ui8_slowloop_flag=0;
+uint8_t ui8_slowloop_counter=0;
 uint8_t ui8_adc_inj_flag=0;
 int8_t i8_direction= REVERSE;
 
@@ -178,9 +182,16 @@ KINGMETER_t KM;
 BAFANG_t BF;
 #endif
 
+#if (DISPLAY_TYPE & DISPLAY_TYPE_EBiCS)
+uint8_t ui8_main_LEV_Page_counter=0;
+uint8_t ui8_additional_LEV_Page_counter=0;
+uint8_t ui8_LEV_Page_to_send=1;
+#endif
+
 
 
 MotorState_t MS;
+MotorParams_t MP;
 
 
 int16_t battery_percent_fromcapacity = 50; 			//Calculation of used watthours not implemented yet
@@ -188,11 +199,6 @@ int16_t wheel_time = 1000;							//duration of one wheel rotation for speed calc
 int16_t current_display;							//pepared battery current for display
 
 int16_t power;										//recent power output
-
-uint8_t ui8_AssistLevel = 3;
-								//scaled assist level
-
-
 
 /* USER CODE END PV */
 
@@ -269,6 +275,8 @@ int main(void)
   //initialize MS struct.
   MS.hall_angle_detect_flag=1;
   MS.Speed=128000;
+  MS.assist_level=1;
+  MS.regen_level=7;
 
   MX_ADC1_Init();
   /* Run the ADC calibration */
@@ -363,6 +371,10 @@ int main(void)
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_KUNTENG)
        kunteng_init();
+#endif
+
+#if (DISPLAY_TYPE == DISPLAY_TYPE_EBiCS)
+       ebics_init();
 #endif
 
 
@@ -515,6 +527,10 @@ int main(void)
 	  }
 #endif
 
+#if (DISPLAY_TYPE & DISPLAY_TYPE_EBiCS)
+	  process_ant_page(&MS, &MP);
+#endif
+
 	  ui8_UART_flag=0;
 	  }
 
@@ -570,7 +586,7 @@ int main(void)
 	  //throttle and PAS current target setting
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_BAFANG)
-	  uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, (PH_CURRENT_MAX*(int32_t)(assist_factor[ui8_AssistLevel]))>>8, 0); // level in range 0...5
+	  uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, (PH_CURRENT_MAX*(int32_t)(assist_factor[MS.assist_level]))>>8, 0); // level in range 0...5
 #endif
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_KUNTENG)
@@ -578,11 +594,11 @@ int main(void)
 #endif
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_618U)
-	  uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, (PH_CURRENT_MAX*(int32_t)(ui8_AssistLevel-1))>>2, 0); // level in range 1...5
+	  uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, (PH_CURRENT_MAX*(int32_t)(MS.assist_level-1))>>2, 0); // level in range 1...5
 #endif
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_901U)
-	  uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, ((PH_CURRENT_MAX*(int32_t)(ui8_AssistLevel)))>>8, 0); // level in range 0...255
+	  uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, ((PH_CURRENT_MAX*(int32_t)(MS.assist_level)))>>8, 0); // level in range 0...255
 #endif
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG)
@@ -594,7 +610,7 @@ int main(void)
 
 #ifdef TS_MODE //torque-sensor mode
 
-	  int16_current_target = (TS_COEF*(int16_t)(ui8_AssistLevel)* (uint32_torque_cumulated>>5)/uint32_PAS)>>8; //>>5 aus Mittelung über eine Kurbelumdrehung, >>8 aus KM5S-Protokoll Assistlevel 0..255
+	  int16_current_target = (TS_COEF*(int16_t)(MS.assist_level)* (uint32_torque_cumulated>>5)/uint32_PAS)>>8; //>>5 aus Mittelung über eine Kurbelumdrehung, >>8 aus KM5S-Protokoll Assistlevel 0..255
 	  temp1=int16_current_target;
 	  if(int16_current_target>PH_CURRENT_MAX) int16_current_target = PH_CURRENT_MAX;
 	  temp2=int16_current_target;
@@ -638,9 +654,8 @@ int main(void)
 	  if(ui8_Push_Assist_flag)int16_current_target=PUSHASSIST_CURRENT;
 
 	  if (int16_current_target>0&&!READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)) SET_BIT(TIM1->BDTR, TIM_BDTR_MOE); //enable PWM if power is wanted
-	 //slow loop procedere
-	  if(ui32_tim3_counter>800){
-
+	 //slow loop procedere @16Hz, for LEV standard every 4th loop run, send page,
+	  if(ui32_tim3_counter>500){
 
 		  MS.Temperature = adcData[2]*41>>8; //0.16 is calibration constant: Analog_in[10mV/°C]/ADC value. Depending on the sensor LM35)
 		  MS.Voltage=adcData[0];
@@ -660,11 +675,43 @@ int main(void)
 		  {i++;}
 		 HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);
 
-		  ui32_tim3_counter=0;
+
 		  ui8_print_flag=0;
 
 #endif
-	  }
+
+#if (DISPLAY_TYPE == DISPLAY_TYPE_EBiCS)
+		  ui8_slowloop_counter++;
+		  if(ui8_slowloop_counter>3){
+			  ui8_slowloop_counter = 0;
+
+			  switch (ui8_main_LEV_Page_counter){
+			  case 1: {
+				  ui8_LEV_Page_to_send = 1;
+			  	  }
+			  	  break;
+			  case 2: {
+				  ui8_LEV_Page_to_send = 2;
+			  	  }
+			  	  break;
+			  case 3: {
+				  ui8_LEV_Page_to_send = 3;
+			  	  }
+			  	  break;
+			  case 4: {
+				  //to do, define other pages
+			  	  }
+			  	  break;
+			  }//end switch
+			  send_ant_page(ui8_LEV_Page_to_send, &MS, &MP);
+
+			  ui8_main_LEV_Page_counter++;
+			  if(ui8_main_LEV_Page_counter>4)ui8_main_LEV_Page_counter=1;
+		  }
+
+#endif
+		  ui32_tim3_counter=0;
+	  }// end of slow loop
 
   /* USER CODE END WHILE */
 
@@ -1403,7 +1450,7 @@ void kingmeter_update(void)
 
     /* Apply Rx parameters */
 
-    ui8_AssistLevel = KM.Rx.AssistLevel;
+    MS.assist_level = KM.Rx.AssistLevel;
 
     if(KM.Rx.Headlight == KM_HEADLIGHT_OFF)
         {
@@ -1484,7 +1531,7 @@ void bafang_update(void)
     if(BF.Rx.PushAssist) ui8_Push_Assist_flag=1;
     else ui8_Push_Assist_flag=0;
 
-    ui8_AssistLevel=BF.Rx.AssistLevel;
+    MS.assist_level=BF.Rx.AssistLevel;
 }
 
 #endif
