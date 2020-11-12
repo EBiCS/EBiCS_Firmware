@@ -32,20 +32,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // Definitions
 #define KM_MAX_WHEELTIME 0x0DAC          // Maximum Wheeltime reported to the display (e.g. when wheel is stopped)
 
-#if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_618U)
- #define KM_MAX_RXBUFF 6
- #define KM_MAX_TXBUFF 8
-#endif
-
-
-#if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_901U)
- #define KM_MAX_RXBUFF 20
- #define KM5S_NM_RXBUFF 15 // KM5S RX-Buffer length for normal mode
- #define KM_MAX_TXBUFF 13
-#endif
-
-
-
 #define KM_PASDIR_FORWARD       0x00
 #define KM_PASDIR_BACKWARD      0x01
 
@@ -147,7 +133,17 @@ typedef struct
 
 }TX_PARAM_t;
 
+#if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_618U)
+ #define KM_MAX_RXBUFF 6
+ #define KM_MAX_TXBUFF 8
+#endif
 
+
+#if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_901U)
+ #define KM_MAX_RXBUFF 20
+ #define KM5S_NM_RXBUFF 15 // KM5S RX-Buffer length for normal mode
+ #define KM_MAX_TXBUFF 13
+#endif
 
 typedef struct
 {
@@ -172,6 +168,8 @@ void KingMeter_Init (KINGMETER_t* KM_ctx);
 
 
 void KingMeter_Service(KINGMETER_t* KM_ctx);
+
+
 
 
 #endif // Display Type Kingmeter

@@ -44,13 +44,73 @@ UART_HandleTypeDef huart1;
 
 // Hashtable used for handshaking in 901U protocol
 #if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_901U)
-const uint8_t KM_901U_HANDSHAKE[64] =
-{
-    201, 107,  13, 229, 241, 198, 108, 230, 186,  67,  39,  92, 217, 140, 177,  36,
-     22,  71, 174,  39, 161, 151,   7, 140, 107, 155, 189, 195, 209, 106,  63, 191,
-    218,  47, 221,  46, 135, 145,  98,  82,  35,  42,  85,  99,  35,  43, 180,  12,
-      3, 126,  94, 103, 198,  10, 182, 249, 253,  86, 105, 196, 217, 183, 195, 115
-};
+ const uint8_t KM_901U_HANDSHAKE[64] =
+ {
+ 		137,
+ 		159,
+ 		134,
+ 		249,
+ 		88,
+ 		11,
+ 		250,
+ 		61,
+ 		33,
+ 		150,
+ 		3,
+ 		193,
+ 		118,
+ 		141,
+ 		209,
+ 		94,
+ 		226,
+ 		68,
+ 		146,
+ 		158,
+ 		145,
+ 		127,
+ 		216,
+ 		62,
+ 		116,
+ 		230,
+ 		101,
+ 		211,
+ 		251,
+ 		54,
+ 		229,
+ 		247,
+ 		20,
+ 		222,
+ 		59,
+ 		63,
+ 		35,
+ 		252,
+ 		142,
+ 		238,
+ 		23,
+ 		197,
+ 		84,
+ 		77,
+ 		147,
+ 		173,
+ 		210,
+ 		57,
+ 		142,
+ 		223,
+ 		157,
+ 		97,
+ 		36,
+ 		160,
+ 		229,
+ 		237,
+ 		75,
+ 		80,
+ 		37,
+ 		113,
+ 		154,
+ 		88,
+ 		23,
+ 		120
+ };
 #endif
 
 
@@ -298,41 +358,32 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
     static uint8_t  j=0;
     static uint8_t  first_run_flag=0;
 
-    static uint8_t  SOM_Flag = 0;
     uint16_t CheckSum;
     static  uint8_t  TxBuff[KM_MAX_TXBUFF];
     uint8_t  TxCnt;
-    static uint8_t  handshake_position;
 
-
+    i=KM_ctx->RxBuff[2];
 
 	switch (first_run_flag)
 	{
 
 	case 0:
-		handshake_position=KM_ctx->RxBuff[9];
-
-
-		TxBuff[0] = 0XFD;                                       // StartCode
-		TxBuff[1] = 0xFB;                                       // SrcAdd:  Controller
-		TxBuff[2] = 0xFD;                                      	// CmdCode
-		TxBuff[3] = 0xFD;
-		TxBuff[4] = 0x00;
-		//FD FB FD FD 00
-	    HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuff, 5);
-	    HAL_Delay(5);
-	    first_run_flag=1;
-
-	    HAL_UART_DMAStop(&huart1);
-
-	    if (HAL_UART_Receive_DMA(&huart1, (uint8_t *)KM_ctx->RxBuff, 9) != HAL_OK)
-	     {
-	 	   Error_Handler();
-	     }
-
-		break;
+	j++;
+	if(j>3)first_run_flag=1;
+	break;
 
 	case 1:
+		TxBuff[0] = 0XFD;                                       // StartCode
+		TxBuff[1] = 0x5B;                                       // SrcAdd:  Controller
+		TxBuff[2] = 0xFD;                                      	// CmdCode
+		TxBuff[3] = 0x00;
+		//FD 5B FD 00
+	    HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuff, 4);
+	    HAL_Delay(5);
+	    first_run_flag=2;
+		break;
+
+	case 2:
     // Prepare Tx message with handshake code
     TxBuff[0] = 0X3A;                                       // StartCode
     TxBuff[1] = 0x1A;                                       // SrcAdd:  Controller
@@ -341,7 +392,7 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
     TxBuff[4] = 0x00;
     TxBuff[5] = 0x00;
     TxBuff[6] = 0x0D;
-    TxBuff[7] = KM_901U_HANDSHAKE[handshake_position];
+    TxBuff[7] = KM_901U_HANDSHAKE[KM_ctx->RxBuff[4]];
     TxBuff[8] = 0x00;
 
     CheckSum = 0x0000;
@@ -356,56 +407,52 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
     //TxBuff[10] = 0x01;
     TxBuff[11] = 0x0D;
     TxBuff[12] = 0x0A;
-   // 3A 1A 53 05 00 00 0D 91 00 10 01 0D 0A
-   // 3A 1A 53 05 00 00 0D 7F 00 FE 00 0D 0A
-   // 3A 1A 53 05 00 00 0D D8 00 57 01 0D 0A
-   // 3A 1A 53 05 00 00 0D 3E 00 BD 00 0D 0A
+
+   // 3A 1A 53 05 00 00 0D D1 00 50 01 0D 0A
 
     HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuff, 13);
    // HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&KM_ctx->RxBuff, 10);
 
-    HAL_Delay(25);
-    first_run_flag=2;
-
-    HAL_UART_DMAStop(&huart1);
-
-    if (HAL_UART_Receive_DMA(&huart1, (uint8_t *)KM_ctx->RxBuff, 28) != HAL_OK)
-     {
- 	   Error_Handler();
-     }
+    HAL_Delay(5);
+    first_run_flag=3;
     break;
 
 
-	case 2:
+	case 3:
+/*
+        TxBuff[0] = 0X3A;                                       // StartCode
+        TxBuff[1] = 0x1A;                                       // SrcAdd:  Controller
+        TxBuff[2] = 0x52;                                      	// CmdCode
+        TxBuff[3] = 0x05;                                       // Number of Databytes
+        TxBuff[4] = 0x00;
+        TxBuff[5] = 0x00;
+        TxBuff[6] = 0x0D;
+        TxBuff[7] = 0xAC;
+        TxBuff[8] = 0x00;
+        TxBuff[9] = 0x2A;
+        TxBuff[10] = 0x01;
+        TxBuff[11] = 0x0D;
+        TxBuff[12] = 0x0A;
+      //  3A 1A 52 05 00 00 0D AC 00 2A 01 0D 0A
+      //  if(KM_ctx->RxBuff[0] == 0x3A){
+        HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuff, 13);
+        }
+        break;
+	}*/
 
-    	//HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&KM_ctx->RxBuff, 28);
-    	//HAL_Delay(10);
-
-		for(i=0; i<28; i++){
-			if(KM_ctx->RxBuff[i]==  0x1A && KM_ctx->RxBuff[i+1]==0x52){
-				j=i+1;
-
-			}
-			if(KM_ctx->RxBuff[i]==  0x1A && KM_ctx->RxBuff[i+1]==0x53)j=i+1;
-		}
 
 
-    switch(KM_ctx->RxBuff[j])
+    switch(KM_ctx->RxBuff[2])
             {
                 case 0x52:      // Operation mode
 
                 	CheckSum = 0x0000;
-                	for(i=1; i<6; i++)
+                	for(i=1; i<(4+KM_ctx->RxBuff[3]); i++)
                 		{
-                		CheckSum = CheckSum + KM_ctx->RxBuff[i+j-2];            // Calculate CheckSum
+                		CheckSum = CheckSum + KM_ctx->RxBuff[i];            // Calculate CheckSum
                 		}
-    				/*TempBuff[0]=i+j-2;
-    				TempBuff[1]=lowByte(CheckSum);
-    				TempBuff[2]=KM_ctx->RxBuff[i+j-2];
-    				HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TempBuff,3 );
-    				HAL_Delay(5);*/
 
-                	if((lowByte(CheckSum)) == KM_ctx->RxBuff[i+j-2] && (highByte(CheckSum)) == KM_ctx->RxBuff[i+j-1]) //low-byte and high-byte
+                	if((lowByte(CheckSum)) == KM_ctx->RxBuff[i] && (highByte(CheckSum)) == KM_ctx->RxBuff[i+1]) //low-byte and high-byte
                 		{
                 		KM_ctx->RxState = RXSTATE_DONE;
                 		}
@@ -430,8 +477,8 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
                     }
                     else
                     {
-                    	KM_ctx->RxState = RXSTATE_DONE;
-                    	//KM_ctx->RxState = RXSTATE_STARTCODE;                // Invalid CheckSum, ignore message
+                    	//KM_ctx->RxState = RXSTATE_DONE;
+                    	KM_ctx->RxState = RXSTATE_STARTCODE;                // Invalid CheckSum, ignore message
                     }
                break;
             }
@@ -443,21 +490,21 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
     {
         KM_ctx->RxState = RXSTATE_STARTCODE;
 
-        switch(KM_ctx->RxBuff[j])
+        switch(KM_ctx->RxBuff[2])
         {
             case 0x52:      // Operation mode
 
                 // Decode Rx message
-                KM_ctx->Rx.AssistLevel        =  KM_ctx->RxBuff[4+j-2];                 // 0..255
-                KM_ctx->Rx.Headlight          = (KM_ctx->RxBuff[5+j-2] & 0xC0) >> 6;    // KM_HEADLIGHT_OFF / KM_HEADLIGHT_ON / KM_HEADLIGHT_LOW / KM_HEADLIGHT_HIGH
-                KM_ctx->Rx.Battery            = (KM_ctx->RxBuff[5+j-2] & 0x20) >> 5;    // KM_BATTERY_NORMAL / KM_BATTERY_LOW
-                KM_ctx->Rx.PushAssist         = (KM_ctx->RxBuff[5+j-2] & 0x10) >> 4;    // KM_PUSHASSIST_OFF / KM_PUSHASSIST_ON
-                KM_ctx->Rx.PowerAssist        = (KM_ctx->RxBuff[5+j-2] & 0x08) >> 3;    // KM_POWERASSIST_OFF / KM_POWERASSIST_ON
-                KM_ctx->Rx.Throttle           = (KM_ctx->RxBuff[5+j-2] & 0x04) >> 2;    // KM_THROTTLE_OFF / KM_THROTTLE_ON
-                KM_ctx->Rx.CruiseControl      = (KM_ctx->RxBuff[5+j-2] & 0x02) >> 1;    // KM_CRUISE_OFF / KM_CRUISE_ON
-                KM_ctx->Rx.OverSpeed          = (KM_ctx->RxBuff[5+j-2] & 0x01);         // KM_OVERSPEED_NO / KM_OVERSPEED_YES
-                KM_ctx->Rx.SPEEDMAX_Limit_x10 = (((uint16_t) KM_ctx->RxBuff[7+j-2])<<8)  | KM_ctx->RxBuff[6+j-2];
-                KM_ctx->Rx.CUR_Limit_x10      = (((uint16_t) KM_ctx->RxBuff[9+j-2])<<8) | KM_ctx->RxBuff[8+j-2];
+                KM_ctx->Rx.AssistLevel        =  KM_ctx->RxBuff[4];                 // 0..255
+                KM_ctx->Rx.Headlight          = (KM_ctx->RxBuff[5] & 0xC0) >> 6;    // KM_HEADLIGHT_OFF / KM_HEADLIGHT_ON / KM_HEADLIGHT_LOW / KM_HEADLIGHT_HIGH
+                KM_ctx->Rx.Battery            = (KM_ctx->RxBuff[5] & 0x20) >> 5;    // KM_BATTERY_NORMAL / KM_BATTERY_LOW
+                KM_ctx->Rx.PushAssist         = (KM_ctx->RxBuff[5] & 0x10) >> 4;    // KM_PUSHASSIST_OFF / KM_PUSHASSIST_ON
+                KM_ctx->Rx.PowerAssist        = (KM_ctx->RxBuff[5] & 0x08) >> 3;    // KM_POWERASSIST_OFF / KM_POWERASSIST_ON
+                KM_ctx->Rx.Throttle           = (KM_ctx->RxBuff[5] & 0x04) >> 2;    // KM_THROTTLE_OFF / KM_THROTTLE_ON
+                KM_ctx->Rx.CruiseControl      = (KM_ctx->RxBuff[5] & 0x02) >> 1;    // KM_CRUISE_OFF / KM_CRUISE_ON
+                KM_ctx->Rx.OverSpeed          = (KM_ctx->RxBuff[5] & 0x01);         // KM_OVERSPEED_NO / KM_OVERSPEED_YES
+                KM_ctx->Rx.SPEEDMAX_Limit_x10 = (((uint16_t) KM_ctx->RxBuff[7])<<8)  | KM_ctx->RxBuff[6];
+                KM_ctx->Rx.CUR_Limit_x10      = (((uint16_t) KM_ctx->RxBuff[9])<<8) | KM_ctx->RxBuff[8];
 
 
                 // Prepare Tx message
@@ -475,7 +522,7 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
                 {
                     TxBuff[4]  = 0x00;                                  // State data (only UnderVoltage bit has influence on display)
                 }
-                //KM_ctx->Tx.Wheeltime_ms=1000;
+
                 TxBuff[5]  = (uint8_t) ((KM_ctx->Tx.Current_x10 * 3) / 10);        			// Current low Strom in 1/3 Ampere, nur ein Byte
                 TxBuff[6]  = highByte(KM_ctx->Tx.Wheeltime_ms);         // WheelSpeed high Hinweis
                 TxBuff[7]  = lowByte (KM_ctx->Tx.Wheeltime_ms);         // WheelSpeed low
@@ -507,14 +554,13 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
                 TxBuff[4] = 0x00;
                 TxBuff[5] = 0x00;
                 TxBuff[6] = 0x0D;
-                TxBuff[7] = handshake_position;
+                TxBuff[7] = 0x8D;
                 TxBuff[8] = 0x00;
                 TxBuff[9] = 0x0C;
                 TxBuff[10] = 0x01;
                 TxBuff[11] = 0x0D;
                 TxBuff[12] = 0x0A;
 
-                handshake_position++;
 
                // 3A 1A 53 05 00 00 0D 91 00 10 01 0D 0A
                 //3A 1A 53 05 80 00 0D 91 26 B6 01 0D 0A

@@ -8,8 +8,9 @@
 #ifndef CONFIG_H_
 #define CONFIG_H_
 #include "stdint.h"
-#define DISPLAY_TYPE_KINGMETER_618U (1<<4)                  // King-Meter 618U protocol (KM5s, EBS-LCD2, J-LCD, SW-LCD)
-#define DISPLAY_TYPE_KINGMETER_901U (1<<8)                  // King-Meter 901U protocol (KM5s)
+#define DISPLAY_TYPE_EBiCS (1<<5)                  // King-Meter 618U protocol (KM5s, EBS-LCD2, J-LCD, SW-LCD)
+#define DISPLAY_TYPE_KINGMETER_618U (1<<3)                  // King-Meter 618U protocol (KM5s, EBS-LCD2, J-LCD, SW-LCD)
+#define DISPLAY_TYPE_KINGMETER_901U (1<<4)                  // King-Meter 901U protocol (KM5s)
 #define DISPLAY_TYPE_KINGMETER      (DISPLAY_TYPE_KINGMETER_618U|DISPLAY_TYPE_KINGMETER_901U)
 #define DISPLAY_TYPE_BAFANG (1<<2)							// For 'Blaupunkt' Display of Prophete Entdecker
 #define DISPLAY_TYPE_KUNTENG (1<<1)							// For ASCII-Output in Debug mode
@@ -48,9 +49,9 @@
 //#define DIRDET
 #define FRAC_HIGH 30
 #define FRAC_LOW 15
-//#define TS_MODE
-#define DISPLAY_TYPE DISPLAY_TYPE_KINGMETER_901U //ASCII Printout for debugging
-#define REVERSE 1
+#define TS_MODE
+#define DISPLAY_TYPE DISPLAY_TYPE_KINGMETER_901U
+#define REVERSE 0
 //#define FAST_LOOP_LOG
 //#define DISABLE_DYNAMIC_ADC
 #endif /* CONFIG_H_ */

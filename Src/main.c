@@ -595,8 +595,11 @@ int main(void)
 #ifdef TS_MODE //torque-sensor mode
 
 	  int16_current_target = (TS_COEF*(int16_t)(ui8_AssistLevel)* (uint32_torque_cumulated>>5)/uint32_PAS)>>8; //>>5 aus Mittelung über eine Kurbelumdrehung, >>8 aus KM5S-Protokoll Assistlevel 0..255
+	  temp1=int16_current_target;
 	  if(int16_current_target>PH_CURRENT_MAX) int16_current_target = PH_CURRENT_MAX;
+	  temp2=int16_current_target;
 	  if(uint32_PAS_counter > PAS_TIMEOUT) int16_current_target = 0;
+	  temp3=int16_current_target;
 	  //int16_current_target = 0;
 
 #else		// torque-simulation mode with throttle override
@@ -649,7 +652,7 @@ int main(void)
 		  //print values for debugging
 
 
-	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n", MS.i_q,int16_current_target, uint16_mapped_PAS,(uint16_t) MS.i_q*MS.Voltage, (uint16_t)uint32_PAS, MS.u_abs, (uint16_t) (ui16_reg_adc_value-THROTTLE_OFFSET));//((q31_i_q_fil*q31_u_abs)>>14)*
+	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n", MS.i_q,int16_current_target, (uint16_t) temp1,(uint16_t) temp2, (uint16_t) temp3, (uint16_t)uint32_PAS, (uint16_t) (ui16_reg_adc_value-THROTTLE_OFFSET));//((q31_i_q_fil*q31_u_abs)>>14)*
 	  	//	sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5])) ;
 
 	  	  i=0;
@@ -1391,7 +1394,7 @@ void kingmeter_update(void)
 
     KM.Tx.Error = KM_ERROR_NONE;
 
-    KM.Tx.Current_x10 = (uint16_t) (temp1>>1);
+    KM.Tx.Current_x10 = (uint16_t) (MS.Battery_Current/100); //MS.Battery_Current is in mA
 
 
     /* Receive Rx parameters/settings and send Tx parameters */
