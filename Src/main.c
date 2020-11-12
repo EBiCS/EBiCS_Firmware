@@ -1403,6 +1403,8 @@ void kingmeter_update(void)
 
     /* Apply Rx parameters */
 
+    ui8_AssistLevel = KM.Rx.AssistLevel;
+
     if(KM.Rx.Headlight == KM_HEADLIGHT_OFF)
         {
         	HAL_GPIO_WritePin(LIGHT_GPIO_Port, LIGHT_Pin, GPIO_PIN_RESET);
