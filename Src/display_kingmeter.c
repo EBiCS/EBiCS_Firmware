@@ -209,7 +209,7 @@ void KingMeter_Init (KINGMETER_t* KM_ctx)
 #endif
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_FISCHER_1822)
-    if (HAL_UART_Receive_DMA(&huart1, (uint8_t *)KM_ctx->RxBuff, 15) != HAL_OK)
+    if (HAL_UART_Receive_DMA(&huart1, (uint8_t *)KM_ctx->RxBuff, 10) != HAL_OK)
      {
  	   Error_Handler();
      }
@@ -635,25 +635,54 @@ static void KM_FISCHER_1822(KINGMETER_t* KM_ctx)
 	{
 
 	case 0:
-		handshake_position=KM_ctx->RxBuff[9];
-		//TxBuff[0]=KM_ctx->RxBuff[9];
-		//TxBuff[1]=KM_901U_HANDSHAKE[handshake_position];
-	   // HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuff, 2);
-	    //HAL_Delay(15);
+		//3A 1A 52 05 80 00 0D AC 26 D0 01 0D 0A
+		//3A 1A 52 05 80 00 0D AC 26 D0 01 0D 0A
+		//3A 1A 52 05 00 00 0D AC 00 2A 01 0D 0A
+		j++;
 
-		TxBuff[0] = 0XFD;                                       // StartCode
-		TxBuff[1] = 0xFB;                                       // SrcAdd:  Controller
-		TxBuff[2] = 0xFD;                                      	// CmdCode
-		TxBuff[3] = 0xFD;
-		TxBuff[4] = 0x00;
-		//FD FB FD FD 00
-	    HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuff, 5);
+		if(j<3){
+			TxBuff[0] = 0X3A;                                       // StartCode
+			TxBuff[1] = 0x1A;                                       // SrcAdd:  Controller
+			TxBuff[2] = 0x52;                                      	// CmdCode
+			TxBuff[3] = 0x05;                                       // Number of Databytes
+			TxBuff[4] = 0x80;
+			TxBuff[5] = 0x00;
+			TxBuff[6] = 0x0D;
+			TxBuff[7] = 0xAC;
+			TxBuff[8] = 0x26;
+			TxBuff[9] = 0xD0;
+			TxBuff[10] = 0x01;
+			TxBuff[11] = 0x0D;
+			TxBuff[12] = 0x0A;
+		}
+		else{
+			//3A 1A 52 05 00 00 0D AC 00 2A 01 0D 0A
+			TxBuff[0] = 0X3A;                                       // StartCode
+			TxBuff[1] = 0x1A;                                       // SrcAdd:  Controller
+			TxBuff[2] = 0x52;                                      	// CmdCode
+			TxBuff[3] = 0x05;                                       // Number of Databytes
+			TxBuff[4] = 0x00;
+			TxBuff[5] = 0x00;
+			TxBuff[6] = 0x0D;
+			TxBuff[7] = 0xAC;
+			TxBuff[8] = 0x00;
+			TxBuff[9] = 0x2A;
+			TxBuff[10] = 0x01;
+			TxBuff[11] = 0x0D;
+			TxBuff[12] = 0x0A;
+			first_run_flag=1;
+			j=0;
+		}
+
+	    HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuff, 13);
 	    HAL_Delay(5);
-	    first_run_flag=1;
+
+
+
 
 	    HAL_UART_DMAStop(&huart1);
 
-	    if (HAL_UART_Receive_DMA(&huart1, (uint8_t *)KM_ctx->RxBuff, 9) != HAL_OK)
+	    if (HAL_UART_Receive_DMA(&huart1, (uint8_t *)KM_ctx->RxBuff, 15) != HAL_OK)
 	     {
 	 	   Error_Handler();
 	     }
@@ -661,6 +690,7 @@ static void KM_FISCHER_1822(KINGMETER_t* KM_ctx)
 		break;
 
 	case 1:
+		handshake_position=KM_ctx->RxBuff[9];
     // Prepare Tx message with handshake code
     TxBuff[0] = 0X3A;                                       // StartCode
     TxBuff[1] = 0x1A;                                       // SrcAdd:  Controller
@@ -684,6 +714,7 @@ static void KM_FISCHER_1822(KINGMETER_t* KM_ctx)
     //TxBuff[10] = 0x01;
     TxBuff[11] = 0x0D;
     TxBuff[12] = 0x0A;
+ //   3A 1A 53 05 00 00 0D D8 00 57 01 0D 0A
    // 3A 1A 53 05 00 00 0D 91 00 10 01 0D 0A
    // 3A 1A 53 05 00 00 0D 7F 00 FE 00 0D 0A
    // 3A 1A 53 05 00 00 0D D8 00 57 01 0D 0A
@@ -697,7 +728,7 @@ static void KM_FISCHER_1822(KINGMETER_t* KM_ctx)
 
     HAL_UART_DMAStop(&huart1);
 
-    if (HAL_UART_Receive_DMA(&huart1, (uint8_t *)KM_ctx->RxBuff, 28) != HAL_OK)
+    if (HAL_UART_Receive_DMA(&huart1, (uint8_t *)KM_ctx->RxBuff, 10) != HAL_OK)
      {
  	   Error_Handler();
      }
@@ -708,7 +739,7 @@ static void KM_FISCHER_1822(KINGMETER_t* KM_ctx)
 
     	//HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&KM_ctx->RxBuff, 28);
     	//HAL_Delay(10);
-
+/*
 		for(i=0; i<28; i++){
 			if(KM_ctx->RxBuff[i]==  0x1A && KM_ctx->RxBuff[i+1]==0x52){
 				j=i+1;
@@ -716,8 +747,8 @@ static void KM_FISCHER_1822(KINGMETER_t* KM_ctx)
 			}
 			if(KM_ctx->RxBuff[i]==  0x1A && KM_ctx->RxBuff[i+1]==0x53)j=i+1;
 		}
-
-
+*/
+		j=2;
     switch(KM_ctx->RxBuff[j])
             {
                 case 0x52:      // Operation mode
@@ -727,11 +758,6 @@ static void KM_FISCHER_1822(KINGMETER_t* KM_ctx)
                 		{
                 		CheckSum = CheckSum + KM_ctx->RxBuff[i+j-2];            // Calculate CheckSum
                 		}
-    				/*TempBuff[0]=i+j-2;
-    				TempBuff[1]=lowByte(CheckSum);
-    				TempBuff[2]=KM_ctx->RxBuff[i+j-2];
-    				HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TempBuff,3 );
-    				HAL_Delay(5);*/
 
                 	if((lowByte(CheckSum)) == KM_ctx->RxBuff[i+j-2] && (highByte(CheckSum)) == KM_ctx->RxBuff[i+j-1]) //low-byte and high-byte
                 		{
@@ -835,7 +861,7 @@ static void KM_FISCHER_1822(KINGMETER_t* KM_ctx)
                 TxBuff[4] = 0x00;
                 TxBuff[5] = 0x00;
                 TxBuff[6] = 0x0D;
-                TxBuff[7] = 0x8D;
+                TxBuff[7] = KM_901U_HANDSHAKE[handshake_position++];
                 TxBuff[8] = 0x00;
                 TxBuff[9] = 0x0C;
                 TxBuff[10] = 0x01;

@@ -447,7 +447,7 @@ int main(void) {
 #endif
 #ifdef TS_MODE //torque-sensor mode
 
-#if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_901U)
+#if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_901U||DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_FISCHER_1822)
 
 	  uint16_current_target = (TS_COEF*(int16_t)(KM.Rx.AssistLevel)* (uint32_torque_cumulated>>5)/uint32_PAS)>>8;
 
