@@ -422,8 +422,10 @@ int main(void) {
 		  uint32_PAS_counter =0;
 		  ui8_PAS_flag=0;
 		  //read in and sum up torque-signal within one crank revolution (for sempu sensor 32 PAS pulses/revolution, 2^5=32)
+		  if(ui16_reg_adc_value>THROTTLE_OFFSET){
 		  uint32_torque_cumulated -= uint32_torque_cumulated>>5;
 		  uint32_torque_cumulated += (ui16_reg_adc_value-THROTTLE_OFFSET);
+		  }
 	  }
 
 	  //SPEED signal processing
@@ -523,7 +525,7 @@ int main(void) {
 		   else temp3=0;
 #if (DISPLAY_TYPE == DEBUG_SLOW_LOOP)
 		   //print values for debugging
-	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n", uint16_current_target, MS.i_q, uint32_torque_cumulated, adcData[1], MS.Speed, MS.u_abs, uint32_PAS);
+	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n", uint16_current_target, MS.i_q, uint32_torque_cumulated, ui16_reg_adc_value-THROTTLE_OFFSET, MS.Speed, MS.u_abs, uint32_PAS);
 	  		i=0;
 		  while (buffer[i] != '\0')
 		  {i++;}
@@ -904,7 +906,7 @@ static void MX_USART1_UART_Init(void)
 #if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
   huart1.Init.BaudRate = 9600;//9600;
 #else
-  huart1.Init.BaudRate = 56000;
+  huart1.Init.BaudRate = 9600;//56000;
 #endif
   huart1.Init.WordLength = UART_WORDLENGTH_8B;
   huart1.Init.StopBits = UART_STOPBITS_1;
