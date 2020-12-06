@@ -53,6 +53,7 @@
 #include "print.h"
 #include "FOC.h"
 #include "config.h"
+#include "eeprom.h"
 
 
 #if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
@@ -170,7 +171,9 @@ const q31_t DEG_minus120= -1431655765;
 const q31_t tics_lower_limit = WHEEL_CIRCUMFERENCE*5*3600/(6*GEAR_RATIO*SPEEDLIMIT*10); //tics=wheelcirc*timerfrequency/(no. of hallevents per rev*gear-ratio*speedlimit)*3600/1000000
 const q31_t tics_higher_limit = WHEEL_CIRCUMFERENCE*5*3600/(6*GEAR_RATIO*(SPEEDLIMIT+2)*10);
 q31_t q31_tics_filtered=128000;
-//variables for display communication
+
+uint16_t VirtAddVarTab[NB_OF_VAR] = {0x01, 0x02, 0x03};
+
 
 //variables for display communication
 #if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
@@ -230,6 +233,7 @@ void bafang_update(void);
 static void dyn_adc_state(q31_t angle);
 static void set_inj_channel(char state);
 int32_t map (int32_t x, int32_t in_min, int32_t in_max, int32_t out_min, int32_t out_max);
+void autodetect();
 
 
 /* USER CODE END PFP */
@@ -277,6 +281,11 @@ int main(void)
   MS.Speed=128000;
   MS.assist_level=1;
   MS.regen_level=7;
+
+  //Virtual EEPROM init
+  HAL_FLASH_Unlock();
+  EE_Init();
+  HAL_FLASH_Lock();
 
   MX_ADC1_Init();
   /* Run the ADC calibration */
@@ -423,38 +432,12 @@ int main(void)
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG)
 
-   	MS.hall_angle_detect_flag=0; //set uq to contstant value in FOC.c for open loop control
-   	q31_rotorposition_absolute=1<<31;
-   	HAL_Delay(5);
-   	for(i=0;i<360;i++){
-   		q31_rotorposition_absolute+=11930465; //drive motor in open loop with steps of 1°
-   		HAL_Delay(5);
-   		if(ui8_hall_state_old!=ui8_hall_state)printf_("hallstate:  %d, \n", ui8_hall_state);
-
-
-   		if(i8_direction==-1){
-   		if(ui8_hall_state_old==5&&ui8_hall_state==1)//switch from 5 to 1 is associated with 0°
-   		{
-   			q31_rotorposition_motor_specific=q31_rotorposition_absolute+(1<<31);//+357913941;//298261617LL; //offset empiric
-   		}}
-   		else{
-   	   		if(ui8_hall_state_old==4&&ui8_hall_state==5)//switch from 4 to 5 is associated with 0°
-   	   		{
-   	   			q31_rotorposition_motor_specific=q31_rotorposition_absolute+(1<<31);//+357913941;//298261617LL; //offset empiric
-   	   		}}
-
-   		ui8_hall_state_old=ui8_hall_state;
-   	}
-
-
-   	MS.hall_angle_detect_flag=1;
-
-    printf_("Motor specific angle:  %d, \n ", q31_rotorposition_motor_specific);
-    HAL_Delay(5);
+   	autodetect();
 
 #else
-   	q31_rotorposition_motor_specific = SPEC_ANGLE;
-
+   	EE_ReadVariable(EEPROM_POS_SPEC_ANGLE, &MP.spec_angle);
+   	// set motor specific angle to value from emulated EEPROM only if valid
+   	if(MP.spec_angle) q31_rotorposition_motor_specific = MP.spec_angle<<16;
 #endif
 
    		 HAL_GPIO_EXTI_Callback(GPIO_PIN_0); //read in initial rotor position
@@ -657,6 +640,8 @@ int main(void)
 	 //slow loop procedere @16Hz, for LEV standard every 4th loop run, send page,
 	  if(ui32_tim3_counter>500){
 
+		  EE_ReadVariable(EEPROM_POS_SPEC_ANGLE, &MP.spec_angle);
+
 		  MS.Temperature = adcData[2]*41>>8; //0.16 is calibration constant: Analog_in[10mV/°C]/ADC value. Depending on the sensor LM35)
 		  MS.Voltage=adcData[0];
 		  if(uint32_SPEED_counter>127999)MS.Speed =128000;
@@ -667,7 +652,7 @@ int main(void)
 		  //print values for debugging
 
 
-	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n", MS.i_q,int16_current_target, (uint16_t) temp1,(uint16_t) temp2, (uint16_t) temp3, (uint16_t)uint32_PAS, (uint16_t) (ui16_reg_adc_value-THROTTLE_OFFSET));//((q31_i_q_fil*q31_u_abs)>>14)*
+	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n", MS.i_q,int16_current_target, MP.spec_angle,(uint16_t) temp2, (uint16_t) temp3, (uint16_t)uint32_PAS, (uint16_t) (ui16_reg_adc_value-THROTTLE_OFFSET));//((q31_i_q_fil*q31_u_abs)>>14)*
 	  	//	sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5])) ;
 
 	  	  i=0;
@@ -1614,6 +1599,40 @@ static void set_inj_channel(char state){
 	}
 
 
+}
+
+void autodetect(){
+   	MS.hall_angle_detect_flag=0; //set uq to contstant value in FOC.c for open loop control
+   	q31_rotorposition_absolute=1<<31;
+   	HAL_Delay(5);
+   	for(i=0;i<1080;i++){
+   		q31_rotorposition_absolute+=11930465; //drive motor in open loop with steps of 1°
+   		HAL_Delay(5);
+   		if(ui8_hall_state_old!=ui8_hall_state)printf_("hallstate:  %d, \n", ui8_hall_state);
+
+
+   		if(i8_direction==-1){
+   		if(ui8_hall_state_old==5&&ui8_hall_state==1)//switch from 5 to 1 is associated with 0°
+   		{
+   			q31_rotorposition_motor_specific=q31_rotorposition_absolute+(1<<31);//+357913941;//298261617LL; //offset empiric
+   		}}
+   		else{
+   	   		if(ui8_hall_state_old==4&&ui8_hall_state==5)//switch from 4 to 5 is associated with 0°
+   	   		{
+   	   			q31_rotorposition_motor_specific=q31_rotorposition_absolute+(1<<31);//+357913941;//298261617LL; //offset empiric
+   	   		}}
+
+   		ui8_hall_state_old=ui8_hall_state;
+   	}
+
+    HAL_FLASH_Unlock();
+    EE_WriteVariable(EEPROM_POS_SPEC_ANGLE, q31_rotorposition_motor_specific>>16);
+    HAL_FLASH_Lock();
+
+   	MS.hall_angle_detect_flag=1;
+
+    printf_("Motor specific angle:  %d, \n ", q31_rotorposition_motor_specific);
+    HAL_Delay(5);
 }
 
 /* USER CODE END 4 */

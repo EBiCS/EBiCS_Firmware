@@ -87,6 +87,7 @@
 
 
 
+
 /* ########################## Assert Selection ############################## */
 /**
   * @brief Uncomment the line below to expanse the "assert_param" macro in the 
@@ -144,7 +145,7 @@ typedef struct
 	uint8_t       	speedLimit;
 	uint8_t       	pulses_per_revolution;
 	uint16_t       	phase_current_max;
-	uint16_t       	spec_angle;
+	int16_t       	spec_angle;
 
 
 }MotorParams_t;
