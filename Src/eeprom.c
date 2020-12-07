@@ -30,7 +30,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* Global variable used to store variable value in read sequence */
-uint16_t DataVar = 0;
+int16_t DataVar = 0;
 
 /* Virtual address defined by the user: 0xFFFF value is prohibited */
 extern uint16_t VirtAddVarTab[NB_OF_VAR];
@@ -341,7 +341,7 @@ uint16_t EE_VerifyPageFullyErased(uint32_t Address)
   *           - 1: if the variable was not found
   *           - NO_VALID_PAGE: if no valid page was found.
   */
-uint16_t EE_ReadVariable(uint16_t VirtAddress, uint16_t* Data)
+uint16_t EE_ReadVariable(uint16_t VirtAddress, int16_t* Data)
 {
   uint16_t validpage = PAGE0;
   uint16_t addressvalue = 0x5555, readstatus = 1;

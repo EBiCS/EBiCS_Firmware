@@ -63,6 +63,20 @@ void process_ant_page(MotorState_t* MS, MotorParams_t* MP){
 		 	 	}// end case 16
 		 	 	break;
 
+		 	 	// Page6 is no ANT+LEV Standard, it's used for MotorParams
+		 	/*	message[4] = Run autodetect routine
+		 	    message[5] =
+		 	    message[6] =
+		 	    message[7] =
+		 	    message[8] =
+		 	    message[9] =
+		 	    message[10] =
+		 	    */
+		 	 case 6:
+		 	 	{
+		 	 		if(ui8_rx_buffer[4])autodetect();
+		 	 	}
+		 	 	break;
 		 	default:
 		 	   {
 		 		 //do nothing

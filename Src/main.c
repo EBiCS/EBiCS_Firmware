@@ -233,7 +233,7 @@ void bafang_update(void);
 static void dyn_adc_state(q31_t angle);
 static void set_inj_channel(char state);
 int32_t map (int32_t x, int32_t in_min, int32_t in_max, int32_t out_min, int32_t out_max);
-void autodetect();
+
 
 
 /* USER CODE END PFP */
@@ -437,7 +437,7 @@ int main(void)
 #else
    	EE_ReadVariable(EEPROM_POS_SPEC_ANGLE, &MP.spec_angle);
    	// set motor specific angle to value from emulated EEPROM only if valid
-   	if(MP.spec_angle) q31_rotorposition_motor_specific = MP.spec_angle<<16;
+   	if(MP.spec_angle!=0xFFFF) q31_rotorposition_motor_specific = MP.spec_angle<<16;
 #endif
 
    		 HAL_GPIO_EXTI_Callback(GPIO_PIN_0); //read in initial rotor position
