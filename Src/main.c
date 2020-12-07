@@ -1602,6 +1602,7 @@ static void set_inj_channel(char state){
 }
 
 void autodetect(){
+	SET_BIT(TIM1->BDTR, TIM_BDTR_MOE);
    	MS.hall_angle_detect_flag=0; //set uq to contstant value in FOC.c for open loop control
    	q31_rotorposition_absolute=1<<31;
    	HAL_Delay(5);
