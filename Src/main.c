@@ -683,6 +683,7 @@ int main(void)
 			  	  break;
 			  case 4: {
 				  //to do, define other pages
+				  ui8_LEV_Page_to_send = 4;
 			  	  }
 			  	  break;
 			  }//end switch

@@ -86,6 +86,9 @@ void process_ant_page(MotorState_t* MS, MotorParams_t* MP){
 }//end process_ant_page
 
 void send_ant_page(uint8_t page, MotorState_t* MS, MotorParams_t* MP){
+		ui8_tx_buffer[0] = 164; //Sync binary 10100100;
+		ui8_tx_buffer[1] = 12;  //MsgLength
+		ui8_tx_buffer[2] = 0x4E;// MsgID for 0x4E for "broadcast Data"
 
 	switch (page){
 		 	 case 1:
@@ -100,10 +103,8 @@ void send_ant_page(uint8_t page, MotorState_t* MS, MotorParams_t* MP){
 	 */
 		 	 		uint8_t  temperature_state=1; //to do: set Temperature state Byte according to ANT+LEV
 		 	 		uint16_t speedx10 = MP->wheel_cirumference/((MS->Speed*MP->pulses_per_revolution)>>3)*36; // *3,6 for km/h then *10 for LEV standard definition.
-		 	 		speedx10 = 250;
-		 	 		ui8_tx_buffer[0] = 164; //Sync binary 10100100;
-		 	 		ui8_tx_buffer[1] = 12;  //MsgLength
-		 	 		ui8_tx_buffer[2] = 0x4E;// MsgID for 0x4E for "broadcast Data"
+		 	 		//speedx10 = 250;
+
 		 	 		ui8_tx_buffer[3] = page;
 
 		 	 		ui8_tx_buffer[4] = temperature_state;
@@ -114,23 +115,47 @@ void send_ant_page(uint8_t page, MotorState_t* MS, MotorParams_t* MP){
 		 	 		ui8_tx_buffer[9] = speedx10 & 0xFF; //low byte of speed
 		 	 		ui8_tx_buffer[10] = speedx10>>8 & 0x07; // lower 3 Bytes of high byte
 
-		 	 		int chkSum = 0;
 
-		 	 		for (uint8_t i = 0; i < 11; i++) {
-		 	 			chkSum ^= ui8_tx_buffer[i];
-		 	 		}
-		 	 		ui8_tx_buffer[11]= chkSum;
-
-		 	 		HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&ui8_tx_buffer, 12);
 
 
 		 	 	} //end case 1
 		 	 	break;
+
+		 	 case 4:
+  /*  {
+     State.Charging_Cycle=(RxAnt[6]&0x07)<<8|RxAnt[5];
+     State.Fuel_Consumption=(RxAnt[6]>>4)<<8|RxAnt[7];
+     State.Battery_Voltage=RxAnt[8];
+     State.Distance_On_Recent_Charge = RxAnt[10]>>4|RxAnt[9];
+    }*/
+		 	 {
+		 		 	uint16_t Fuel_Consumption = MS->Battery_Current/10; //Battery_current is in mA, scaled to A*100
+
+		 		 	ui8_tx_buffer[3] = page;
+		 		 	ui8_tx_buffer[4] = 0; //not used
+		 		 	ui8_tx_buffer[5] = 0; //LSB of charging cycle, not used so far
+		 		 	ui8_tx_buffer[6] = (Fuel_Consumption>>8)<<4; //MSB in Bit 4-7
+		 		 	ui8_tx_buffer[7] = Fuel_Consumption & 0xFF; //LSB
+		 		 	ui8_tx_buffer[8] = MS->Voltage*4/1000; // Voltage is in mV, scaled according to LEV standard in 1/4V
+		 		 	ui8_tx_buffer[9] = 0; //LSB Distance on current charge, not used so far
+		 		 	ui8_tx_buffer[10] = 0; //MSB Distance on current charge, not used so far
+
+		 	 }
+		 	break;
 
 			 	default:
 			 	   {
 			 		 //do nothing
 			 	   }
 			}	//end switch
+
+		int chkSum = 0;
+
+		for (uint8_t i = 0; i < 11; i++) {
+			chkSum ^= ui8_tx_buffer[i];
+		}
+		ui8_tx_buffer[11]= chkSum;
+
+		HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&ui8_tx_buffer, 12);
 
 } //end send page
