@@ -8,6 +8,7 @@
 #include "main.h"
 #include "stm32f1xx_hal.h"
 #include "print.h"
+#include "config.h"
 
 UART_HandleTypeDef huart1;
 uint8_t ui8_rx_buffer[12];
@@ -136,7 +137,7 @@ void send_ant_page(uint8_t page, MotorState_t* MS, MotorParams_t* MP){
 		 		 	ui8_tx_buffer[5] = 0; //LSB of charging cycle, not used so far
 		 		 	ui8_tx_buffer[6] = (Fuel_Consumption>>8)<<4; //MSB in Bit 4-7
 		 		 	ui8_tx_buffer[7] = Fuel_Consumption & 0xFF; //LSB
-		 		 	ui8_tx_buffer[8] = MS->Voltage*4/1000; // Voltage is in mV, scaled according to LEV standard in 1/4V
+		 		 	ui8_tx_buffer[8] = MS->Voltage*CAL_V*4/1000; // Voltage is in mV, scaled according to LEV standard in 1/4V
 		 		 	ui8_tx_buffer[9] = 0; //LSB Distance on current charge, not used so far
 		 		 	ui8_tx_buffer[10] = 0; //MSB Distance on current charge, not used so far
 

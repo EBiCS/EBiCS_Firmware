@@ -281,6 +281,8 @@ int main(void)
   MS.Speed=128000;
   MS.assist_level=1;
   MS.regen_level=7;
+  MP.pulses_per_revolution=PULSES_PER_REVOLUTION;
+  MP.wheel_cirumference = WHEEL_CIRCUMFERENCE;
 
   //Virtual EEPROM init
   HAL_FLASH_Unlock();
