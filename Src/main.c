@@ -98,6 +98,7 @@ uint32_t ui32_tim1_counter=0;
 uint32_t ui32_tim3_counter=0;
 uint8_t ui8_hall_state=0;
 uint8_t ui8_hall_state_old=0;
+uint8_t ui8_hall_case =0;
 uint16_t ui16_tim2_recent=0;
 uint16_t ui16_timertics=5000; 					//timertics between two hall events for 60° interpolation
 uint16_t ui16_reg_adc_value;
@@ -133,6 +134,7 @@ uint32_t uint32_SPEED_counter=32000;
 uint32_t uint32_PAS=32000;
 
 uint8_t ui8_UART_Counter=0;
+int8_t i8_recent_rotor_direction=1;
 
 uint32_t uint32_torque_cumulated=0;
 uint32_t uint32_PAS_cumulated=32000;
@@ -281,7 +283,7 @@ int main(void)
   MS.Speed=128000;
   MS.assist_level=1;
   MS.regen_level=7;
-  MP.pulses_per_revolution=PULSES_PER_REVOLUTION;
+  MP.pulses_per_revolution = PULSES_PER_REVOLUTION;
   MP.wheel_cirumference = WHEEL_CIRCUMFERENCE;
 
   //Virtual EEPROM init
@@ -1281,7 +1283,7 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 	   if (ui16_tim2_recent < ui16_timertics && !ui8_overflow_flag){ //prevent angle running away at standstill
 		// float with division necessary!
 
-		q31_rotorposition_absolute = q31_rotorposition_hall + (q31_t)(i8_direction * (715827883.0*((float)ui16_tim2_recent/(float)ui16_timertics))); //interpolate angle between two hallevents by scaling timer2 tics
+		q31_rotorposition_absolute = q31_rotorposition_hall + (q31_t)(i8_direction * i8_recent_rotor_direction * (715827883.0*((float)ui16_tim2_recent/(float)ui16_timertics))); //interpolate angle between two hallevents by scaling timer2 tics
 
 	   }
 	   else
@@ -1330,6 +1332,11 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 	{
 	ui8_hall_state = GPIOA->IDR & 0b111; //Mask input register with Hall 1 - 3 bits
 
+	if(MS.hall_angle_detect_flag){ //only process, if autodetect procedere is fininshed
+	ui8_hall_case=ui8_hall_state_old*10+ui8_hall_state;
+	ui8_hall_state_old=ui8_hall_state;
+	}
+
 	ui16_tim2_recent = __HAL_TIM_GET_COUNTER(&htim2); // read in timertics since last hall event
 
 
@@ -1341,31 +1348,64 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 	   ui8_overflow_flag=0;
 
 	}
-	//temp6=ui16_timertics;
 
 
-	switch (ui8_hall_state) //according to UM1052 Fig 57, Page 72, 120° setup
-	{
-	case 5: //0°
-		q31_rotorposition_hall = DEG_0 + q31_rotorposition_motor_specific;//SPEC_ANGLE;
-		break;
-	case 1: //60°
-		q31_rotorposition_hall = DEG_plus60 + q31_rotorposition_motor_specific;//SPEC_ANGLE;
-		break;
-	case 3: //120°
-		q31_rotorposition_hall = DEG_plus120 + q31_rotorposition_motor_specific;//SPEC_ANGLE;
-		break;
-	case 2: //180°
-		q31_rotorposition_hall = DEG_plus180 + q31_rotorposition_motor_specific;//SPEC_ANGLE; 	//overflow doesn't matter?!
-		break;
-	case 6: //240°-->-120°
-		q31_rotorposition_hall = DEG_minus120 + q31_rotorposition_motor_specific;//SPEC_ANGLE;
-		break;
-	case 4: //300°-->-60°
-		q31_rotorposition_hall = DEG_minus60 + q31_rotorposition_motor_specific;//SPEC_ANGLE;
-		break;
 
-	} // end case
+	switch (ui8_hall_case) //12 cases for each transition from one stage to the next. 6x forward, 6x reverse
+			{
+		//6 cases for forward direction
+		case 45:
+			q31_rotorposition_hall = DEG_0 + q31_rotorposition_motor_specific;
+			i8_recent_rotor_direction=1;
+			break;
+		case 51:
+			q31_rotorposition_hall = DEG_plus60 + q31_rotorposition_motor_specific;
+			i8_recent_rotor_direction=1;
+			break;
+		case 13:
+			q31_rotorposition_hall = DEG_plus120 + q31_rotorposition_motor_specific;
+			i8_recent_rotor_direction=1;
+			break;
+		case 32:
+			q31_rotorposition_hall = DEG_plus180 + q31_rotorposition_motor_specific;
+			i8_recent_rotor_direction=1;
+			break;
+		case 26:
+			q31_rotorposition_hall = DEG_minus120 + q31_rotorposition_motor_specific;
+			i8_recent_rotor_direction=1;
+			break;
+		case 64:
+			q31_rotorposition_hall = DEG_minus60 + q31_rotorposition_motor_specific;
+			i8_recent_rotor_direction=1;
+			break;
+
+		//6 cases for reverse direction
+		case 46:
+			q31_rotorposition_hall = DEG_minus60 + q31_rotorposition_motor_specific;
+			i8_recent_rotor_direction=-1;
+			break;
+		case 62:
+			q31_rotorposition_hall = DEG_minus120 + q31_rotorposition_motor_specific;
+			i8_recent_rotor_direction=-1;
+			break;
+		case 23:
+			q31_rotorposition_hall = DEG_plus180 + q31_rotorposition_motor_specific;
+			i8_recent_rotor_direction=-1;
+			break;
+		case 31:
+			q31_rotorposition_hall = DEG_plus120 + q31_rotorposition_motor_specific;
+			i8_recent_rotor_direction=-1;
+			break;
+		case 15:
+			q31_rotorposition_hall = DEG_plus60 + q31_rotorposition_motor_specific;
+			i8_recent_rotor_direction=-1;
+			break;
+		case 54:
+			q31_rotorposition_hall = DEG_0 + q31_rotorposition_motor_specific;
+			i8_recent_rotor_direction=-1;
+			break;
+
+		} // end case
 
 
 	} //end if
