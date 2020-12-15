@@ -194,6 +194,7 @@
 #define NB_OF_VAR             ((uint8_t)0x03)
 
 #define EEPROM_POS_SPEC_ANGLE ((uint8_t)0x00)
+#define EEPROM_POS_HALL_ORDER	  ((uint8_t)0x01)
 
 /* Exported types ------------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/
