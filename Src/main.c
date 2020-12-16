@@ -135,7 +135,7 @@ uint32_t uint32_PAS=32000;
 
 uint8_t ui8_UART_Counter=0;
 int8_t i8_recent_rotor_direction=1;
-int8_t i8_hall_order=1;
+int16_t i16_hall_order=1;
 
 uint32_t uint32_torque_cumulated=0;
 uint32_t uint32_PAS_cumulated=32000;
@@ -445,7 +445,7 @@ int main(void)
    	// set motor specific angle to value from emulated EEPROM only if valid
    	if(MP.spec_angle!=0xFFFF) {
    		q31_rotorposition_motor_specific = MP.spec_angle<<16;
-   		EE_ReadVariable(EEPROM_POS_HALL_ORDER, &i8_hall_order);
+   		EE_ReadVariable(EEPROM_POS_HALL_ORDER, &i16_hall_order);
    	}
 #endif
 
@@ -454,6 +454,7 @@ int main(void)
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG)
     printf_("Lishui FOC v0.9 \n ");
+    printf_("Motor specific angle:  %d, direction %d \n ", q31_rotorposition_motor_specific, i16_hall_order);
 #endif
 
     HAL_Delay(5);
@@ -1360,53 +1361,53 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 			{
 		//6 cases for forward direction
 		case 45:
-			q31_rotorposition_hall = DEG_0*i8_hall_order + q31_rotorposition_motor_specific;
+			q31_rotorposition_hall = DEG_0*i16_hall_order + q31_rotorposition_motor_specific;
 			i8_recent_rotor_direction=1;
 			break;
 		case 51:
-			q31_rotorposition_hall = DEG_plus60*i8_hall_order + q31_rotorposition_motor_specific;
+			q31_rotorposition_hall = DEG_plus60*i16_hall_order + q31_rotorposition_motor_specific;
 			i8_recent_rotor_direction=1;
 			break;
 		case 13:
-			q31_rotorposition_hall = DEG_plus120*i8_hall_order + q31_rotorposition_motor_specific;
+			q31_rotorposition_hall = DEG_plus120*i16_hall_order + q31_rotorposition_motor_specific;
 			i8_recent_rotor_direction=1;
 			break;
 		case 32:
-			q31_rotorposition_hall = DEG_plus180*i8_hall_order + q31_rotorposition_motor_specific;
+			q31_rotorposition_hall = DEG_plus180*i16_hall_order + q31_rotorposition_motor_specific;
 			i8_recent_rotor_direction=1;
 			break;
 		case 26:
-			q31_rotorposition_hall = DEG_minus120*i8_hall_order + q31_rotorposition_motor_specific;
+			q31_rotorposition_hall = DEG_minus120*i16_hall_order + q31_rotorposition_motor_specific;
 			i8_recent_rotor_direction=1;
 			break;
 		case 64:
-			q31_rotorposition_hall = DEG_minus60*i8_hall_order + q31_rotorposition_motor_specific;
+			q31_rotorposition_hall = DEG_minus60*i16_hall_order + q31_rotorposition_motor_specific;
 			i8_recent_rotor_direction=1;
 			break;
 
 		//6 cases for reverse direction
 		case 46:
-			q31_rotorposition_hall = DEG_minus60*i8_hall_order + q31_rotorposition_motor_specific;
+			q31_rotorposition_hall = DEG_minus60*i16_hall_order + q31_rotorposition_motor_specific;
 			i8_recent_rotor_direction=-1;
 			break;
 		case 62:
-			q31_rotorposition_hall = DEG_minus120*i8_hall_order + q31_rotorposition_motor_specific;
+			q31_rotorposition_hall = DEG_minus120*i16_hall_order + q31_rotorposition_motor_specific;
 			i8_recent_rotor_direction=-1;
 			break;
 		case 23:
-			q31_rotorposition_hall = DEG_plus180*i8_hall_order + q31_rotorposition_motor_specific;
+			q31_rotorposition_hall = DEG_plus180*i16_hall_order + q31_rotorposition_motor_specific;
 			i8_recent_rotor_direction=-1;
 			break;
 		case 31:
-			q31_rotorposition_hall = DEG_plus120*i8_hall_order + q31_rotorposition_motor_specific;
+			q31_rotorposition_hall = DEG_plus120*i16_hall_order + q31_rotorposition_motor_specific;
 			i8_recent_rotor_direction=-1;
 			break;
 		case 15:
-			q31_rotorposition_hall = DEG_plus60*i8_hall_order + q31_rotorposition_motor_specific;
+			q31_rotorposition_hall = DEG_plus60*i16_hall_order + q31_rotorposition_motor_specific;
 			i8_recent_rotor_direction=-1;
 			break;
 		case 54:
-			q31_rotorposition_hall = DEG_0*i8_hall_order + q31_rotorposition_motor_specific;
+			q31_rotorposition_hall = DEG_0*i16_hall_order + q31_rotorposition_motor_specific;
 			i8_recent_rotor_direction=-1;
 			break;
 
@@ -1676,17 +1677,17 @@ void autodetect(){
     EE_WriteVariable(EEPROM_POS_SPEC_ANGLE, q31_rotorposition_motor_specific>>16);
     if(i8_recent_rotor_direction == 1){
     	EE_WriteVariable(EEPROM_POS_HALL_ORDER, 1);
-    	i8_hall_order = 1;
+    	i16_hall_order = 1;
     }
     else{
     	EE_WriteVariable(EEPROM_POS_HALL_ORDER, -1);
-    	i8_hall_order = -1;
+    	i16_hall_order = -1;
     }
     HAL_FLASH_Lock();
 
    	MS.hall_angle_detect_flag=1;
 #if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG)
-    printf_("Motor specific angle:  %d, \n ", q31_rotorposition_motor_specific);
+    printf_("Motor specific angle:  %d, direction %d \n ", q31_rotorposition_motor_specific, i16_hall_order);
 #endif
 
     HAL_Delay(5);
