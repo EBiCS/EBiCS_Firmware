@@ -117,7 +117,8 @@ uint16_t k=0;
 uint8_t ui8_overflow_flag=0;
 uint8_t ui8_slowloop_counter=0;
 uint8_t ui8_adc_inj_flag=0;
-int8_t i8_direction= REVERSE;
+int8_t i8_direction= REVERSE; //for permanent reverse direction
+int8_t i8_reverse_flag = 1; //for temporaribly reverse direction
 
 uint8_t ui8_adc_offset_done_flag=0;
 uint8_t ui8_print_flag=0;
@@ -474,12 +475,12 @@ int main(void)
 	  if(PI_flag){
 
 
-		  q31_u_q_temp =  PI_control_i_q(MS.i_q, (q31_t) i8_direction*int16_current_target);
+		  q31_u_q_temp =  PI_control_i_q(MS.i_q, (q31_t) i8_direction*i8_reverse_flag*int16_current_target);
 
 		  q31_t_Battery_Current_accumulated -= q31_t_Battery_Current_accumulated>>8;
 		  q31_t_Battery_Current_accumulated += ((MS.i_q*MS.u_abs)>>11)*(uint16_t)(CAL_I>>8);
 
-		  MS.Battery_Current = q31_t_Battery_Current_accumulated>>8*i8_direction; //Battery current in mA
+		  MS.Battery_Current = (q31_t_Battery_Current_accumulated>>8)*i8_direction*i8_reverse_flag; //Battery current in mA
 
 		  	//Control id
 		  q31_u_d_temp = -PI_control_i_d(MS.i_d, 0); //control direct current to zero
@@ -1289,8 +1290,15 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 	   if (ui16_tim2_recent < ui16_timertics && !ui8_overflow_flag){ //prevent angle running away at standstill
 		// float with division necessary!
 
-		q31_rotorposition_absolute = q31_rotorposition_hall*i16_hall_order + (q31_t)(i8_direction * i16_hall_order * i8_recent_rotor_direction * (715827883.0*((float)ui16_tim2_recent/(float)ui16_timertics))); //interpolate angle between two hallevents by scaling timer2 tics
-
+		   //normal forward function
+		   if(i16_hall_order * i8_recent_rotor_direction == 1 && i8_reverse_flag*i8_direction == 1){
+			   q31_rotorposition_absolute = q31_rotorposition_hall*i16_hall_order + (q31_t)(i16_hall_order * i8_recent_rotor_direction * (715827883.0*((float)ui16_tim2_recent/(float)ui16_timertics))); //interpolate angle between two hallevents by scaling timer2 tics
+		   }
+		   // reverse direction only if set by flag.
+		   else if (i16_hall_order * i8_recent_rotor_direction == -1 && i8_reverse_flag*i8_direction == -1)
+		   {
+			   q31_rotorposition_absolute = q31_rotorposition_hall*i16_hall_order + (q31_t)(i16_hall_order * i8_recent_rotor_direction * (715827883.0*((float)ui16_tim2_recent/(float)ui16_timertics))); //interpolate angle between two hallevents by scaling timer2 tics
+   		   }
 	   }
 	   else
 	   {ui8_overflow_flag=1;
@@ -1314,7 +1322,7 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 	// call FOC procedure if PWM is enabled
 
 	if (READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)){
-	FOC_calculation(i16_ph1_current, i16_ph2_current, q31_rotorposition_absolute, (((int16_t)i8_direction)*int16_current_target), &MS);
+	FOC_calculation(i16_ph1_current, i16_ph2_current, q31_rotorposition_absolute, (((int16_t)i8_direction*i8_reverse_flag)*int16_current_target), &MS);
 	}
 	//temp5=__HAL_TIM_GET_COUNTER(&htim1);
 	//set PWM
