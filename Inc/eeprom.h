@@ -173,7 +173,7 @@
 
 /* Used Flash pages for EEPROM emulation */
 #define PAGE0                 ((uint16_t)0x0000)
-#define PAGE1                 ((uint16_t)0x0040)
+#define PAGE1                 ((uint16_t)0x0001)
 
 /* No valid page define */
 #define NO_VALID_PAGE         ((uint16_t)0x00AB)

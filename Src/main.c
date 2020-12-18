@@ -1690,6 +1690,7 @@ void autodetect(){
     	EE_WriteVariable(EEPROM_POS_HALL_ORDER, -1);
     	i16_hall_order = -1;
     }
+
     HAL_FLASH_Lock();
 
    	MS.hall_angle_detect_flag=1;
