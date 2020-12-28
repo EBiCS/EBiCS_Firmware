@@ -25,8 +25,6 @@ endif
 
 -include ../makefile.defs
 
-SRC_PATH = ../Drivers/CMSIS
-
 # Add inputs and outputs from these tool invocations to the build variables 
 
 # All Target
@@ -36,7 +34,7 @@ all: LishuiFOC_01.elf
 LishuiFOC_01.elf: $(OBJS) $(USER_OBJS) ../STM32F103C6Tx_FLASH.ld
 	@echo 'Building target: $@'
 	@echo 'Invoking: MCU GCC Linker'
-	arm-none-eabi-gcc -mcpu=cortex-m3 -mthumb -mfloat-abi=soft -L $(SRC_PATH) -specs=nosys.specs -specs=nano.specs -T"../STM32F103C6Tx_FLASH.ld" -Wl,-Map=output.map -Wl,--gc-sections -o "LishuiFOC_01.elf" @"objects.list" $(USER_OBJS) $(LIBS) -lm
+	arm-none-eabi-gcc -mcpu=cortex-m3 -mthumb -mfloat-abi=soft -L"H:\Martin\STM_Projekte\EBiCS_Firmware\Drivers\CMSIS" -L"C:\CMSIS_5-develop\CMSIS_5-develop\CMSIS\Lib\GCC" -specs=nosys.specs -specs=nano.specs -T"../STM32F103C6Tx_FLASH.ld" -Wl,-Map=output.map -Wl,--gc-sections -o "LishuiFOC_01.elf" @"objects.list" $(USER_OBJS) $(LIBS) -lm
 	@echo 'Finished building target: $@'
 	@echo ' '
 	$(MAKE) --no-print-directory post-build
