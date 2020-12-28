@@ -169,11 +169,12 @@
                                                   <Component id="Label_Parameter1" alignment="0" min="-2" max="-2" attributes="0"/>
                                                   <Component id="RB_JLCD" alignment="0" min="-2" max="-2" attributes="0"/>
                                                   <Component id="RB_KM5S" alignment="0" min="-2" max="-2" attributes="0"/>
-                                                  <Component id="RB_DEBUG" alignment="0" min="-2" max="-2" attributes="0"/>
                                                   <Component id="RB_KUNTENG" alignment="0" min="-2" max="-2" attributes="0"/>
                                                   <Component id="RB_BAFANG" alignment="0" min="-2" max="-2" attributes="0"/>
+                                                  <Component id="RB_EBICS" min="-2" max="-2" attributes="0"/>
+                                                  <Component id="RB_DEBUG" min="-2" max="-2" attributes="0"/>
                                               </Group>
-                                              <EmptySpace min="-2" pref="67" max="-2" attributes="0"/>
+                                              <EmptySpace min="-2" pref="116" max="-2" attributes="0"/>
                                               <Group type="103" groupAlignment="0" max="-2" attributes="0">
                                                   <Group type="102" attributes="0">
                                                       <Component id="jLabel46" min="-2" max="-2" attributes="0"/>
@@ -200,7 +201,7 @@
                                               </Group>
                                           </Group>
                                       </Group>
-                                      <EmptySpace pref="51" max="32767" attributes="0"/>
+                                      <EmptySpace max="32767" attributes="0"/>
                                   </Group>
                               </Group>
                               <Group type="103" groupAlignment="0" max="-2" attributes="0">
@@ -283,6 +284,8 @@
                               <Component id="RB_BAFANG" min="-2" max="-2" attributes="0"/>
                               <EmptySpace max="-2" attributes="0"/>
                               <Component id="RB_KUNTENG" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace max="-2" attributes="0"/>
+                              <Component id="RB_EBICS" min="-2" pref="20" max="-2" attributes="0"/>
                               <EmptySpace max="-2" attributes="0"/>
                               <Component id="RB_DEBUG" min="-2" max="-2" attributes="0"/>
                           </Group>
@@ -374,7 +377,7 @@
                               </Group>
                           </Group>
                       </Group>
-                      <EmptySpace pref="77" max="32767" attributes="0"/>
+                      <EmptySpace pref="81" max="32767" attributes="0"/>
                   </Group>
               </Group>
             </DimensionLayout>
@@ -622,6 +625,14 @@
             <Component class="javax.swing.JLabel" name="jLabel46">
               <Properties>
                 <Property name="text" type="java.lang.String" value="Fraction lower limit"/>
+              </Properties>
+            </Component>
+            <Component class="javax.swing.JRadioButton" name="RB_EBICS">
+              <Properties>
+                <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
+                  <ComponentRef name="BG_DISPLAYS"/>
+                </Property>
+                <Property name="text" type="java.lang.String" value="EBiCS-Flutter"/>
               </Properties>
             </Component>
           </SubComponents>

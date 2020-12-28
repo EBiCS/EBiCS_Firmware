@@ -302,6 +302,7 @@ public void AddListItem(File newFile) {
 							+ "#ifndef CONFIG_H_\r\n"
 							+ "#define CONFIG_H_\r\n"
                                                         + "#include \"stdint.h\"\r\n"
+                                                        + "#define DISPLAY_TYPE_EBiCS (1<<5)  \r\n"
                                                         + "#define DISPLAY_TYPE_KINGMETER_618U (1<<4)                  // King-Meter 618U protocol (KM5s, EBS-LCD2, J-LCD, SW-LCD)\r\n"
                                                         + "#define DISPLAY_TYPE_KINGMETER_901U (1<<8)                  // King-Meter 901U protocol (KM5s)\r\n"
                                                         + "#define DISPLAY_TYPE_KINGMETER      (DISPLAY_TYPE_KINGMETER_618U|DISPLAY_TYPE_KINGMETER_901U)\r\n"
@@ -463,6 +464,12 @@ public void AddListItem(File newFile) {
 					}
 					iWriter.println(RB_KM5S.isSelected());
                                         
+                                        if (RB_EBICS.isSelected()) {
+						text_to_save = "#define DISPLAY_TYPE DISPLAY_TYPE_EBiCS";
+						pWriter.println(text_to_save);
+					}
+					iWriter.println(RB_KM5S.isSelected());                                       
+                                        
                                         if (RB_KUNTENG.isSelected()) {
 						text_to_save = "#define DISPLAY_TYPE DISPLAY_TYPE_KUNTENG //Kunteng LCD3/5 etc.";
 						pWriter.println(text_to_save);
@@ -609,6 +616,7 @@ public void AddListItem(File newFile) {
         jLabel45 = new javax.swing.JLabel();
         TF_FRAC_LOW = new javax.swing.JTextField();
         jLabel46 = new javax.swing.JLabel();
+        RB_EBICS = new javax.swing.JRadioButton();
         TAB2 = new javax.swing.JPanel();
         TF_TRIGGER_OFFSET = new javax.swing.JTextField();
         Label_Param3 = new javax.swing.JLabel();
@@ -770,6 +778,9 @@ public void AddListItem(File newFile) {
 
         jLabel46.setText("Fraction lower limit");
 
+        BG_DISPLAYS.add(RB_EBICS);
+        RB_EBICS.setText("EBiCS-Flutter");
+
         javax.swing.GroupLayout TAB1Layout = new javax.swing.GroupLayout(TAB1);
         TAB1.setLayout(TAB1Layout);
         TAB1Layout.setHorizontalGroup(
@@ -805,10 +816,11 @@ public void AddListItem(File newFile) {
                                             .addComponent(Label_Parameter1)
                                             .addComponent(RB_JLCD)
                                             .addComponent(RB_KM5S)
-                                            .addComponent(RB_DEBUG)
                                             .addComponent(RB_KUNTENG)
-                                            .addComponent(RB_BAFANG))
-                                        .addGap(67, 67, 67)
+                                            .addComponent(RB_BAFANG)
+                                            .addComponent(RB_EBICS)
+                                            .addComponent(RB_DEBUG))
+                                        .addGap(116, 116, 116)
                                         .addGroup(TAB1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                                             .addGroup(TAB1Layout.createSequentialGroup()
                                                 .addComponent(jLabel46)
@@ -827,7 +839,7 @@ public void AddListItem(File newFile) {
                                                 .addGroup(TAB1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                                                     .addComponent(TF_PAS_TIMEOUT, javax.swing.GroupLayout.DEFAULT_SIZE, 64, Short.MAX_VALUE)
                                                     .addComponent(TF_PAS_RAMP_END))))))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 51, Short.MAX_VALUE)))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                         .addGroup(TAB1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addGroup(TAB1Layout.createSequentialGroup()
                                 .addGroup(TAB1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -890,6 +902,8 @@ public void AddListItem(File newFile) {
                         .addComponent(RB_BAFANG)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(RB_KUNTENG)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(RB_EBICS, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(RB_DEBUG))
                     .addGroup(TAB1Layout.createSequentialGroup()
@@ -959,7 +973,7 @@ public void AddListItem(File newFile) {
                         .addGroup(TAB1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(TF_PATH_STM32_UTILITY, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jLabel42))))
-                .addContainerGap(77, Short.MAX_VALUE))
+                .addContainerGap(81, Short.MAX_VALUE))
         );
 
         RB_JLCD.getAccessibleContext().setAccessibleName("RB_J-LCD");
@@ -1413,6 +1427,7 @@ public void AddListItem(File newFile) {
     private javax.swing.JRadioButton RB_DEBUG;
     private javax.swing.JRadioButton RB_DIRDET;
     private javax.swing.JRadioButton RB_DISABLE_DYN_ADC;
+    private javax.swing.JRadioButton RB_EBICS;
     private javax.swing.JRadioButton RB_FAST_LOOP_LOG;
     private javax.swing.JRadioButton RB_JLCD;
     private javax.swing.JRadioButton RB_KM5S;
