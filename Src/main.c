@@ -142,6 +142,8 @@ uint32_t uint32_torque_cumulated=0;
 uint32_t uint32_PAS_cumulated=32000;
 uint16_t uint16_mapped_throttle=0;
 uint16_t uint16_mapped_PAS=0;
+uint16_t uint16_half_rotation_counter=0;
+uint16_t uint16_full_rotation_counter=0;
 int16_t int16_current_target=0;
 
 q31_t q31_t_Battery_Current_accumulated=0;
@@ -397,6 +399,8 @@ int main(void)
     TIM1->CCR2 = 1023;
     TIM1->CCR3 = 1023;
 
+    HAL_Delay(200); //wait for stable conditions
+
 
 
 // get offset values for adc phase currents
@@ -648,14 +652,17 @@ int main(void)
 	  if(ui8_Push_Assist_flag)int16_current_target=PUSHASSIST_CURRENT;
 
 	  if (int16_current_target>0&&!READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)) SET_BIT(TIM1->BDTR, TIM_BDTR_MOE); //enable PWM if power is wanted
-	 //slow loop procedere @16Hz, for LEV standard every 4th loop run, send page,
+
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+	  //slow loop procedere @16Hz, for LEV standard every 4th loop run, send page,
 	  if(ui32_tim3_counter>500){
 
 		  MS.Temperature = adcData[2]*41>>8; //0.16 is calibration constant: Analog_in[10mV/°C]/ADC value. Depending on the sensor LM35)
 		  MS.Voltage=adcData[0];
 		  if(uint32_SPEED_counter>127999)MS.Speed =128000;
 
-		  if(__HAL_TIM_GET_COUNTER(&htim2)>60000&&READ_BIT(TIM1->BDTR, TIM_BDTR_MOE))CLEAR_BIT(TIM1->BDTR, TIM_BDTR_MOE); //Disable PWM if motor is not turning
+		  if((uint16_full_rotation_counter>3999||uint16_half_rotation_counter>3999)&&READ_BIT(TIM1->BDTR, TIM_BDTR_MOE))CLEAR_BIT(TIM1->BDTR, TIM_BDTR_MOE); //Disable PWM if motor is not turning
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG && !defined(FAST_LOOP_LOG))
 		  //print values for debugging
@@ -1189,9 +1196,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 			  uint32_PAS_counter++;
 			  if(HAL_GPIO_ReadPin(PAS_GPIO_Port, PAS_Pin))uint32_PAS_HIGH_counter++;
 		}
-		if (uint32_SPEED_counter<128000){
-			  uint32_SPEED_counter++;
-		}
+		if (uint32_SPEED_counter<128000)uint32_SPEED_counter++;					//counter for external Speedsensor
+		if(uint16_full_rotation_counter<4000)uint16_full_rotation_counter++;	//full rotation counter for motor standstill detection
+		if(uint16_half_rotation_counter<4000)uint16_half_rotation_counter++;	//half rotation counter for motor standstill detection
 
 	}
 }
@@ -1290,15 +1297,8 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 	   if (ui16_tim2_recent < ui16_timertics && !ui8_overflow_flag){ //prevent angle running away at standstill
 		// float with division necessary!
 
-		   //normal forward function
-		   if(i16_hall_order * i8_recent_rotor_direction == 1 && i8_reverse_flag*i8_direction == 1){
 			   q31_rotorposition_absolute = q31_rotorposition_hall*i16_hall_order + (q31_t)(i16_hall_order * i8_recent_rotor_direction * (715827883.0*((float)ui16_tim2_recent/(float)ui16_timertics))); //interpolate angle between two hallevents by scaling timer2 tics
-		   }
-		   // reverse direction only if set by flag.
-		   else if (i16_hall_order * i8_recent_rotor_direction == -1 && i8_reverse_flag*i8_direction == -1)
-		   {
-			   q31_rotorposition_absolute = q31_rotorposition_hall*i16_hall_order + (q31_t)(i16_hall_order * i8_recent_rotor_direction * (715827883.0*((float)ui16_tim2_recent/(float)ui16_timertics))); //interpolate angle between two hallevents by scaling timer2 tics
-   		   }
+
 	   }
 	   else
 	   {ui8_overflow_flag=1;
@@ -1372,6 +1372,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 		case 64:
 			q31_rotorposition_hall = DEG_0 + q31_rotorposition_motor_specific;
 			i8_recent_rotor_direction=1;
+			uint16_full_rotation_counter=0;
 			break;
 		case 45:
 			q31_rotorposition_hall = DEG_plus60 + q31_rotorposition_motor_specific;
@@ -1384,6 +1385,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 		case 13:
 			q31_rotorposition_hall = DEG_plus180 + q31_rotorposition_motor_specific;
 			i8_recent_rotor_direction=1;
+			uint16_half_rotation_counter=0;
 			break;
 		case 32:
 			q31_rotorposition_hall = DEG_minus120 + q31_rotorposition_motor_specific;
@@ -1406,6 +1408,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 		case 23:
 			q31_rotorposition_hall = DEG_plus180 + q31_rotorposition_motor_specific;
 			i8_recent_rotor_direction=-1;
+			uint16_half_rotation_counter=0;
 			break;
 		case 31:
 			q31_rotorposition_hall = DEG_plus120 + q31_rotorposition_motor_specific;
@@ -1418,6 +1421,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 		case 54:
 			q31_rotorposition_hall = DEG_0 + q31_rotorposition_motor_specific;
 			i8_recent_rotor_direction=-1;
+			uint16_full_rotation_counter=0;
 			break;
 
 		} // end case
