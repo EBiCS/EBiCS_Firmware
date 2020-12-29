@@ -495,7 +495,7 @@ int main(void)
    			case 2:
    				q31_rotorposition_hall = DEG_minus120 + q31_rotorposition_motor_specific;
    				break;
-   			case 26:
+   			case 6:
    				q31_rotorposition_hall = DEG_minus60 + q31_rotorposition_motor_specific;
    				break;
 
