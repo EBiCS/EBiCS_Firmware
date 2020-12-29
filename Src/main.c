@@ -117,6 +117,7 @@ uint16_t k=0;
 uint8_t ui8_overflow_flag=0;
 uint8_t ui8_slowloop_counter=0;
 uint8_t ui8_adc_inj_flag=0;
+uint8_t ui8_adc_regular_flag=0;
 int8_t i8_direction= REVERSE; //for permanent reverse direction
 int8_t i8_reverse_flag = 1; //for temporaribly reverse direction
 
@@ -399,9 +400,15 @@ int main(void)
     TIM1->CCR2 = 1023;
     TIM1->CCR3 = 1023;
 
+
+
+    CLEAR_BIT(TIM1->BDTR, TIM_BDTR_MOE);//Disable PWM
+
     HAL_Delay(200); //wait for stable conditions
 
 
+
+/*
 
 // get offset values for adc phase currents
 // first phase A+B
@@ -437,6 +444,20 @@ int main(void)
 
     ADC1->JSQR=0b00100000000000000000; //ADC1 injected reads phase A JL = 0b00, JSQ4 = 0b00100 (decimal 4 = channel 4)
    	ADC1->JOFR1 = ui16_ph1_offset;
+*/
+    for(i=0;i<32;i++){
+    	while(!ui8_adc_regular_flag){}
+    	ui16_ph1_offset+=adcData[2];
+    	ui16_ph2_offset+=adcData[3];
+    	ui16_ph3_offset+=adcData[4];
+    	ui8_adc_regular_flag=0;
+
+    }
+    ui16_ph1_offset=ui16_ph1_offset>>5;
+    ui16_ph2_offset=ui16_ph2_offset>>5;
+    ui16_ph3_offset=ui16_ph3_offset>>5;
+
+   	printf_("phase current offsets:  %d, %d, %d \n ", ui16_ph1_offset, ui16_ph2_offset, ui16_ph3_offset);
 
    	ui8_adc_offset_done_flag=1;
 
@@ -662,14 +683,17 @@ int main(void)
 		  MS.Voltage=adcData[0];
 		  if(uint32_SPEED_counter>127999)MS.Speed =128000;
 
-		  if((uint16_full_rotation_counter>3999||uint16_half_rotation_counter>3999)&&READ_BIT(TIM1->BDTR, TIM_BDTR_MOE))CLEAR_BIT(TIM1->BDTR, TIM_BDTR_MOE); //Disable PWM if motor is not turning
+		  if((uint16_full_rotation_counter>7999||uint16_half_rotation_counter>7999)&&READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)){
+			  CLEAR_BIT(TIM1->BDTR, TIM_BDTR_MOE); //Disable PWM if motor is not turning
+			  q31_rotorposition_absolute = q31_rotorposition_hall;
+		  }
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG && !defined(FAST_LOOP_LOG))
 		  //print values for debugging
 
 
-	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n", MS.i_q,int16_current_target, ui8_hall_case,(uint16_t) temp2, (uint16_t) temp3, (uint16_t)uint32_PAS, (uint16_t) (ui16_reg_adc_value-THROTTLE_OFFSET));//((q31_i_q_fil*q31_u_abs)>>14)*
-	  	//	sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5])) ;
+		  //sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n", MS.i_q,int16_current_target, ui16_ph1_offset,ui16_ph2_offset, ui16_ph3_offset, ui8_hall_state, (uint16_t) (ui16_reg_adc_value-THROTTLE_OFFSET));//((q31_i_q_fil*q31_u_abs)>>14)*
+		  sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",ui8_hall_state,(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5])) ;
 
 	  	  i=0;
 		  while (buffer[i] != '\0')
@@ -854,7 +878,7 @@ _Error_Handler(__FILE__, __LINE__);
 }
 /**Configure Regular Channel
 */
-sConfig.Channel = ADC_CHANNEL_9;
+sConfig.Channel = ADC_CHANNEL_4;
 sConfig.Rank = ADC_REGULAR_RANK_3;
 sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;//ADC_SAMPLETIME_239CYCLES_5;
 if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
@@ -1197,8 +1221,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 			  if(HAL_GPIO_ReadPin(PAS_GPIO_Port, PAS_Pin))uint32_PAS_HIGH_counter++;
 		}
 		if (uint32_SPEED_counter<128000)uint32_SPEED_counter++;					//counter for external Speedsensor
-		if(uint16_full_rotation_counter<4000)uint16_full_rotation_counter++;	//full rotation counter for motor standstill detection
-		if(uint16_half_rotation_counter<4000)uint16_half_rotation_counter++;	//half rotation counter for motor standstill detection
+		if(uint16_full_rotation_counter<8000)uint16_full_rotation_counter++;	//full rotation counter for motor standstill detection
+		if(uint16_half_rotation_counter<8000)uint16_half_rotation_counter++;	//half rotation counter for motor standstill detection
 
 	}
 }
@@ -1211,6 +1235,8 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 	ui32_reg_adc_value_filter -= ui32_reg_adc_value_filter>>4;
 	ui32_reg_adc_value_filter += adcData[1]; //HAL_ADC_GetValue(hadc);
 	ui16_reg_adc_value = ui32_reg_adc_value_filter>>4;
+
+	ui8_adc_regular_flag=1;
 
 
 
