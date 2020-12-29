@@ -457,12 +457,12 @@ int main(void)
     ui16_ph2_offset=ui16_ph2_offset>>5;
     ui16_ph3_offset=ui16_ph3_offset>>5;
 
-   	printf_("phase current offsets:  %d, %d, %d \n ", ui16_ph1_offset, ui16_ph2_offset, ui16_ph3_offset);
+
 
    	ui8_adc_offset_done_flag=1;
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG)
-
+   	printf_("phase current offsets:  %d, %d, %d \n ", ui16_ph1_offset, ui16_ph2_offset, ui16_ph3_offset);
    	autodetect();
 
 #else
@@ -476,6 +476,31 @@ int main(void)
 #endif
 
    		 HAL_GPIO_EXTI_Callback(GPIO_PIN_0); //read in initial rotor position
+
+   		switch (ui8_hall_state)
+   			{
+   			//6 cases for forward direction
+   			case 4:
+   				q31_rotorposition_hall = DEG_0 + q31_rotorposition_motor_specific;
+   				break;
+   			case 5:
+   				q31_rotorposition_hall = DEG_plus60 + q31_rotorposition_motor_specific;
+   				break;
+   			case 1:
+   				q31_rotorposition_hall = DEG_plus120 + q31_rotorposition_motor_specific;
+   				break;
+   			case 3:
+   				q31_rotorposition_hall = DEG_plus180 + q31_rotorposition_motor_specific;
+   				break;
+   			case 2:
+   				q31_rotorposition_hall = DEG_minus120 + q31_rotorposition_motor_specific;
+   				break;
+   			case 26:
+   				q31_rotorposition_hall = DEG_minus60 + q31_rotorposition_motor_specific;
+   				break;
+
+   			}
+
    		 q31_rotorposition_absolute = q31_rotorposition_hall; // set absolute position to corresponding hall pattern.
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG)
