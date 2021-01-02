@@ -486,8 +486,7 @@ int main(void)
 
 
     CLEAR_BIT(TIM1->BDTR, TIM_BDTR_MOE);//Disable PWM
-    HAL_Delay(100);
-    HAL_GPIO_EXTI_Callback(GPIO_PIN_0); //read in initial rotor position
+
 	get_standstill_position();
 
 
@@ -678,6 +677,7 @@ int main(void)
 		  SET_BIT(TIM1->BDTR, TIM_BDTR_MOE); //enable PWM if power is wanted
 		  uint16_half_rotation_counter=0;
 		  uint16_full_rotation_counter=0;
+		  get_standstill_position();
 	  }
 
 
@@ -691,8 +691,7 @@ int main(void)
 
 		  if((uint16_full_rotation_counter>7999||uint16_half_rotation_counter>7999)&&READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)){
 			  CLEAR_BIT(TIM1->BDTR, TIM_BDTR_MOE); //Disable PWM if motor is not turning
-			  HAL_Delay(100);
-			  HAL_GPIO_EXTI_Callback(GPIO_PIN_0); //read in initial rotor position
+
 			  get_standstill_position();
 
 		  }
@@ -701,7 +700,7 @@ int main(void)
 		  //print values for debugging
 
 
-		  sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n", MS.i_q,int16_current_target, uint16_full_rotation_counter,uint16_half_rotation_counter, ui8_hall_case, ui8_hall_state, (uint16_t) (ui16_reg_adc_value-THROTTLE_OFFSET));//((q31_i_q_fil*q31_u_abs)>>14)*
+		  sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n", MS.i_q,int16_current_target, (int16_t)((q31_rotorposition_absolute>>23)*180)>>8,uint16_half_rotation_counter, ui8_hall_case, ui8_hall_state, (uint16_t) (ui16_reg_adc_value-THROTTLE_OFFSET));//((q31_i_q_fil*q31_u_abs)>>14)*
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",ui8_hall_state,(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5])) ;
 
 	  	  i=0;
@@ -1741,6 +1740,8 @@ void autodetect(){
 }
 
 void get_standstill_position(){
+	  HAL_Delay(100);
+	  HAL_GPIO_EXTI_Callback(GPIO_PIN_0); //read in initial rotor position
 		switch (ui8_hall_state)
 			{
 			//6 cases for forward direction
