@@ -1432,28 +1432,28 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 
 		//6 cases for reverse direction
 		case 46:
-			q31_rotorposition_hall = DEG_minus60 + q31_rotorposition_motor_specific;
+			q31_rotorposition_hall = DEG_plus120 + q31_rotorposition_motor_specific;
 			i8_recent_rotor_direction=-1;
 			break;
 		case 62:
-			q31_rotorposition_hall = DEG_minus120 + q31_rotorposition_motor_specific;
+			q31_rotorposition_hall = DEG_plus60 + q31_rotorposition_motor_specific;
 			i8_recent_rotor_direction=-1;
 			break;
 		case 23:
-			q31_rotorposition_hall = DEG_plus180 + q31_rotorposition_motor_specific;
+			q31_rotorposition_hall = DEG_0 + q31_rotorposition_motor_specific;
 			i8_recent_rotor_direction=-1;
 			uint16_half_rotation_counter=0;
 			break;
 		case 31:
-			q31_rotorposition_hall = DEG_plus120 + q31_rotorposition_motor_specific;
+			q31_rotorposition_hall = DEG_minus60 + q31_rotorposition_motor_specific;
 			i8_recent_rotor_direction=-1;
 			break;
 		case 15:
-			q31_rotorposition_hall = DEG_plus60 + q31_rotorposition_motor_specific;
+			q31_rotorposition_hall = DEG_minus120 + q31_rotorposition_motor_specific;
 			i8_recent_rotor_direction=-1;
 			break;
 		case 54:
-			q31_rotorposition_hall = DEG_0 + q31_rotorposition_motor_specific;
+			q31_rotorposition_hall = DEG_plus180 + q31_rotorposition_motor_specific;
 			i8_recent_rotor_direction=-1;
 			uint16_full_rotation_counter=0;
 			break;
