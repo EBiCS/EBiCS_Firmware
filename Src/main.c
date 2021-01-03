@@ -1699,21 +1699,80 @@ void autodetect(){
 	SET_BIT(TIM1->BDTR, TIM_BDTR_MOE);
    	MS.hall_angle_detect_flag=0; //set uq to contstant value in FOC.c for open loop control
    	q31_rotorposition_absolute=1<<31;
+   	uint8_t zerocrossing=0;
+   	q31_t diffangle=0;
    	HAL_Delay(5);
    	for(i=0;i<1080;i++){
    		q31_rotorposition_absolute+=11930465; //drive motor in open loop with steps of 1°
    		HAL_Delay(5);
+   		if (q31_rotorposition_absolute>-60&&q31_rotorposition_absolute<60){
+   			switch (ui8_hall_case) //12 cases for each transition from one stage to the next. 6x forward, 6x reverse
+   						{
+   					//6 cases for forward direction
+   					case 64:
+   						zerocrossing = 45;
+   						diffangle=DEG_plus180;
+   						break;
+   					case 45:
+   						zerocrossing = 51;
+   						diffangle=DEG_minus120;
+   						break;
+   					case 51:
+   						zerocrossing = 13;
+   						diffangle=DEG_minus60;
+   						break;
+   					case 13:
+   						zerocrossing = 32;
+   						diffangle=DEG_0;
+   						break;
+   					case 32:
+   						zerocrossing = 26;
+   						diffangle=DEG_plus60;
+   						break;
+   					case 26:
+   						zerocrossing = 64;
+   						diffangle=DEG_plus120;
+   						break;
+
+   					//6 cases for reverse direction
+   					case 46:
+   						zerocrossing = 62;
+   						diffangle=DEG_plus60;
+   						break;
+   					case 62:
+   						zerocrossing = 23;
+   						diffangle=DEG_0;
+   						break;
+   					case 23:
+   						zerocrossing = 31;
+   						diffangle=DEG_minus60;
+   						break;
+   					case 31:
+   						zerocrossing = 15;
+   						diffangle=DEG_minus120;
+   						break;
+   					case 15:
+   						zerocrossing = 54;
+   						diffangle=DEG_plus180;
+   						break;
+   					case 54:
+   						zerocrossing = 46;
+   						diffangle=DEG_plus120;
+   						break;
+
+   					} // end case
+
+
+   		}
+
    		if(ui8_hall_state_old!=ui8_hall_state){
    		printf_("angle: %d, hallstate:  %d, hallcase %d \n",(int16_t)(((q31_rotorposition_absolute>>23)*180)>>8), ui8_hall_state , ui8_hall_case);
 
-   		if(ui8_hall_case==45)
+   		if(ui8_hall_case==zerocrossing)
    		{
-   			q31_rotorposition_motor_specific=q31_rotorposition_absolute;
+   			q31_rotorposition_motor_specific = q31_rotorposition_absolute-diffangle-(1<<31);
    		}
-   		if(ui8_hall_case==23)
-   		{
-   			q31_rotorposition_motor_specific=q31_rotorposition_absolute;
-   		}
+
 
    		ui8_hall_state_old=ui8_hall_state;
    		}
