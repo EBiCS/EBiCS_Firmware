@@ -1737,27 +1737,27 @@ void autodetect(){
    					//6 cases for reverse direction
    					case 46:
    						zerocrossing = 62;
-   						diffangle=DEG_plus60;
+   						diffangle=-DEG_plus60;
    						break;
    					case 62:
    						zerocrossing = 23;
-   						diffangle=DEG_0;
+   						diffangle=-DEG_0;
    						break;
    					case 23:
    						zerocrossing = 31;
-   						diffangle=DEG_minus60;
+   						diffangle=-DEG_minus60;
    						break;
    					case 31:
    						zerocrossing = 15;
-   						diffangle=DEG_minus120;
+   						diffangle=-DEG_minus120;
    						break;
    					case 15:
    						zerocrossing = 54;
-   						diffangle=DEG_plus180;
+   						diffangle=-DEG_plus180;
    						break;
    					case 54:
    						zerocrossing = 46;
-   						diffangle=DEG_plus120;
+   						diffangle=-DEG_plus120;
    						break;
 
    					} // end case
