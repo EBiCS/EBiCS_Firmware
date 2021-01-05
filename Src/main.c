@@ -714,7 +714,7 @@ int main(void)
 		  //print values for debugging
 
 
-		  sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n", MS.i_q,int16_current_target, (int16_t)MS.Battery_Current,(uint16_t) MS.Voltage, (uint16_t) MS.Speed, (uint16_t)q31_tics_filtered>>3, (ui16_reg_adc_value));
+		  sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n", MS.i_q,int16_current_target, (int16_t)MS.Battery_Current,(uint16_t) MS.Voltage, (uint16_t)MS.u_abs, (uint16_t)q31_tics_filtered>>3, (ui16_reg_adc_value));
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",ui8_hall_state,(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5])) ;
 
 	  	  i=0;
