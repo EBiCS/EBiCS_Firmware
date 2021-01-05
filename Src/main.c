@@ -320,7 +320,7 @@ int main(void)
 
 
   //HAL_ADC_Start_IT(&hadc1);
-  HAL_ADCEx_MultiModeStart_DMA(&hadc1, (uint32_t*)adcData, 5);
+  HAL_ADCEx_MultiModeStart_DMA(&hadc1, (uint32_t*)adcData, 7);
   HAL_ADC_Start_IT(&hadc2);
   MX_TIM1_Init(); //Hier die Reihenfolge getauscht!
   MX_TIM2_Init();
@@ -603,75 +603,89 @@ int main(void)
 		}
 #endif
 
-	  //throttle and PAS current target setting
+		//--------------------------------------------------------------------------------------------------------------------------------------------------
 
-#if (DISPLAY_TYPE == DISPLAY_TYPE_BAFANG)
-	  uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, (PH_CURRENT_MAX*(int32_t)(assist_factor[MS.assist_level]))>>8, 0); // level in range 0...5
-#endif
+			  //current target calculation
+				//highest priority: regen by brake lever
+				if(!HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin)){
+					if(q31_tics_filtered>>3<15000)int16_current_target=-REGEN_CURRENT_MAX; //only apply regen, if motor is turning fast enough
+					else int16_current_target=0;
+				}
+				//next priority: undervoltage protection
+				else if(MS.Voltage<VOLTAGE_MIN)int16_current_target=0;
+				//next priority: push assist
+				else if(ui8_Push_Assist_flag)int16_current_target=PUSHASSIST_CURRENT;
+				// last priority normal ride conditiones
+				else {
 
-#if (DISPLAY_TYPE == DISPLAY_TYPE_KUNTENG)
-	  uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, (PH_CURRENT_MAX*(int32_t)(MS.assist_level))/5, 0); // level in range 0...5
-#endif
-
-#if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_618U)
-	  uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, (PH_CURRENT_MAX*(int32_t)(MS.assist_level-1))>>2, 0); // level in range 1...5
-#endif
-
-#if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_901U)
-	  uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, ((PH_CURRENT_MAX*(int32_t)(MS.assist_level)))>>8, 0); // level in range 0...255
-#endif
-
-#if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG)
-	  //uint32_PAS= RAMP_END;
-	  //uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, (PH_CURRENT_MAX*(int32_t)(assist_factor[7]))>>8, 0); // level in range 0...9
-	 if (uint32_PAS_counter < PAS_TIMEOUT) uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, PH_CURRENT_MAX, 0); // Full amps in debug mode
-	 else uint16_mapped_PAS = 0;
-#endif
-
-#ifdef TS_MODE //torque-sensor mode
-
-	  int16_current_target = (TS_COEF*(int16_t)(MS.assist_level)* (uint32_torque_cumulated>>5)/uint32_PAS)>>8; //>>5 aus Mittelung Ã¼ber eine Kurbelumdrehung, >>8 aus KM5S-Protokoll Assistlevel 0..255
-	  temp1=int16_current_target;
-	  if(int16_current_target>PH_CURRENT_MAX) int16_current_target = PH_CURRENT_MAX;
-	  temp2=int16_current_target;
-	  if(uint32_PAS_counter > PAS_TIMEOUT) int16_current_target = 0;
-	  temp3=int16_current_target;
-	  //int16_current_target = 0;
-
-#else		// torque-simulation mode with throttle override
-
-	  uint16_mapped_throttle = map(ui16_reg_adc_value, THROTTLE_OFFSET , THROTTLE_MAX, 0, PH_CURRENT_MAX);
-
-#ifdef DIRDET
-	  if (uint32_PAS_counter< PAS_TIMEOUT){
-		  if ((uint32_PAS_fraction < FRAC_LOW ||uint32_PAS_fraction > FRAC_HIGH)){
-			  uint16_mapped_PAS= 0;//pedals are turning backwards, stop motor
-		  }
-	  }
-	  else uint32_PAS_HIGH_accumulated=uint32_PAS_cumulated;
-#endif //end direction detection
-
-	  if(uint16_mapped_PAS>uint16_mapped_throttle)   											//check for throttle override
-
-	  {
-		  if (uint32_PAS_counter < PAS_TIMEOUT) int16_current_target= uint16_mapped_PAS;		//set current target in torque-simulation-mode, if pedals are turning
-		  else  {
-			  int16_current_target= 0;//pedals are not turning, stop motor
-			  uint32_PAS_cumulated=32000;
-			  uint32_PAS=32000;
-		  }
-	  }
-	  else int16_current_target = uint16_mapped_throttle;//throttle override: set recent throttle value as current target
-
-
-#endif
+		#ifdef TS_MODE //torque-sensor mode
+					//calculate current target form torque, cadence and assist level
+					int16_current_target = (TS_COEF*(int16_t)(MS.assist_level)* (uint32_torque_cumulated>>5)/uint32_PAS)>>8; //>>5 aus Mittelung über eine Kurbelumdrehung, >>8 aus KM5S-Protokoll Assistlevel 0..255
+					//limit currest target to max value
+					if(int16_current_target>PH_CURRENT_MAX) int16_current_target = PH_CURRENT_MAX;
+					//set target to zero, if pedals are not turning
+					if(uint32_PAS_counter > PAS_TIMEOUT){
+						int16_current_target = 0;
+						if(uint32_torque_cumulated>0)uint32_torque_cumulated--; //ramp down cumulated torque value
+					}
 
 
 
+		#else		// torque-simulation mode with throttle override
 
-	  int16_current_target=map(q31_tics_filtered>>3,tics_higher_limit,tics_lower_limit,0,int16_current_target); //ramp down current at speed limit
+		#if (DISPLAY_TYPE == DISPLAY_TYPE_BAFANG)
+			  uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, (PH_CURRENT_MAX*(int32_t)(assist_factor[MS.assist_level]))>>8, 0); // level in range 0...5
+		#endif
 
-	  if(ui8_Push_Assist_flag)int16_current_target=PUSHASSIST_CURRENT;
+		#if (DISPLAY_TYPE == DISPLAY_TYPE_KUNTENG)
+			  uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, (PH_CURRENT_MAX*(int32_t)(MS.assist_level))/5, 0); // level in range 0...5
+		#endif
+
+		#if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_618U)
+			  uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, (PH_CURRENT_MAX*(int32_t)(MS.assist_level-1))>>2, 0); // level in range 1...5
+		#endif
+
+		#if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_901U)
+			  uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, ((PH_CURRENT_MAX*(int32_t)(MS.assist_level)))>>8, 0); // level in range 0...255
+		#endif
+
+		#if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG)
+			 uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, PH_CURRENT_MAX, 0); // Full amps in debug mode
+		#endif
+
+
+
+		#ifdef DIRDET
+			  if (uint32_PAS_counter< PAS_TIMEOUT){
+				  if ((uint32_PAS_fraction < FRAC_LOW ||uint32_PAS_fraction > FRAC_HIGH)){
+					  uint16_mapped_PAS= 0;//pedals are turning backwards, stop motor
+				  }
+			  }
+			  else uint32_PAS_HIGH_accumulated=uint32_PAS_cumulated;
+		#endif //end direction detection
+
+			  // read in throttle for throttle override
+			  uint16_mapped_throttle = map(ui16_reg_adc_value, THROTTLE_OFFSET , THROTTLE_MAX, 0, PH_CURRENT_MAX);
+			  //check for throttle override
+			  if(uint16_mapped_PAS>uint16_mapped_throttle)   {
+
+			    if (uint32_PAS_counter < PAS_TIMEOUT) int16_current_target= uint16_mapped_PAS;		//set current target in torque-simulation-mode, if pedals are turning
+				  else  {
+					  int16_current_target= 0;//pedals are not turning, stop motor
+					  uint32_PAS_cumulated=32000;
+					  uint32_PAS=32000;
+				  }
+			  }
+			  else int16_current_target = uint16_mapped_throttle;//throttle override: set recent throttle value as current target
+
+
+		#endif
+			} //end else for normal riding
+
+
+				//ramp down current at speed limit
+			  int16_current_target=map(q31_tics_filtered>>3,tics_higher_limit,tics_lower_limit,0,int16_current_target);
+
 
 	  if (int16_current_target>0&&!READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)){
 		  SET_BIT(TIM1->BDTR, TIM_BDTR_MOE); //enable PWM if power is wanted
@@ -700,7 +714,7 @@ int main(void)
 		  //print values for debugging
 
 
-		  sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n", MS.i_q,int16_current_target, (int16_t)((q31_rotorposition_absolute>>23)*180)>>8,uint16_half_rotation_counter, ui8_hall_case, ui8_hall_state, (uint16_t) (ui16_reg_adc_value-THROTTLE_OFFSET));//((q31_i_q_fil*q31_u_abs)>>14)*
+		  sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n", MS.i_q,int16_current_target, (int16_t)MS.Battery_Current,(uint16_t) MS.Voltage, (uint16_t) MS.Speed, (uint16_t)q31_tics_filtered>>3, (ui16_reg_adc_value));
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",ui8_hall_state,(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5])) ;
 
 	  	  i=0;
@@ -831,7 +845,7 @@ static void MX_ADC1_Init(void)
   hadc1.Init.DiscontinuousConvMode = DISABLE;
   hadc1.Init.ExternalTrigConv = ADC_EXTERNALTRIGCONV_T3_TRGO;// Trigger regular ADC with timer 3 ADC_EXTERNALTRIGCONV_T1_CC1;// // ADC_SOFTWARE_START; //
   hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
-  hadc1.Init.NbrOfConversion = 5;
+  hadc1.Init.NbrOfConversion = 7;
   hadc1.Init.NbrOfDiscConversion = 0;
 
 
@@ -864,20 +878,20 @@ static void MX_ADC1_Init(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
-    /**Configure Regular Channel 
-    */
-  sConfig.Channel = ADC_CHANNEL_7;
-  sConfig.Rank = ADC_REGULAR_RANK_1;
-  sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;//ADC_SAMPLETIME_239CYCLES_5;
-  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
-  {
-    _Error_Handler(__FILE__, __LINE__);
-  }
+  /**Configure Regular Channel
+  */
+sConfig.Channel = ADC_CHANNEL_7; //battery voltage
+sConfig.Rank = ADC_REGULAR_RANK_1;
+sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;//ADC_SAMPLETIME_239CYCLES_5;
+if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+{
+  _Error_Handler(__FILE__, __LINE__);
+}
 
 
 /**Configure Regular Channel
 */
-sConfig.Channel = ADC_CHANNEL_3;
+sConfig.Channel = ADC_CHANNEL_3; //Connector SP: throttle input
 sConfig.Rank = ADC_REGULAR_RANK_2;
 sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;//ADC_SAMPLETIME_239CYCLES_5;
 if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
@@ -886,7 +900,7 @@ _Error_Handler(__FILE__, __LINE__);
 }
 /**Configure Regular Channel
 */
-sConfig.Channel = ADC_CHANNEL_4;
+sConfig.Channel = ADC_CHANNEL_4; //Phase current 1
 sConfig.Rank = ADC_REGULAR_RANK_3;
 sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;//ADC_SAMPLETIME_239CYCLES_5;
 if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
@@ -895,7 +909,7 @@ _Error_Handler(__FILE__, __LINE__);
 }
 /**Configure Regular Channel
 */
-sConfig.Channel = ADC_CHANNEL_5;
+sConfig.Channel = ADC_CHANNEL_5; //Phase current 2
 sConfig.Rank = ADC_REGULAR_RANK_4;
 sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;//ADC_SAMPLETIME_239CYCLES_5;
 if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
@@ -904,8 +918,28 @@ _Error_Handler(__FILE__, __LINE__);
 }
 /**Configure Regular Channel
 */
-sConfig.Channel = ADC_CHANNEL_6;
+sConfig.Channel = ADC_CHANNEL_6; //Phase current 3
 sConfig.Rank = ADC_REGULAR_RANK_5;
+sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;//ADC_SAMPLETIME_239CYCLES_5;
+if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+{
+_Error_Handler(__FILE__, __LINE__);
+}
+
+/**Configure Regular Channel
+*/
+sConfig.Channel = ADC_CHANNEL_8;
+sConfig.Rank = ADC_REGULAR_RANK_6; // connector AD2
+sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;//ADC_SAMPLETIME_239CYCLES_5;
+if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+{
+_Error_Handler(__FILE__, __LINE__);
+}
+
+/**Configure Regular Channel
+*/
+sConfig.Channel = ADC_CHANNEL_9; // connector AD1, temperature or torque input for Controller from PhoebeLiu @ aliexpress
+sConfig.Rank = ADC_REGULAR_RANK_7;
 sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;//ADC_SAMPLETIME_239CYCLES_5;
 if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
 {
@@ -1196,6 +1230,13 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(LIGHT_GPIO_Port, &GPIO_InitStruct);
 
+  /*Configure GPIO pin : Brake_Pin */
+  GPIO_InitStruct.Pin = Brake_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(Brake_GPIO_Port, &GPIO_InitStruct);
+
+
   /*Configure GPIO pins : Speed_EXTI5_Pin PAS_EXTI8_Pin */
   GPIO_InitStruct.Pin = Speed_EXTI5_Pin|PAS_EXTI8_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
@@ -1241,12 +1282,14 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 {
 	ui32_reg_adc_value_filter -= ui32_reg_adc_value_filter>>4;
-	ui32_reg_adc_value_filter += adcData[1]; //HAL_ADC_GetValue(hadc);
+#ifdef TQONAD1
+	ui32_reg_adc_value_filter += adcData[6]; //get value from AD1
+#else
+	ui32_reg_adc_value_filter += adcData[1]; //get value from SP
+#endif
 	ui16_reg_adc_value = ui32_reg_adc_value_filter>>4;
 
 	ui8_adc_regular_flag=1;
-
-
 
 }
 

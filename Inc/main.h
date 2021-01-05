@@ -76,6 +76,8 @@
 #define LIGHT_GPIO_Port GPIOB
 #define PAS_Pin GPIO_PIN_8
 #define PAS_GPIO_Port GPIOB
+#define Brake_Pin GPIO_PIN_11
+#define Brake_GPIO_Port GPIOA
 #define Speed_EXTI5_Pin GPIO_PIN_5
 #define Speed_EXTI5_GPIO_Port GPIOB
 #define Speed_EXTI5_EXTI_IRQn EXTI9_5_IRQn
