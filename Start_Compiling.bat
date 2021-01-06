@@ -17,22 +17,13 @@ md src
 copy subdir_drivers.mk Drivers\STM32F1xx_HAL_Driver\Src\subdir.mk
 copy subdir_src.mk Src\subdir.mk
 copy subdir_startup.mk startup\subdir.mk
-IF "%flashoption%"=="STLink" (
+
 copy STLINK_FLASH.ld ..\STM32F103C6Tx_FLASH.ld
 copy STLINK_system_stm32f1xx.c ..\Src\system_stm32f1xx.c
-) ELSE (
-copy UART_FLASH.ld ..\STM32F103C6Tx_FLASH.ld
-copy UART_system_stm32f1xx.c ..\Src\system_stm32f1xx.c
-)
 
 make all
-IF "%flashoption%"=="STLink" (
 
 ST-LINK_CLI.exe -c SWD -P LishuiFOC_01.hex -V
-) ELSE (
-hex2lsh.jar
-lishuiFlash %~4 LishuiFOC_01.lsh
-)
 
 pause
 
