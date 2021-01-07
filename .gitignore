@@ -15,3 +15,5 @@ main.hex
 
 Debug
 /JavaConfigurator/nbproject/private/
+/JavaConfigurator/build/
+/JavaConfigurator/dist/

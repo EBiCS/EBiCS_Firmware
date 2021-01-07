@@ -85,9 +85,6 @@
 #define PAS_EXTI8_GPIO_Port GPIOB
 #define PAS_EXTI8_EXTI_IRQn EXTI9_5_IRQn
 
-#define BATTERYCURRENT_MAX 5000
-
-
 
 
 /* ########################## Assert Selection ############################## */
