@@ -1355,9 +1355,8 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 
 	   }
 	   else
-	   {ui8_overflow_flag=1;
-	   q31_rotorposition_absolute = q31_rotorposition_hall;
-	   }
+	   {ui8_overflow_flag=1;}
+
     }//end if hall angle detect
 
 #ifndef DISABLE_DYNAMIC_ADC
