@@ -668,6 +668,9 @@ int main(void)
 		  SET_BIT(TIM1->BDTR, TIM_BDTR_MOE); //enable PWM if power is wanted
 		  uint16_half_rotation_counter=0;
 		  uint16_full_rotation_counter=0;
+		  __HAL_TIM_SET_COUNTER(&htim2,0); //reset tim2 counter
+		  ui16_timertics=20000; //set interval between two hallevents to a large value
+		  i8_recent_rotor_direction=i8_direction*i8_reverse_flag;
 		  get_standstill_position();
 	  }
 
