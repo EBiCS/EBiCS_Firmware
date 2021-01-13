@@ -98,14 +98,14 @@ if(!MS_FOC->hall_angle_detect_flag){
 
 	//inverse Park transformation
 	arm_inv_park_q31(MS_FOC->u_d, MS_FOC->u_q, &q31_u_alpha, &q31_u_beta, -sinevalue, cosinevalue);
-
+/*
 	temp1=int16_i_as;
 	temp2=int16_i_bs;
 	temp3=MS_FOC->i_d;
 	temp4=MS_FOC->i_q;
 	temp5=MS_FOC->u_d;
 	temp6=MS_FOC->u_q;
-	//observer_update(q31_u_alpha, q31_u_beta, q31_i_alpha, q31_i_beta , x1, x2, teta_obs);
+*/
 
 
 	if(uint32_PAS_counter < PAS_TIMEOUT&&ui8_debug_state==0)
@@ -130,24 +130,26 @@ if(!MS_FOC->hall_angle_detect_flag){
 	//temp6=__HAL_TIM_GET_COUNTER(&htim1);
 
 }
-//PI Control for quadrature current iq (torque) float operation without division
+//PI Control for quadrature current iq (torque)
 q31_t PI_control_i_q (q31_t ist, q31_t soll)
 {
 
   q31_t q31_p; //proportional part
-  static float flt_q_i = 0; //integral part
+  static q31_t q31_q_i = 0; //integral part
   static q31_t q31_q_dc = 0; // sum of proportional and integral part
-  q31_p = (soll - ist)*P_FACTOR_I_Q;
-  flt_q_i += ((float)(soll - ist))*I_FACTOR_I_Q;
+  q31_p = ((soll - ist)*P_FACTOR_I_Q)>>10;
+  q31_q_i += ((soll - ist)*I_FACTOR_I_Q)>>10;
+  temp5=q31_p;
+  temp6=q31_q_i;
 
-  if ((q31_t)flt_q_i>_U_MAX) flt_q_i=(float)_U_MAX;
-  if ((q31_t)flt_q_i<-_U_MAX) flt_q_i = -(float)_U_MAX ;
-  if(!READ_BIT(TIM1->BDTR, TIM_BDTR_MOE))flt_q_i = 0 ; //reset integral part if PWM is disabled
+  if ((q31_t)q31_q_i>_U_MAX) q31_q_i=_U_MAX;
+  if ((q31_t)q31_q_i<-_U_MAX) q31_q_i = -_U_MAX ;
+  if(!READ_BIT(TIM1->BDTR, TIM_BDTR_MOE))q31_q_i = 0 ; //reset integral part if PWM is disabled
 
     //avoid too big steps in one loop run
-  if (q31_p+(q31_t)flt_q_i>q31_q_dc+5) q31_q_dc+=5;
-  else if  (q31_p+(q31_t)flt_q_i<q31_q_dc-5)q31_q_dc-=5;
-  else q31_q_dc=q31_p+(q31_t)flt_q_i;
+  if (q31_p+(q31_t)q31_q_i>q31_q_dc+5) q31_q_dc+=5;
+  else if  (q31_p+(q31_t)q31_q_i<q31_q_dc-5)q31_q_dc-=5;
+  else q31_q_dc=q31_p+(q31_t)q31_q_i;
 
 
   if (q31_q_dc>_U_MAX) q31_q_dc = _U_MAX;
@@ -187,7 +189,7 @@ void svpwm(q31_t q31_u_alpha, q31_t q31_u_beta)	{
 //SVPWM according to chapter 4.9 of UM1052
 
 
-	q31_t q31_U_alpha = (q31_t)((float)_SQRT3 *(float)_T * (float) q31_u_alpha); //float operation to avoid q31 overflow
+	q31_t q31_U_alpha = (_SQRT3 *_T * q31_u_alpha)>>4;
 	q31_t q31_U_beta = -_T * q31_u_beta;
 	q31_t X = q31_U_beta;
 	q31_t Y = (q31_U_alpha+q31_U_beta)>>1;
@@ -220,77 +222,4 @@ void svpwm(q31_t q31_u_alpha, q31_t q31_u_beta)	{
 
 }
 
-// See http://cas.ensmp.fr/~praly/Telechargement/Journaux/2010-IEEE_TPEL-Lee-Hong-Nam-Ortega-Praly-Astolfi.pdf
-void observer_update(q31_t v_alpha, q31_t v_beta, q31_t i_alpha, q31_t i_beta, volatile q31_t x1, volatile q31_t x2, volatile q31_t phase) {
 
-	const float L = (3.0 / 2.0) * INDUCTANCE;
-	const float lambda = FLUX_LINKAGE;
-	float R = (3.0 / 2.0) * RESISTANCE;
-/*
-	// Saturation compensation
-	const float sign = (m_motor_state.iq * m_motor_state.vq) >= 0.0 ? 1.0 : -1.0;
-	R -= R * sign * m_conf->foc_sat_comp * (m_motor_state.i_abs_filter / m_conf->l_current_max);
-
-	// Temperature compensation
-	const float t = mc_interface_temp_motor_filtered();
-	if (m_conf->foc_temp_comp && t > -5.0) {
-		R += R * 0.00386 * (t - m_conf->foc_temp_comp_base_temp);
-	}*/
-
-	const float L_ia = L * i_alpha;
-	const float L_ib = L * i_beta;
-	const float R_ia = R * i_alpha;
-	const float R_ib = R * i_beta;
-	const float lambda_2 = lambda*lambda;
-	const float gamma_half = GAMMA * 0.5;
-
-	// Original
-//	float err = lambda_2 - (SQ(*x1 - L_ia) + SQ(*x2 - L_ib));
-//	float x1_dot = -R_ia + v_alpha + gamma_half * (*x1 - L_ia) * err;
-//	float x2_dot = -R_ib + v_beta + gamma_half * (*x2 - L_ib) * err;
-//	*x1 += x1_dot * dt;
-//	*x2 += x2_dot * dt;
-/*
-	// Iterative with some trial and error
-	const int iterations = 6;
-	const float dt_iteration = dt / (float)iterations;
-	for (int i = 0;i < iterations;i++) {
-		float err = lambda_2 - (SQ(*x1 - L_ia) + SQ(*x2 - L_ib));
-		float gamma_tmp = gamma_half;
-		if (utils_truncate_number_abs(&err, lambda_2 * 0.2)) {
-			gamma_tmp *= 10.0;
-		}
-		float x1_dot = -R_ia + v_alpha + gamma_tmp * (*x1 - L_ia) * err;
-		float x2_dot = -R_ib + v_beta + gamma_tmp * (*x2 - L_ib) * err;
-
-		*x1 += x1_dot * dt_iteration;
-		*x2 += x2_dot * dt_iteration;
-	}
-	*/
-
-	// Same as above, but without iterations.
-	float err = lambda_2 - ((x1 - L_ia)*(x1 - L_ia) + (x2 - L_ib)*(x2 - L_ib));
-	float gamma_tmp = gamma_half;
-	/*if (utils_truncate_number_abs(&err, lambda_2 * 0.2)) {
-		gamma_tmp *= 10.0;
-	}*/
-	float x1_dot = -R_ia + v_alpha + gamma_tmp * (x1 - L_ia) * err;
-	float x2_dot = -R_ib + v_beta + gamma_tmp * (x2 - L_ib) * err;
-	x1 += x1_dot * _T;
-	x2 += x2_dot * _T;
-
-	//UTILS_NAN_ZERO(*x1);
-	//UTILS_NAN_ZERO(*x2);
-
-	//*phase = utils_fast_atan2(*x2 - L_ib, *x1 - L_ia);
-}
-/*
-static void pll_run(float phase, float dt, volatile float *phase_var,volatile float *speed_var) {
-	//UTILS_NAN_ZERO(*phase_var);
-	float delta_theta = phase - *phase_var;
-	//utils_norm_angle_rad(&delta_theta);
-	//UTILS_NAN_ZERO(*speed_var);
-	*phase_var += (*speed_var + SPEED_KP * delta_theta) * dt;
-	//utils_norm_angle_rad((float*)phase_var);
-	*speed_var += SPEED_KI * delta_theta * dt;
-}*/

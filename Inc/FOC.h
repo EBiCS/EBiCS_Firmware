@@ -26,7 +26,7 @@ q31_t PI_control_i_d (q31_t ist, q31_t soll);
 
 
 // Square Root of 3
-#define _SQRT3	1.73205081
+#define _SQRT3	28  //1.73205081*16
 
 #define ADC_DUR 250//minimal duration for proper ADC reading deadtime + noise subsiding + sample time
 
