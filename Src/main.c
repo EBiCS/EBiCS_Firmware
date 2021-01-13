@@ -482,7 +482,7 @@ int main(void)
 			  q31_u_q_temp =  PI_control_i_q(MS.i_q, (q31_t) i8_direction*i8_reverse_flag*int16_current_target);
 		  }
 		  else{
-			  q31_u_q_temp =  PI_control_i_q((MS.Battery_Current>>5)*i8_direction*i8_reverse_flag, (q31_t) (BATTERYCURRENT_MAX>>5)*i8_direction*i8_reverse_flag);
+			  q31_u_q_temp =  PI_control_i_q((MS.Battery_Current>>6)*i8_direction*i8_reverse_flag, (q31_t) (BATTERYCURRENT_MAX>>6)*i8_direction*i8_reverse_flag);
 		  }
 
 		  //Control id
