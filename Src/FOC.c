@@ -137,19 +137,19 @@ q31_t PI_control_i_q (q31_t ist, q31_t soll)
   q31_t q31_p; //proportional part
   static q31_t q31_q_i = 0; //integral part
   static q31_t q31_q_dc = 0; // sum of proportional and integral part
-  q31_p = ((soll - ist)*P_FACTOR_I_Q)>>7;
-  q31_q_i += ((soll - ist)*I_FACTOR_I_Q)>>7;
+  q31_p = ((soll - ist)*P_FACTOR_I_Q);
+  q31_q_i += ((soll - ist)*I_FACTOR_I_Q);
   temp5=q31_p;
   temp6=q31_q_i;
 
-  if ((q31_t)q31_q_i>_U_MAX) q31_q_i=_U_MAX;
-  if ((q31_t)q31_q_i<-_U_MAX) q31_q_i = -_U_MAX ;
+  if (q31_q_i>_U_MAX<<10) q31_q_i=_U_MAX<<10;
+  if (q31_q_i<-_U_MAX<<10) q31_q_i = -_U_MAX<<10;
   if(!READ_BIT(TIM1->BDTR, TIM_BDTR_MOE))q31_q_i = 0 ; //reset integral part if PWM is disabled
 
     //avoid too big steps in one loop run
-  if (q31_p+(q31_t)q31_q_i>q31_q_dc+5) q31_q_dc+=5;
-  else if  (q31_p+(q31_t)q31_q_i<q31_q_dc-5)q31_q_dc-=5;
-  else q31_q_dc=q31_p+(q31_t)q31_q_i;
+  if ((q31_p+q31_q_i)>>10>q31_q_dc+5) q31_q_dc+=5;
+  else if  ((q31_p+q31_q_i)>>10<q31_q_dc-5)q31_q_dc-=5;
+  else q31_q_dc=(q31_p+q31_q_i)>>10;
 
 
   if (q31_q_dc>_U_MAX) q31_q_dc = _U_MAX;
