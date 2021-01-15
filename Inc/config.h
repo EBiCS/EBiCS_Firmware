@@ -59,4 +59,6 @@
 #define REGEN_CURRENT_MAX 50
 //#define FAST_LOOP_LOG
 //#define DISABLE_DYNAMIC_ADC
+#define INDIVIDUAL_MODES
+
 #endif /* CONFIG_H_ */

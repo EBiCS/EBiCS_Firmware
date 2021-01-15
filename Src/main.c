@@ -590,7 +590,6 @@ int main(void)
 			  //current target calculation
 				//highest priority: regen by brake lever
 
-				ui8_speedfactor = map(uint32_tics_filtered>>3,speed_to_tics(assist_profile[0][ui8_speedcase+1]),speed_to_tics(assist_profile[0][ui8_speedcase]),assist_profile[1][ui8_speedcase+1],assist_profile[1][ui8_speedcase]);
 
 				if(!HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin)){
 					if(uint32_tics_filtered>>3<15000)int32_current_target=-REGEN_CURRENT_MAX; //only apply regen, if motor is turning fast enough
@@ -606,9 +605,6 @@ int main(void)
 		#ifdef TS_MODE //torque-sensor mode
 					//calculate current target form torque, cadence and assist level
 					int32_current_target = (TS_COEF*(int16_t)(MS.assist_level)* (uint32_torque_cumulated>>5)/uint32_PAS)>>8; //>>5 aus Mittelung über eine Kurbelumdrehung, >>8 aus KM5S-Protokoll Assistlevel 0..255
-
-					int32_current_target = (int32_current_target * ui8_speedfactor)>>8;
-
 
 					//limit currest target to max value
 					if(int32_current_target>PH_CURRENT_MAX) int32_current_target = PH_CURRENT_MAX;
@@ -653,27 +649,38 @@ int main(void)
 			  else uint32_PAS_HIGH_accumulated=uint32_PAS_cumulated;
 		#endif //end direction detection
 
-			  // read in throttle for throttle override
-			  uint16_mapped_throttle = map(ui16_reg_adc_value, THROTTLE_OFFSET , THROTTLE_MAX, 0, PH_CURRENT_MAX);
-			  //check for throttle override
-			  if(uint16_mapped_PAS>uint16_mapped_throttle)   {
 
-			    if (uint32_PAS_counter < PAS_TIMEOUT) int32_current_target= uint16_mapped_PAS;		//set current target in torque-simulation-mode, if pedals are turning
-				  else  {
-					  int32_current_target= 0;//pedals are not turning, stop motor
-					  uint32_PAS_cumulated=32000;
-					  uint32_PAS=32000;
+		#endif //end if else TQ sensor mode
+
+#ifdef INDIVIDUAL_MODES
+
+				ui8_speedfactor = map(uint32_tics_filtered>>3,speed_to_tics(assist_profile[0][ui8_speedcase+1]),speed_to_tics(assist_profile[0][ui8_speedcase]),assist_profile[1][ui8_speedcase+1],assist_profile[1][ui8_speedcase]);
+				int32_current_target = (int32_current_target * ui8_speedfactor)>>8;
+
+#endif
+
+#ifdef THROTTLE_OVERRIDE
+
+				  // read in throttle for throttle override
+				  uint16_mapped_throttle = map(ui16_reg_adc_value, THROTTLE_OFFSET , THROTTLE_MAX, 0, PH_CURRENT_MAX);
+				  //check for throttle override
+				  if(uint16_mapped_PAS>uint16_mapped_throttle)   {
+
+				    if (uint32_PAS_counter < PAS_TIMEOUT) int32_current_target= uint16_mapped_PAS;		//set current target in torque-simulation-mode, if pedals are turning
+					  else  {
+						  int32_current_target= 0;//pedals are not turning, stop motor
+						  uint32_PAS_cumulated=32000;
+						  uint32_PAS=32000;
+					  }
 				  }
-			  }
-			  else int32_current_target = uint16_mapped_throttle;//throttle override: set recent throttle value as current target
-
-
-		#endif
-			} //end else for normal riding
-
+				  else int32_current_target = uint16_mapped_throttle;//throttle override: set recent throttle value as current target
+#endif
 
 				//ramp down current at speed limit
 			  int32_current_target=map(uint32_tics_filtered>>3,tics_higher_limit,tics_lower_limit,0,int32_current_target);
+
+			} //end else for normal riding
+
 
 
 	  if (int32_current_target>0&&!READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)){
@@ -718,7 +725,7 @@ int main(void)
 		  //print values for debugging
 
 
-		  sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n", MS.i_q,int32_current_target, (int16_t)MS.Battery_Current,ui8_speedcase, (uint16_t)MS.u_abs,tics_to_speed(uint32_tics_filtered>>3) , ui8_speedfactor);
+		  sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n", MS.i_q,int32_current_target, (int16_t)MS.Battery_Current, (uint16_t)adcData[1], (uint16_t)MS.u_abs,tics_to_speed(uint32_tics_filtered>>3) , HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin));
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",ui8_hall_state,(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5])) ;
 
 	  	  i=0;
