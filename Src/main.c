@@ -148,7 +148,7 @@ uint16_t uint16_mapped_throttle=0;
 uint16_t uint16_mapped_PAS=0;
 uint16_t uint16_half_rotation_counter=0;
 uint16_t uint16_full_rotation_counter=0;
-int16_t int16_current_target=0;
+int32_t int32_current_target=0;
 
 q31_t q31_t_Battery_Current_accumulated=0;
 
@@ -478,13 +478,13 @@ int main(void)
 		  //Check battery current limit
 		  if(MS.Battery_Current>BATTERYCURRENT_MAX) ui8_BC_limit_flag=1;
 		  //reset battery current flag with small hysteresis
-		  if(((int16_current_target*MS.u_abs)>>11)*(uint16_t)(CAL_I>>8)<(BATTERYCURRENT_MAX*7)>>3)ui8_BC_limit_flag=0;
+		  if(((int32_current_target*MS.u_abs)>>11)*(uint16_t)(CAL_I>>8)<(BATTERYCURRENT_MAX*7)>>3)ui8_BC_limit_flag=0;
 
 		  //control iq
 
 		  //if
 		  if (!ui8_BC_limit_flag){
-			  q31_u_q_temp =  PI_control_i_q(MS.i_q, (q31_t) i8_direction*i8_reverse_flag*int16_current_target);
+			  q31_u_q_temp =  PI_control_i_q(MS.i_q, (q31_t) i8_direction*i8_reverse_flag*int32_current_target);
 		  }
 		  else{
 			  q31_u_q_temp =  PI_control_i_q((MS.Battery_Current>>6)*i8_direction*i8_reverse_flag, (q31_t) (BATTERYCURRENT_MAX>>6)*i8_direction*i8_reverse_flag);
@@ -590,31 +590,31 @@ int main(void)
 			  //current target calculation
 				//highest priority: regen by brake lever
 
-				ui8_speedfactor = map(uint32_tics_filtered>>3,speed_to_tics(assist_profile[0][ui8_speedcase]),speed_to_tics(assist_profile[0][ui8_speedcase+1]),assist_profile[1][ui8_speedcase],assist_profile[1][ui8_speedcase]);
+				ui8_speedfactor = map(uint32_tics_filtered>>3,speed_to_tics(assist_profile[0][ui8_speedcase+1]),speed_to_tics(assist_profile[0][ui8_speedcase]),assist_profile[1][ui8_speedcase+1],assist_profile[1][ui8_speedcase]);
 
 				if(!HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin)){
-					if(uint32_tics_filtered>>3<15000)int16_current_target=-REGEN_CURRENT_MAX; //only apply regen, if motor is turning fast enough
-					else int16_current_target=0;
+					if(uint32_tics_filtered>>3<15000)int32_current_target=-REGEN_CURRENT_MAX; //only apply regen, if motor is turning fast enough
+					else int32_current_target=0;
 				}
 				//next priority: undervoltage protection
-				else if(MS.Voltage<VOLTAGE_MIN)int16_current_target=0;
+				else if(MS.Voltage<VOLTAGE_MIN)int32_current_target=0;
 				//next priority: push assist
-				else if(ui8_Push_Assist_flag)int16_current_target=PUSHASSIST_CURRENT;
+				else if(ui8_Push_Assist_flag)int32_current_target=PUSHASSIST_CURRENT;
 				// last priority normal ride conditiones
 				else {
 
 		#ifdef TS_MODE //torque-sensor mode
 					//calculate current target form torque, cadence and assist level
-					int16_current_target = (TS_COEF*(int16_t)(MS.assist_level)* (uint32_torque_cumulated>>5)/uint32_PAS)>>8; //>>5 aus Mittelung über eine Kurbelumdrehung, >>8 aus KM5S-Protokoll Assistlevel 0..255
+					int32_current_target = (TS_COEF*(int16_t)(MS.assist_level)* (uint32_torque_cumulated>>5)/uint32_PAS)>>8; //>>5 aus Mittelung über eine Kurbelumdrehung, >>8 aus KM5S-Protokoll Assistlevel 0..255
 
-					int16_current_target = (int16_current_target * ui8_speedfactor)>>8;
+					int32_current_target = (int32_current_target * ui8_speedfactor)>>8;
 
 
 					//limit currest target to max value
-					if(int16_current_target>PH_CURRENT_MAX) int16_current_target = PH_CURRENT_MAX;
+					if(int32_current_target>PH_CURRENT_MAX) int32_current_target = PH_CURRENT_MAX;
 					//set target to zero, if pedals are not turning
 					if(uint32_PAS_counter > PAS_TIMEOUT){
-						int16_current_target = 0;
+						int32_current_target = 0;
 						if(uint32_torque_cumulated>0)uint32_torque_cumulated--; //ramp down cumulated torque value
 					}
 
@@ -658,14 +658,14 @@ int main(void)
 			  //check for throttle override
 			  if(uint16_mapped_PAS>uint16_mapped_throttle)   {
 
-			    if (uint32_PAS_counter < PAS_TIMEOUT) int16_current_target= uint16_mapped_PAS;		//set current target in torque-simulation-mode, if pedals are turning
+			    if (uint32_PAS_counter < PAS_TIMEOUT) int32_current_target= uint16_mapped_PAS;		//set current target in torque-simulation-mode, if pedals are turning
 				  else  {
-					  int16_current_target= 0;//pedals are not turning, stop motor
+					  int32_current_target= 0;//pedals are not turning, stop motor
 					  uint32_PAS_cumulated=32000;
 					  uint32_PAS=32000;
 				  }
 			  }
-			  else int16_current_target = uint16_mapped_throttle;//throttle override: set recent throttle value as current target
+			  else int32_current_target = uint16_mapped_throttle;//throttle override: set recent throttle value as current target
 
 
 		#endif
@@ -673,13 +673,16 @@ int main(void)
 
 
 				//ramp down current at speed limit
-			  int16_current_target=map(uint32_tics_filtered>>3,tics_higher_limit,tics_lower_limit,0,int16_current_target);
+			  int32_current_target=map(uint32_tics_filtered>>3,tics_higher_limit,tics_lower_limit,0,int32_current_target);
 
 
-	  if (int16_current_target>0&&!READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)){
+	  if (int32_current_target>0&&!READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)){
 		  SET_BIT(TIM1->BDTR, TIM_BDTR_MOE); //enable PWM if power is wanted
 		  uint16_half_rotation_counter=0;
 		  uint16_full_rotation_counter=0;
+		    TIM1->CCR1 = 1023; //set initial PWM values
+		    TIM1->CCR2 = 1023;
+		    TIM1->CCR3 = 1023;
 		  __HAL_TIM_SET_COUNTER(&htim2,0); //reset tim2 counter
 		  ui16_timertics=20000; //set interval between two hallevents to a large value
 		  i8_recent_rotor_direction=i8_direction*i8_reverse_flag;
@@ -696,11 +699,11 @@ int main(void)
 		  if(uint32_SPEED_counter>127999)MS.Speed =128000;
 
 		  // GET recent speedcase for assist profile
-		  if (uint32_tics_filtered>>3 < speed_to_tics(assist_profile[0][1]))ui8_speedcase=0;
-		  else if (uint32_tics_filtered>>3 > speed_to_tics(assist_profile[0][1]) && uint32_tics_filtered>>3 < speed_to_tics(assist_profile[0][2]))ui8_speedcase=1;
-		  else if (uint32_tics_filtered>>3 > speed_to_tics(assist_profile[0][2]) && uint32_tics_filtered>>3 < speed_to_tics(assist_profile[0][3]))ui8_speedcase=2;
-		  else if (uint32_tics_filtered>>3 > speed_to_tics(assist_profile[0][3]) && uint32_tics_filtered>>3 < speed_to_tics(assist_profile[0][4]))ui8_speedcase=3;
-		  else if (uint32_tics_filtered>>3 > speed_to_tics(assist_profile[0][4]))ui8_speedcase=4;
+		  if (uint32_tics_filtered>>3 > speed_to_tics(assist_profile[0][1]))ui8_speedcase=0;
+		  else if (uint32_tics_filtered>>3 < speed_to_tics(assist_profile[0][1]) && uint32_tics_filtered>>3 > speed_to_tics(assist_profile[0][2]))ui8_speedcase=1;
+		  else if (uint32_tics_filtered>>3 < speed_to_tics(assist_profile[0][2]) && uint32_tics_filtered>>3 > speed_to_tics(assist_profile[0][3]))ui8_speedcase=2;
+		  else if (uint32_tics_filtered>>3 < speed_to_tics(assist_profile[0][3]) && uint32_tics_filtered>>3 > speed_to_tics(assist_profile[0][4]))ui8_speedcase=3;
+		  else if (uint32_tics_filtered>>3 < speed_to_tics(assist_profile[0][4]))ui8_speedcase=4;
 
 
 
@@ -715,7 +718,7 @@ int main(void)
 		  //print values for debugging
 
 
-		  sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n", MS.i_q,int16_current_target, (int16_t)MS.Battery_Current,(uint16_t) MS.Voltage, (uint16_t)MS.u_abs,tics_to_speed(uint32_tics_filtered>>3) , ui8_speedfactor);
+		  sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n", MS.i_q,int32_current_target, (int16_t)MS.Battery_Current,ui8_speedcase, (uint16_t)MS.u_abs,tics_to_speed(uint32_tics_filtered>>3) , ui8_speedfactor);
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",ui8_hall_state,(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5])) ;
 
 	  	  i=0;
@@ -1400,7 +1403,7 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 	// call FOC procedure if PWM is enabled
 
 	if (READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)){
-	FOC_calculation(i16_ph1_current, i16_ph2_current, q31_rotorposition_absolute, (((int16_t)i8_direction*i8_reverse_flag)*int16_current_target), &MS);
+	FOC_calculation(i16_ph1_current, i16_ph2_current, q31_rotorposition_absolute, (((int16_t)i8_direction*i8_reverse_flag)*int32_current_target), &MS);
 	}
 	//temp5=__HAL_TIM_GET_COUNTER(&htim1);
 	//set PWM
