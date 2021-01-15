@@ -27,7 +27,10 @@ q31_t x1;
 q31_t x2;
 q31_t teta_obs;
 
+#ifdef FAST_LOOP_LOG
 q31_t e_log[300][6];
+#endif
+
 q31_t z;
 char Obs_flag=1;
 uint8_t ui8_debug_state=0;
@@ -43,12 +46,6 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 void svpwm(q31_t q31_u_alpha, q31_t q31_u_beta);
 q31_t PI_control_i_q (q31_t ist, q31_t soll);
 q31_t PI_control_i_d (q31_t ist, q31_t soll);
-void observer_update(q31_t v_alpha, q31_t v_beta, q31_t i_alpha, q31_t i_beta, volatile q31_t x1, volatile q31_t x2, volatile q31_t phase);
-
-
-
-
-
 
 
 void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int16_t int16_i_q_target, MotorState_t* MS_FOC)
@@ -98,15 +95,16 @@ if(!MS_FOC->hall_angle_detect_flag){
 
 	//inverse Park transformation
 	arm_inv_park_q31(MS_FOC->u_d, MS_FOC->u_q, &q31_u_alpha, &q31_u_beta, -sinevalue, cosinevalue);
-/*
+
+
+
+#ifdef FAST_LOOP_LOG
 	temp1=int16_i_as;
 	temp2=int16_i_bs;
 	temp3=MS_FOC->i_d;
 	temp4=MS_FOC->i_q;
 	temp5=MS_FOC->u_d;
 	temp6=MS_FOC->u_q;
-*/
-
 
 	if(uint32_PAS_counter < PAS_TIMEOUT&&ui8_debug_state==0)
 			{
@@ -124,6 +122,8 @@ if(!MS_FOC->hall_angle_detect_flag){
 		ui8_debug_state=2;}
 			}
 	else {if(ui8_debug_state==2)ui8_debug_state=3;;}
+
+#endif
 
 	//call SVPWM calculation
 	svpwm(q31_u_alpha, q31_u_beta);

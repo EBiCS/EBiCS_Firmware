@@ -118,6 +118,8 @@ uint8_t ui8_overflow_flag=0;
 uint8_t ui8_slowloop_counter=0;
 uint8_t ui8_adc_inj_flag=0;
 uint8_t ui8_adc_regular_flag=0;
+uint8_t ui8_speedcase=0;
+uint8_t ui8_speedfactor=0;
 int8_t i8_direction= REVERSE; //for permanent reverse direction
 int8_t i8_reverse_flag = 1; //for temporaribly reverse direction
 
@@ -158,11 +160,12 @@ q31_t q31_u_q_temp=0;
 int16_t i16_sinus=0;
 int16_t i16_cosinus=0;
 char buffer[100];
-char char_dyn_adc_state=1;
 char char_dyn_adc_state_old=1;
-uint8_t assist_factor[10]={0, 51, 102, 153, 204, 255, 255, 255, 255, 255};
+const uint8_t assist_factor[10]={0, 51, 102, 153, 204, 255, 255, 255, 255, 255};
+const uint8_t assist_profile[2][6]= {	{0,10,20,30,45,48},
+										{64,64,128,200,255,0}};
 
-q31_t switchtime[3];
+uint16_t switchtime[3];
 volatile uint16_t adcData[8]; //Buffer for ADC1 Input
 //static int8_t angle[256][4];
 //static int8_t angle_old;
@@ -178,7 +181,7 @@ const q31_t DEG_minus120= -1431655765;
 
 const q31_t tics_lower_limit = WHEEL_CIRCUMFERENCE*5*3600/(6*GEAR_RATIO*SPEEDLIMIT*10); //tics=wheelcirc*timerfrequency/(no. of hallevents per rev*gear-ratio*speedlimit)*3600/1000000
 const q31_t tics_higher_limit = WHEEL_CIRCUMFERENCE*5*3600/(6*GEAR_RATIO*(SPEEDLIMIT+2)*10);
-q31_t q31_tics_filtered=128000;
+uint32_t uint32_tics_filtered=128000;
 
 uint16_t VirtAddVarTab[NB_OF_VAR] = {0x01, 0x02, 0x03};
 
@@ -242,6 +245,8 @@ static void dyn_adc_state(q31_t angle);
 static void set_inj_channel(char state);
 void get_standstill_position();
 int32_t map (int32_t x, int32_t in_min, int32_t in_max, int32_t out_min, int32_t out_max);
+int32_t speed_to_tics (uint8_t speed);
+int8_t tics_to_speed (uint32_t tics);
 
 
 
@@ -584,8 +589,11 @@ int main(void)
 
 			  //current target calculation
 				//highest priority: regen by brake lever
+
+				ui8_speedfactor = map(uint32_tics_filtered>>3,speed_to_tics(assist_profile[0][ui8_speedcase]),speed_to_tics(assist_profile[0][ui8_speedcase+1]),assist_profile[1][ui8_speedcase],assist_profile[1][ui8_speedcase]);
+
 				if(!HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin)){
-					if(q31_tics_filtered>>3<15000)int16_current_target=-REGEN_CURRENT_MAX; //only apply regen, if motor is turning fast enough
+					if(uint32_tics_filtered>>3<15000)int16_current_target=-REGEN_CURRENT_MAX; //only apply regen, if motor is turning fast enough
 					else int16_current_target=0;
 				}
 				//next priority: undervoltage protection
@@ -598,6 +606,10 @@ int main(void)
 		#ifdef TS_MODE //torque-sensor mode
 					//calculate current target form torque, cadence and assist level
 					int16_current_target = (TS_COEF*(int16_t)(MS.assist_level)* (uint32_torque_cumulated>>5)/uint32_PAS)>>8; //>>5 aus Mittelung über eine Kurbelumdrehung, >>8 aus KM5S-Protokoll Assistlevel 0..255
+
+					int16_current_target = (int16_current_target * ui8_speedfactor)>>8;
+
+
 					//limit currest target to max value
 					if(int16_current_target>PH_CURRENT_MAX) int16_current_target = PH_CURRENT_MAX;
 					//set target to zero, if pedals are not turning
@@ -661,7 +673,7 @@ int main(void)
 
 
 				//ramp down current at speed limit
-			  int16_current_target=map(q31_tics_filtered>>3,tics_higher_limit,tics_lower_limit,0,int16_current_target);
+			  int16_current_target=map(uint32_tics_filtered>>3,tics_higher_limit,tics_lower_limit,0,int16_current_target);
 
 
 	  if (int16_current_target>0&&!READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)){
@@ -683,6 +695,15 @@ int main(void)
 		  MS.Voltage=adcData[0];
 		  if(uint32_SPEED_counter>127999)MS.Speed =128000;
 
+		  // GET recent speedcase for assist profile
+		  if (uint32_tics_filtered>>3 < speed_to_tics(assist_profile[0][1]))ui8_speedcase=0;
+		  else if (uint32_tics_filtered>>3 > speed_to_tics(assist_profile[0][1]) && uint32_tics_filtered>>3 < speed_to_tics(assist_profile[0][2]))ui8_speedcase=1;
+		  else if (uint32_tics_filtered>>3 > speed_to_tics(assist_profile[0][2]) && uint32_tics_filtered>>3 < speed_to_tics(assist_profile[0][3]))ui8_speedcase=2;
+		  else if (uint32_tics_filtered>>3 > speed_to_tics(assist_profile[0][3]) && uint32_tics_filtered>>3 < speed_to_tics(assist_profile[0][4]))ui8_speedcase=3;
+		  else if (uint32_tics_filtered>>3 > speed_to_tics(assist_profile[0][4]))ui8_speedcase=4;
+
+
+
 		  if((uint16_full_rotation_counter>7999||uint16_half_rotation_counter>7999)&&READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)){
 			  CLEAR_BIT(TIM1->BDTR, TIM_BDTR_MOE); //Disable PWM if motor is not turning
 
@@ -694,7 +715,7 @@ int main(void)
 		  //print values for debugging
 
 
-		  sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %ld, %ld\r\n", MS.i_q,int16_current_target, (int16_t)MS.Battery_Current,(uint16_t) MS.Voltage, (uint16_t)MS.u_abs,(uint16_t)q31_tics_filtered>>3 , temp5, temp6);
+		  sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n", MS.i_q,int16_current_target, (int16_t)MS.Battery_Current,(uint16_t) MS.Voltage, (uint16_t)MS.u_abs,tics_to_speed(uint32_tics_filtered>>3) , ui8_speedfactor);
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",ui8_hall_state,(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5])) ;
 
 	  	  i=0;
@@ -1414,8 +1435,8 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 
 	if(ui16_tim2_recent>100){//debounce
 		ui16_timertics = ui16_tim2_recent; //save timertics since last hall event
-		q31_tics_filtered-=q31_tics_filtered>>3;
-		q31_tics_filtered+=ui16_timertics;
+		uint32_tics_filtered-=uint32_tics_filtered>>3;
+		uint32_tics_filtered+=ui16_timertics;
 	   __HAL_TIM_SET_COUNTER(&htim2,0); //reset tim2 counter
 	   ui8_overflow_flag=0;
 
@@ -1849,6 +1870,14 @@ void get_standstill_position(){
 			}
 
 		 q31_rotorposition_absolute = q31_rotorposition_hall;
+}
+
+int32_t speed_to_tics (uint8_t speed){
+	return WHEEL_CIRCUMFERENCE*5*3600/(6*GEAR_RATIO*speed*10);
+}
+
+int8_t tics_to_speed (uint32_t tics){
+	return WHEEL_CIRCUMFERENCE*5*3600/(6*GEAR_RATIO*tics*10);;
 }
 
 /* USER CODE END 4 */
