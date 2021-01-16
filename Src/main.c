@@ -654,7 +654,6 @@ int main(void)
 
 #ifdef INDIVIDUAL_MODES
 
-				ui8_speedfactor = map(uint32_tics_filtered>>3,speed_to_tics(assist_profile[0][ui8_speedcase+1]),speed_to_tics(assist_profile[0][ui8_speedcase]),assist_profile[1][ui8_speedcase+1],assist_profile[1][ui8_speedcase]);
 				int32_current_target = (int32_current_target * ui8_speedfactor)>>8;
 
 #endif
@@ -681,10 +680,10 @@ int main(void)
 
 			} //end else for normal riding
 
-
-
+//------------------------------------------------------------------------------------------------------------
+				//enable PWM if power is wanted
 	  if (int32_current_target>0&&!READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)){
-		  SET_BIT(TIM1->BDTR, TIM_BDTR_MOE); //enable PWM if power is wanted
+		  SET_BIT(TIM1->BDTR, TIM_BDTR_MOE);
 		  uint16_half_rotation_counter=0;
 		  uint16_full_rotation_counter=0;
 		    TIM1->CCR1 = 1023; //set initial PWM values
@@ -705,6 +704,7 @@ int main(void)
 		  MS.Voltage=adcData[0];
 		  if(uint32_SPEED_counter>127999)MS.Speed =128000;
 
+#ifdef INDIVIDUAL_MODES
 		  // GET recent speedcase for assist profile
 		  if (uint32_tics_filtered>>3 > speed_to_tics(assist_profile[0][1]))ui8_speedcase=0;
 		  else if (uint32_tics_filtered>>3 < speed_to_tics(assist_profile[0][1]) && uint32_tics_filtered>>3 > speed_to_tics(assist_profile[0][2]))ui8_speedcase=1;
@@ -712,6 +712,10 @@ int main(void)
 		  else if (uint32_tics_filtered>>3 < speed_to_tics(assist_profile[0][3]) && uint32_tics_filtered>>3 > speed_to_tics(assist_profile[0][4]))ui8_speedcase=3;
 		  else if (uint32_tics_filtered>>3 < speed_to_tics(assist_profile[0][4]))ui8_speedcase=4;
 
+		  ui8_speedfactor = map(uint32_tics_filtered>>3,speed_to_tics(assist_profile[0][ui8_speedcase+1]),speed_to_tics(assist_profile[0][ui8_speedcase]),assist_profile[1][ui8_speedcase+1],assist_profile[1][ui8_speedcase]);
+
+
+#endif
 
 
 		  if((uint16_full_rotation_counter>7999||uint16_half_rotation_counter>7999)&&READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)){
@@ -725,7 +729,7 @@ int main(void)
 		  //print values for debugging
 
 
-		  sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n", MS.i_q,int32_current_target, (int16_t)MS.Battery_Current, (uint16_t)adcData[1], (uint16_t)MS.u_abs,tics_to_speed(uint32_tics_filtered>>3) , HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin));
+		  sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n", MS.i_q,int32_current_target, (int16_t)MS.Battery_Current, (uint16_t)adcData[1], (uint16_t)MS.u_abs,tics_to_speed(uint32_tics_filtered>>3) , (uint16_t)(adcData[6]));
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",ui8_hall_state,(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5])) ;
 
 	  	  i=0;
