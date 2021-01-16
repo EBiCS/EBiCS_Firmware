@@ -38,7 +38,7 @@
 #define TS_COEF 90000
 #define PAS_TIMEOUT 8000
 #define RAMP_END 1600
-#define THROTTLE_OFFSET 420
+#define THROTTLE_OFFSET 750
 #define THROTTLE_MAX 2900
 #define WHEEL_CIRCUMFERENCE 2200
 #define GEAR_RATIO 24 //dummy for testing
@@ -50,8 +50,8 @@
 //#define DIRDET
 #define FRAC_HIGH 30
 #define FRAC_LOW 15
-#define TS_MODE
-#define TQONAD1
+//#define TS_MODE
+//#define TQONAD1
 #define DISPLAY_TYPE DISPLAY_TYPE_DEBUG
 #define REVERSE 1
 #define PUSHASSIST_CURRENT 30
