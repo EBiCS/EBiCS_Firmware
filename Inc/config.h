@@ -39,9 +39,9 @@
 #define PAS_TIMEOUT 8000
 #define RAMP_END 1600
 #define THROTTLE_OFFSET 750
-#define THROTTLE_MAX 2900
+#define THROTTLE_MAX 2700
 #define WHEEL_CIRCUMFERENCE 2200
-#define GEAR_RATIO 24 //dummy for testing
+#define GEAR_RATIO 11 //dummy for testing
 #define SPEEDLIMIT 100
 #define PULSES_PER_REVOLUTION 1
 #define PH_CURRENT_MAX 600
@@ -56,7 +56,7 @@
 #define REVERSE 1
 #define PUSHASSIST_CURRENT 30
 #define VOLTAGE_MIN 300
-#define REGEN_CURRENT 50
+#define REGEN_CURRENT 200
 //#define FAST_LOOP_LOG
 //#define DISABLE_DYNAMIC_ADC
 //#define INDIVIDUAL_MODES
