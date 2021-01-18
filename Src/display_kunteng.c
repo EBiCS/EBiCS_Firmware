@@ -47,20 +47,6 @@ void display_update(MotorState_t* MS_U)
   //if (pas_is_set ()) { ui8_moving_indication |= (1 << 4); }
 
 
-#ifdef SPEEDSENSOR_EXTERNAL
-  if(ui16_SPEED>65000){ui16_wheel_period_ms=4500;}
-  else{
-  ui16_wheel_period_ms = (uint16_t) ((float)ui16_SPEED/((float)PWM_CYCLES_SECOND/1000.0)); //must be /1000 devided in /125/8 for better resolution
-  }
-#endif
-
-#ifdef SPEEDSENSOR_INTERNAL
-  if(ui32_erps_filtered==0){ui16_wheel_period_ms=4500;}
-    else{
-  ui16_wheel_period_ms=(uint16_t)(1000.0*(float)GEAR_RATIO/(float)ui32_erps_filtered);
-    }
-#endif
-
   // calc battery pack state of charge (SOC)
   ui32_battery_volts =  (MS_U->Voltage*CAL_BAT_V*256)/10000;  //hier noch die richtige Kalibrierung einbauen (*256 für bessere Auflösung)
   if (ui32_battery_volts > ((uint16_t) BATTERY_PACK_VOLTS_80)) { ui8_battery_soc = 16; } // 4 bars | full
@@ -70,7 +56,7 @@ void display_update(MotorState_t* MS_U)
   else { ui8_battery_soc = 3; } // empty
 
   ui16_wheel_period_ms = (MS_U->Speed*PULSES_PER_REVOLUTION)>>3; //Speed Zähler wird mit 8kHz hochgezählt
-
+  //ui16_wheel_period_ms= ((MS_U->Speed)*6*GEAR_RATIO/500); //*6 because 6 hall interrupts per revolution, /500 because of 500 kHz timer setting
 ui8_tx_buffer [0] = 65;
   // B1: battery level
   ui8_tx_buffer [1] = ui8_battery_soc;
