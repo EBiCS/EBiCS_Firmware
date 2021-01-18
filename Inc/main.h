@@ -86,6 +86,7 @@
 #define PAS_EXTI8_EXTI_IRQn EXTI9_5_IRQn
 
 #define THROTTLE_OVERRIDE
+#define REGENCURRENT_MAX 3000
 
 /* ########################## Assert Selection ############################## */
 /**

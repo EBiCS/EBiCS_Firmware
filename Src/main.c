@@ -477,6 +477,7 @@ int main(void)
 
 		  //Check battery current limit
 		  if(MS.Battery_Current>BATTERYCURRENT_MAX) ui8_BC_limit_flag=1;
+		  if(MS.Battery_Current<-REGENCURRENT_MAX) ui8_BC_limit_flag=1;
 		  //reset battery current flag with small hysteresis
 		  if(((int32_current_target*MS.u_abs)>>11)*(uint16_t)(CAL_I>>8)<(BATTERYCURRENT_MAX*7)>>3)ui8_BC_limit_flag=0;
 
@@ -487,7 +488,12 @@ int main(void)
 			  q31_u_q_temp =  PI_control_i_q(MS.i_q, (q31_t) i8_direction*i8_reverse_flag*int32_current_target);
 		  }
 		  else{
+			  if(HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin)){
 			  q31_u_q_temp =  PI_control_i_q((MS.Battery_Current>>6)*i8_direction*i8_reverse_flag, (q31_t) (BATTERYCURRENT_MAX>>6)*i8_direction*i8_reverse_flag);
+			  }
+			  else{
+			  q31_u_q_temp =  PI_control_i_q((MS.Battery_Current>>6)*i8_direction*i8_reverse_flag, (q31_t) (-REGENCURRENT_MAX>>6)*i8_direction*i8_reverse_flag);
+			  }
 		  }
 
 		  //Control id
@@ -592,7 +598,7 @@ int main(void)
 
 
 				if(!HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin)){
-					if(uint32_tics_filtered>>3<15000)int32_current_target=-REGEN_CURRENT_MAX; //only apply regen, if motor is turning fast enough
+					if(uint32_tics_filtered>>3<15000)int32_current_target=-REGEN_CURRENT; //only apply regen, if motor is turning fast enough
 					else int32_current_target=0;
 				}
 				//next priority: undervoltage protection
