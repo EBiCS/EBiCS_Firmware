@@ -479,8 +479,12 @@ int main(void)
 		  if(MS.Battery_Current>BATTERYCURRENT_MAX) ui8_BC_limit_flag=1;
 		  if(MS.Battery_Current<-REGENCURRENT_MAX) ui8_BC_limit_flag=1;
 		  //reset battery current flag with small hysteresis
-		  if(((int32_current_target*MS.u_abs)>>11)*(uint16_t)(CAL_I>>8)<(BATTERYCURRENT_MAX*7)>>3)ui8_BC_limit_flag=0;
-		  if(((int32_current_target*MS.u_abs)>>11)*(uint16_t)(CAL_I>>8)>(-REGENCURRENT_MAX*7)>>3)ui8_BC_limit_flag=0;
+		  if(HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin)){
+			  if(((int32_current_target*MS.u_abs)>>11)*(uint16_t)(CAL_I>>8)<(BATTERYCURRENT_MAX*7)>>3)ui8_BC_limit_flag=0;
+		  }
+		  else{
+			  if(((int32_current_target*MS.u_abs)>>11)*(uint16_t)(CAL_I>>8)>(-REGENCURRENT_MAX*7)>>3)ui8_BC_limit_flag=0;
+		  }
 
 		  //control iq
 
