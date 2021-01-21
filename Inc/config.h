@@ -61,4 +61,7 @@
 //#define DISABLE_DYNAMIC_ADC
 //#define INDIVIDUAL_MODES
 
+#define THROTTLE_OVERRIDE
+#define REGENCURRENT_MAX 10000
+
 #endif /* CONFIG_H_ */
