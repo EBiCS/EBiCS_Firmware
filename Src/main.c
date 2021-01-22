@@ -477,13 +477,13 @@ int main(void)
 
 		  //Check battery current limit
 		  if(MS.Battery_Current>BATTERYCURRENT_MAX) ui8_BC_limit_flag=1;
-		  if(MS.Battery_Current<-REGENCURRENT_MAX) ui8_BC_limit_flag=1;
+		  if(MS.Battery_Current<-REGEN_CURRENT_MAX) ui8_BC_limit_flag=1;
 		  //reset battery current flag with small hysteresis
 		  if(HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin)){
 			  if(((int32_current_target*MS.u_abs)>>11)*(uint16_t)(CAL_I>>8)<(BATTERYCURRENT_MAX*7)>>3)ui8_BC_limit_flag=0;
 		  }
 		  else{
-			  if(((int32_current_target*MS.u_abs)>>11)*(uint16_t)(CAL_I>>8)>(-REGENCURRENT_MAX*7)>>3)ui8_BC_limit_flag=0;
+			  if(((int32_current_target*MS.u_abs)>>11)*(uint16_t)(CAL_I>>8)>(-REGEN_CURRENT_MAX*7)>>3)ui8_BC_limit_flag=0;
 		  }
 
 		  //control iq
@@ -497,7 +497,7 @@ int main(void)
 			  q31_u_q_temp =  PI_control_i_q((MS.Battery_Current>>6)*i8_direction*i8_reverse_flag, (q31_t) (BATTERYCURRENT_MAX>>6)*i8_direction*i8_reverse_flag);
 			  }
 			  else{
-			  q31_u_q_temp =  PI_control_i_q((MS.Battery_Current>>6)*i8_direction*i8_reverse_flag, (q31_t) (-REGENCURRENT_MAX>>6)*i8_direction*i8_reverse_flag);
+			  q31_u_q_temp =  PI_control_i_q((MS.Battery_Current>>6)*i8_direction*i8_reverse_flag, (q31_t) (-REGEN_CURRENT_MAX>>6)*i8_direction*i8_reverse_flag);
 			  }
 		  }
 
