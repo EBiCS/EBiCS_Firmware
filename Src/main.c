@@ -182,7 +182,7 @@ const q31_t DEG_minus120= -1431655765;
 const q31_t tics_lower_limit = WHEEL_CIRCUMFERENCE*5*3600/(6*GEAR_RATIO*SPEEDLIMIT*10); //tics=wheelcirc*timerfrequency/(no. of hallevents per rev*gear-ratio*speedlimit)*3600/1000000
 const q31_t tics_higher_limit = WHEEL_CIRCUMFERENCE*5*3600/(6*GEAR_RATIO*(SPEEDLIMIT+2)*10);
 uint32_t uint32_tics_filtered=128000;
-
+uint32_t ui32_Temperature_filter=100;
 uint16_t VirtAddVarTab[NB_OF_VAR] = {0x01, 0x02, 0x03};
 
 
@@ -689,6 +689,11 @@ int main(void)
 				//ramp down current at speed limit
 			  int32_current_target=map(uint32_tics_filtered>>3,tics_higher_limit,tics_lower_limit,0,int32_current_target);
 
+				//If the motor temperature is between 100 and 120° current target is reduced linearly to up to 25% at 120°C
+				  if(MS.Temperature>100) int32_current_target=map(MS.Temperature,100,120,int32_current_target,int32_current_target>2);
+				  if(MS.Temperature>120) int32_current_target=0; //Motor stop if temperature is higher than 120°
+
+
 			} //end else for normal riding
 
 //------------------------------------------------------------------------------------------------------------
@@ -711,7 +716,10 @@ int main(void)
 	  //slow loop procedere @16Hz, for LEV standard every 4th loop run, send page,
 	  if(ui32_tim3_counter>500){
 
-		  MS.Temperature = adcData[6]*41>>8; //0.16 is calibration constant: Analog_in[10mV/Â°C]/ADC value. Depending on the sensor LM35)
+		  //MS.Temperature = adcData[6]*41>>8; //0.16 is calibration constant: Analog_in[10mV/Â°C]/ADC value. Depending on the sensor LM35)
+		  ui32_Temperature_filter -= ui32_Temperature_filter>>5;
+		  ui32_Temperature_filter += adcData[6]; //get Temperature value from AD1
+		  MS.Temperature = (ui32_Temperature_filter>>5)*41>>8;//0.16 is calibration constant: Analog_in[10mV/°C]/ADC value. Depending on the sensor LM35)
 		  MS.Voltage=adcData[0];
 		  if(uint32_SPEED_counter>127999)MS.Speed =128000;
 
@@ -739,8 +747,10 @@ int main(void)
 #if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG && !defined(FAST_LOOP_LOG))
 		  //print values for debugging
 
+		   //sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", MS.Battery_Current,int32_current_target, MS.Temperature,tics_to_speed(uint32_tics_filtered>>3), (uint16_t)MS.u_abs, uint16_mapped_throttle, MS.i_q, ui32_Temperature_filter);
+			sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", MS.Battery_Current,int32_current_target, MS.Temperature,tics_to_speed(uint32_tics_filtered>>3), (uint16_t)MS.u_abs, uint16_mapped_throttle, (uint16_mapped_PAS), MS.i_q);
 
-		  sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n", MS.i_q,int32_current_target, (int16_t)MS.Battery_Current, MS.i_d, (uint16_t)MS.u_abs,tics_to_speed(uint32_tics_filtered>>3) , (uint16_t)(adcData[6]));
+		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n", MS.i_q,int32_current_target, (int16_t)MS.Battery_Current, MS.i_d, (uint16_t)MS.u_abs,tics_to_speed(uint32_tics_filtered>>3) , (uint16_t)(adcData[6]));
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",ui8_hall_state,(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5])) ;
 
 	  	  i=0;
