@@ -148,4 +148,7 @@ void check_message(MotorState_t* MS_D)
 
      display_update(MS_D);
    }
+   else{
+	   DMA1_Channel5->CNDTR = 13;
+   }
  }
