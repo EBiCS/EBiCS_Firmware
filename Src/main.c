@@ -1560,6 +1560,26 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *UartHandle)
 	ui8_UART_TxCplt_flag=1;
 }
 
+void HAL_UART_ErrorCallback(UART_HandleTypeDef *UartHandle) {
+#if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
+       KingMeter_Init (&KM);
+#endif
+
+#if (DISPLAY_TYPE == DISPLAY_TYPE_BAFANG)
+       Bafang_Init (&BF);
+#endif
+
+#if (DISPLAY_TYPE == DISPLAY_TYPE_KUNTENG)
+       kunteng_init();
+#endif
+
+#if (DISPLAY_TYPE == DISPLAY_TYPE_EBiCS)
+       ebics_init();
+#endif
+
+}
+
+
 
 #if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
 void kingmeter_update(void)
