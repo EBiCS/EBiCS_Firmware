@@ -512,23 +512,23 @@ int main(void)
 
 		  //if
 		  if (!ui8_BC_limit_flag){
-			  PI_iq.recent_vaule = MS.i_q;
+			  PI_iq.recent_value = MS.i_q;
 			  PI_iq.setpoint = i8_direction*i8_reverse_flag*int32_current_target;
 		  }
 		  else{
 			  if(HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin)){
-				  PI_iq.recent_vaule=  (MS.Battery_Current>>6)*i8_direction*i8_reverse_flag;
+				  PI_iq.recent_value=  (MS.Battery_Current>>6)*i8_direction*i8_reverse_flag;
 				  PI_iq.setpoint = (BATTERYCURRENT_MAX>>6)*i8_direction*i8_reverse_flag;
 			  	}
 			  else{
-				  PI_iq.recent_vaule=  (MS.Battery_Current>>6)*i8_direction*i8_reverse_flag;
+				  PI_iq.recent_value=  (MS.Battery_Current>>6)*i8_direction*i8_reverse_flag;
 				  PI_iq.setpoint = (-BATTERYCURRENT_MAX>>6)*i8_direction*i8_reverse_flag;
 			    }
 		  }
 		  q31_u_q_temp =  PI_control(&PI_iq);
 
 		  //Control id
-		  PI_id.recent_vaule = MS.i_d;
+		  PI_id.recent_value = MS.i_d;
 		  q31_u_d_temp = -PI_control(&PI_id); //control direct current to zero
 
 

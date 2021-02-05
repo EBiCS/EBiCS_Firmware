@@ -156,7 +156,7 @@ typedef struct
 	uint16_t       	gain_i;
 	uint16_t       	limit_i;
 	uint16_t       	limit_output;
-	int16_t       	recent_vaule;
+	int16_t       	recent_value;
 	int16_t       	setpoint;
 	int32_t       	integral_part;
 	uint16_t       	max_step;

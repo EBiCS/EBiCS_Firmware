@@ -135,8 +135,8 @@ q31_t PI_control (PI_control_t* PI_c)
 {
 
   q31_t q31_p; //proportional part
-  q31_p = ((PI_c->setpoint - PI_c->recent_vaule)*PI_c->gain_p);
-  PI_c->integral_part += ((PI_c->setpoint - PI_c->recent_vaule)*PI_c->gain_i);
+  q31_p = ((PI_c->setpoint - PI_c->recent_value)*PI_c->gain_p);
+  PI_c->integral_part += ((PI_c->setpoint - PI_c->recent_value)*PI_c->gain_i);
 
 
   if (PI_c->integral_part > PI_c->limit_i << PI_c->shift) PI_c->integral_part = PI_c->limit_i << PI_c->shift;
