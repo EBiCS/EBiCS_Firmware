@@ -160,6 +160,7 @@ typedef struct
 	int16_t       	setpoint;
 	int32_t       	integral_part;
 	uint16_t       	max_step;
+	uint16_t       	out;
 	uint8_t       	shift;
 
 }PI_control_t;

@@ -44,7 +44,7 @@ TIM_HandleTypeDef htim1;
 
 void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int16_t int16_i_q_target, MotorState_t* MS_FOC);
 void svpwm(q31_t q31_u_alpha, q31_t q31_u_beta);
-q31_t PI_control_i_q (q31_t ist, q31_t soll);
+//q31_t PI_control_i_q (q31_t ist, q31_t soll);
 q31_t PI_control_i_d (q31_t ist, q31_t soll);
 
 
@@ -135,8 +135,6 @@ q31_t PI_control (PI_control_t* PI_c)
 {
 
   q31_t q31_p; //proportional part
-
-  static q31_t q31_out = 0; // sum of proportional and integral part
   q31_p = ((PI_c->setpoint - PI_c->recent_vaule)*PI_c->gain_p);
   PI_c->integral_part += ((PI_c->setpoint - PI_c->recent_vaule)*PI_c->gain_i);
 
@@ -146,16 +144,16 @@ q31_t PI_control (PI_control_t* PI_c)
   if(!READ_BIT(TIM1->BDTR, TIM_BDTR_MOE))PI_c->integral_part = 0 ; //reset integral part if PWM is disabled
 
     //avoid too big steps in one loop run
-  if ((q31_p+PI_c->integral_part)>>10 > q31_out+PI_c->max_step) q31_out+=PI_c->max_step;
-  else if  ((q31_p+PI_c->integral_part)>>10 < q31_out-PI_c->max_step)q31_out-=PI_c->max_step;
-  else q31_out=(q31_p+PI_c->integral_part)>>10;
+  if ((q31_p+PI_c->integral_part)>>10 > PI_c->out+PI_c->max_step) PI_c->out+=PI_c->max_step;
+  else if  ((q31_p+PI_c->integral_part)>>10 < PI_c->out-PI_c->max_step)PI_c->out-=PI_c->max_step;
+  else PI_c->out=(q31_p+PI_c->integral_part)>>10;
 
 
-  if (q31_out>PI_c->limit_output) q31_out = PI_c->limit_output;
-  if (q31_out<-PI_c->limit_output) q31_out = -PI_c->limit_output; // allow no negative voltage.
+  if (PI_c->out>PI_c->limit_output) PI_c->out = PI_c->limit_output;
+  if (PI_c->out<-PI_c->limit_output) PI_c->out = -PI_c->limit_output; // allow no negative voltage.
 
 
-  return (q31_out);
+  return (PI_c->out);
 }
 
 //PI Control for direct current id (loss)
