@@ -207,6 +207,11 @@ uint8_t ui8_LEV_Page_to_send=1;
 MotorState_t MS;
 MotorParams_t MP;
 
+//structs for PI_control
+PI_control_t PI_iq;
+PI_control_t PI_id;
+PI_control_t PI_speed;
+
 
 int16_t battery_percent_fromcapacity = 50; 			//Calculation of used watthours not implemented yet
 int16_t wheel_time = 1000;							//duration of one wheel rotation for speed calculation
@@ -297,6 +302,23 @@ int main(void)
   MS.regen_level=7;
   MP.pulses_per_revolution = PULSES_PER_REVOLUTION;
   MP.wheel_cirumference = WHEEL_CIRCUMFERENCE;
+
+  //init PI structs
+  PI_id.gain_i=I_FACTOR_I_D;
+  PI_id.gain_p=P_FACTOR_I_D;
+  PI_id.setpoint = 0;
+  PI_id.limit_output = _U_MAX;
+  PI_id.max_step=5;
+  PI_id.shift=10;
+  PI_id.limit_i=1800;
+
+  PI_iq.gain_i=I_FACTOR_I_Q;
+  PI_iq.gain_p=P_FACTOR_I_Q;
+  PI_iq.setpoint = 0;
+  PI_iq.limit_output = _U_MAX;
+  PI_iq.max_step=5;
+  PI_iq.shift=10;
+  PI_iq.limit_i=_U_MAX;
 
   //Virtual EEPROM init
   HAL_FLASH_Unlock();
@@ -490,19 +512,24 @@ int main(void)
 
 		  //if
 		  if (!ui8_BC_limit_flag){
-			  q31_u_q_temp =  PI_control_i_q(MS.i_q, (q31_t) i8_direction*i8_reverse_flag*int32_current_target);
+			  PI_iq.recent_vaule = MS.i_q;
+			  PI_iq.setpoint = i8_direction*i8_reverse_flag*int32_current_target;
 		  }
 		  else{
 			  if(HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin)){
-			  q31_u_q_temp =  PI_control_i_q((MS.Battery_Current>>6)*i8_direction*i8_reverse_flag, (q31_t) (BATTERYCURRENT_MAX>>6)*i8_direction*i8_reverse_flag);
-			  }
+				  PI_iq.recent_vaule=  (MS.Battery_Current>>6)*i8_direction*i8_reverse_flag;
+				  PI_iq.setpoint = (BATTERYCURRENT_MAX>>6)*i8_direction*i8_reverse_flag;
+			  	}
 			  else{
-			  q31_u_q_temp =  PI_control_i_q((MS.Battery_Current>>6)*i8_direction*i8_reverse_flag, (q31_t) (-REGEN_CURRENT_MAX>>6)*i8_direction*i8_reverse_flag);
-			  }
+				  PI_iq.recent_vaule=  (MS.Battery_Current>>6)*i8_direction*i8_reverse_flag;
+				  PI_iq.setpoint = (-BATTERYCURRENT_MAX>>6)*i8_direction*i8_reverse_flag;
+			    }
 		  }
+		  q31_u_q_temp =  PI_control(&PI_iq);
 
 		  //Control id
-		  q31_u_d_temp = -PI_control_i_d(MS.i_d, 0); //control direct current to zero
+		  PI_id.recent_vaule = MS.i_d;
+		  q31_u_d_temp = -PI_control(&PI_id); //control direct current to zero
 
 
 		  	//limit voltage in rotating frame, refer chapter 4.10.1 of UM1052

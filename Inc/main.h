@@ -150,6 +150,20 @@ typedef struct
 
 }MotorParams_t;
 
+typedef struct
+{
+	uint16_t       	gain_p;
+	uint16_t       	gain_i;
+	uint16_t       	limit_i;
+	uint16_t       	limit_output;
+	int16_t       	recent_vaule;
+	int16_t       	setpoint;
+	int32_t       	integral_part;
+	uint16_t       	max_step;
+	uint8_t       	shift;
+
+}PI_control_t;
+
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

@@ -131,32 +131,31 @@ if(!MS_FOC->hall_angle_detect_flag){
 
 }
 //PI Control for quadrature current iq (torque)
-q31_t PI_control_i_q (q31_t ist, q31_t soll)
+q31_t PI_control (PI_control_t* PI_c)
 {
 
   q31_t q31_p; //proportional part
-  static q31_t q31_q_i = 0; //integral part
-  static q31_t q31_q_dc = 0; // sum of proportional and integral part
-  q31_p = ((soll - ist)*P_FACTOR_I_Q);
-  q31_q_i += ((soll - ist)*I_FACTOR_I_Q);
-  temp5=q31_p;
-  temp6=q31_q_i;
 
-  if (q31_q_i>_U_MAX<<10) q31_q_i=_U_MAX<<10;
-  if (q31_q_i<-_U_MAX<<10) q31_q_i = -_U_MAX<<10;
-  if(!READ_BIT(TIM1->BDTR, TIM_BDTR_MOE))q31_q_i = 0 ; //reset integral part if PWM is disabled
+  static q31_t q31_out = 0; // sum of proportional and integral part
+  q31_p = ((PI_c->setpoint - PI_c->recent_vaule)*PI_c->gain_p);
+  PI_c->integral_part += ((PI_c->setpoint - PI_c->recent_vaule)*PI_c->gain_i);
+
+
+  if (PI_c->integral_part > PI_c->limit_i << PI_c->shift) PI_c->integral_part = PI_c->limit_i << PI_c->shift;
+  if (PI_c->integral_part < -(PI_c->limit_i << PI_c->shift)) PI_c->integral_part = -(PI_c->limit_i << PI_c->shift);
+  if(!READ_BIT(TIM1->BDTR, TIM_BDTR_MOE))PI_c->integral_part = 0 ; //reset integral part if PWM is disabled
 
     //avoid too big steps in one loop run
-  if ((q31_p+q31_q_i)>>10>q31_q_dc+5) q31_q_dc+=5;
-  else if  ((q31_p+q31_q_i)>>10<q31_q_dc-5)q31_q_dc-=5;
-  else q31_q_dc=(q31_p+q31_q_i)>>10;
+  if ((q31_p+PI_c->integral_part)>>10 > q31_out+PI_c->max_step) q31_out+=PI_c->max_step;
+  else if  ((q31_p+PI_c->integral_part)>>10 < q31_out-PI_c->max_step)q31_out-=PI_c->max_step;
+  else q31_out=(q31_p+PI_c->integral_part)>>10;
 
 
-  if (q31_q_dc>_U_MAX) q31_q_dc = _U_MAX;
-  if (q31_q_dc<-_U_MAX) q31_q_dc = -_U_MAX; // allow no negative voltage.
+  if (q31_out>PI_c->limit_output) q31_out = PI_c->limit_output;
+  if (q31_out<-PI_c->limit_output) q31_out = -PI_c->limit_output; // allow no negative voltage.
 
 
-  return (q31_q_dc);
+  return (q31_out);
 }
 
 //PI Control for direct current id (loss)
