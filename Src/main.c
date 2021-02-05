@@ -546,6 +546,7 @@ int main(void)
 				MS.u_q=q31_u_q_temp;
 				MS.u_d=q31_u_d_temp;
 			}
+
 		  	PI_flag=0;
 	  }
 	  //display message processing
@@ -767,7 +768,7 @@ int main(void)
 		  //print values for debugging
 
 
-		  sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n", MS.i_q,int32_current_target, (int16_t)MS.Battery_Current, MS.i_d, (uint16_t)MS.u_abs,tics_to_speed(uint32_tics_filtered>>3) , (uint16_t)(adcData[6]));
+		  sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", PI_iq.recent_value,PI_iq.setpoint,int32_current_target, MS.i_d, (uint16_t)MS.u_abs, MS.u_d , MS.u_q, PI_iq.integral_part);
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",ui8_hall_state,(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5])) ;
 
 	  	  i=0;

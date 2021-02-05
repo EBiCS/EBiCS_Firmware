@@ -144,9 +144,9 @@ q31_t PI_control (PI_control_t* PI_c)
   if(!READ_BIT(TIM1->BDTR, TIM_BDTR_MOE))PI_c->integral_part = 0 ; //reset integral part if PWM is disabled
 
     //avoid too big steps in one loop run
-  if ((q31_p+PI_c->integral_part)>>10 > PI_c->out+PI_c->max_step) PI_c->out+=PI_c->max_step;
-  else if  ((q31_p+PI_c->integral_part)>>10 < PI_c->out-PI_c->max_step)PI_c->out-=PI_c->max_step;
-  else PI_c->out=(q31_p+PI_c->integral_part)>>10;
+  if ((q31_p+PI_c->integral_part)>>PI_c->shift > PI_c->out+PI_c->max_step) PI_c->out+=PI_c->max_step;
+  else if  ((q31_p+PI_c->integral_part)>>PI_c->shift < PI_c->out-PI_c->max_step)PI_c->out-=PI_c->max_step;
+  else PI_c->out=(q31_p+PI_c->integral_part)>>PI_c->shift;
 
 
   if (PI_c->out>PI_c->limit_output) PI_c->out = PI_c->limit_output;

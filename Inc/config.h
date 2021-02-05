@@ -31,17 +31,17 @@
 #define BATTERY_LEVEL_3 344000
 #define BATTERY_LEVEL_4 368000
 #define BATTERY_LEVEL_5 380000
-#define P_FACTOR_I_Q 5000
+#define P_FACTOR_I_Q 500
 #define I_FACTOR_I_Q 20
-#define P_FACTOR_I_D 1
-#define I_FACTOR_I_D 1
+#define P_FACTOR_I_D 500
+#define I_FACTOR_I_D 20
 #define TS_COEF 90000
 #define PAS_TIMEOUT 8000
 #define RAMP_END 1600
 #define THROTTLE_OFFSET 750
 #define THROTTLE_MAX 2700
 #define WHEEL_CIRCUMFERENCE 2200
-#define GEAR_RATIO 11 //dummy for testing
+#define GEAR_RATIO 100 //dummy for testing
 #define SPEEDLIMIT 100
 #define PULSES_PER_REVOLUTION 1
 #define PH_CURRENT_MAX 600
@@ -52,7 +52,7 @@
 #define FRAC_LOW 15
 //#define TS_MODE
 //#define TQONAD1
-#define DISPLAY_TYPE DISPLAY_TYPE_KUNTENG
+#define DISPLAY_TYPE DISPLAY_TYPE_DEBUG
 #define REVERSE 1
 #define PUSHASSIST_CURRENT 30
 #define VOLTAGE_MIN 300
