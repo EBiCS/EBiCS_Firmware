@@ -35,14 +35,16 @@
 #define I_FACTOR_I_Q 20
 #define P_FACTOR_I_D 500
 #define I_FACTOR_I_D 20
+#define P_FACTOR_SPEED 100
+#define I_FACTOR_SPEED 10
 #define TS_COEF 90000
 #define PAS_TIMEOUT 8000
 #define RAMP_END 1600
 #define THROTTLE_OFFSET 750
 #define THROTTLE_MAX 2700
 #define WHEEL_CIRCUMFERENCE 2200
-#define GEAR_RATIO 100 //dummy for testing
-#define SPEEDLIMIT 100
+#define GEAR_RATIO 50 //dummy for testing
+#define SPEEDLIMIT 25
 #define PULSES_PER_REVOLUTION 1
 #define PH_CURRENT_MAX 600
 #define BATTERYCURRENT_MAX 10000
