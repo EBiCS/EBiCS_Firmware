@@ -322,6 +322,8 @@ int main(void)
   PI_iq.shift=10;
   PI_iq.limit_i=_U_MAX;
 
+#ifdef SPEEDTHROTTLE
+
   PI_speed.gain_i=I_FACTOR_SPEED;
   PI_speed.gain_p=P_FACTOR_SPEED;
   PI_speed.setpoint = 0;
@@ -329,6 +331,8 @@ int main(void)
   PI_speed.max_step=5;
   PI_speed.shift=12;
   PI_speed.limit_i=PH_CURRENT_MAX;
+
+#endif
 
   //Virtual EEPROM init
   HAL_FLASH_Unlock();
@@ -404,20 +408,7 @@ int main(void)
             }
 
 
-/*
-      // HAL_TIM_GenerateEvent(&htim1, TIM_EVENTSOURCE_CC4);
-       __HAL_LOCK(&htim1);
-       SET_BIT(TIM1->EGR, TIM_EGR_CC4G);//capture compare ch 4 event
-       SET_BIT(TIM1->EGR, TIM_EGR_TG);//Trigger generation
-       SET_BIT(TIM1->BDTR, TIM_AUTOMATICOUTPUT_ENABLE);//Trigger generation
 
-       __HAL_UNLOCK(&htim1);
-       SET_BIT(ADC1->CR2, ADC_CR2_JEXTTRIG);//external trigger enable
-
-*/
-
-       //Init KingMeter Display
-       //Init KingMeter Display
 #if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
        KingMeter_Init (&KM);
 #endif
@@ -651,6 +642,8 @@ int main(void)
 				  //check for throttle override
 				  if(uint16_mapped_PAS>uint16_mapped_throttle)   {
 
+
+
 				    if (uint32_PAS_counter < PAS_TIMEOUT) int32_current_target= uint16_mapped_PAS;		//set current target in torque-simulation-mode, if pedals are turning
 					  else  {
 						  int32_current_target= 0;//pedals are not turning, stop motor
@@ -661,6 +654,8 @@ int main(void)
 				    int32_current_target=map(uint32_tics_filtered>>3,tics_higher_limit,tics_lower_limit,0,int32_current_target);
 				  }
 				  else {
+
+#ifdef SPEEDTHROTTLE
 
 					  uint16_mapped_throttle = uint16_mapped_throttle*SPEEDLIMIT/PH_CURRENT_MAX;//throttle override: calulate speed target from thottle
 					  PI_speed.setpoint = uint16_mapped_throttle*100;
@@ -684,6 +679,11 @@ int main(void)
 							}
 						if(int32_current_target*i8_direction*i8_reverse_flag<0)int32_current_target=0;
 						}
+#else
+					int32_current_target=uint16_mapped_throttle;
+					int32_current_target=map(uint32_tics_filtered>>3,tics_higher_limit,tics_lower_limit,0,int32_current_target);
+#endif
+
 
 
 				  }
