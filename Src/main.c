@@ -182,7 +182,7 @@ const q31_t DEG_minus120= -1431655765;
 
 const q31_t tics_lower_limit = WHEEL_CIRCUMFERENCE*5*3600/(6*GEAR_RATIO*SPEEDLIMIT*10); //tics=wheelcirc*timerfrequency/(no. of hallevents per rev*gear-ratio*speedlimit)*3600/1000000
 const q31_t tics_higher_limit = WHEEL_CIRCUMFERENCE*5*3600/(6*GEAR_RATIO*(SPEEDLIMIT+2)*10);
-uint32_t uint32_tics_filtered=128000;
+uint32_t uint32_tics_filtered=1000000;
 
 uint16_t VirtAddVarTab[NB_OF_VAR] = {0x01, 0x02, 0x03};
 
@@ -733,7 +733,7 @@ int main(void)
 
 		  if((uint16_full_rotation_counter>7999||uint16_half_rotation_counter>7999)&&READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)){
 			  CLEAR_BIT(TIM1->BDTR, TIM_BDTR_MOE); //Disable PWM if motor is not turning
-			  uint32_tics_filtered=128000;
+			  uint32_tics_filtered=1000000;
 			  get_standstill_position();
 
 		  }
@@ -1869,6 +1869,14 @@ void autodetect(){
    		ui8_hall_state_old=ui8_hall_state;
    		}
    	}
+   	CLEAR_BIT(TIM1->BDTR, TIM_BDTR_MOE); //Disable PWM if motor is not turning
+    TIM1->CCR1 = 1023; //set initial PWM values
+    TIM1->CCR2 = 1023;
+    TIM1->CCR3 = 1023;
+    MS.hall_angle_detect_flag=1;
+    uint32_tics_filtered=1000000;
+
+
     HAL_FLASH_Unlock();
     EE_WriteVariable(EEPROM_POS_SPEC_ANGLE, q31_rotorposition_motor_specific>>16);
     if(i8_recent_rotor_direction == 1){
@@ -1882,7 +1890,7 @@ void autodetect(){
 
     HAL_FLASH_Lock();
 
-   	MS.hall_angle_detect_flag=1;
+
 #if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG)
     printf_("Motor specific angle:  %d, direction %d \n ", (int16_t)(((q31_rotorposition_motor_specific>>23)*180)>>8), i16_hall_order);
 #endif
