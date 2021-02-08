@@ -168,9 +168,7 @@ const uint8_t assist_profile[2][6]= {	{0,10,20,30,45,48},
 
 uint16_t switchtime[3];
 volatile uint16_t adcData[8]; //Buffer for ADC1 Input
-//static int8_t angle[256][4];
-//static int8_t angle_old;
-//q31_t q31_startpoint_conversion = 2048;
+q31_t tic_array[6];
 
 //Rotor angle scaled from degree to q31 for arm_math. -180°-->-2^31, 0°-->0, +180°-->+2^31
 const q31_t DEG_0 = 0;
@@ -742,10 +740,10 @@ int main(void)
 		  //print values for debugging
 
 
-		  sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",  MS.i_q, int32_current_target, MS.i_d, uint16_mapped_throttle, tics_to_speed(uint32_tics_filtered>>3),tics_to_speedx100(uint32_tics_filtered>>3));
+		 //(sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",  MS.i_q, int32_current_target, MS.i_d, uint16_mapped_throttle, tics_to_speed(uint32_tics_filtered>>3),tics_to_speedx100(uint32_tics_filtered>>3));
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",ui8_hall_state,(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5])) ;
-
-	  	  i=0;
+		  sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",tic_array[0],tic_array[1],tic_array[2],tic_array[3],tic_array[4],tic_array[5]) ;
+		  i=0;
 		  while (buffer[i] != '\0')
 		  {i++;}
 		 HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);
@@ -1479,55 +1477,67 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 			q31_rotorposition_hall = DEG_plus120*i16_hall_order + q31_rotorposition_motor_specific;
 			i8_recent_rotor_direction=1;
 			uint16_full_rotation_counter=0;
+			tic_array[0]=ui16_timertics;
 			break;
 		case 45:
 			q31_rotorposition_hall = DEG_plus180*i16_hall_order + q31_rotorposition_motor_specific;
 			i8_recent_rotor_direction=1;
+			tic_array[1]=ui16_timertics;
 			break;
 		case 51:
 			q31_rotorposition_hall = DEG_minus120*i16_hall_order + q31_rotorposition_motor_specific;
 			i8_recent_rotor_direction=1;
+			tic_array[2]=ui16_timertics;
 			break;
 		case 13:
 			q31_rotorposition_hall = DEG_minus60*i16_hall_order + q31_rotorposition_motor_specific;
 			i8_recent_rotor_direction=1;
 			uint16_half_rotation_counter=0;
+			tic_array[3]=ui16_timertics;
 			break;
 		case 32:
 			q31_rotorposition_hall = DEG_0*i16_hall_order + q31_rotorposition_motor_specific;
 			i8_recent_rotor_direction=1;
+			tic_array[4]=ui16_timertics;
 			break;
 		case 26:
 			q31_rotorposition_hall = DEG_plus60*i16_hall_order + q31_rotorposition_motor_specific;
 			i8_recent_rotor_direction=1;
+			tic_array[5]=ui16_timertics;
 			break;
 
 		//6 cases for reverse direction
 		case 46:
 			q31_rotorposition_hall = DEG_plus120*i16_hall_order + q31_rotorposition_motor_specific;
 			i8_recent_rotor_direction=-1;
+			tic_array[0]=ui16_timertics;
 			break;
 		case 62:
 			q31_rotorposition_hall = DEG_plus60*i16_hall_order + q31_rotorposition_motor_specific;
 			i8_recent_rotor_direction=-1;
+			tic_array[1]=ui16_timertics;
 			break;
 		case 23:
 			q31_rotorposition_hall = DEG_0*i16_hall_order + q31_rotorposition_motor_specific;
 			i8_recent_rotor_direction=-1;
 			uint16_half_rotation_counter=0;
+			tic_array[2]=ui16_timertics;
 			break;
 		case 31:
 			q31_rotorposition_hall = DEG_minus60*i16_hall_order + q31_rotorposition_motor_specific;
 			i8_recent_rotor_direction=-1;
+			tic_array[3]=ui16_timertics;
 			break;
 		case 15:
 			q31_rotorposition_hall = DEG_minus120*i16_hall_order + q31_rotorposition_motor_specific;
 			i8_recent_rotor_direction=-1;
+			tic_array[4]=ui16_timertics;
 			break;
 		case 54:
 			q31_rotorposition_hall = DEG_plus180*i16_hall_order + q31_rotorposition_motor_specific;
 			i8_recent_rotor_direction=-1;
 			uint16_full_rotation_counter=0;
+			tic_array[5]=ui16_timertics;
 			break;
 
 		} // end case
