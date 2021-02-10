@@ -44,9 +44,6 @@ TIM_HandleTypeDef htim1;
 
 void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int16_t int16_i_q_target, MotorState_t* MS_FOC);
 void svpwm(q31_t q31_u_alpha, q31_t q31_u_beta);
-//q31_t PI_control_i_q (q31_t ist, q31_t soll);
-q31_t PI_control_i_d (q31_t ist, q31_t soll);
-
 
 void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int16_t int16_i_q_target, MotorState_t* MS_FOC)
 {
@@ -157,30 +154,6 @@ q31_t PI_control (PI_control_t* PI_c)
   return (PI_c->out>>PI_c->shift);
 }
 
-//PI Control for direct current id (loss)
-q31_t PI_control_i_d (q31_t ist, q31_t soll)
-  {
-    q31_t q31_p;
-    static q31_t q31_d_i = 0;
-    static q31_t q31_d_dc = 0;
-
-    q31_p=((soll - ist)*P_FACTOR_I_D)>>5;
-    q31_d_i+=((soll - ist)*I_FACTOR_I_D)>>5;
-
-    if (q31_d_i<-1800)q31_d_i=-1800;
-    if (q31_d_i>1800)q31_d_i=1800;
-
-    if(!READ_BIT(TIM1->BDTR, TIM_BDTR_MOE))q31_d_i = 0 ; //reset integral part if PWM is disabled
-    //avoid too big steps in one loop run
-    if (q31_p+q31_d_i>q31_d_dc+5) q31_d_dc+=5;
-    else if  (q31_p+q31_d_i<q31_d_dc-5) q31_d_dc-=5;
-    else q31_d_dc=q31_p+q31_d_i;
-
-    if (q31_d_dc>_U_MAX) q31_d_dc = _U_MAX;
-    if (q31_d_dc<-(_U_MAX)) q31_d_dc =- (_U_MAX);
-
-    return (q31_d_dc);
-  }
 
 void svpwm(q31_t q31_u_alpha, q31_t q31_u_beta)	{
 
