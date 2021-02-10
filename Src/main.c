@@ -302,6 +302,7 @@ int main(void)
   MS.regen_level=7;
   MP.pulses_per_revolution = PULSES_PER_REVOLUTION;
   MP.wheel_cirumference = WHEEL_CIRCUMFERENCE;
+  MP.speedLimit=SPEEDLIMIT;
 
   //init PI structs
   PI_id.gain_i=I_FACTOR_I_D;
@@ -417,7 +418,7 @@ int main(void)
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_KUNTENG)
        kunteng_init();
-       check_message(&MS);
+       check_message(&MS, &MP);
 #endif
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_EBiCS)
@@ -498,11 +499,7 @@ int main(void)
 #endif
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_KUNTENG)
-	  ui8_UART_Counter++;
-	  if(ui8_UART_Counter>5){
-	  check_message(&MS);
-	  ui8_UART_Counter=0;
-	  }
+	  check_message(&MS, &MP);
 #endif
 
 #if (DISPLAY_TYPE & DISPLAY_TYPE_EBiCS)
@@ -649,8 +646,8 @@ int main(void)
 						  uint32_PAS_cumulated=32000;
 						  uint32_PAS=32000;
 					  }
-				    //ramp down current at speed limit
-				    int32_current_target=map(uint32_tics_filtered>>3,tics_higher_limit,tics_lower_limit,0,int32_current_target);
+				    // ramp down current at speed limit
+				    // int32_current_target=map(uint32_tics_filtered>>3,tics_higher_limit,tics_lower_limit,0,int32_current_target);
 				  }
 				  else {
 
@@ -680,7 +677,8 @@ int main(void)
 						}
 #else
 					int32_current_target=uint16_mapped_throttle;
-					int32_current_target=map(uint32_tics_filtered>>3,tics_higher_limit,tics_lower_limit,0,int32_current_target);
+					//int32_current_target=map(uint32_tics_filtered>>3,tics_higher_limit,tics_lower_limit,0,int32_current_target);
+					int32_current_target=map(uint32_tics_filtered>>3,speed_to_tics(MP.speedLimit+2),speed_to_tics(MP.speedLimit),0,int32_current_target);
 #endif
 
 

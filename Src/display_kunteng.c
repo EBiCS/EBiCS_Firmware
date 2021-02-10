@@ -29,7 +29,7 @@ int16_t i16_eeprom_temp=0;
 volatile struc_lcd_configuration_variables lcd_configuration_variables;
 
 UART_HandleTypeDef huart1;
-
+void check_recent(void);
 
 void kunteng_init()
 {
@@ -154,7 +154,7 @@ ui8_tx_buffer [0] = 65;
  //
 
  // see if we have a received package to be processed
-void check_message(MotorState_t* MS_D)
+void check_message(MotorState_t* MS_D, MotorParams_t* MP_D)
  {
   //printf("Byte recieved \r\n");
   // validation of the package data
@@ -181,8 +181,8 @@ void check_message(MotorState_t* MS_D)
      lcd_configuration_variables.ui8_max_speed = (10 + ((ui8_rx_buffer [2] & 248) >> 3)) | (ui8_rx_buffer [4] & 32);
      lcd_configuration_variables.ui8_power_assist_control_mode = ui8_rx_buffer [4] & 8;
      lcd_configuration_variables.ui8_controller_max_current = (ui8_rx_buffer [7] & 15);
-     MS_D->assist_level=lcd_configuration_variables.ui8_assist_level;
-
+     MS_D->assist_level = lcd_configuration_variables.ui8_assist_level;
+     MP_D->speedLimit = lcd_configuration_variables.ui8_max_speed;
 
 		lcd_configuration_variables.ui8_p1 = ui8_rx_buffer[3];
 		lcd_configuration_variables.ui8_p2 = ui8_rx_buffer[4] & 0x07;
@@ -208,8 +208,63 @@ void check_message(MotorState_t* MS_D)
      }
 
      display_update(MS_D);
+     check_recent(); //byte 1 contains the PAS level, that may be changed quite often. Better run only at system shutdown, due to limited possible write cycles to flash
    }
    else{
 	   DMA1_Channel5->CNDTR = 13;
    }
  }
+
+//check if differnces between initial values and recent values, store to emulated EEPROM if necessary
+/*
+EEPROM_KT_B0_B3
+EEPROM_KT_B2_B4
+EEPROM_KT_B6_B7
+EEPROM_KT_B8_B9
+EEPROM_KT_B1_B10
+*/
+//byte 1 contains the PAS level, that may be changed quite often. Better run only at system shutdown.
+void check_recent(void){
+
+	if(ui8_rx_buffer[0]!=ui8_rx_initial_buffer[0] || ui8_rx_buffer[3]!=ui8_rx_initial_buffer[3] ){
+	    HAL_FLASH_Unlock();
+	    EE_WriteVariable(EEPROM_KT_B0_B3,ui8_rx_buffer[0]<<8 | ui8_rx_buffer[3] );
+	    HAL_FLASH_Lock();
+	    ui8_rx_initial_buffer[0]=ui8_rx_buffer[0];
+	    ui8_rx_initial_buffer[3]=ui8_rx_buffer[3];
+	}
+
+	if(ui8_rx_buffer[2]!=ui8_rx_initial_buffer[2] || ui8_rx_buffer[4]!=ui8_rx_initial_buffer[4] ){
+	    HAL_FLASH_Unlock();
+	    EE_WriteVariable(EEPROM_KT_B2_B4,ui8_rx_buffer[2]<<8 | ui8_rx_buffer[4] );
+	    HAL_FLASH_Lock();
+	    ui8_rx_initial_buffer[2]=ui8_rx_buffer[2];
+	    ui8_rx_initial_buffer[4]=ui8_rx_buffer[4];
+	}
+
+	if(ui8_rx_buffer[6]!=ui8_rx_initial_buffer[6] || ui8_rx_buffer[7]!=ui8_rx_initial_buffer[7] ){
+	    HAL_FLASH_Unlock();
+	    EE_WriteVariable(EEPROM_KT_B6_B7,ui8_rx_buffer[6]<<8 | ui8_rx_buffer[7] );
+	    HAL_FLASH_Lock();
+	    ui8_rx_initial_buffer[6]=ui8_rx_buffer[6];
+	    ui8_rx_initial_buffer[7]=ui8_rx_buffer[7];
+	}
+
+	if(ui8_rx_buffer[8]!=ui8_rx_initial_buffer[8] || ui8_rx_buffer[9]!=ui8_rx_initial_buffer[9] ){
+	    HAL_FLASH_Unlock();
+	    EE_WriteVariable(EEPROM_KT_B8_B9,ui8_rx_buffer[8]<<8 | ui8_rx_buffer[9] );
+	    HAL_FLASH_Lock();
+	    ui8_rx_initial_buffer[8]=ui8_rx_buffer[8];
+	    ui8_rx_initial_buffer[9]=ui8_rx_buffer[9];
+	}
+
+	if(ui8_rx_buffer[1]!=ui8_rx_initial_buffer[1] || ui8_rx_buffer[10]!=ui8_rx_initial_buffer[10] ){
+	    HAL_FLASH_Unlock();
+	    EE_WriteVariable(EEPROM_KT_B1_B10,ui8_rx_buffer[1]<<8 | ui8_rx_buffer[10] );
+	    HAL_FLASH_Lock();
+	    ui8_rx_initial_buffer[1]=ui8_rx_buffer[1];
+	    ui8_rx_initial_buffer[10]=ui8_rx_buffer[10];
+	}
+
+
+}

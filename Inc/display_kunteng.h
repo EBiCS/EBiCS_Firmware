@@ -12,7 +12,7 @@
 
 void kunteng_init();
 void display_update(MotorState_t* MS_U);
-void check_message(MotorState_t* MS_D);
+void check_message(MotorState_t* MS_D, MotorParams_t* MP_D);
 
 typedef struct _lcd_configuration_variables
 {
