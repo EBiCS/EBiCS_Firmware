@@ -161,7 +161,7 @@ typedef struct
 	int32_t       	setpoint;
 	int32_t       	integral_part;
 	int16_t       	max_step;
-	int16_t       	out;
+	int32_t       	out;
 	int8_t       	shift;
 
 }PI_control_t;

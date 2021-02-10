@@ -8,6 +8,7 @@
 #include "main.h"
 #include "display_kunteng.h"
 #include "stm32f1xx_hal.h"
+#include "eeprom.h"
 
 uint8_t ui8_tx_buffer[12];
 uint8_t ui8_j;
@@ -17,11 +18,13 @@ uint32_t ui32_battery_volts= 36;
 uint8_t ui8_battery_soc = 12;
 uint8_t ui16_error;
 uint8_t ui8_rx_buffer[13];
+uint8_t ui8_rx_initial_buffer[13];
 uint8_t ui8_rx_buffer_counter = 0;
 uint8_t ui8_byte_received;
 uint8_t ui8_moving_indication = 0;
 uint8_t ui8_UARTCounter = 0;
 uint8_t ui8_msg_received=0;
+int16_t i16_eeprom_temp=0;
 
 volatile struc_lcd_configuration_variables lcd_configuration_variables;
 
@@ -35,7 +38,49 @@ void kunteng_init()
      {
  	   Error_Handler();
      }
+
+    EE_ReadVariable(EEPROM_KT_B0_B3, &i16_eeprom_temp);
+    ui8_rx_buffer[0] = i16_eeprom_temp>>8;
+    ui8_rx_initial_buffer[0] = i16_eeprom_temp>>8;
+    ui8_rx_buffer[3] = i16_eeprom_temp &0xFF;
+    ui8_rx_initial_buffer[3] = i16_eeprom_temp &0xFF;
+
+    EE_ReadVariable(EEPROM_KT_B2_B4, &i16_eeprom_temp);
+    ui8_rx_buffer[2] = i16_eeprom_temp>>8;
+    ui8_rx_initial_buffer[2] = i16_eeprom_temp>>8;
+    ui8_rx_buffer[4] = i16_eeprom_temp &0xFF;
+    ui8_rx_initial_buffer[4] = i16_eeprom_temp &0xFF;
+
+    EE_ReadVariable(EEPROM_KT_B6_B7, &i16_eeprom_temp);
+    ui8_rx_buffer[6] = i16_eeprom_temp>>8;
+    ui8_rx_initial_buffer[6] = i16_eeprom_temp>>8;
+    ui8_rx_buffer[7] = i16_eeprom_temp &0xFF;
+    ui8_rx_initial_buffer[7] = i16_eeprom_temp &0xFF;
+
+    EE_ReadVariable(EEPROM_KT_B8_B9, &i16_eeprom_temp);
+    ui8_rx_buffer[8] = i16_eeprom_temp>>8;
+    ui8_rx_initial_buffer[8] = i16_eeprom_temp>>8;
+    ui8_rx_buffer[9] = i16_eeprom_temp &0xFF;
+    ui8_rx_initial_buffer[9] = i16_eeprom_temp &0xFF;
+
+    EE_ReadVariable(EEPROM_KT_B1_B10, &i16_eeprom_temp);
+    ui8_rx_buffer[1] = i16_eeprom_temp>>8;
+    ui8_rx_initial_buffer[1] = i16_eeprom_temp>>8;
+    ui8_rx_buffer[10] = i16_eeprom_temp &0xFF;
+    ui8_rx_initial_buffer[10] = i16_eeprom_temp &0xFF;
+
+    ui8_crc = 0;
+
+    for (ui8_j = 0; ui8_j <= 12; ui8_j++)
+    {
+      if (ui8_j == 5) continue; // don't xor B5 (B7 in our case)
+      ui8_crc ^= ui8_rx_buffer[ui8_j];
+    }
+    ui8_crc ^=10; //right XOR must be pasted here!!!
+    ui8_rx_buffer [5]=ui8_crc;
+
 }
+
 void display_update(MotorState_t* MS_U)
 {
 
@@ -137,6 +182,22 @@ void check_message(MotorState_t* MS_D)
      lcd_configuration_variables.ui8_power_assist_control_mode = ui8_rx_buffer [4] & 8;
      lcd_configuration_variables.ui8_controller_max_current = (ui8_rx_buffer [7] & 15);
      MS_D->assist_level=lcd_configuration_variables.ui8_assist_level;
+
+
+		lcd_configuration_variables.ui8_p1 = ui8_rx_buffer[3];
+		lcd_configuration_variables.ui8_p2 = ui8_rx_buffer[4] & 0x07;
+		lcd_configuration_variables.ui8_p3 = ui8_rx_buffer[4] & 0x08;
+		lcd_configuration_variables.ui8_p4 = ui8_rx_buffer[4] & 0x10;
+		lcd_configuration_variables.ui8_p5 = ui8_rx_buffer[0];
+
+		lcd_configuration_variables.ui8_c1 = (ui8_rx_buffer[6] & 0x38) >> 3;
+		lcd_configuration_variables.ui8_c2 = (ui8_rx_buffer[6] & 0x37);
+		lcd_configuration_variables.ui8_c4 = (ui8_rx_buffer[8] & 0xE0) >> 5;
+		lcd_configuration_variables.ui8_c5 = (ui8_rx_buffer[7] & 0x0F);
+		lcd_configuration_variables.ui8_c12 = (ui8_rx_buffer[9] & 0x0F);
+		lcd_configuration_variables.ui8_c13 = (ui8_rx_buffer[10] & 0x1C) >> 2;
+		lcd_configuration_variables.ui8_c14 = (ui8_rx_buffer[7] & 0x60) >> 5;
+
      if(lcd_configuration_variables.ui8_light){
     	 HAL_GPIO_WritePin(LIGHT_GPIO_Port, LIGHT_Pin, GPIO_PIN_SET);
     	 HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);

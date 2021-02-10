@@ -308,7 +308,7 @@ int main(void)
   PI_id.gain_p=P_FACTOR_I_D;
   PI_id.setpoint = 0;
   PI_id.limit_output = _U_MAX;
-  PI_id.max_step=5;
+  PI_id.max_step=5000;
   PI_id.shift=10;
   PI_id.limit_i=1800;
 
@@ -316,7 +316,7 @@ int main(void)
   PI_iq.gain_p=P_FACTOR_I_Q;
   PI_iq.setpoint = 0;
   PI_iq.limit_output = _U_MAX;
-  PI_iq.max_step=5;
+  PI_iq.max_step=5000;
   PI_iq.shift=10;
   PI_iq.limit_i=_U_MAX;
 
@@ -326,7 +326,7 @@ int main(void)
   PI_speed.gain_p=P_FACTOR_SPEED;
   PI_speed.setpoint = 0;
   PI_speed.limit_output = PH_CURRENT_MAX;
-  PI_speed.max_step=5;
+  PI_speed.max_step=5000;
   PI_speed.shift=12;
   PI_speed.limit_i=PH_CURRENT_MAX;
 
@@ -417,6 +417,7 @@ int main(void)
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_KUNTENG)
        kunteng_init();
+       check_message(&MS);
 #endif
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_EBiCS)
