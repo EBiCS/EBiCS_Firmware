@@ -257,8 +257,8 @@ void check_recent(void){
 	    ui8_rx_initial_buffer[8]=ui8_rx_buffer[8];
 	    ui8_rx_initial_buffer[9]=ui8_rx_buffer[9];
 	}
-
-	if(ui8_rx_buffer[1]!=ui8_rx_initial_buffer[1] || ui8_rx_buffer[10]!=ui8_rx_initial_buffer[10] ){
+//only check Byte 10
+	if( ui8_rx_buffer[10]!=ui8_rx_initial_buffer[10] ){
 	    HAL_FLASH_Unlock();
 	    EE_WriteVariable(EEPROM_KT_B1_B10,ui8_rx_buffer[1]<<8 | ui8_rx_buffer[10] );
 	    HAL_FLASH_Lock();
