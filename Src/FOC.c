@@ -152,7 +152,7 @@ q31_t PI_control (PI_control_t* PI_c)
 
   if (PI_c->out>PI_c->limit_output << PI_c->shift) PI_c->out = PI_c->limit_output<< PI_c->shift;
   if (PI_c->out<-(PI_c->limit_output << PI_c->shift)) PI_c->out = -(PI_c->limit_output<< PI_c->shift); // allow no negative voltage.
-
+  if(!READ_BIT(TIM1->BDTR, TIM_BDTR_MOE))PI_c->out = 0 ; //reset output if PWM is disabled
 
   return (PI_c->out>>PI_c->shift);
 }
