@@ -500,6 +500,8 @@ int main(void)
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_KUNTENG)
 	  check_message(&MS, &MP);
+	  if(MS.assist_level==6)ui8_Push_Assist_flag=1;
+	  else ui8_Push_Assist_flag=0;
 #endif
 
 #if (DISPLAY_TYPE & DISPLAY_TYPE_EBiCS)
