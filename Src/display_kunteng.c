@@ -13,6 +13,7 @@
 uint8_t ui8_tx_buffer[12];
 uint8_t ui8_j;
 uint8_t ui8_crc;
+uint8_t ui8_last_XOR;
 uint16_t ui16_wheel_period_ms =4500;
 uint32_t ui32_battery_volts= 36;
 uint8_t ui8_battery_soc = 12;
@@ -78,6 +79,8 @@ void kunteng_init()
     }
     ui8_crc ^=10; //right XOR must be pasted here!!!
     ui8_rx_buffer [5]=ui8_crc;
+    ui8_rx_buffer[11]=0x37;
+    ui8_rx_buffer[12]=0x0E;
 
 }
 
@@ -102,7 +105,7 @@ void display_update(MotorState_t* MS_U)
 
   ui16_wheel_period_ms = (MS_U->Speed*PULSES_PER_REVOLUTION)>>3; //Speed Zähler wird mit 8kHz hochgezählt
   //ui16_wheel_period_ms= ((MS_U->Speed)*6*GEAR_RATIO/500); //*6 because 6 hall interrupts per revolution, /500 because of 500 kHz timer setting
-ui8_tx_buffer [0] = 65;
+  ui8_tx_buffer [0] =  65;
   // B1: battery level
   ui8_tx_buffer [1] = ui8_battery_soc;
   // B2: 24V controller
@@ -162,17 +165,16 @@ void check_message(MotorState_t* MS_D, MotorParams_t* MP_D)
 
    for (ui8_j = 0; ui8_j <= 12; ui8_j++)
    {
-       //putchar (ui8_j);
-       //putchar (ui8_rx_buffer[ui8_j]);
      if (ui8_j == 5) continue; // don't xor B5 (B7 in our case)
      ui8_crc ^= ui8_rx_buffer[ui8_j];
    }
 
-   // see if CRC is ok
+   // check if end of message is OK
+   if(ui8_rx_buffer[11]==0x37 && ui8_rx_buffer[12]==0x0E ){
+	   // check if CRC is ok
    if (((ui8_crc ^ 10) == ui8_rx_buffer [5]) 	|| // some versions of CRC LCD5 (??)
-	((ui8_crc ^ 5) == ui8_rx_buffer [5]) 	|| // CRC LCD3 (tested with KT36/48SVPR, from PSWpower)
-	((ui8_crc ^ 9) == ui8_rx_buffer [5]) 	|| // CRC LCD5
-	((ui8_crc ^ 2) == ui8_rx_buffer [5])) 	   // CRC LCD3
+	((ui8_crc ^ ui8_last_XOR) == ui8_rx_buffer [5])
+	)
    { //printf("message valid \r\n");
      lcd_configuration_variables.ui8_assist_level = ui8_rx_buffer [1] & 7;
      lcd_configuration_variables.ui8_light = ui8_rx_buffer [1]>>7 & 1;
@@ -209,13 +211,38 @@ void check_message(MotorState_t* MS_D, MotorParams_t* MP_D)
 
      display_update(MS_D);
      check_recent(); //byte 1 contains the PAS level, that may be changed quite often. Better run only at system shutdown, due to limited possible write cycles to flash
+   }//end CRC OK
+   else{ //search for right last XOR
+
+	   ui8_crc = 0;
+
+	   for (ui8_j = 0; ui8_j <= 12; ui8_j++)
+	   {
+	     if (ui8_j == 5) continue; // don't xor B5 (B7 in our case)
+	     ui8_crc ^= ui8_rx_buffer[ui8_j];
+	   }
+	   for (ui8_j = 0; ui8_j <= 50; ui8_j++)
+	   {
+	     if((ui8_crc ^ ui8_j) == ui8_rx_buffer [5]) ui8_last_XOR = ui8_j;
+	   }
    }
+   }// end EOT OK
    else{
-	   DMA1_Channel5->CNDTR = 13;
+	  //resyncronize the communication
+	       CLEAR_BIT(DMA1_Channel5->CCR, DMA_CCR_EN);
+		   DMA1_Channel5->CNDTR=2;
+		   SET_BIT(DMA1_Channel5->CCR, DMA_CCR_EN);
+
+		   if(ui8_rx_buffer[0]==0x37 && ui8_rx_buffer[1]==0x0E ){
+	  	   CLEAR_BIT(DMA1_Channel5->CCR, DMA_CCR_EN);
+	  	   DMA1_Channel5->CNDTR=13;
+	  	   SET_BIT(DMA1_Channel5->CCR, DMA_CCR_EN);
+		   }
+
    }
  }
 
-//check if differnces between initial values and recent values, store to emulated EEPROM if necessary
+//check if differences between initial values and recent values, store to emulated EEPROM if necessary
 /*
 EEPROM_KT_B0_B3
 EEPROM_KT_B2_B4
