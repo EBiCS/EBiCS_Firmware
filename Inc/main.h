@@ -85,6 +85,9 @@
 #define PAS_EXTI8_GPIO_Port GPIOB
 #define PAS_EXTI8_EXTI_IRQn EXTI9_5_IRQn
 
+#define SPEED_PLL
+#define P_FACTOR_PLL 7
+#define I_FACTOR_PLL 11
 
 
 /* ########################## Assert Selection ############################## */

@@ -139,6 +139,9 @@ uint32_t uint32_PAS_fraction= 100;
 uint32_t uint32_SPEED_counter=32000;
 uint32_t uint32_PAS=32000;
 
+q31_t q31_rotorposition_PLL = 0;
+q31_t q31_angle_per_tic = 0;
+
 uint8_t ui8_UART_Counter=0;
 int8_t i8_recent_rotor_direction=1;
 int16_t i16_hall_order=1;
@@ -248,6 +251,7 @@ void bafang_update(void);
 static void dyn_adc_state(q31_t angle);
 static void set_inj_channel(char state);
 void get_standstill_position();
+q31_t speed_PLL (q31_t ist, q31_t soll);
 int32_t map (int32_t x, int32_t in_min, int32_t in_max, int32_t out_min, int32_t out_max);
 int32_t speed_to_tics (uint8_t speed);
 int8_t tics_to_speed (uint32_t tics);
@@ -1398,12 +1402,17 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 	//extrapolate recent rotor position
 	ui16_tim2_recent = __HAL_TIM_GET_COUNTER(&htim2); // read in timertics since last event
     if(MS.hall_angle_detect_flag){
-	   if (ui16_tim2_recent < ui16_timertics && !ui8_overflow_flag){ //prevent angle running away at standstill
-		// float with division necessary!
+	   if (ui16_tim2_recent < ui16_timertics+(ui16_timertics>>2) && !ui8_overflow_flag){ //prevent angle running away at standstill
 
-			   //q31_rotorposition_absolute = q31_rotorposition_hall + (q31_t)(i16_hall_order * i8_recent_rotor_direction * (715827883.0*((float)ui16_tim2_recent/(float)ui16_timertics))); //interpolate angle between two hallevents by scaling timer2 tics
-			    q31_rotorposition_absolute = q31_rotorposition_hall + (q31_t)(i16_hall_order * i8_recent_rotor_direction * ((10923 * ui16_tim2_recent)/ui16_timertics)<<16); //interpolate angle between two hallevents by scaling timer2 tics, 10923<<16 is 715827883 = 60°
+#ifdef SPEED_PLL
 
+			q31_rotorposition_PLL += q31_angle_per_tic;
+			q31_rotorposition_absolute=q31_rotorposition_PLL;
+
+#else
+
+			q31_rotorposition_absolute = q31_rotorposition_hall + (q31_t)(i16_hall_order * i8_recent_rotor_direction * ((10923 * ui16_tim2_recent)/ui16_timertics)<<16); //interpolate angle between two hallevents by scaling timer2 tics, 10923<<16 is 715827883 = 60°
+#endif
 	   }
 	   else
 	   {ui8_overflow_flag=1;}
@@ -1543,6 +1552,9 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 
 		} // end case
 
+#ifdef SPEED_PLL
+		q31_angle_per_tic = speed_PLL(q31_rotorposition_PLL,q31_rotorposition_hall);
+#endif
 
 	} //end if
 
@@ -1555,7 +1567,6 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 	//Speed processing
 	if(GPIO_Pin == Speed_EXTI5_Pin)
 	{
-
 
 			ui8_SPEED_flag = 1; //with debounce
 
@@ -2012,6 +2023,21 @@ void runPIcontrol(){
 
 		  	PI_flag=0;
 	  }
+
+q31_t speed_PLL (q31_t ist, q31_t soll)
+  {
+    q31_t q31_p;
+    static q31_t q31_d_i = 0;
+    static q31_t q31_d_dc = 0;
+
+    q31_p=(soll - ist)>>P_FACTOR_PLL;   				//7 for Shengyi middrive, 10 for BionX IGH3
+    q31_d_i+=(soll - ist)>>I_FACTOR_PLL;				//11 for Shengyi middrive, 10 for BionX IGH3
+
+    if (!READ_BIT(TIM1->BDTR, TIM_BDTR_MOE))q31_d_i=0;
+
+    q31_d_dc=q31_p+q31_d_i;
+    return (q31_d_dc);
+  }
 
 /* USER CODE END 4 */
 
