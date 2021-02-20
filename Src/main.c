@@ -131,7 +131,7 @@ volatile uint8_t ui8_UART_TxCplt_flag=1;
 volatile uint8_t ui8_PAS_flag=0;
 volatile uint8_t ui8_SPEED_flag=0;
 volatile uint8_t ui8_SPEED_control_flag=0;
-volatile uint8_t ui8_BC_limit_flag=0;  //flag for Battery current limitation
+volatile uint8_t ui8_motor_state=0;  //flag for Battery current limitation
 uint32_t uint32_PAS_counter= PAS_TIMEOUT+1;
 uint32_t uint32_PAS_HIGH_counter= 0;
 uint32_t uint32_PAS_HIGH_accumulated= 32000;
@@ -684,7 +684,7 @@ int main(void)
 #else
 					int32_current_target=uint16_mapped_throttle;
 					//int32_current_target=map(uint32_tics_filtered>>3,tics_higher_limit,tics_lower_limit,0,int32_current_target);
-					int32_current_target=map(uint32_tics_filtered>>3,speed_to_tics(MP.speedLimit+2),speed_to_tics(MP.speedLimit),0,int32_current_target);
+					//int32_current_target=map(uint32_tics_filtered>>3,speed_to_tics(MP.speedLimit+2),speed_to_tics(MP.speedLimit),0,int32_current_target);
 #endif
 
 
@@ -745,7 +745,7 @@ int main(void)
 		  //print values for debugging
 
 
-		 sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",  MS.i_q, int32_current_target, MS.i_d, uint16_mapped_throttle, tics_to_speed(uint32_tics_filtered>>3),tics_to_speedx100(uint32_tics_filtered>>3));
+		 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n", ui8_motor_state, MS.i_q, int32_current_target, MS.i_d, uint16_mapped_throttle, tics_to_speed(uint32_tics_filtered>>3),tics_to_speedx100(uint32_tics_filtered>>3));
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",ui8_hall_state,(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5])) ;
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",tic_array[0],tic_array[1],tic_array[2],tic_array[3],tic_array[4],tic_array[5]) ;
 		  i=0;
@@ -1969,36 +1969,48 @@ void runPIcontrol(){
 		  q31_t_Battery_Current_accumulated += ((MS.i_q*MS.u_abs)>>11)*(uint16_t)(CAL_I>>8);
 
 		  MS.Battery_Current = (q31_t_Battery_Current_accumulated>>8)*i8_direction*i8_reverse_flag; //Battery current in mA
+//motorstates:
+		  //0 = normal operation
+		  //1 = battery current limitation motor mode
+		  //2 = battery current limitation regen mode
+		  //3 = speed limitation
 
-		  //Check battery current limit
-		  if(MS.Battery_Current>BATTERYCURRENT_MAX) ui8_BC_limit_flag=1;
-		  if(MS.Battery_Current<-REGEN_CURRENT_MAX) ui8_BC_limit_flag=1;
-		  //reset battery current flag with small hysteresis
-		  if(HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin)){
-			  if(((int32_current_target*MS.u_abs)>>11)*(uint16_t)(CAL_I>>8)<(BATTERYCURRENT_MAX*7)>>3)ui8_BC_limit_flag=0;
-		  }
-		  else{
-			  if(((int32_current_target*MS.u_abs)>>11)*(uint16_t)(CAL_I>>8)>(-REGEN_CURRENT_MAX*7)>>3)ui8_BC_limit_flag=0;
-		  }
-
+		  //Check speed limit
+		  if(tics_to_speedx100(uint32_tics_filtered>>3)>SPEEDLIMIT*100)ui8_motor_state=3;
+		  //Check battery current limit regen mode
+		  if(MS.Battery_Current<-REGEN_CURRENT_MAX) ui8_motor_state=2;
+		  //Check battery current limit motor mode
+		  if(MS.Battery_Current>BATTERYCURRENT_MAX) ui8_motor_state=1;
 		  //control iq
 
-		  //if
-		  if (!ui8_BC_limit_flag){
+		  switch (ui8_motor_state) {
+
+		  case 0: //normal operation
 			  PI_iq.recent_value = MS.i_q;
 			  PI_iq.setpoint = i8_direction*i8_reverse_flag*int32_current_target;
-		  }
-		  else{
-			  if(HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin)){
+			  break;
+		  case 2:
+			  if(HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin)){//negative battery current limitation (@regen)
 				  PI_iq.recent_value=  (MS.Battery_Current>>6)*i8_direction*i8_reverse_flag;
 				  PI_iq.setpoint = (BATTERYCURRENT_MAX>>6)*i8_direction*i8_reverse_flag;
 			  	}
-			  else{
+			  if(((int32_current_target*MS.u_abs)>>11)*(uint16_t)(CAL_I>>8)<(BATTERYCURRENT_MAX*7)>>3)ui8_motor_state=0;
+			  break;
+		  case 1://positiv battery current limitation
 				  PI_iq.recent_value=  (MS.Battery_Current>>6)*i8_direction*i8_reverse_flag;
 				  PI_iq.setpoint = (-BATTERYCURRENT_MAX>>6)*i8_direction*i8_reverse_flag;
-			    }
+				  if(((int32_current_target*MS.u_abs)>>11)*(uint16_t)(CAL_I>>8)>(-REGEN_CURRENT_MAX*7)>>3)ui8_motor_state=0;
+				  break;
+
+		  case 3:
+			PI_iq.recent_value = (tics_to_speedx100(uint32_tics_filtered>>3))>>3;
+			PI_iq.setpoint = (SPEEDLIMIT*100)>>3;
+			if(int32_current_target<(MS.i_q*7)>>3)ui8_motor_state=0;
+			  break;
 		  }
 		  q31_u_q_temp =  PI_control(&PI_iq);
+
+
 
 		  //Control id
 		  PI_id.recent_value = MS.i_d;
