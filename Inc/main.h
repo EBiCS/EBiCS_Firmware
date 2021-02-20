@@ -86,7 +86,7 @@
 #define PAS_EXTI8_EXTI_IRQn EXTI9_5_IRQn
 
 #define SPEED_PLL
-#define P_FACTOR_PLL 7
+#define P_FACTOR_PLL 5
 #define I_FACTOR_PLL 11
 
 
