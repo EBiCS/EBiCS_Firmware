@@ -65,5 +65,8 @@
 //#define SPEEDTHROTTLE
 #define THROTTLE_OVERRIDE
 #define REGEN_CURRENT_MAX 10000
+#define SPEED_PLL
+#define P_FACTOR_PLL 5
+#define I_FACTOR_PLL 11
 
 #endif /* CONFIG_H_ */

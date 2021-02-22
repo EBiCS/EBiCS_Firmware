@@ -31,10 +31,12 @@
 #define BATTERY_LEVEL_3 344000
 #define BATTERY_LEVEL_4 368000
 #define BATTERY_LEVEL_5 380000
-#define P_FACTOR_I_Q 5000
+#define P_FACTOR_I_Q 500
 #define I_FACTOR_I_Q 20
-#define P_FACTOR_I_D 1
-#define I_FACTOR_I_D 1
+#define P_FACTOR_I_D 500
+#define I_FACTOR_I_D 20
+#define P_FACTOR_PLL 5
+#define I_FACTOR_PLL 11
 #define TS_COEF 60000
 #define PAS_TIMEOUT 8000
 #define RAMP_END 1600
@@ -54,10 +56,11 @@
 #define VOLTAGE_MIN 500
 #define VOLTAGE_MAX 1600
 #define SPEC_ANGLE -715827882
-#define DISPLAY_TYPE DISPLAY_TYPE_DEBUG //ASCII Printout for debugging
+#define TS_MODE
+#define TQONAD1
+#define DISPLAY_TYPE DISPLAY_TYPE_EBiCS
+#define SPEED_PLL
 #define REVERSE 1
-#define LIMIT_THR
 #define THROTTLE_OVERRIDE
-#define INDIVIDUAL_MODES
 
 #endif /* CONFIG_H_ */
