@@ -68,12 +68,12 @@
     <DimensionLayout dim="1">
       <Group type="103" groupAlignment="0" attributes="0">
           <Group type="102" alignment="1" attributes="0">
-              <EmptySpace min="-2" pref="41" max="-2" attributes="0"/>
+              <EmptySpace min="-2" pref="20" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
                   <Component id="label1" min="-2" pref="46" max="-2" attributes="0"/>
                   <Component id="jLabel43" min="-2" max="-2" attributes="0"/>
               </Group>
-              <EmptySpace min="-2" pref="20" max="-2" attributes="0"/>
+              <EmptySpace min="-2" pref="5" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="1" attributes="0">
                   <Component id="jTabbedPane1" min="-2" max="-2" attributes="0"/>
                   <Group type="102" attributes="0">
@@ -91,7 +91,7 @@
                       </Group>
                   </Group>
               </Group>
-              <EmptySpace pref="36" max="32767" attributes="0"/>
+              <EmptySpace pref="72" max="32767" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -957,7 +957,7 @@
                                   <Component id="RB_DISABLE_DYN_ADC" min="-2" max="-2" attributes="0"/>
                               </Group>
                               <EmptySpace type="separate" max="-2" attributes="0"/>
-                              <Component id="RB_IND_MODE" min="-2" max="-2" attributes="0"/>
+                              <Component id="RB_AUTODETECT" min="-2" max="-2" attributes="0"/>
                               <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
                           </Group>
                           <Group type="102" attributes="0">
@@ -1051,7 +1051,7 @@
                                   <Component id="jLabel26" alignment="3" min="-2" max="-2" attributes="0"/>
                                   <Component id="TF_I_FACTOR_I_D" alignment="3" min="-2" max="-2" attributes="0"/>
                               </Group>
-                              <EmptySpace type="unrelated" pref="13" max="32767" attributes="0"/>
+                              <EmptySpace type="unrelated" pref="41" max="32767" attributes="0"/>
                               <Group type="103" groupAlignment="0" attributes="0">
                                   <Group type="102" alignment="0" attributes="0">
                                       <Component id="jLabel6" min="-2" max="-2" attributes="0"/>
@@ -1060,7 +1060,7 @@
                                           <Component id="jLabel7" alignment="3" min="-2" max="-2" attributes="0"/>
                                           <Component id="TF_CAL_BAT_V" alignment="3" min="-2" max="-2" attributes="0"/>
                                       </Group>
-                                      <EmptySpace pref="36" max="32767" attributes="0"/>
+                                      <EmptySpace max="-2" attributes="0"/>
                                       <Group type="103" groupAlignment="3" attributes="0">
                                           <Component id="TF_CAL_V" alignment="3" min="-2" max="-2" attributes="0"/>
                                           <Component id="jLabel8" alignment="3" min="-2" max="-2" attributes="0"/>
@@ -1083,7 +1083,7 @@
                                           <Component id="jLabel54" alignment="3" min="-2" max="-2" attributes="0"/>
                                           <Component id="TF_I_FACTOR_PLL" alignment="3" min="-2" max="-2" attributes="0"/>
                                       </Group>
-                                      <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                                      <EmptySpace max="-2" attributes="0"/>
                                       <Group type="103" groupAlignment="3" attributes="0">
                                           <Component id="jLabel55" alignment="3" min="-2" max="-2" attributes="0"/>
                                           <Component id="TF_P_FACTOR_SPEED" alignment="3" min="-2" max="-2" attributes="0"/>
@@ -1101,7 +1101,7 @@
                       </Group>
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Component id="RB_FAST_LOOP_LOG" min="-2" max="-2" attributes="0"/>
-                          <Component id="RB_IND_MODE" min="-2" pref="23" max="-2" attributes="0"/>
+                          <Component id="RB_AUTODETECT" min="-2" pref="23" max="-2" attributes="0"/>
                       </Group>
                       <EmptySpace type="unrelated" max="-2" attributes="0"/>
                       <Component id="RB_DISABLE_DYN_ADC" min="-2" max="-2" attributes="0"/>
@@ -1369,12 +1369,12 @@
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="RB_SPEEDTHROTTLEActionPerformed"/>
               </Events>
             </Component>
-            <Component class="javax.swing.JRadioButton" name="RB_IND_MODE">
+            <Component class="javax.swing.JRadioButton" name="RB_AUTODETECT">
               <Properties>
-                <Property name="text" type="java.lang.String" value="enable individual ride mode"/>
+                <Property name="text" type="java.lang.String" value="enable autodetect in debug mode"/>
               </Properties>
               <Events>
-                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="RB_IND_MODEActionPerformed"/>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="RB_AUTODETECTActionPerformed"/>
               </Events>
             </Component>
             <Component class="javax.swing.JLabel" name="jLabel55">

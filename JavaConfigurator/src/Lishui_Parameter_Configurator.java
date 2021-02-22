@@ -159,7 +159,7 @@ public void loadSettings(File f) throws IOException {
                 RB_FAST_LOOP_LOG.setSelected(Boolean.parseBoolean(in.readLine()));
                 RB_SPEED_PLL.setSelected(Boolean.parseBoolean(in.readLine()));
                 RB_SPEEDTHROTTLE.setSelected(Boolean.parseBoolean(in.readLine()));
-                RB_IND_MODE.setSelected(Boolean.parseBoolean(in.readLine()));
+                RB_AUTODETECT.setSelected(Boolean.parseBoolean(in.readLine()));
                 RB_REVERSE.setSelected(Boolean.parseBoolean(in.readLine()));
                 RB_LIMIT_THR.setSelected(Boolean.parseBoolean(in.readLine()));
                 RB_THR_OVERRIDE.setSelected(Boolean.parseBoolean(in.readLine()));
@@ -576,11 +576,15 @@ public void AddListItem(File newFile) {
 					}
 					iWriter.println(RB_SPEEDTHROTTLE.isSelected()); 
                                         
-                                        if (RB_IND_MODE.isSelected()) {
-						text_to_save = "#define INDIVIDUAL_MODES";
+                                        if (RB_AUTODETECT.isSelected()) {
+						text_to_save = "#define AUTODETECT 1";
 						pWriter.println(text_to_save);
 					}
-					iWriter.println(RB_IND_MODE.isSelected());                                         
+                                        else{
+                                                text_to_save = "#define AUTODETECT 0";
+						pWriter.println(text_to_save);
+                                        }                                        
+					iWriter.println(RB_AUTODETECT.isSelected());                                         
                                         
                                         if (RB_REVERSE.isSelected()) {
 						text_to_save = "#define REVERSE -1";
@@ -782,7 +786,7 @@ public void AddListItem(File newFile) {
         jLabel54 = new javax.swing.JLabel();
         TF_I_FACTOR_PLL = new javax.swing.JTextField();
         RB_SPEEDTHROTTLE = new javax.swing.JRadioButton();
-        RB_IND_MODE = new javax.swing.JRadioButton();
+        RB_AUTODETECT = new javax.swing.JRadioButton();
         jLabel55 = new javax.swing.JLabel();
         TF_P_FACTOR_SPEED = new javax.swing.JTextField();
         TF_I_FACTOR_SPEED = new javax.swing.JTextField();
@@ -1319,10 +1323,10 @@ public void AddListItem(File newFile) {
             }
         });
 
-        RB_IND_MODE.setText("enable individual ride mode");
-        RB_IND_MODE.addActionListener(new java.awt.event.ActionListener() {
+        RB_AUTODETECT.setText("enable autodetect in debug mode");
+        RB_AUTODETECT.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                RB_IND_MODEActionPerformed(evt);
+                RB_AUTODETECTActionPerformed(evt);
             }
         });
 
@@ -1451,7 +1455,7 @@ public void AddListItem(File newFile) {
                             .addComponent(RB_FAST_LOOP_LOG)
                             .addComponent(RB_DISABLE_DYN_ADC))
                         .addGap(18, 18, 18)
-                        .addComponent(RB_IND_MODE)
+                        .addComponent(RB_AUTODETECT)
                         .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(TAB2Layout.createSequentialGroup()
                         .addGap(190, 190, 190)
@@ -1526,7 +1530,7 @@ public void AddListItem(File newFile) {
                             .addComponent(TF_GAMMA, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jLabel26)
                             .addComponent(TF_I_FACTOR_I_D, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED, 13, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED, 41, Short.MAX_VALUE)
                         .addGroup(TAB2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(TAB2Layout.createSequentialGroup()
                                 .addComponent(jLabel6)
@@ -1534,7 +1538,7 @@ public void AddListItem(File newFile) {
                                 .addGroup(TAB2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                                     .addComponent(jLabel7)
                                     .addComponent(TF_CAL_BAT_V, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 36, Short.MAX_VALUE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addGroup(TAB2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                                     .addComponent(TF_CAL_V, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                     .addComponent(jLabel8))
@@ -1552,7 +1556,7 @@ public void AddListItem(File newFile) {
                                 .addGroup(TAB2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                                     .addComponent(jLabel54)
                                     .addComponent(TF_I_FACTOR_PLL, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addGroup(TAB2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                                     .addComponent(jLabel55)
                                     .addComponent(TF_P_FACTOR_SPEED, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -1564,7 +1568,7 @@ public void AddListItem(File newFile) {
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))))
                 .addGroup(TAB2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(RB_FAST_LOOP_LOG)
-                    .addComponent(RB_IND_MODE, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(RB_AUTODETECT, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(RB_DISABLE_DYN_ADC)
                 .addGap(40, 40, 40))
@@ -1637,11 +1641,11 @@ public void AddListItem(File newFile) {
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGap(41, 41, 41)
+                .addGap(20, 20, 20)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(label1, javax.swing.GroupLayout.PREFERRED_SIZE, 46, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel43))
-                .addGap(20, 20, 20)
+                .addGap(5, 5, 5)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(layout.createSequentialGroup()
@@ -1656,7 +1660,7 @@ public void AddListItem(File newFile) {
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 47, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                .addContainerGap(36, Short.MAX_VALUE))
+                .addContainerGap(72, Short.MAX_VALUE))
         );
 
         jTabbedPane1.getAccessibleContext().setAccessibleName("MotorConfiguration");
@@ -1680,9 +1684,9 @@ public void AddListItem(File newFile) {
         // TODO add your handling code here:
     }//GEN-LAST:event_TF_BATTERY_CURRENT_MAXActionPerformed
 
-    private void RB_IND_MODEActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_RB_IND_MODEActionPerformed
+    private void RB_AUTODETECTActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_RB_AUTODETECTActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_RB_IND_MODEActionPerformed
+    }//GEN-LAST:event_RB_AUTODETECTActionPerformed
 
     private void RB_SPEEDTHROTTLEActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_RB_SPEEDTHROTTLEActionPerformed
         // TODO add your handling code here:
@@ -1729,13 +1733,13 @@ public void AddListItem(File newFile) {
     private javax.swing.ButtonGroup BG_FLASHOPTIONS;
     private javax.swing.JLabel Label_Param3;
     private javax.swing.JLabel Label_Parameter1;
+    private javax.swing.JRadioButton RB_AUTODETECT;
     private javax.swing.JRadioButton RB_BAFANG;
     private javax.swing.JRadioButton RB_DEBUG;
     private javax.swing.JRadioButton RB_DIRDET;
     private javax.swing.JRadioButton RB_DISABLE_DYN_ADC;
     private javax.swing.JRadioButton RB_EBICS;
     private javax.swing.JRadioButton RB_FAST_LOOP_LOG;
-    private javax.swing.JRadioButton RB_IND_MODE;
     private javax.swing.JRadioButton RB_IND_PROFILE;
     private javax.swing.JRadioButton RB_JLCD;
     private javax.swing.JRadioButton RB_KM5S;
