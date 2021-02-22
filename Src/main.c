@@ -459,7 +459,7 @@ int main(void)
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG)
    	printf_("phase current offsets:  %d, %d, %d \n ", ui16_ph1_offset, ui16_ph2_offset, ui16_ph3_offset);
-#ifdef AUTODETECT
+#if (AUTODETECT == 1)
    	autodetect();
 #endif
 
