@@ -40,10 +40,10 @@
 #define TS_COEF 90000
 #define PAS_TIMEOUT 8000
 #define RAMP_END 1600
-#define THROTTLE_OFFSET 750
+#define THROTTLE_OFFSET 900
 #define THROTTLE_MAX 2700
 #define WHEEL_CIRCUMFERENCE 2200
-#define GEAR_RATIO 50 //dummy for testing
+#define GEAR_RATIO 11 //dummy for testing
 #define SPEEDLIMIT 25
 #define PULSES_PER_REVOLUTION 1
 #define PH_CURRENT_MAX 600
@@ -66,7 +66,8 @@
 #define THROTTLE_OVERRIDE
 #define REGEN_CURRENT_MAX 10000
 #define SPEED_PLL
-#define P_FACTOR_PLL 5
-#define I_FACTOR_PLL 11
+#define P_FACTOR_PLL 10
+#define I_FACTOR_PLL 10
+#define AUTODETECT 1
 
 #endif /* CONFIG_H_ */

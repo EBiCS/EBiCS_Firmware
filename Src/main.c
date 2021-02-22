@@ -459,9 +459,12 @@ int main(void)
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG)
    	printf_("phase current offsets:  %d, %d, %d \n ", ui16_ph1_offset, ui16_ph2_offset, ui16_ph3_offset);
+#ifdef AUTODETECT
    	autodetect();
+#endif
 
-#else
+#endif
+#if (DISPLAY_TYPE != DISPLAY_TYPE_DEBUG || !AUTODETECT)
    	EE_ReadVariable(EEPROM_POS_SPEC_ANGLE, &MP.spec_angle);
 
    	// set motor specific angle to value from emulated EEPROM only if valid
