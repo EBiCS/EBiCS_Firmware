@@ -154,6 +154,7 @@ uint16_t uint16_mapped_PAS=0;
 uint16_t uint16_half_rotation_counter=0;
 uint16_t uint16_full_rotation_counter=0;
 int32_t int32_current_target=0;
+int32_t int32_temp_current_target=0;
 
 q31_t q31_t_Battery_Current_accumulated=0;
 
@@ -587,13 +588,13 @@ int main(void)
 
 		#ifdef TS_MODE //torque-sensor mode
 					//calculate current target form torque, cadence and assist level
-					int32_current_target = (TS_COEF*(int16_t)(MS.assist_level)* (uint32_torque_cumulated>>5)/uint32_PAS)>>8; //>>5 aus Mittelung über eine Kurbelumdrehung, >>8 aus KM5S-Protokoll Assistlevel 0..255
+					int32_temp_current_target = (TS_COEF*(int16_t)(MS.assist_level)* (uint32_torque_cumulated>>5)/uint32_PAS)>>8; //>>5 aus Mittelung über eine Kurbelumdrehung, >>8 aus KM5S-Protokoll Assistlevel 0..255
 
 					//limit currest target to max value
-					if(int32_current_target>PH_CURRENT_MAX) int32_current_target = PH_CURRENT_MAX;
+					if(int32_temp_current_target>PH_CURRENT_MAX) int32_temp_current_target = PH_CURRENT_MAX;
 					//set target to zero, if pedals are not turning
 					if(uint32_PAS_counter > PAS_TIMEOUT){
-						int32_current_target = 0;
+						int32_temp_current_target = 0;
 						if(uint32_torque_cumulated>0)uint32_torque_cumulated--; //ramp down cumulated torque value
 					}
 
@@ -637,7 +638,7 @@ int main(void)
 
 #ifdef INDIVIDUAL_MODES
 
-				int32_current_target = (int32_current_target * ui8_speedfactor)>>8;
+			  int32_temp_current_target = (int32_temp_current_target * ui8_speedfactor)>>8;
 
 #endif
 
@@ -650,14 +651,13 @@ int main(void)
 
 
 
-				    if (uint32_PAS_counter < PAS_TIMEOUT) int32_current_target= uint16_mapped_PAS;		//set current target in torque-simulation-mode, if pedals are turning
+				    if (uint32_PAS_counter < PAS_TIMEOUT) int32_temp_current_target = uint16_mapped_PAS;		//set current target in torque-simulation-mode, if pedals are turning
 					  else  {
-						  int32_current_target= 0;//pedals are not turning, stop motor
+						  int32_temp_current_target= 0;//pedals are not turning, stop motor
 						  uint32_PAS_cumulated=32000;
 						  uint32_PAS=32000;
 					  }
-				    // ramp down current at speed limit
-				    // int32_current_target=map(uint32_tics_filtered>>3,tics_higher_limit,tics_lower_limit,0,int32_current_target);
+
 				  }
 				  else {
 
@@ -670,9 +670,10 @@ int main(void)
 					if (tics_to_speedx100(uint32_tics_filtered>>3)<300){//control current slower than 3 km/h
 						PI_speed.limit_i=100;
 						PI_speed.limit_output=100;
-						int32_current_target = PI_control(&PI_speed);
-						if(int32_current_target>100)int32_current_target=100;
-						if(int32_current_target*i8_direction*i8_reverse_flag<0)int32_current_target=0;
+						int32_temp_current_target = PI_control(&PI_speed);
+						if(int32_temp_current_target>100)int32_temp_current_target=100;
+						if(int32_temp_current_target*i8_direction*i8_reverse_flag<0)int32_temp_current_target=0;
+
 					}
 					else{
 
@@ -680,16 +681,17 @@ int main(void)
 						if(ui8_SPEED_control_flag){//update current target only, if new hall event was detected
 							PI_speed.limit_i=PH_CURRENT_MAX;
 							PI_speed.limit_output=PH_CURRENT_MAX;
-							int32_current_target = PI_control(&PI_speed);
+							int32_temp_current_target = PI_control(&PI_speed);
 							ui8_SPEED_control_flag=0;
 							}
-						if(int32_current_target*i8_direction*i8_reverse_flag<0)int32_current_target=0;
+						if(int32_temp_current_target*i8_direction*i8_reverse_flag<0)int32_temp_current_target=0;
+
 						}
 
 
 
 #else
-					int32_current_target=uint16_mapped_throttle;
+					int32_temp_current_target=uint16_mapped_throttle;
 
 #endif  //end speedthrottle
 
@@ -701,7 +703,7 @@ int main(void)
 					uint32_SPEEDx100_cumulated -=uint32_SPEEDx100_cumulated>>16;
 					uint32_SPEEDx100_cumulated +=tics_to_speedx100(uint32_tics_filtered>>3);
 
-					int32_current_target=map(uint32_SPEEDx100_cumulated>>16, MP.speedLimit*100,(MP.speedLimit+2)*100,int32_current_target,0);
+					int32_current_target=map(uint32_SPEEDx100_cumulated>>16, MP.speedLimit*100,(MP.speedLimit+2)*100,int32_temp_current_target,0);
 
 			} //end else for normal riding
 
