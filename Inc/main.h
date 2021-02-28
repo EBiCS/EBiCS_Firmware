@@ -89,6 +89,7 @@
 #define INTERNAL 0
 #define SPEEDSOURCE EXTERNAL
 #define SPEEDFILTER 1
+#define SIXSTEPTHRESHOLD 3500
 
 /* ########################## Assert Selection ############################## */
 /**

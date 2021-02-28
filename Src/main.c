@@ -774,7 +774,7 @@ int main(void)
 		  //print values for debugging
 
 
-		 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", ui8_BC_limit_flag, MS.i_q, int32_current_target, uint32_PAS, (uint16_t)adcData[1], MS.Battery_Current,internal_tics_to_speedx100(uint32_tics_filtered>>3),external_tics_to_speedx100(MS.Speed),uint32_SPEEDx100_cumulated>>SPEEDFILTER);
+		 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", ui16_timertics, MS.i_q, int32_current_target,temp4, (uint16_t)adcData[1], MS.Battery_Current,internal_tics_to_speedx100(uint32_tics_filtered>>3),external_tics_to_speedx100(MS.Speed),uint32_SPEEDx100_cumulated>>SPEEDFILTER);
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",ui8_hall_state,(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5])) ;
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",tic_array[0],tic_array[1],tic_array[2],tic_array[3],tic_array[4],tic_array[5]) ;
 		  i=0;
@@ -1431,20 +1431,25 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 	//extrapolate recent rotor position
 	ui16_tim2_recent = __HAL_TIM_GET_COUNTER(&htim2); // read in timertics since last event
     if(MS.hall_angle_detect_flag){
-	   if (ui16_tim2_recent < ui16_timertics+(ui16_timertics>>2) && !ui8_overflow_flag){ //prevent angle running away at standstill
 
 #ifdef SPEED_PLL
+		   q31_rotorposition_PLL += q31_angle_per_tic;
+		   temp4=q31_angle_per_tic*ui16_timertics;
+#endif
+	   if (ui16_tim2_recent < ui16_timertics+(ui16_timertics>>2) && !ui8_overflow_flag && ui16_timertics<SIXSTEPTHRESHOLD){ //prevent angle running away at standstill
 
-			q31_rotorposition_PLL += q31_angle_per_tic;
+#ifdef SPEED_PLL
 			q31_rotorposition_absolute=q31_rotorposition_PLL;
-
 #else
 
 			q31_rotorposition_absolute = q31_rotorposition_hall + (q31_t)(i16_hall_order * i8_recent_rotor_direction * ((10923 * ui16_tim2_recent)/ui16_timertics)<<16); //interpolate angle between two hallevents by scaling timer2 tics, 10923<<16 is 715827883 = 60°
 #endif
 	   }
 	   else
-	   {ui8_overflow_flag=1;}
+	   {ui8_overflow_flag=1;
+	   q31_rotorposition_absolute = q31_rotorposition_hall+(DEG_plus60>>1);
+
+	   }
 
     }//end if hall angle detect
 
@@ -1583,6 +1588,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 
 #ifdef SPEED_PLL
 		q31_angle_per_tic = speed_PLL(q31_rotorposition_PLL,q31_rotorposition_hall);
+
 #endif
 
 	} //end if
