@@ -257,7 +257,8 @@ q31_t speed_PLL (q31_t ist, q31_t soll);
 int32_t map (int32_t x, int32_t in_min, int32_t in_max, int32_t out_min, int32_t out_max);
 int32_t speed_to_tics (uint8_t speed);
 int8_t tics_to_speed (uint32_t tics);
-int16_t tics_to_speedx100 (uint32_t tics);
+int16_t internal_tics_to_speedx100 (uint32_t tics);
+int16_t external_tics_to_speedx100 (uint32_t tics);
 
 
 
@@ -543,13 +544,26 @@ int main(void)
 	  //SPEED signal processing
 	  if(ui8_SPEED_flag){
 
-		  if(uint32_SPEED_counter>200){
+		  if(uint32_SPEED_counter>200){ //debounce
 		  MS.Speed = uint32_SPEED_counter;
 		  //HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
 		  uint32_SPEED_counter =0;
 		  ui8_SPEED_flag=0;
 
+#if (SPEEDSOURCE == EXTERNAL)
+		uint32_SPEEDx100_cumulated -=uint32_SPEEDx100_cumulated>>12;
+		uint32_SPEEDx100_cumulated +=external_tics_to_speedx100(MS.Speed);
+#endif
+
 		  }
+	  }
+
+	  if(ui8_SPEED_control_flag){
+#if (SPEEDSOURCE == INTERNAL)
+		uint32_SPEEDx100_cumulated -=uint32_SPEEDx100_cumulated>>12;
+		uint32_SPEEDx100_cumulated +=internal_tics_to_speedx100(uint32_tics_filtered>>3);
+#endif
+		ui8_SPEED_control_flag=0;
 	  }
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG && defined(FAST_LOOP_LOG))
@@ -665,9 +679,9 @@ int main(void)
 
 					  uint16_mapped_throttle = uint16_mapped_throttle*SPEEDLIMIT/PH_CURRENT_MAX;//throttle override: calulate speed target from thottle
 					  PI_speed.setpoint = uint16_mapped_throttle*100;
-					  PI_speed.recent_value = tics_to_speedx100(uint32_tics_filtered>>3);
+					  PI_speed.recent_value = internal_tics_to_speedx100(uint32_tics_filtered>>3);
 
-					if (tics_to_speedx100(uint32_tics_filtered>>3)<300){//control current slower than 3 km/h
+					if (internal_tics_to_speedx100(uint32_tics_filtered>>3)<300){//control current slower than 3 km/h
 						PI_speed.limit_i=100;
 						PI_speed.limit_output=100;
 						int32_temp_current_target = PI_control(&PI_speed);
@@ -700,10 +714,9 @@ int main(void)
 #endif //end throttle override
 
 				  //ramp down setpoint at speed limit
-					uint32_SPEEDx100_cumulated -=uint32_SPEEDx100_cumulated>>16;
-					uint32_SPEEDx100_cumulated +=tics_to_speedx100(uint32_tics_filtered>>3);
 
-					int32_current_target=map(uint32_SPEEDx100_cumulated>>16, MP.speedLimit*100,(MP.speedLimit+2)*100,int32_temp_current_target,0);
+
+					int32_current_target=map(uint32_SPEEDx100_cumulated>>12, MP.speedLimit*100,(MP.speedLimit+2)*100,int32_temp_current_target,0);
 
 			} //end else for normal riding
 
@@ -756,7 +769,7 @@ int main(void)
 		  //print values for debugging
 
 
-		 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", ui8_BC_limit_flag, MS.i_q, int32_current_target, uint32_PAS, (uint16_t)adcData[1], MS.Battery_Current,tics_to_speedx100(uint32_tics_filtered>>3),uint32_SPEEDx100_cumulated>>16);
+		 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", ui8_BC_limit_flag, MS.i_q, int32_current_target, uint32_PAS, (uint16_t)adcData[1], MS.Battery_Current,internal_tics_to_speedx100(uint32_tics_filtered>>3),uint32_SPEEDx100_cumulated>>16);
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",ui8_hall_state,(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5])) ;
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",tic_array[0],tic_array[1],tic_array[2],tic_array[3],tic_array[4],tic_array[5]) ;
 		  i=0;
@@ -1971,8 +1984,12 @@ int8_t tics_to_speed (uint32_t tics){
 	return WHEEL_CIRCUMFERENCE*5*3600/(6*GEAR_RATIO*tics*10);;
 }
 
-int16_t tics_to_speedx100 (uint32_t tics){
+int16_t internal_tics_to_speedx100 (uint32_t tics){
 	return WHEEL_CIRCUMFERENCE*50*3600/(6*GEAR_RATIO*tics);;
+}
+
+int16_t external_tics_to_speedx100 (uint32_t tics){
+	return WHEEL_CIRCUMFERENCE*8*360/(PULSES_PER_REVOLUTION*tics);;
 }
 
 void runPIcontrol(){
