@@ -551,7 +551,7 @@ int main(void)
 		  ui8_SPEED_flag=0;
 
 #if (SPEEDSOURCE == EXTERNAL)
-		uint32_SPEEDx100_cumulated -=uint32_SPEEDx100_cumulated>>12;
+		uint32_SPEEDx100_cumulated -=uint32_SPEEDx100_cumulated>>8;
 		uint32_SPEEDx100_cumulated +=external_tics_to_speedx100(MS.Speed);
 #endif
 
@@ -560,7 +560,7 @@ int main(void)
 
 	  if(ui8_SPEED_control_flag){
 #if (SPEEDSOURCE == INTERNAL)
-		uint32_SPEEDx100_cumulated -=uint32_SPEEDx100_cumulated>>12;
+		uint32_SPEEDx100_cumulated -=uint32_SPEEDx100_cumulated>>8;
 		uint32_SPEEDx100_cumulated +=internal_tics_to_speedx100(uint32_tics_filtered>>3);
 #endif
 		ui8_SPEED_control_flag=0;
@@ -716,7 +716,7 @@ int main(void)
 				  //ramp down setpoint at speed limit
 
 
-					int32_current_target=map(uint32_SPEEDx100_cumulated>>12, MP.speedLimit*100,(MP.speedLimit+2)*100,int32_temp_current_target,0);
+					int32_current_target=map(uint32_SPEEDx100_cumulated>>8, MP.speedLimit*100,(MP.speedLimit+2)*100,int32_temp_current_target,0);
 
 			} //end else for normal riding
 
@@ -769,7 +769,7 @@ int main(void)
 		  //print values for debugging
 
 
-		 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", ui8_BC_limit_flag, MS.i_q, int32_current_target, uint32_PAS, (uint16_t)adcData[1], MS.Battery_Current,internal_tics_to_speedx100(uint32_tics_filtered>>3),uint32_SPEEDx100_cumulated>>16);
+		 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", ui8_BC_limit_flag, MS.i_q, int32_current_target, uint32_PAS, (uint16_t)adcData[1], MS.Battery_Current,internal_tics_to_speedx100(uint32_tics_filtered>>3),external_tics_to_speedx100(MS.Speed),uint32_SPEEDx100_cumulated>>8);
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",ui8_hall_state,(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5])) ;
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",tic_array[0],tic_array[1],tic_array[2],tic_array[3],tic_array[4],tic_array[5]) ;
 		  i=0;
