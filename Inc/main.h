@@ -88,7 +88,7 @@
 #define EXTERNAL 1
 #define INTERNAL 0
 #define SPEEDSOURCE EXTERNAL
-
+#define SPEEDFILTER 1
 
 /* ########################## Assert Selection ############################## */
 /**
