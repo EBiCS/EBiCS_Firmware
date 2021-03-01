@@ -70,4 +70,10 @@
 #define I_FACTOR_PLL 11
 #define AUTODETECT 0
 
+#define EXTERNAL 1
+#define INTERNAL 0
+#define SPEEDSOURCE EXTERNAL
+#define SPEEDFILTER 1
+#define SIXSTEPTHRESHOLD 3500
+
 #endif /* CONFIG_H_ */
