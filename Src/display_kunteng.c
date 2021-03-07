@@ -233,7 +233,7 @@ void check_message(MotorState_t* MS_D, MotorParams_t* MP_D)
 		   DMA1_Channel5->CNDTR=2;
 		   SET_BIT(DMA1_Channel5->CCR, DMA_CCR_EN);
 
-		   if((ui8_rx_buffer[11]==0x32||ui8_rx_buffer[0]==0x37) && ui8_rx_buffer[1]==0x0E ){
+		   if((ui8_rx_buffer[0]==0x32||ui8_rx_buffer[0]==0x37) && ui8_rx_buffer[1]==0x0E ){
 	  	   CLEAR_BIT(DMA1_Channel5->CCR, DMA_CCR_EN);
 	  	   DMA1_Channel5->CNDTR=13;
 	  	   SET_BIT(DMA1_Channel5->CCR, DMA_CCR_EN);
