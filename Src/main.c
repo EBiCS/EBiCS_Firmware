@@ -2042,12 +2042,12 @@ void runPIcontrol(){
 		  }
 		  else{
 			  if(HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin)){
-				  PI_iq.recent_value=  (MS.Battery_Current>>6)*i8_direction*i8_reverse_flag;
-				  PI_iq.setpoint = (BATTERYCURRENT_MAX>>6)*i8_direction*i8_reverse_flag;
+				  PI_iq.recent_value=  (MS.Battery_Current>>7)*i8_direction*i8_reverse_flag;
+				  PI_iq.setpoint = (BATTERYCURRENT_MAX>>7)*i8_direction*i8_reverse_flag;
 			  	}
 			  else{
 				  PI_iq.recent_value=  (MS.Battery_Current>>6)*i8_direction*i8_reverse_flag;
-				  PI_iq.setpoint = (-BATTERYCURRENT_MAX>>6)*i8_direction*i8_reverse_flag;
+				  PI_iq.setpoint = (-REGEN_CURRENT_MAX>>6)*i8_direction*i8_reverse_flag;
 			    }
 		  }
 		  q31_u_q_temp =  PI_control(&PI_iq);

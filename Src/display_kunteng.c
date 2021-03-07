@@ -170,7 +170,7 @@ void check_message(MotorState_t* MS_D, MotorParams_t* MP_D)
    }
 
    // check if end of message is OK
-   if(ui8_rx_buffer[11]==0x37 && ui8_rx_buffer[12]==0x0E ){
+   if((ui8_rx_buffer[11]==0x32||ui8_rx_buffer[11]==0x37) && ui8_rx_buffer[12]==0x0E ){
 	   // check if CRC is ok
    if (((ui8_crc ^ 10) == ui8_rx_buffer [5]) 	|| // some versions of CRC LCD5 (??)
 	((ui8_crc ^ ui8_last_XOR) == ui8_rx_buffer [5])
@@ -233,7 +233,7 @@ void check_message(MotorState_t* MS_D, MotorParams_t* MP_D)
 		   DMA1_Channel5->CNDTR=2;
 		   SET_BIT(DMA1_Channel5->CCR, DMA_CCR_EN);
 
-		   if(ui8_rx_buffer[0]==0x37 && ui8_rx_buffer[1]==0x0E ){
+		   if((ui8_rx_buffer[11]==0x32||ui8_rx_buffer[0]==0x37) && ui8_rx_buffer[1]==0x0E ){
 	  	   CLEAR_BIT(DMA1_Channel5->CCR, DMA_CCR_EN);
 	  	   DMA1_Channel5->CNDTR=13;
 	  	   SET_BIT(DMA1_Channel5->CCR, DMA_CCR_EN);
