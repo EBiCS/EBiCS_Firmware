@@ -466,10 +466,10 @@ int main(void)
 
    	ui8_adc_offset_done_flag=1;
 
-  /* 	while (!HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin)){HAL_Delay(200);
+  	while (brake_flag==1){HAL_Delay(200);
    	   	   			y++;
    	   	   			if(y==35) autodetect();
-   	   	   			} */
+   	   	   			}
 #if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG)
    	printf_("phase current offsets:  %d, %d, %d \n ", ui16_ph1_offset, ui16_ph2_offset, ui16_ph3_offset);
 #if (AUTODETECT == 1)
@@ -1459,21 +1459,22 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 
 	//extrapolate recent rotor position
 	ui16_tim2_recent = __HAL_TIM_GET_COUNTER(&htim2); // read in timertics since last event
-    if(MS.hall_angle_detect_flag){
-
-    	if(ui16_timertics<SIXSTEPTHRESHOLD && ui16_tim2_recent<200)ui8_6step_flag=0;
+    if(MS.hall_angle_detect_flag){//if autodetect is not active
+    	//set flag for 6 step at low speed
+    			if(ui16_timertics<SIXSTEPTHRESHOLD && ui16_tim2_recent<200)ui8_6step_flag=0;
     			if(ui16_timertics>(SIXSTEPTHRESHOLD*6)>>2)ui8_6step_flag=1;
 
 #ifdef SPEED_PLL
 		   q31_rotorposition_PLL += q31_angle_per_tic;
-		   temp4=q31_angle_per_tic*ui16_timertics;
 #endif
+		   // angle estimation
 		   if (ui16_tim2_recent < ui16_timertics+(ui16_timertics>>2) && !ui8_overflow_flag && !ui8_6step_flag){ //prevent angle running away at standstill
 
 #ifdef SPEED_PLL
+			// estimation by speed PLL
 			q31_rotorposition_absolute=q31_rotorposition_PLL;
 #else
-
+			//estimation by extrapolating directly from the hallsensor information
 			q31_rotorposition_absolute = q31_rotorposition_hall + (q31_t)(i16_hall_order * i8_recent_rotor_direction * ((10923 * ui16_tim2_recent)/ui16_timertics)<<16); //interpolate angle between two hallevents by scaling timer2 tics, 10923<<16 is 715827883 = 60°
 #endif
 	   }
@@ -2080,7 +2081,7 @@ void runPIcontrol(){
 			  	}
 			  else{
 				  PI_iq.recent_value=  (MS.Battery_Current>>6)*i8_direction*i8_reverse_flag;
-				  PI_iq.setpoint = (-BATTERYCURRENT_MAX>>6)*i8_direction*i8_reverse_flag;
+				  PI_iq.setpoint = (-REGEN_CURRENT_MAX>>6)*i8_direction*i8_reverse_flag;
 			    }
 		  }
 		  q31_u_q_temp =  PI_control(&PI_iq);
