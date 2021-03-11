@@ -465,14 +465,14 @@ int main(void)
 
 
    	ui8_adc_offset_done_flag=1;
-#if defined (ADC_BRAKE) && defined (AUTODETECT)
+#if defined (ADC_BRAKE) && (AUTODETECT == 1)
 
   	while (adcData[5]>THROTTLE_OFFSET){HAL_Delay(200);
    	   	   			y++;
    	   	   			if(y==35) autodetect();
    	   	   			}
 #endif
-#if !defined (ADC_BRAKE) && defined (AUTODETECT)
+#if !defined (ADC_BRAKE) && (AUTODETECT == 1)
 
   	while (!HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin)){HAL_Delay(200);
   	   			y++;
