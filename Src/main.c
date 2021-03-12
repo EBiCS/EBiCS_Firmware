@@ -100,7 +100,7 @@ uint8_t ui8_hall_state=0;
 uint8_t ui8_hall_state_old=0;
 uint8_t ui8_hall_case =0;
 uint16_t ui16_tim2_recent=0;
-uint16_t ui16_timertics=5000; 					//timertics between two hall events for 60Â° interpolation
+uint16_t ui16_timertics=5000; 					//timertics between two hall events for 60° interpolation
 uint16_t ui16_reg_adc_value;
 uint16_t ui16_brake_adc;
 uint32_t ui32_reg_adc_value_filter;
@@ -181,7 +181,7 @@ uint16_t switchtime[3];
 volatile uint16_t adcData[8]; //Buffer for ADC1 Input
 q31_t tic_array[6];
 
-//Rotor angle scaled from degree to q31 for arm_math. -180Â°-->-2^31, 0Â°-->0, +180Â°-->+2^31
+//Rotor angle scaled from degree to q31 for arm_math. -180°-->-2^31, 0°-->0, +180°-->+2^31
 const q31_t DEG_0 = 0;
 const q31_t DEG_plus60 = 715827883; //744755980
 const q31_t DEG_plus120= 1431655765; //1442085801
@@ -560,15 +560,18 @@ int main(void)
 		  if(ui16_reg_adc_value>THROTTLE_OFFSET)uint32_torque_cumulated += (ui16_reg_adc_value-THROTTLE_OFFSET);
 		  }
 	  }
-
+#if (SPEEDSOURCE == INTERNAL) && (DISPLAY_TYPE == DISPLAY_TYPE_KUNTENG)
+			  MS.Speed = uint32_tics_filtered>>3;
+#else
 	  //SPEED signal processing
 	  if(ui8_SPEED_flag){
 
 		  if(uint32_SPEED_counter>200){ //debounce
-		 // MS.Speed = uint32_SPEED_counter;
+			  MS.Speed = uint32_SPEED_counter;
 		  //HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
 		  uint32_SPEED_counter =0;
 		  ui8_SPEED_flag=0;
+
 
 #if (SPEEDSOURCE == EXTERNAL)
 		uint32_SPEEDx100_cumulated -=uint32_SPEEDx100_cumulated>>SPEEDFILTER;
@@ -577,7 +580,7 @@ int main(void)
 
 		  }
 	  }
-	  MS.Speed = uint32_tics_filtered>>3;
+#endif
 	  if(ui8_SPEED_control_flag){
 #if (SPEEDSOURCE == INTERNAL)
 		uint32_SPEEDx100_cumulated -=uint32_SPEEDx100_cumulated>>SPEEDFILTER;
@@ -635,7 +638,7 @@ if(uint16_mapped_BRAKE==0) {brake_flag=0;}
 
 		#ifdef TS_MODE //torque-sensor mode
 					//calculate current target form torque, cadence and assist level
-					int32_temp_current_target = (TS_COEF*(int16_t)(MS.assist_level)* (uint32_torque_cumulated>>5)/uint32_PAS)>>8; //>>5 aus Mittelung über eine Kurbelumdrehung, >>8 aus KM5S-Protokoll Assistlevel 0..255
+					int32_temp_current_target = (TS_COEF*(int16_t)(MS.assist_level)* (uint32_torque_cumulated>>5)/uint32_PAS)>>8; //>>5 aus Mittelung �ber eine Kurbelumdrehung, >>8 aus KM5S-Protokoll Assistlevel 0..255
 
 					//limit currest target to max value
 					if(int32_temp_current_target>PH_CURRENT_MAX) int32_temp_current_target = PH_CURRENT_MAX;
@@ -774,7 +777,7 @@ if(uint16_mapped_BRAKE==0) {brake_flag=0;}
 	  //slow loop procedere @16Hz, for LEV standard every 4th loop run, send page,
 	  if(ui32_tim3_counter>500){
 
-		  MS.Temperature = adcData[6]*41>>8; //0.16 is calibration constant: Analog_in[10mV/Â°C]/ADC value. Depending on the sensor LM35)
+		  MS.Temperature = adcData[6]*41>>8; //0.16 is calibration constant: Analog_in[10mV/°C]/ADC value. Depending on the sensor LM35)
 		  MS.Voltage=adcData[0];
 		  if(uint32_SPEED_counter>127999){
 			  MS.Speed =128000;
@@ -934,7 +937,7 @@ static void MX_ADC1_Init(void)
     /**Common config 
     */
   hadc1.Instance = ADC1;
-  hadc1.Init.ScanConvMode = ADC_SCAN_ENABLE; //Scan muÃ fÃ¼r getriggerte Wandlung gesetzt sein
+  hadc1.Init.ScanConvMode = ADC_SCAN_ENABLE; //Scan muß für getriggerte Wandlung gesetzt sein
   hadc1.Init.ContinuousConvMode = DISABLE;
   hadc1.Init.DiscontinuousConvMode = DISABLE;
   hadc1.Init.ExternalTrigConv = ADC_EXTERNALTRIGCONV_T3_TRGO;// Trigger regular ADC with timer 3 ADC_EXTERNALTRIGCONV_T1_CC1;// // ADC_SOFTWARE_START; //
@@ -963,10 +966,10 @@ static void MX_ADC1_Init(void)
   sConfigInjected.InjectedNbrOfConversion = 1;
   sConfigInjected.InjectedSamplingTime = ADC_SAMPLETIME_1CYCLE_5;
   sConfigInjected.ExternalTrigInjecConv = ADC_EXTERNALTRIGINJECCONV_T1_CC4; // Hier bin ich nicht sicher ob Trigger out oder direkt CC4
-  sConfigInjected.AutoInjectedConv = DISABLE; //muÃ aus sein
+  sConfigInjected.AutoInjectedConv = DISABLE; //muß aus sein
   sConfigInjected.InjectedDiscontinuousConvMode = DISABLE;
   sConfigInjected.InjectedOffset = ui16_ph1_offset;//1900;
-  HAL_ADC_Stop(&hadc1); //ADC muÃ gestoppt sein, damit Triggerquelle gesetzt werden kann.
+  HAL_ADC_Stop(&hadc1); //ADC muß gestoppt sein, damit Triggerquelle gesetzt werden kann.
   if (HAL_ADCEx_InjectedConfigChannel(&hadc1, &sConfigInjected) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
@@ -1483,7 +1486,7 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 			q31_rotorposition_absolute=q31_rotorposition_PLL;
 #else
 			//estimation by extrapolating directly from the hallsensor information
-			q31_rotorposition_absolute = q31_rotorposition_hall + (q31_t)(i16_hall_order * i8_recent_rotor_direction * ((10923 * ui16_tim2_recent)/ui16_timertics)<<16); //interpolate angle between two hallevents by scaling timer2 tics, 10923<<16 is 715827883 = 60°
+			q31_rotorposition_absolute = q31_rotorposition_hall + (q31_t)(i16_hall_order * i8_recent_rotor_direction * ((10923 * ui16_tim2_recent)/ui16_timertics)<<16); //interpolate angle between two hallevents by scaling timer2 tics, 10923<<16 is 715827883 = 60�
 #endif
 	   }
 		   else { //run in 6 step mode
@@ -1830,19 +1833,19 @@ int32_t map (int32_t x, int32_t in_min, int32_t in_max, int32_t out_min, int32_t
 //assuming, a proper AD conversion takes 350 timer tics, to be confirmed. DT+TR+TS deadtime + noise subsiding + sample time
 void dyn_adc_state(q31_t angle){
 	if (switchtime[2]>switchtime[0] && switchtime[2]>switchtime[1]){
-		MS.char_dyn_adc_state = 1; // -90Â° .. +30Â°: Phase C at high dutycycles
+		MS.char_dyn_adc_state = 1; // -90° .. +30°: Phase C at high dutycycles
 		if(switchtime[2]>1500)TIM1->CCR4 =  switchtime[2]-TRIGGER_OFFSET_ADC;
 		else TIM1->CCR4 = TRIGGER_DEFAULT;
 	}
 
 	if (switchtime[0]>switchtime[1] && switchtime[0]>switchtime[2]) {
-		MS.char_dyn_adc_state = 2; // +30Â° .. 150Â° Phase A at high dutycycles
+		MS.char_dyn_adc_state = 2; // +30° .. 150° Phase A at high dutycycles
 		if(switchtime[0]>1500)TIM1->CCR4 =  switchtime[0]-TRIGGER_OFFSET_ADC;
 		else TIM1->CCR4 = TRIGGER_DEFAULT;
 	}
 
 	if (switchtime[1]>switchtime[0] && switchtime[1]>switchtime[2]){
-		MS.char_dyn_adc_state = 3; // +150 .. -90Â° Phase B at high dutycycles
+		MS.char_dyn_adc_state = 3; // +150 .. -90° Phase B at high dutycycles
 		if(switchtime[1]>1500)TIM1->CCR4 =  switchtime[1]-TRIGGER_OFFSET_ADC;
 		else TIM1->CCR4 = TRIGGER_DEFAULT;
 	}
@@ -1903,7 +1906,7 @@ void autodetect(){
    	q31_t diffangle=0;
    	HAL_Delay(5);
    	for(i=0;i<1080;i++){
-   		q31_rotorposition_absolute+=11930465; //drive motor in open loop with steps of 1°
+   		q31_rotorposition_absolute+=11930465; //drive motor in open loop with steps of 1�
    		HAL_Delay(5);
    		if (q31_rotorposition_absolute>-60&&q31_rotorposition_absolute<60){
    			switch (ui8_hall_case) //12 cases for each transition from one stage to the next. 6x forward, 6x reverse
