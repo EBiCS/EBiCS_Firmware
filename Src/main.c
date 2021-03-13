@@ -101,10 +101,10 @@ uint8_t ui8_hall_state_old=0;
 uint8_t ui8_hall_case =0;
 uint16_t ui16_tim2_recent=0;
 uint16_t ui16_timertics=5000; 					//timertics between two hall events for 60° interpolation
-uint16_t ui16_reg_adc_value;
+uint16_t ui16_throttle;
 uint16_t ui16_brake_adc;
-uint32_t ui32_reg_adc_value_filter;
-uint32_t ui32_brake_adc;
+uint32_t ui32_throttle_cumulated;
+uint32_t ui32_brake_adc_cumulated;
 uint16_t ui16_ph1_offset=0;
 uint16_t ui16_ph2_offset=0;
 uint16_t ui16_ph3_offset=0;
@@ -490,7 +490,7 @@ int main(void)
 
    	while(adcData[1]>THROTTLE_OFFSET)
    	  	{
-   	  	//do nothing (For Safety switching on)
+   	  	//do nothing (For Safety at switching on)
    	  	}
 
 #if (DISPLAY_TYPE != DISPLAY_TYPE_DEBUG || !AUTODETECT)
@@ -507,7 +507,7 @@ int main(void)
  // set absolute position to corresponding hall pattern.
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG)
-    printf_("Lishui FOC v0.9 \n ");
+    printf_("Lishui FOC v1.0 \n ");
     printf_("Motor specific angle:  %d, direction %d \n ", q31_rotorposition_motor_specific, i16_hall_order);
 #endif
 
@@ -548,6 +548,24 @@ int main(void)
 	  ui8_UART_flag=0;
 	  }
 
+
+	  //process regualr ADC
+	  if(ui8_adc_regular_flag){
+		ui32_throttle_cumulated -= ui32_throttle_cumulated>>4;
+	#ifdef TQONAD1
+		ui32_throttle_cumulated += adcData[6]; //get value from AD1 PB1
+	#else
+		ui32_throttle_cumulated += adcData[1]; //get value from SP
+	#endif
+		ui32_brake_adc_cumulated -= ui32_brake_adc_cumulated>>4;
+		ui32_brake_adc_cumulated+=adcData[5];//get value for analog brake from AD2 = PB0
+		ui16_brake_adc=ui32_brake_adc_cumulated>>4;
+		ui16_throttle = ui32_throttle_cumulated>>4;
+
+		ui8_adc_regular_flag=0;
+
+	  }
+
 	  //PAS signal processing
 	  if(ui8_PAS_flag){
 		  if(uint32_PAS_counter>100){ //debounce
@@ -564,7 +582,7 @@ int main(void)
 		  ui8_PAS_flag=0;
 		  //read in and sum up torque-signal within one crank revolution (for sempu sensor 32 PAS pulses/revolution, 2^5=32)
 		  uint32_torque_cumulated -= uint32_torque_cumulated>>5;
-		  if(ui16_reg_adc_value>THROTTLE_OFFSET)uint32_torque_cumulated += (ui16_reg_adc_value-THROTTLE_OFFSET);
+		  if(ui16_throttle>THROTTLE_OFFSET)uint32_torque_cumulated += (ui16_throttle-THROTTLE_OFFSET);
 		  }
 	  }
 #if (SPEEDSOURCE == INTERNAL) && (DISPLAY_TYPE == DISPLAY_TYPE_KUNTENG)
@@ -702,7 +720,7 @@ if(uint16_mapped_BRAKE==0) {brake_flag=0;}
 #ifdef THROTTLE_OVERRIDE
 
 				  // read in throttle for throttle override
-				  uint16_mapped_throttle = map(ui16_reg_adc_value, THROTTLE_OFFSET , THROTTLE_MAX, 0, PH_CURRENT_MAX);
+				  uint16_mapped_throttle = map(ui16_throttle, THROTTLE_OFFSET , THROTTLE_MAX, 0, PH_CURRENT_MAX);
 				  //check for throttle override
 				  if(uint16_mapped_PAS>uint16_mapped_throttle)   {
 
@@ -1385,19 +1403,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 // regular ADC callback
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 {
-	ui32_reg_adc_value_filter -= ui32_reg_adc_value_filter>>4;
-#ifdef TQONAD1
-	ui32_reg_adc_value_filter += adcData[6]; //get value from AD1
-#else
-	ui32_reg_adc_value_filter += adcData[1]; //get value from SP
-#endif
-	ui32_brake_adc -= ui32_brake_adc>>4;
-	ui32_brake_adc+=adcData[5];//get value from analog brake
-	ui16_brake_adc=ui32_brake_adc>>4;
-	ui16_reg_adc_value = ui32_reg_adc_value_filter>>4;
-
 	ui8_adc_regular_flag=1;
-
 }
 
 //injected ADC
@@ -1898,7 +1904,7 @@ static void set_inj_channel(char state){
 
 
 }
-throttle_is_set(void){
+uint8_t throttle_is_set(void){
 	if(uint16_mapped_throttle > 0)
 	{
 		return 1;
