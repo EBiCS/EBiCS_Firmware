@@ -465,7 +465,8 @@ int main(void)
 
 
    	ui8_adc_offset_done_flag=1;
-#if defined (ADC_BRAKE) && (AUTODETECT == 1)
+
+#if defined (ADC_BRAKE)
 
   	while ((adcData[5]>THROTTLE_OFFSET)&&(adcData[1]>(THROTTLE_MAX-THROTTLE_OFFSET))){HAL_Delay(200);
    	   	   			y++;
@@ -473,13 +474,14 @@ int main(void)
    	   	   			}
 
 #endif
-#if !defined (ADC_BRAKE) && (AUTODETECT == 1)
 
-  	while ((!HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin))&&(adcData[1]>(THROTTLE_MAX-THROTTLE_OFFSET))){HAL_Delay(200);
+//run autodect, whenn brake is pulled an throttle is pulled for 10 at startup
+  	while ((!HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin))&&(adcData[1]>(THROTTLE_OFFSET+20))){
+  				HAL_Delay(200);
   	   			y++;
   	   			if(y==35) autodetect();
   	   			}
-#endif
+
 #if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG)
    	printf_("phase current offsets:  %d, %d, %d \n ", ui16_ph1_offset, ui16_ph2_offset, ui16_ph3_offset);
 #if (AUTODETECT == 1)
