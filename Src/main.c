@@ -635,6 +635,9 @@ int main(void)
 
 			  //current target calculation
 			//highest priority: regen by brake lever
+
+		if(HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin)) brake_flag=0;
+		else brake_flag=1;
 #ifdef ADC_BRAKE
 		uint16_mapped_BRAKE = map(ui16_brake_adc, THROTTLE_OFFSET , THROTTLE_MAX, 0, REGEN_CURRENT);
 if(uint16_mapped_BRAKE>0){
@@ -646,13 +649,13 @@ if(uint16_mapped_BRAKE>0){
 				}
 if(uint16_mapped_BRAKE==0) {brake_flag=0;}
 #else
-					if(!HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin)){
-						brake_flag = 1;
-					if(tics_to_speed(uint32_tics_filtered>>3)>6)int32_current_target=-REGEN_CURRENT; //only apply regen, if motor is turning fast enough
-					if(tics_to_speed(uint32_tics_filtered>>3)>6)int32_current_target=-uint16_mapped_BRAKE;
-					else int32_current_target=0;
-									}
-					if(HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin)) {brake_flag=0;}
+
+				if(brake_flag){
+
+						if(tics_to_speed(uint32_tics_filtered>>3)>6)int32_current_target=-REGEN_CURRENT; //only apply regen, if motor is turning fast enough
+						else int32_current_target=0;
+				}
+
 #endif
 				//next priority: undervoltage protection
 				else if(MS.Voltage<VOLTAGE_MIN)int32_current_target=0;
@@ -836,7 +839,7 @@ if(uint16_mapped_BRAKE==0) {brake_flag=0;}
 		  //print values for debugging
 
 
-		 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", ui16_timertics, MS.i_q, int32_current_target,temp4, (uint16_t)adcData[1], MS.Battery_Current,internal_tics_to_speedx100(uint32_tics_filtered>>3),external_tics_to_speedx100(MS.Speed),uint32_SPEEDx100_cumulated>>SPEEDFILTER);
+		 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", ui16_timertics, MS.i_q, int32_current_target,((temp6 >> 23) * 180) >> 8, (uint16_t)adcData[1], MS.Battery_Current,internal_tics_to_speedx100(uint32_tics_filtered>>3),external_tics_to_speedx100(MS.Speed),uint32_SPEEDx100_cumulated>>SPEEDFILTER);
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",ui8_hall_state,(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5])) ;
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",tic_array[0],tic_array[1],tic_array[2],tic_array[3],tic_array[4],tic_array[5]) ;
 		  i=0;
