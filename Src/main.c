@@ -467,14 +467,15 @@ int main(void)
    	ui8_adc_offset_done_flag=1;
 #if defined (ADC_BRAKE) && (AUTODETECT == 1)
 
-  	while (adcData[5]>THROTTLE_OFFSET){HAL_Delay(200);
+  	while ((adcData[5]>THROTTLE_OFFSET)&&(adcData[1]>(THROTTLE_MAX-THROTTLE_OFFSET))){HAL_Delay(200);
    	   	   			y++;
    	   	   			if(y==35) autodetect();
    	   	   			}
+
 #endif
 #if !defined (ADC_BRAKE) && (AUTODETECT == 1)
 
-  	while (!HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin)){HAL_Delay(200);
+  	while ((!HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin))&&(adcData[1]>(THROTTLE_MAX-THROTTLE_OFFSET))){HAL_Delay(200);
   	   			y++;
   	   			if(y==35) autodetect();
   	   			}
@@ -486,6 +487,12 @@ int main(void)
 #endif
 
 #endif
+
+   	while(adcData[1]>THROTTLE_OFFSET)
+   	  	{
+   	  	//do nothing (For Safety switching on)
+   	  	}
+
 #if (DISPLAY_TYPE != DISPLAY_TYPE_DEBUG || !AUTODETECT)
    	EE_ReadVariable(EEPROM_POS_SPEC_ANGLE, &MP.spec_angle);
 
