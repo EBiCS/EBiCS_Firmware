@@ -26,6 +26,7 @@ uint8_t ui8_moving_indication = 0;
 uint8_t ui8_UARTCounter = 0;
 uint8_t ui8_msg_received=0;
 int16_t i16_eeprom_temp=0;
+uint8_t ui8_gear_ratio = GEAR_RATIO;
 
 volatile struc_lcd_configuration_variables lcd_configuration_variables;
 
@@ -87,11 +88,11 @@ void kunteng_init()
 void display_update(MotorState_t* MS_U)
 {
 
-  // prepare moving indication info
+   // prepare moving indication info
   ui8_moving_indication = 0;
- // if (brake_is_set ()) { ui8_moving_indication |= (1 << 5); }
+if (!HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin)) { ui8_moving_indication |= (1 << 5); }
   //if (ebike_app_cruise_control_is_set ()) { ui8_moving_indication |= (1 << 3); }
-  //if (throttle_is_set ()) { ui8_moving_indication |= (1 << 1); }
+  if (throttle_is_set ()) { ui8_moving_indication |= (1 << 1); }
   //if (pas_is_set ()) { ui8_moving_indication |= (1 << 4); }
 
 
@@ -103,7 +104,7 @@ void display_update(MotorState_t* MS_U)
   else if (ui32_battery_volts > ((uint16_t) BATTERY_PACK_VOLTS_20)) { ui8_battery_soc = 4; } // 1 bar
   else { ui8_battery_soc = 3; } // empty
 
-  ui16_wheel_period_ms = (MS_U->Speed*PULSES_PER_REVOLUTION)>>3; //Speed Zähler wird mit 8kHz hochgezählt
+  ui16_wheel_period_ms= ((MS_U->Speed)*6*(ui8_gear_ratio/2)/500);
   //ui16_wheel_period_ms= ((MS_U->Speed)*6*GEAR_RATIO/500); //*6 because 6 hall interrupts per revolution, /500 because of 500 kHz timer setting
   ui8_tx_buffer [0] =  65;
   // B1: battery level
@@ -199,6 +200,9 @@ void check_message(MotorState_t* MS_D, MotorParams_t* MP_D)
 		lcd_configuration_variables.ui8_c12 = (ui8_rx_buffer[9] & 0x0F);
 		lcd_configuration_variables.ui8_c13 = (ui8_rx_buffer[10] & 0x1C) >> 2;
 		lcd_configuration_variables.ui8_c14 = (ui8_rx_buffer[7] & 0x60) >> 5;
+		if(lcd_configuration_variables.ui8_p1 != ui8_gear_ratio){
+				    	 ui8_gear_ratio=lcd_configuration_variables.ui8_p1;
+				     }
 
      if(lcd_configuration_variables.ui8_light){
     	 HAL_GPIO_WritePin(LIGHT_GPIO_Port, LIGHT_Pin, GPIO_PIN_SET);
