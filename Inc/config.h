@@ -76,4 +76,7 @@
 #define SPEEDFILTER 1
 #define SIXSTEPTHRESHOLD 9000
 
+#define SPDSHFT 0
+//#define ADC_BRAKE
+
 #endif /* CONFIG_H_ */

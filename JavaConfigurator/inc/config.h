@@ -15,6 +15,8 @@
 #define DISPLAY_TYPE_BAFANG (1<<2)							// For 'Blaupunkt' Display of Prophete Entdecker
 #define DISPLAY_TYPE_KUNTENG (1<<1)							// For ASCII-Output in Debug mode
 #define DISPLAY_TYPE_DEBUG (1<<0)							// For ASCII-Output in Debug mode);
+#define EXTERNAL 1
+#define INTERNAL 0
 
 #define TRIGGER_OFFSET_ADC 50
 #define TRIGGER_DEFAULT 2020
@@ -37,6 +39,11 @@
 #define I_FACTOR_I_D 20
 #define P_FACTOR_PLL 5
 #define I_FACTOR_PLL 11
+#define P_FACTOR_SPEED 100
+#define I_FACTOR_SPEED 10
+#define SPDSHFT 0
+#define SPEEDFILTER 1
+#define SIXSTEPTHRESHOLD 3500
 #define TS_COEF 60000
 #define PAS_TIMEOUT 8000
 #define RAMP_END 1600
@@ -60,6 +67,9 @@
 #define TQONAD1
 #define DISPLAY_TYPE DISPLAY_TYPE_EBiCS
 #define SPEED_PLL
+#define ADC_BRAKE
+#define SPEEDSOURCE EXTERNAL
+#define AUTODETECT 0
 #define REVERSE 1
 #define THROTTLE_OVERRIDE
 
