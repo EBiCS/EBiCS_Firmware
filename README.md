@@ -1,6 +1,7 @@
-This project is still experimental. The Master-branch supports sensored motors and Bafang-, Kunteng- and Kingmeter-Displays and debugging.
+This project has now reached a certain maturity, use is always at your own risk. The authors do not accept any liability for damage to property or personal injury!  
+The Master-branch supports sensored motors and Bafang-, Kunteng- and Kingmeter-Displays and debugging.
 
-All user relevant settings have to be done in the config.h
+User specific settings can be done in a user-friendly gui.
 
 throttle, "torque-simulation" and torquesensor-modes are available.
 
