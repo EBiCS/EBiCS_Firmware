@@ -475,7 +475,7 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
 
 	case 3:
 
-
+		if(KM_ctx->RxBuff[0]==0x3A && KM_ctx->RxBuff[1]==0x1A ){
 
        switch(KM_ctx->RxBuff[2])
             {
@@ -518,7 +518,21 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
                break;
             }
 
+		}
+		else{
+			KM_ctx->RxState = RXSTATE_STARTCODE;
+			 //resyncronize the communication
+				       CLEAR_BIT(DMA1_Channel5->CCR, DMA_CCR_EN);
+					   DMA1_Channel5->CNDTR=3;
+					   SET_BIT(DMA1_Channel5->CCR, DMA_CCR_EN);
 
+					   if(KM_ctx->RxBuff[1]==0x0D && KM_ctx->RxBuff[2]==0x0A ){
+				  	   CLEAR_BIT(DMA1_Channel5->CCR, DMA_CCR_EN);
+				  	   DMA1_Channel5->CNDTR= Rx_message_length;
+				  	   SET_BIT(DMA1_Channel5->CCR, DMA_CCR_EN);
+					   }
+
+		}
 
     // Message received completely
     if(KM_ctx->RxState == RXSTATE_DONE)
