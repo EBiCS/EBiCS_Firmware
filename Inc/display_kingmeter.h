@@ -140,7 +140,7 @@ typedef struct
 
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_901U)
- #define KM_MAX_RXBUFF 20
+ #define KM_MAX_RXBUFF 30
  #define KM5S_NM_RXBUFF 15 // KM5S RX-Buffer length for normal mode
  #define KM_MAX_TXBUFF 13
 #endif
@@ -164,12 +164,12 @@ typedef struct
 
 // Public function prototypes
 
-void KingMeter_Init (KINGMETER_t* KM_ctx);
+
 
 
 void KingMeter_Service(KINGMETER_t* KM_ctx);
 
-
+void KingMeter_Init (KINGMETER_t* KM_ctx);
 
 
 #endif // Display Type Kingmeter

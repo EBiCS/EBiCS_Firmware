@@ -420,8 +420,6 @@ int main(void)
             }
 
 
-       HAL_Delay(800);
-
 #if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
        KingMeter_Init (&KM);
 #endif
@@ -2033,7 +2031,7 @@ void autodetect(){
 #endif
 
     HAL_Delay(5);
-    NVIC_SystemReset();
+
 }
 
 void get_standstill_position(){

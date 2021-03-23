@@ -24,6 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "main.h"
 #include "display_kingmeter.h"
 #include "stm32f1xx_hal.h"
+#include "print.h"
 
 #if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
 
@@ -360,6 +361,7 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
     static uint8_t  l; //position of LF 0x0A
     static uint8_t  first_run_flag=0;
     static uint8_t  n=0;
+    static uint8_t  o=0;
 
     uint16_t CheckSum;
     static  uint8_t  TxBuff[KM_MAX_TXBUFF];
@@ -375,10 +377,16 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
 
 	case 0:
 
+
+
+		//	HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&KM_ctx->RxBuff, 19);
+
+
+
 	    for(m=0; m<19; m++)
 	                {
 
-	                    if(!j&&KM_ctx->RxBuff[m]==0x3A)j=m;
+	                    if(!o&&KM_ctx->RxBuff[m]==0x3A){j=m;o=1;}
 	                    if(!k&&KM_ctx->RxBuff[m]==0x0D)k=m;
 	                    if(!l&&KM_ctx->RxBuff[m]==0x0A)l=m;
 	                }
@@ -387,7 +395,7 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
 	    if (j<k && l==k+1){
 	      	Rx_message_length=l-j+1;
 	      	handshake_position=KM_ctx->RxBuff[9+j];
-
+	      	//HAL_Delay(100);
 		   HAL_UART_DMAStop(&huart1);
 
 		    if (HAL_UART_Receive_DMA(&huart1, (uint8_t *)KM_ctx->RxBuff, Rx_message_length) != HAL_OK)
@@ -396,7 +404,7 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
 		     }
 		    if(Rx_message_length==10&&KM_ctx->RxBuff[j+2]==0x52)first_run_flag=3;
 		    else first_run_flag=1;
-
+		   // printf_("first run status %d, %d, %d \n ",n,first_run_flag,Rx_message_length);
 
 	    }
 
@@ -409,11 +417,6 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
 
 		break;
 	case 1:
-
-		//TxBuff[0]=KM_ctx->RxBuff[9];
-		//TxBuff[1]=KM_901U_HANDSHAKE[handshake_position];
-	   // HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuff, 2);
-	    //HAL_Delay(15);
 
 		TxBuff[0] = 0XFD;                                       // StartCode
 		TxBuff[1] = 0xFB;                                       // SrcAdd:  Controller
