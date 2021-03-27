@@ -641,8 +641,8 @@ int main(void)
 		uint16_mapped_BRAKE = map(ui16_brake_adc, THROTTLE_OFFSET , THROTTLE_MAX, 0, REGEN_CURRENT);
 
 
-		if(uint16_mapped_BRAKE>0) brake_flag=0;
-		else brake_flag=1;
+		if(uint16_mapped_BRAKE>0) brake_flag=1;
+		else brake_flag=0;
 
 
 		if(brake_flag){
