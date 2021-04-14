@@ -845,7 +845,7 @@ int main(void)
 		  //print values for debugging
 
 
-		 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", ui16_timertics, MS.i_q, int32_current_target,((temp6 >> 23) * 180) >> 8, (uint16_t)adcData[1], MS.Battery_Current,uint32_tics_filtered>>3,internal_tics_to_speedx100(uint32_tics_filtered>>3),temp5);
+		 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", (int16_t)(((q31_rotorposition_motor_specific>>23)*180)>>8), MS.i_q, int32_current_target,((temp6 >> 23) * 180) >> 8, (uint16_t)adcData[1], MS.Battery_Current,uint32_tics_filtered>>3,internal_tics_to_speedx100(uint32_tics_filtered>>3),temp5);
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",ui8_hall_state,(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5])) ;
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",tic_array[0],tic_array[1],tic_array[2],tic_array[3],tic_array[4],tic_array[5]) ;
 		  i=0;
@@ -1930,7 +1930,7 @@ void autodetect(){
    	for(i=0;i<1080;i++){
    		q31_rotorposition_absolute+=11930465; //drive motor in open loop with steps of 1°
    		HAL_Delay(5);
-   		if (q31_rotorposition_absolute>-60&&q31_rotorposition_absolute<60){
+   		if (q31_rotorposition_absolute>-300&&q31_rotorposition_absolute<300){
    			switch (ui8_hall_case) //12 cases for each transition from one stage to the next. 6x forward, 6x reverse
    						{
    					//6 cases for forward direction
@@ -2024,8 +2024,8 @@ void autodetect(){
     }
 
     HAL_FLASH_Lock();
-
-
+    q31_rotorposition_motor_specific >>=16;
+    q31_rotorposition_motor_specific <<=16;
 #if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG)
     printf_("Motor specific angle:  %d, direction %d \n ", (int16_t)(((q31_rotorposition_motor_specific>>23)*180)>>8), i16_hall_order);
 #endif
