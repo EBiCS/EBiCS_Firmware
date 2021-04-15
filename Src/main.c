@@ -151,6 +151,7 @@ q31_t q31_angle_per_tic = 0;
 uint8_t ui8_UART_Counter=0;
 int8_t i8_recent_rotor_direction=1;
 int16_t i16_hall_order=1;
+uint16_t ui16_erps=0;
 
 uint32_t uint32_torque_cumulated=0;
 uint32_t uint32_PAS_cumulated=32000;
@@ -523,7 +524,10 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-
+	 /* if(PI_flag){
+	  runPIcontrol();
+	  PI_flag=0;
+	  }*/
 	  //display message processing
 	  if(ui8_UART_flag){
 #if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
@@ -611,6 +615,7 @@ int main(void)
 		uint32_SPEEDx100_cumulated -=uint32_SPEEDx100_cumulated>>SPEEDFILTER;
 		uint32_SPEEDx100_cumulated +=internal_tics_to_speedx100(uint32_tics_filtered>>3);
 #endif
+		ui16_erps=250000/((uint32_tics_filtered>>3)*6);
 		ui8_SPEED_control_flag=0;
 	  }
 
@@ -845,7 +850,7 @@ int main(void)
 		  //print values for debugging
 
 
-		 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", (int16_t)(((q31_rotorposition_motor_specific>>23)*180)>>8), MS.i_q, int32_current_target,((temp6 >> 23) * 180) >> 8, (uint16_t)adcData[1], MS.Battery_Current,uint32_tics_filtered>>3,internal_tics_to_speedx100(uint32_tics_filtered>>3),temp5);
+		 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", (int16_t)(((q31_rotorposition_motor_specific>>23)*180)>>8), MS.i_q, int32_current_target, ui16_erps, (uint16_t)adcData[1], MS.Battery_Current,uint32_tics_filtered>>3,internal_tics_to_speedx100(uint32_tics_filtered>>3),temp5);
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",ui8_hall_state,(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5])) ;
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",tic_array[0],tic_array[1],tic_array[2],tic_array[3],tic_array[4],tic_array[5]) ;
 		  i=0;
@@ -1385,7 +1390,7 @@ static void MX_GPIO_Init(void)
   HAL_NVIC_SetPriority(EXTI2_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(EXTI2_IRQn);
 
-  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 0, 0);
+  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 2, 0);
   HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
 
 }
@@ -1488,7 +1493,7 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 #endif
 
 
-
+	//__disable_irq();
 
 	//extrapolate recent rotor position
 	ui16_tim2_recent = __HAL_TIM_GET_COUNTER(&htim2); // read in timertics since last event
@@ -1501,7 +1506,7 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 		   q31_rotorposition_PLL += q31_angle_per_tic;
 #endif
 		   // angle estimation
-		   if (ui16_tim2_recent < ui16_timertics+(ui16_timertics>>2) && !ui8_overflow_flag && !ui8_6step_flag){ //prevent angle running away at standstill
+		   if (ui16_tim2_recent < ui16_timertics+(ui16_timertics>>1) && !ui8_overflow_flag && !ui8_6step_flag){ //prevent angle running away at standstill
 
 #ifdef SPEED_PLL
 			// estimation by speed PLL
@@ -1522,6 +1527,8 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 		   }
 
     }//end if hall angle detect
+
+    //__enable_irq();
 
 #ifndef DISABLE_DYNAMIC_ADC
 
@@ -1547,7 +1554,7 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 	TIM1->CCR1 =  (uint16_t) switchtime[0];
 	TIM1->CCR2 =  (uint16_t) switchtime[1];
 	TIM1->CCR3 =  (uint16_t) switchtime[2];
-
+	//__enable_irq();
 
 
 	//HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
@@ -1572,7 +1579,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 	ui16_tim2_recent = __HAL_TIM_GET_COUNTER(&htim2); // read in timertics since last hall event
 
 
-	if(ui16_tim2_recent>100){//debounce
+	if(ui16_tim2_recent>50){//debounce
 		ui16_timertics = ui16_tim2_recent; //save timertics since last hall event
 		uint32_tics_filtered-=uint32_tics_filtered>>3;
 		uint32_tics_filtered+=ui16_timertics;
@@ -1581,8 +1588,6 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 	   ui8_SPEED_control_flag=1;
 
 	}
-
-
 
 	switch (ui8_hall_case) //12 cases for each transition from one stage to the next. 6x forward, 6x reverse
 			{
@@ -1657,7 +1662,14 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 		} // end case
 
 #ifdef SPEED_PLL
+	if(ui16_erps>30){   //360 interpolation at higher erps
+		if(ui8_hall_case==32||ui8_hall_case==23){
+			q31_angle_per_tic = speed_PLL(q31_rotorposition_PLL,q31_rotorposition_hall, SPDSHFT*tics_higher_limit/(uint32_tics_filtered>>3));
+		}
+	}
+	else{
 		q31_angle_per_tic = speed_PLL(q31_rotorposition_PLL,q31_rotorposition_hall, SPDSHFT*tics_higher_limit/(uint32_tics_filtered>>3));
+	}
 
 #endif
 

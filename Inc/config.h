@@ -55,7 +55,7 @@
 //#define TS_MODE
 //#define TQONAD1
 #define DISPLAY_TYPE DISPLAY_TYPE_DEBUG
-#define REVERSE 1
+#define REVERSE -1
 #define PUSHASSIST_CURRENT 30
 #define VOLTAGE_MIN 300
 #define REGEN_CURRENT 200
@@ -65,7 +65,7 @@
 //#define SPEEDTHROTTLE
 #define THROTTLE_OVERRIDE
 #define REGEN_CURRENT_MAX 10000
-//#define SPEED_PLL
+#define SPEED_PLL
 #define P_FACTOR_PLL 10
 #define I_FACTOR_PLL 9
 #define AUTODETECT 1
