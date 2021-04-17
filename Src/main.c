@@ -407,8 +407,8 @@ int main(void)
    // TIM1->BDTR &= ~(1L<<15); //reset MOE (Main Output Enable) bit to disable PWM output
     // Start Timer 2
     HAL_TIM_IC_Start_IT(&htim2, TIM_CHANNEL_1);
-    HAL_TIM_IC_Start_IT(&htim2, TIM_CHANNEL_2);
-    HAL_TIM_IC_Start_IT(&htim2, TIM_CHANNEL_3);
+    //HAL_TIM_IC_Start_IT(&htim2, TIM_CHANNEL_2);
+    //HAL_TIM_IC_Start_IT(&htim2, TIM_CHANNEL_3);
 
        // Start Timer 3
 
@@ -848,7 +848,7 @@ int main(void)
 		  //print values for debugging
 
 
-		 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", (int16_t)(((q31_rotorposition_motor_specific>>23)*180)>>8), MS.i_q, int32_current_target, ui16_erps, (uint16_t)adcData[1], MS.Battery_Current,uint32_tics_filtered>>3,internal_tics_to_speedx100(uint32_tics_filtered>>3),temp5);
+		 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", (int16_t)(((q31_rotorposition_motor_specific>>23)*180)>>8), MS.i_q, int32_current_target, ui16_erps, (uint16_t)adcData[1], ui8_hall_state,uint32_tics_filtered>>3,internal_tics_to_speedx100(uint32_tics_filtered>>3),temp5);
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",ui8_hall_state,(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5])) ;
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",tic_array[0],tic_array[1],tic_array[2],tic_array[3],tic_array[4],tic_array[5]) ;
 		  i=0;
@@ -1210,8 +1210,8 @@ static void MX_TIM1_Init(void)
 /* TIM2 init function */
 static void MX_TIM2_Init(void)
 {
-
 	  TIM_ClockConfigTypeDef sClockSourceConfig;
+	  TIM_SlaveConfigTypeDef sSlaveConfig;
 	  TIM_MasterConfigTypeDef sMasterConfig;
 	  TIM_IC_InitTypeDef sConfigIC;
 
@@ -1237,6 +1237,14 @@ static void MX_TIM2_Init(void)
 	    _Error_Handler(__FILE__, __LINE__);
 	  }
 
+	  sSlaveConfig.SlaveMode = TIM_SLAVEMODE_RESET;
+	  sSlaveConfig.InputTrigger = TIM_TS_TI1F_ED;
+	  sSlaveConfig.TriggerFilter = 0;
+	  if (HAL_TIM_SlaveConfigSynchronization(&htim2, &sSlaveConfig) != HAL_OK)
+	  {
+	    _Error_Handler(__FILE__, __LINE__);
+	  }
+
 	  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
 	  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
 	  if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
@@ -1244,8 +1252,8 @@ static void MX_TIM2_Init(void)
 	    _Error_Handler(__FILE__, __LINE__);
 	  }
 
-	  sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_BOTHEDGE;
-	  sConfigIC.ICSelection = TIM_ICSELECTION_DIRECTTI;
+	  sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_RISING;
+	  sConfigIC.ICSelection = TIM_ICSELECTION_TRC;
 	  sConfigIC.ICPrescaler = TIM_ICPSC_DIV1;
 	  sConfigIC.ICFilter = 8;
 	  if (HAL_TIM_IC_ConfigChannel(&htim2, &sConfigIC, TIM_CHANNEL_1) != HAL_OK)
@@ -1253,12 +1261,18 @@ static void MX_TIM2_Init(void)
 	    _Error_Handler(__FILE__, __LINE__);
 	  }
 
+	  sConfigIC.ICSelection = TIM_ICSELECTION_DIRECTTI;
 	  if (HAL_TIM_IC_ConfigChannel(&htim2, &sConfigIC, TIM_CHANNEL_2) != HAL_OK)
 	  {
 	    _Error_Handler(__FILE__, __LINE__);
 	  }
 
 	  if (HAL_TIM_IC_ConfigChannel(&htim2, &sConfigIC, TIM_CHANNEL_3) != HAL_OK)
+	  {
+	    _Error_Handler(__FILE__, __LINE__);
+	  }
+
+	  if (HAL_TIM_ConfigTI1Input(&htim2, TIM_TI1SELECTION_XORCOMBINATION) != HAL_OK)
 	  {
 	    _Error_Handler(__FILE__, __LINE__);
 	  }
@@ -1372,7 +1386,7 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pins : Hall_1_Pin Hall_2_Pin Hall_3_Pin */
   GPIO_InitStruct.Pin = Hall_1_Pin|Hall_2_Pin|Hall_3_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
@@ -1581,24 +1595,11 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 
 void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef* htim)
 {
-	 __HAL_TIM_SET_COUNTER(&htim2,0); //reset tim2 counter
-	switch (htim->Channel){
-	case HAL_TIM_ACTIVE_CHANNEL_1:
+	 //__HAL_TIM_SET_COUNTER(&htim2,0); //reset tim2 counter
+
 		ui16_timertics = TIM2->CCR1;
-				break;
-	case HAL_TIM_ACTIVE_CHANNEL_2:
-		ui16_timertics = TIM2->CCR2;
-				break;
-	case HAL_TIM_ACTIVE_CHANNEL_3:
-		ui16_timertics = TIM2->CCR3;
-				break;
-	case HAL_TIM_ACTIVE_CHANNEL_4:
-		printf_("Capture Callback Channel 4,  \n ");
-				break;
-	case HAL_TIM_ACTIVE_CHANNEL_CLEARED:
-		printf_("Capture Callback Channel Cleared,  \n ");
-				break;
-	}
+
+
 	//Hall sensor event processing
 
 		ui8_hall_state = GPIOA->IDR & 0b111; //Mask input register with Hall 1 - 3 bits
@@ -2086,6 +2087,8 @@ void get_standstill_position(){
 			{
 			//6 cases for forward direction
 			case 2:
+
+
 				q31_rotorposition_hall = DEG_0 + q31_rotorposition_motor_specific;
 				break;
 			case 6:
