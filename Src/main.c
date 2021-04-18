@@ -1239,7 +1239,7 @@ static void MX_TIM2_Init(void)
 
 	  sSlaveConfig.SlaveMode = TIM_SLAVEMODE_RESET;
 	  sSlaveConfig.InputTrigger = TIM_TS_TI1F_ED;
-	  sSlaveConfig.TriggerFilter = 0;
+	  sSlaveConfig.TriggerFilter = 8;
 	  if (HAL_TIM_SlaveConfigSynchronization(&htim2, &sSlaveConfig) != HAL_OK)
 	  {
 	    _Error_Handler(__FILE__, __LINE__);
