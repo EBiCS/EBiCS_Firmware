@@ -459,7 +459,12 @@ int main(void)
     ui16_ph2_offset=ui16_ph2_offset>>5;
     ui16_ph3_offset=ui16_ph3_offset>>5;
 
-
+#ifdef DISABLE_DYNAMIC_ADC // set  injected channel with offsets
+	 ADC1->JSQR=0b00100000000000000000; //ADC1 injected reads phase A JL = 0b00, JSQ4 = 0b00100 (decimal 4 = channel 4)
+	 ADC1->JOFR1 = ui16_ph1_offset;
+	 ADC2->JSQR=0b00101000000000000000; //ADC2 injected reads phase B, JSQ4 = 0b00101, decimal 5
+	 ADC2->JOFR1 = ui16_ph2_offset;
+#endif
 
    	ui8_adc_offset_done_flag=1;
 
