@@ -126,6 +126,10 @@ uint8_t ui8_speedcase=0;
 uint8_t ui8_speedfactor=0;
 int8_t i8_direction= REVERSE; //for permanent reverse direction
 int8_t i8_reverse_flag = 1; //for temporaribly reverse direction
+uint8_t ui8_KV_detect_flag = 0; //for getting the KV of the motor after auto angle detect
+uint16_t ui16_KV_detect_counter = 0; //for getting timing of the KV detect
+int16_t ui32_KV = 0;
+
 
 volatile uint8_t ui8_adc_offset_done_flag=0;
 volatile uint8_t ui8_print_flag=0;
@@ -267,6 +271,9 @@ int8_t tics_to_speed (uint32_t tics);
 int16_t internal_tics_to_speedx100 (uint32_t tics);
 int16_t external_tics_to_speedx100 (uint32_t tics);
 
+enum state {Stop, SixStep, Regen, Running, BatteryCurrentLimit};
+enum state SystemState;
+
 
 
 /* USER CODE END PFP */
@@ -335,17 +342,17 @@ int main(void)
   PI_iq.shift=10;
   PI_iq.limit_i=_U_MAX;
 
-#ifdef SPEEDTHROTTLE
+
 
   PI_speed.gain_i=I_FACTOR_SPEED;
   PI_speed.gain_p=P_FACTOR_SPEED;
   PI_speed.setpoint = 0;
   PI_speed.limit_output = PH_CURRENT_MAX;
-  PI_speed.max_step=5000;
-  PI_speed.shift=12;
+  PI_speed.max_step=50;
+  PI_speed.shift=5;
   PI_speed.limit_i=PH_CURRENT_MAX;
 
-#endif
+
 
   //Virtual EEPROM init
   HAL_FLASH_Unlock();
@@ -504,6 +511,7 @@ int main(void)
    	if(MP.spec_angle!=0xFFFF) {
    		q31_rotorposition_motor_specific = MP.spec_angle<<16;
    		EE_ReadVariable(EEPROM_POS_HALL_ORDER, &i16_hall_order);
+   		EE_ReadVariable(EEPROM_KV, &ui32_KV);
    	}
 #endif
 
@@ -755,16 +763,24 @@ int main(void)
 
 #ifdef SPEEDTHROTTLE
 
-					  uint16_mapped_throttle = uint16_mapped_throttle*SPEEDLIMIT/PH_CURRENT_MAX;//throttle override: calulate speed target from thottle
+
+					uint16_mapped_throttle = uint16_mapped_throttle*SPEEDLIMIT/PH_CURRENT_MAX;//throttle override: calulate speed target from thottle
+
+
+
+
 					  PI_speed.setpoint = uint16_mapped_throttle*100;
 					  PI_speed.recent_value = internal_tics_to_speedx100(uint32_tics_filtered>>3);
-
+					 if( PI_speed.setpoint)SET_BIT(TIM1->BDTR, TIM_BDTR_MOE);
 					if (internal_tics_to_speedx100(uint32_tics_filtered>>3)<300){//control current slower than 3 km/h
 						PI_speed.limit_i=100;
 						PI_speed.limit_output=100;
 						int32_temp_current_target = PI_control(&PI_speed);
+
 						if(int32_temp_current_target>100)int32_temp_current_target=100;
-						if(int32_temp_current_target*i8_direction*i8_reverse_flag<0)int32_temp_current_target=0;
+						if(int32_temp_current_target*i8_direction*i8_reverse_flag<0){
+							int32_temp_current_target=0;
+						}
 
 					}
 					else{
@@ -784,30 +800,47 @@ int main(void)
 
 #else
 					int32_temp_current_target=uint16_mapped_throttle;
-
 #endif  //end speedthrottle
+
+
 
 				  } //end else of throttle override
 
 #endif //end throttle override
 
+
 				  //ramp down setpoint at speed limit
-
-
 					int32_current_target=map(uint32_SPEEDx100_cumulated>>SPEEDFILTER, MP.speedLimit*100,(MP.speedLimit+2)*100,int32_temp_current_target,0);
+			//auto KV detect
+			  if(ui8_KV_detect_flag){
+				  int32_current_target=ui8_KV_detect_flag;
+				  if(ui16_KV_detect_counter>32){
+					  ui8_KV_detect_flag++;
+					  ui16_KV_detect_counter=0;
+					  if(MS.u_abs>1900)ui8_KV_detect_flag=0;
+					  HAL_FLASH_Unlock();
+					      EE_WriteVariable(EEPROM_KV, (int16_t) ui32_KV);
+					  HAL_FLASH_Lock();
+				  }
+				  ui32_KV -=ui32_KV>>4;
+				  ui32_KV += ((uint32_SPEEDx100_cumulated*_T))/(MS.Voltage*MS.u_q);
 
+
+			  }//end KV detect
 			} //end else for normal riding
 
 //------------------------------------------------------------------------------------------------------------
 				//enable PWM if power is wanted
 	  if (int32_current_target>0&&!READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)){
-		  speed_PLL(0,0,0);//reset integral part
+
 		  uint16_half_rotation_counter=0;
 		  uint16_full_rotation_counter=0;
 		    TIM1->CCR1 = 1023; //set initial PWM values
 		    TIM1->CCR2 = 1023;
 		    TIM1->CCR3 = 1023;
 		    SET_BIT(TIM1->BDTR, TIM_BDTR_MOE);
+		    if(SystemState == Stop)speed_PLL(0,0,0);//reset integral part
+		    else PI_iq.integral_part = (((uint32_SPEEDx100_cumulated*_T))/(MS.Voltage*ui32_KV))<<4;
 		  __HAL_TIM_SET_COUNTER(&htim2,0); //reset tim2 counter
 		  ui16_timertics=20000; //set interval between two hallevents to a large value
 		  i8_recent_rotor_direction=i8_direction*i8_reverse_flag;
@@ -818,6 +851,9 @@ int main(void)
 //----------------------------------------------------------------------------------------------------------------------------------------------------------
 	  //slow loop procedere @16Hz, for LEV standard every 4th loop run, send page,
 	  if(ui32_tim3_counter>500){
+
+		  if(ui8_KV_detect_flag){ui16_KV_detect_counter++;}
+
 
 		  MS.Temperature = adcData[6]*41>>8; //0.16 is calibration constant: Analog_in[10mV/°C]/ADC value. Depending on the sensor LM35)
 		  MS.Voltage=adcData[0];
@@ -840,20 +876,25 @@ int main(void)
 
 
 #endif
+//check if rotor is turning
 
-
-		  if((uint16_full_rotation_counter>7999||uint16_half_rotation_counter>7999)&&READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)){
+		  if((uint16_full_rotation_counter>7999||uint16_half_rotation_counter>7999)){
+			  SystemState = Stop;
+			  if(READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)){
 			  CLEAR_BIT(TIM1->BDTR, TIM_BDTR_MOE); //Disable PWM if motor is not turning
 			  uint32_tics_filtered=1000000;
 			  get_standstill_position();
+			  }
 
 		  }
+		  else if(ui8_6step_flag) SystemState = SixStep;
+		  else SystemState = Running;
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG && !defined(FAST_LOOP_LOG))
 		  //print values for debugging
 
 
-		 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", (int16_t)(((q31_rotorposition_motor_specific>>23)*180)>>8), MS.i_q, int32_current_target, ui16_erps, (uint16_t)adcData[1], ui8_hall_state,uint32_tics_filtered>>3,internal_tics_to_speedx100(uint32_tics_filtered>>3),temp5);
+		 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", uint32_SPEEDx100_cumulated, (((temp6>>23)*180)>>8), ui32_KV, int32_current_target, (((uint32_SPEEDx100_cumulated*_T))/(MS.Voltage*80))<<4, (uint16_t)adcData[1], MS.u_d,MS.u_q, SystemState);
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",ui8_hall_state,(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5])) ;
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",tic_array[0],tic_array[1],tic_array[2],tic_array[3],tic_array[4],tic_array[5]) ;
 		  i=0;
@@ -1435,6 +1476,11 @@ static void MX_GPIO_Init(void)
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 	if (htim == &htim3) {
+
+#ifdef SPEED_PLL
+		   if(!READ_BIT(TIM1->BDTR, TIM_BDTR_MOE))q31_rotorposition_PLL += (q31_angle_per_tic<<1);
+#endif
+
 		if(ui32_tim3_counter<32000)ui32_tim3_counter++;
 		if (uint32_PAS_counter < PAS_TIMEOUT+1){
 			  uint32_PAS_counter++;
@@ -1529,17 +1575,23 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 
 
 	//__disable_irq();
-
+#ifdef SPEED_PLL
+		   q31_rotorposition_PLL += q31_angle_per_tic;
+#endif
 	//extrapolate recent rotor position
 	ui16_tim2_recent = __HAL_TIM_GET_COUNTER(&htim2); // read in timertics since last event
     if(MS.hall_angle_detect_flag){//if autodetect is not active
     	//set flag for 6 step at low speed
-    			if(ui16_timertics<SIXSTEPTHRESHOLD && ui16_tim2_recent<200)ui8_6step_flag=0;
-    			if(ui16_timertics>(SIXSTEPTHRESHOLD*6)>>2)ui8_6step_flag=1;
+    			if(ui16_timertics<SIXSTEPTHRESHOLD && ui16_tim2_recent<200){
+    				ui8_6step_flag=0;
 
-#ifdef SPEED_PLL
-		   q31_rotorposition_PLL += q31_angle_per_tic;
-#endif
+    			}
+    			if(ui16_timertics>(SIXSTEPTHRESHOLD*6)>>2){
+    				ui8_6step_flag=1;
+
+    			}
+
+
 		   // angle estimation
 		   if (ui16_tim2_recent < ui16_timertics+(ui16_timertics>>1) && !ui8_overflow_flag && !ui8_6step_flag){ //prevent angle running away at standstill
 
@@ -1553,6 +1605,7 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 	   }
 		   else { //run in 6 step mode
 		   		   ui8_overflow_flag=1;
+
 		   		   //start with 60 degree advance angle to have positive torque in any case
 		   		   if(ui16_timertics>SIXSTEPTHRESHOLD<<1)q31_rotorposition_absolute = q31_rotorposition_hall+REVERSE*(DEG_plus60>>1);
 		   		   // reduce advance angle to zero with speed increasing to switching speed
@@ -1699,9 +1752,11 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef* htim)
 		if(ui16_erps>30){   //360 interpolation at higher erps
 			if(ui8_hall_case==32||ui8_hall_case==23){
 				q31_angle_per_tic = speed_PLL(q31_rotorposition_PLL,q31_rotorposition_hall, SPDSHFT*tics_higher_limit/(uint32_tics_filtered>>3));
+
 			}
 		}
 		else{
+
 			q31_angle_per_tic = speed_PLL(q31_rotorposition_PLL,q31_rotorposition_hall, SPDSHFT*tics_higher_limit/(uint32_tics_filtered>>3));
 		}
 
@@ -2082,6 +2137,8 @@ void autodetect(){
 #endif
 
     HAL_Delay(5);
+    ui8_KV_detect_flag = 15;
+
 
 }
 
@@ -2170,9 +2227,11 @@ void runPIcontrol(){
 				  PI_iq.setpoint = (-REGEN_CURRENT_MAX>>6)*i8_direction*i8_reverse_flag;
 			    }
 		  }
-		  q31_u_q_temp =  PI_control(&PI_iq);
-
-
+		  if((((uint32_SPEEDx100_cumulated*_T))/(MS.Voltage*80))<<4<2000){
+		  q31_u_q_temp =  PI_control(&PI_iq)+((((uint32_SPEEDx100_cumulated*_T))/(MS.Voltage*80))<<4);
+		  }
+		  else{
+			  q31_u_q_temp =  PI_control(&PI_iq)+2000;}
 
 		  //Control id
 		  PI_id.recent_value = MS.i_d;
@@ -2213,7 +2272,7 @@ q31_t speed_PLL (q31_t ist, q31_t soll, uint8_t speedadapt)
         if(q31_d_i<-((DEG_plus60>>19)*500/ui16_timertics)<<16)q31_d_i=-((DEG_plus60>>19)*500/ui16_timertics)<<16;
 
 
-    if (!READ_BIT(TIM1->BDTR, TIM_BDTR_MOE))q31_d_i=0;
+    if (!ist&&!soll)q31_d_i=0;
 
     q31_d_dc=q31_p+q31_d_i;
     return (q31_d_dc);

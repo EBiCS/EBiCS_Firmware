@@ -200,6 +200,7 @@
 #define EEPROM_KT_B6_B7	  		((uint8_t)0x04)
 #define EEPROM_KT_B8_B9	  		((uint8_t)0x05)
 #define EEPROM_KT_B1_B10	  	((uint8_t)0x06)
+#define EEPROM_KV	  			((uint8_t)0x07)
 
 /* Exported types ------------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/
