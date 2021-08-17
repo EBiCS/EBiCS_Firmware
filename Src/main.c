@@ -342,7 +342,7 @@ int main(void)
   PI_iq.shift=10;
   PI_iq.limit_i=_U_MAX;
 
-
+#ifdef SPEEDTHROTTLE
 
   PI_speed.gain_i=I_FACTOR_SPEED;
   PI_speed.gain_p=P_FACTOR_SPEED;
@@ -352,7 +352,7 @@ int main(void)
   PI_speed.shift=5;
   PI_speed.limit_i=PH_CURRENT_MAX;
 
-
+#endif
 
   //Virtual EEPROM init
   HAL_FLASH_Unlock();
@@ -840,7 +840,10 @@ int main(void)
 		    TIM1->CCR3 = 1023;
 		    SET_BIT(TIM1->BDTR, TIM_BDTR_MOE);
 		    if(SystemState == Stop)speed_PLL(0,0,0);//reset integral part
-		    else PI_iq.integral_part = (((uint32_SPEEDx100_cumulated*_T))/(MS.Voltage*ui32_KV))<<4;
+		    else {
+		    	PI_iq.integral_part = ((((uint32_SPEEDx100_cumulated*_T))/(MS.Voltage*ui32_KV))<<4)<<PI_iq.shift;
+		    	PI_iq.out=PI_iq.integral_part;
+		    }
 		  __HAL_TIM_SET_COUNTER(&htim2,0); //reset tim2 counter
 		  ui16_timertics=20000; //set interval between two hallevents to a large value
 		  i8_recent_rotor_direction=i8_direction*i8_reverse_flag;
@@ -894,7 +897,7 @@ int main(void)
 		  //print values for debugging
 
 
-		 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", uint32_SPEEDx100_cumulated, (((temp6>>23)*180)>>8), ui32_KV, int32_current_target, (((uint32_SPEEDx100_cumulated*_T))/(MS.Voltage*80))<<4, (uint16_t)adcData[1], MS.u_d,MS.u_q, SystemState);
+		 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", uint32_SPEEDx100_cumulated, PI_iq.integral_part, ui32_KV, int32_current_target, (((uint32_SPEEDx100_cumulated*_T))/(MS.Voltage*80))<<4, (uint16_t)adcData[1], MS.u_d,MS.u_q, SystemState);
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",ui8_hall_state,(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5])) ;
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",tic_array[0],tic_array[1],tic_array[2],tic_array[3],tic_array[4],tic_array[5]) ;
 		  i=0;
@@ -2227,11 +2230,8 @@ void runPIcontrol(){
 				  PI_iq.setpoint = (-REGEN_CURRENT_MAX>>6)*i8_direction*i8_reverse_flag;
 			    }
 		  }
-		  if((((uint32_SPEEDx100_cumulated*_T))/(MS.Voltage*80))<<4<2000){
-		  q31_u_q_temp =  PI_control(&PI_iq)+((((uint32_SPEEDx100_cumulated*_T))/(MS.Voltage*80))<<4);
-		  }
-		  else{
-			  q31_u_q_temp =  PI_control(&PI_iq)+2000;}
+
+			  q31_u_q_temp =  PI_control(&PI_iq);
 
 		  //Control id
 		  PI_id.recent_value = MS.i_d;
