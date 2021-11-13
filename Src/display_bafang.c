@@ -151,8 +151,8 @@ void Bafang_Service(BAFANG_t* BF_ctx, uint8_t  rx)
               break;
               
               case BF_CMD_GETPOWER:
-              TxBuff[0]=BF_ctx->Tx.Power>>8;
-              TxBuff[1]=BF_ctx->Tx.Power&0xff;
+              TxBuff[0]=BF_ctx->Tx.Power;
+              TxBuff[1]=BF_ctx->Tx.Power;
               HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuff, 2);
               break;
               

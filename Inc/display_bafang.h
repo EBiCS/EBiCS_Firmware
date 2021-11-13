@@ -64,15 +64,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 typedef struct
 {
-    // Parameters received from display in operation mode:
-    uint8_t  AssistLevel;               // 0..9 Power Assist Level
-    uint8_t  Headlight;                 // BF_HEADLIGHT_OFF / BF_HEADLIGHT_ON 
-    uint8_t  PushAssist;                // BF_PUSHASSIST_OFF / BF_PUSHASSIST_ON
-    uint16_t Wheeldiameter;             // Wheel Diameter
-}RX_PARAM_t;
-
-typedef struct
-{
     // Parameters to be send to display in operation mode:
     uint8_t  Battery;                   //
     uint16_t Wheeltime_ms;              // Unit:1ms
@@ -80,6 +71,17 @@ typedef struct
     uint16_t Power;               // Unit: 0.1A
 
 }TX_PARAM_t;
+
+typedef struct
+{
+    // Parameters received from display in operation mode:
+    uint8_t  AssistLevel;               // 0..9 Power Assist Level
+    uint8_t  Headlight;                 // BF_HEADLIGHT_OFF / BF_HEADLIGHT_ON 
+    uint8_t  PushAssist;                // BF_PUSHASSIST_OFF / BF_PUSHASSIST_ON
+    uint16_t Wheeldiameter;             // Wheel Diameter
+}RX_PARAM_t;
+
+
 
 
 typedef struct
