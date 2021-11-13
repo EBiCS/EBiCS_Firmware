@@ -68,7 +68,7 @@ typedef struct
     uint8_t  Battery;                   //
     uint16_t Wheeltime_ms;              // Unit:1ms
     uint8_t  Error;                     //
-    uint16_t Power;               // Unit: 0.1A
+    uint16_t Power;               // Unit: 0.1W?!
 
 }TX_PARAM_t;
 

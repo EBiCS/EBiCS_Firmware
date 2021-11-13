@@ -1892,11 +1892,11 @@ void bafang_update(void)
 {
     /* Prepare Tx parameters */
 
-	if(adcData[0]*CAL_BAT_V>BATTERY_LEVEL_5)battery_percent_fromcapacity=75;
-	else if(adcData[0]*CAL_BAT_V>BATTERY_LEVEL_4)battery_percent_fromcapacity=50;
-	else if(adcData[0]*CAL_BAT_V>BATTERY_LEVEL_3)battery_percent_fromcapacity=30;
-	else if(adcData[0]*CAL_BAT_V>BATTERY_LEVEL_2)battery_percent_fromcapacity=10;
-	else if(adcData[0]*CAL_BAT_V>BATTERY_LEVEL_1)battery_percent_fromcapacity=5;
+	if(MS.Voltage*CAL_BAT_V>BATTERY_LEVEL_5)battery_percent_fromcapacity=75;
+	else if(MS.Voltage*CAL_BAT_V>BATTERY_LEVEL_4)battery_percent_fromcapacity=50;
+	else if(MS.Voltage*CAL_BAT_V>BATTERY_LEVEL_3)battery_percent_fromcapacity=30;
+	else if(MS.Voltage*CAL_BAT_V>BATTERY_LEVEL_2)battery_percent_fromcapacity=10;
+	else if(MS.Voltage*CAL_BAT_V>BATTERY_LEVEL_1)battery_percent_fromcapacity=5;
 	else battery_percent_fromcapacity=0;
 
 
@@ -1917,7 +1917,7 @@ void bafang_update(void)
     }
 
 
-       BF.Tx.Power = MS.Battery_Current/100; // Unit: 0.1A (values are in mA and mV
+       BF.Tx.Power = ((int32_t)MS.Battery_Current*(int32_t)MS.Voltage*CAL_BAT_V)/100000; // Unit: 0.1W values are in mA and mV
 
 
     /* Receive Rx parameters/settings and send Tx parameters */
