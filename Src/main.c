@@ -1917,7 +1917,7 @@ void bafang_update(void)
     }
 
 
-       BF.Tx.Power = ((int32_t)MS.Battery_Current*(int32_t)MS.Voltage*CAL_BAT_V)/100000; // Unit: 0.1W values are in mA and mV
+       BF.Tx.Power = ((int32_t)MS.Battery_Current*(int32_t)MS.Voltage*CAL_BAT_V)/10000000; // Unit: 0.1W values are in mA and mV
 
 
     /* Receive Rx parameters/settings and send Tx parameters */
