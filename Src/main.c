@@ -600,7 +600,7 @@ int main(void)
 		  if(ui16_throttle>THROTTLE_OFFSET)uint32_torque_cumulated += (ui16_throttle-THROTTLE_OFFSET);
 		  }
 	  }
-#if (SPEEDSOURCE == INTERNAL) && (DISPLAY_TYPE == DISPLAY_TYPE_KUNTENG)
+#if (SPEEDSOURCE == INTERNAL) && ((DISPLAY_TYPE == DISPLAY_TYPE_KUNTENG)||(DISPLAY_TYPE == DISPLAY_TYPE_BAFANG))
 			  MS.Speed = uint32_tics_filtered>>3;
 #else
 	  //SPEED signal processing
@@ -1905,17 +1905,19 @@ void bafang_update(void)
 
     if(__HAL_TIM_GET_COUNTER(&htim2) < 12000)
     {
-        // Adapt wheeltime to match displayed speedo value according config.h setting
+#if (SPEEDSOURCE == EXTERNAL)    // Adapt wheeltime to match displayed speedo value according config.h setting
         BF.Tx.Wheeltime_ms = WHEEL_CIRCUMFERENCE*216/(MS.Speed*PULSES_PER_REVOLUTION); // Geschwindigkeit ist Weg pro Zeit Radumfang durch Dauer einer Radumdrehung --> Umfang * 8000*3600/(n*1000000) * Skalierung Bafang Display 200/26,6
-
-    }
+#else
+        BF.Tx.Wheeltime_ms = ((MS.Speed)*6*(GEAR_RATIO/2)/500);
+#endif
+        }
     else
     {
         BF.Tx.Wheeltime_ms = 0; //64000;
     }
 
 
-       BF.Tx.Power = MS.i_q*MS.Voltage;
+       BF.Tx.Power = (MS.Battery_Current*MS.Voltage)/100000; // Unit: 0.1A (values are in mA and mV
 
 
     /* Receive Rx parameters/settings and send Tx parameters */
@@ -1928,11 +1930,13 @@ void bafang_update(void)
 //No headlight supported on my controller hardware.
     if(BF.Rx.Headlight)
     {
-       // digitalWrite(lights_pin, 0);
+    	HAL_GPIO_WritePin(LIGHT_GPIO_Port, LIGHT_Pin, GPIO_PIN_RESET);
+    	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
     }
     else
     {
-       // digitalWrite(lights_pin, 1);
+    	HAL_GPIO_WritePin(LIGHT_GPIO_Port, LIGHT_Pin, GPIO_PIN_SET);
+    	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
     }
 
 
