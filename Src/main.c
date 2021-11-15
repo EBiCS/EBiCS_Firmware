@@ -1908,7 +1908,7 @@ void bafang_update(void)
 #if (SPEEDSOURCE == EXTERNAL)    // Adapt wheeltime to match displayed speedo value according config.h setting
         BF.Tx.Wheeltime_ms = WHEEL_CIRCUMFERENCE*216/(MS.Speed*PULSES_PER_REVOLUTION); // Geschwindigkeit ist Weg pro Zeit Radumfang durch Dauer einer Radumdrehung --> Umfang * 8000*3600/(n*1000000) * Skalierung Bafang Display 200/26,6
 #else
-        BF.Tx.Wheeltime_ms = ((MS.Speed)*6*(GEAR_RATIO/2)/500);
+        BF.Tx.Wheeltime_ms = internal_tics_to_speedx100(MS.Speed); //missing factor has to be found
 #endif
         }
     else
@@ -1917,7 +1917,7 @@ void bafang_update(void)
     }
 
 
-       BF.Tx.Power = ((int32_t)MS.Battery_Current*(int32_t)MS.Voltage*CAL_BAT_V)/10000000; // Unit: 0.1W values are in mA and mV
+       BF.Tx.Power = MS.Battery_Current/500; // Unit: 1 digit --> 0.5 A, MS.Battery_Current is in mA
 
 
     /* Receive Rx parameters/settings and send Tx parameters */
