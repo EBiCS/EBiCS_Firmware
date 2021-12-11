@@ -456,15 +456,15 @@ int main(void)
 
     for(i=0;i<32;i++){
     	while(!ui8_adc_regular_flag){}
-    	ui16_ph1_offset+=adcData[2];
-    	ui16_ph2_offset+=adcData[3];
-    	ui16_ph3_offset+=adcData[4];
+    	temp1+=adcData[2];
+    	temp2+=adcData[3];
+    	temp3+=adcData[4];
     	ui8_adc_regular_flag=0;
 
     }
-    ui16_ph1_offset=ui16_ph1_offset>>5;
-    ui16_ph2_offset=ui16_ph2_offset>>5;
-    ui16_ph3_offset=ui16_ph3_offset>>5;
+    ui16_ph1_offset=temp1>>5;
+    ui16_ph2_offset=temp2>>5;
+    ui16_ph3_offset=temp3>>5;
 
 #ifdef DISABLE_DYNAMIC_ADC // set  injected channel with offsets
 	 ADC1->JSQR=0b00100000000000000000; //ADC1 injected reads phase A JL = 0b00, JSQ4 = 0b00100 (decimal 4 = channel 4)
