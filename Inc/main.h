@@ -74,6 +74,8 @@
 #define LED_GPIO_Port GPIOB
 #define LIGHT_Pin GPIO_PIN_9
 #define LIGHT_GPIO_Port GPIOB
+#define BRAKE_LIGHT_Pin GPIO_PIN_10
+#define BRAKE_LIGHT_GPIO_Port GPIOB
 #define PAS_Pin GPIO_PIN_8
 #define PAS_GPIO_Port GPIOB
 #define Brake_Pin GPIO_PIN_11
