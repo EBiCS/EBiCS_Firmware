@@ -65,7 +65,7 @@ Src/system_stm32f1xx.c \
 #Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_exti.c \
 # ASM sources
 ASM_SOURCES =  \
-startup/startup_stm32f103x6.s
+Startup/startup_stm32f103x6.s
 
 
 #######################################
@@ -124,7 +124,7 @@ C_INCLUDES =  \
 -IDrivers/STM32F1xx_HAL_Driver/Inc/Legacy \
 -IDrivers/CMSIS/Device/ST/STM32F1xx/Include \
 -IDrivers/CMSIS/Include \
--Istartup
+
 
 
 # compile gcc flags
