@@ -28,4 +28,3 @@ ST-LINK_CLI.exe -c SWD -P LishuiFOC_01.hex -V
 pause
 
 exit
-
