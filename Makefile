@@ -65,7 +65,7 @@ Src/system_stm32f1xx.c \
 #Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_exti.c \
 # ASM sources
 ASM_SOURCES =  \
-startup/startup_stm32f103x6.s
+./startup/startup_stm32f103x6.s
 
 
 #######################################
