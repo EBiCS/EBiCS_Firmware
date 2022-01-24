@@ -44,8 +44,7 @@ jobs:
       with:
         distribution: 'temurin' # See 'Supported distributions' for available options
         java-version: '17'
-    - run: make/hex2lsh
-    #- run: java -cp java make/hexToLsh
+    - run: java -cp java make/hexToLsh.java
     
     - name: 'Upload Artifact'
       uses: actions/upload-artifact@v2
