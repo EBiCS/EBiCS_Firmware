@@ -23,7 +23,7 @@ public class hexToLsh {
           + Integer.toHexString(limitAddress));
       String limitAddressStr = "0x08" + String.format("%6s", Integer.toHexString(limitAddress)).replace(' ', '0');
 
-      Process process = new ProcessBuilder("srec_cat.exe", hexFile + ".hex", "-Intel", "-fill", "0x00", "0x08001000", limitAddressStr,
+      Process process = new ProcessBuilder("srecord", hexFile + ".hex", "-Intel", "-fill", "0x00", "0x08001000", limitAddressStr,
           "-o", hexFile + ".filled", "-Intel", "-Output_Block_Size=16").start();
 
       process.waitFor();
