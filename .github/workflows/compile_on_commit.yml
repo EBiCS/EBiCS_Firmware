@@ -34,6 +34,11 @@ jobs:
     - name: make
       run: make
       
+    - name: Install srecord
+      run: |
+        sudo apt-get update
+        sudo apt-get install srecord
+      
     - name: 'Upload Artifact'
       uses: actions/upload-artifact@v2
       with:
