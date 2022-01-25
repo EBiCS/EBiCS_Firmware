@@ -33,8 +33,9 @@ public class hexToLsh {
 
       int[] key = { 0x81, 0x30, 0x00, 0x5a, 0x7f, 0xcb, 0x37, 0x13, 0x32, 0x85, 0x20, 0x4b, 0xc8, 0xf3, 0x10, 0x2e,
           0x1c, 0xa7, 0xc2, 0xa3 };
-
-      FileWriter myWriter = new FileWriter(hexFile + ".lsh");
+      
+      String lshFile = "output/EBiCS_Firmware";
+      FileWriter myWriter = new FileWriter(lshFile + ".lsh");
 
       int lineIndex = 0;
       while (filledHexReader.hasNextLine()) {
