@@ -2,9 +2,9 @@ name: C/C++ CI
 
 on:
   push:
-    branches: [ master ]
+    branches: [ NCTE ]
   pull_request:
-    branches: [ master ]
+    branches: [ NCTE ]
 
 jobs:
   build:
