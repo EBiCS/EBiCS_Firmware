@@ -597,7 +597,11 @@ int main(void)
 		  ui8_PAS_flag=0;
 		  //read in and sum up torque-signal within one crank revolution (for sempu sensor 32 PAS pulses/revolution, 2^5=32)
 		  uint32_torque_cumulated -= uint32_torque_cumulated>>5;
+#ifdef NCTE
+		  if(ui16_throttle<THROTTLE_OFFSET)uint32_torque_cumulated += (THROTTLE_OFFSET-ui16_throttle);
+#else
 		  if(ui16_throttle>THROTTLE_OFFSET)uint32_torque_cumulated += (ui16_throttle-THROTTLE_OFFSET);
+#endif
 		  }
 	  }
 #if (SPEEDSOURCE == INTERNAL) && ((DISPLAY_TYPE == DISPLAY_TYPE_KUNTENG)||(DISPLAY_TYPE == DISPLAY_TYPE_BAFANG))
@@ -911,8 +915,8 @@ int main(void)
 		  //print values for debugging
 
 
-		// sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", uint32_SPEEDx100_cumulated, PI_iq.integral_part, ui32_KV, int32_current_target, (((uint32_SPEEDx100_cumulated*_T))/(MS.Voltage*80))<<4, (uint16_t)adcData[1], MS.u_d,MS.u_q, SystemState);
-		  sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5]),(uint16_t)(adcData[6])) ;
+		 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", uint32_SPEEDx100_cumulated, ui16_throttle, uint32_tics_filtered>>3, int32_current_target, uint32_PAS, (uint16_t)adcData[1], MS.u_d,MS.u_q, SystemState);
+		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5]),(uint16_t)(adcData[6])) ;
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",tic_array[0],tic_array[1],tic_array[2],tic_array[3],tic_array[4],tic_array[5]) ;
 		  i=0;
 		  while (buffer[i] != '\0')
