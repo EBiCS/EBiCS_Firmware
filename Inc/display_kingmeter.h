@@ -102,6 +102,13 @@ typedef struct
 #define KM_OVERSPEED_YES    0x01        // Overspeed detected
 
 
+
+
+
+
+#define KM_ERROR_NONE           0x00
+#define KM_ERROR_COMM           0x30
+
 typedef struct
 {
     // Parameters received from display in operation mode:
@@ -117,11 +124,6 @@ typedef struct
     uint16_t CUR_Limit_x10;             // Unit: 0.1A
 
 }RX_PARAM_t;
-
-
-
-#define KM_ERROR_NONE           0x00
-#define KM_ERROR_COMM           0x30
 
 typedef struct
 {
