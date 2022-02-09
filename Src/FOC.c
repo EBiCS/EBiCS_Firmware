@@ -251,7 +251,7 @@ if(MS_FOC->Motor_state){
 		startup_counter=0;
 	}
 	//temp5=q31_erps_counter;
-	if (q31_angle_old>(1<<25)&&q31_teta_obs<-(1<<25)&&q31_erps_counter>15){   //Find switch from +180° to -179,999° to detect one completed electric revolution.
+	if (q31_angle_old>(1<<25)&&q31_teta_obs<-(1<<25)&&q31_erps_counter>15){   //Find switch from +180Â° to -179,999Â° to detect one completed electric revolution.
 
 		q31_erps_filtered-=q31_erps_filtered>>4;
 		q31_erps_filtered+=q31_erps_counter;
@@ -518,7 +518,7 @@ uint8_t frac =0;
 q31_t angle_obs=0;
 uint8_t i=0;
 //Quadrant 1 +
-if (e_alpha>0 && e_beta>0){
+if (e_alpha>0 && e_beta>=0){
     if(e_alpha>e_beta){  // y/x < 1
 
      index = (e_beta*100)/e_alpha;
@@ -533,7 +533,7 @@ if (e_alpha>0 && e_beta>0){
      }
 }
 //Quadrant 2
-if (e_alpha<0 && e_beta>0){
+if (e_alpha<=0 && e_beta>0){
 
 	if(-e_alpha>e_beta){  // y/x < 1
     index = (e_beta*100)/-e_alpha;
@@ -550,7 +550,7 @@ if (e_alpha<0 && e_beta>0){
 }
 
 //Quadrant 3
-if (e_alpha<0 && e_beta<0){
+if (e_alpha<0 && e_beta<=0){
     if(-e_alpha>-e_beta){  // y/x < 1
 
      index = (e_beta*100)/e_alpha;
@@ -567,7 +567,7 @@ if (e_alpha<0 && e_beta<0){
 }
 
 //Quadrant 4
-if (e_alpha>0 && e_beta<0){
+if (e_alpha>=0 && e_beta<0){
     if(e_alpha>-e_beta){  // y/x < 1
 
      index = (-e_beta*100)/e_alpha;
@@ -582,7 +582,7 @@ if (e_alpha>0 && e_beta<0){
      }
 
 }
-return ((angle_obs<<15)+1550960412); //angle in degree to q31 Look up table is scaled to 90° = 2^16 -1431655765
+return ((angle_obs<<15)+1550960412); //angle in degree to q31 Look up table is scaled to 90Â° = 2^16 -1431655765
 }
 
 int utils_truncate_number_abs(long long *number, q31_t max) {
