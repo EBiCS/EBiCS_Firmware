@@ -754,14 +754,19 @@ int main(void)
 
 #ifdef THROTTLE_OVERRIDE
 
-				  // read in throttle for throttle override
-				  uint16_mapped_throttle = map(ui16_throttle, THROTTLE_MAX, THROTTLE_OFFSET,PH_CURRENT_MAX,0);
-				  //check for throttle override
+
 #ifdef NCTE
-				  if(int32_temp_current_target<uint16_mapped_throttle)int32_temp_current_target=uint16_mapped_throttle;
+			  // read in throttle for throttle override
+			  uint16_mapped_throttle = map(ui16_throttle, THROTTLE_MAX, THROTTLE_OFFSET,PH_CURRENT_MAX,0);
+			  //check for throttle override
+			  if(int32_temp_current_target<uint16_mapped_throttle)int32_temp_current_target=uint16_mapped_throttle;
 
 #else
-				  if(uint16_mapped_PAS>uint16_mapped_throttle)   {
+			  // read in throttle for throttle override
+			  uint16_mapped_throttle = map(ui16_throttle, THROTTLE_OFFSET, THROTTLE_MAX, 0,PH_CURRENT_MAX);
+			  //check for throttle override
+
+			  if(uint16_mapped_PAS>uint16_mapped_throttle)   {
 
 
 
