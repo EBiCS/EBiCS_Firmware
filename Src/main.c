@@ -753,8 +753,12 @@ int main(void)
 #ifdef THROTTLE_OVERRIDE
 
 				  // read in throttle for throttle override
-				  uint16_mapped_throttle = map(ui16_throttle, THROTTLE_OFFSET , THROTTLE_MAX, 0, PH_CURRENT_MAX);
+				  uint16_mapped_throttle = map(ui16_throttle, THROTTLE_MAX, THROTTLE_OFFSET, 0, PH_CURRENT_MAX);
 				  //check for throttle override
+#ifdef NCTE
+				  if(int32_temp_current_target<uint16_mapped_throttle)int32_temp_current_target=uint16_mapped_throttle;
+
+#else
 				  if(uint16_mapped_PAS>uint16_mapped_throttle)   {
 
 
@@ -813,7 +817,7 @@ int main(void)
 
 
 				  } //end else of throttle override
-
+#endif	//end NCTE
 #endif //end throttle override
 
 
