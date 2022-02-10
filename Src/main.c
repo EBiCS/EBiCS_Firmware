@@ -493,6 +493,8 @@ int main(void)
   	   			y++;
   	   			if(y==35) autodetect();
   	   			}
+#else
+  	ui32_throttle_cumulated=THROTTLE_OFFSET<<4;
 #endif
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG)
@@ -753,7 +755,7 @@ int main(void)
 #ifdef THROTTLE_OVERRIDE
 
 				  // read in throttle for throttle override
-				  uint16_mapped_throttle = map(ui16_throttle, THROTTLE_MAX, THROTTLE_OFFSET, 0, PH_CURRENT_MAX);
+				  uint16_mapped_throttle = map(ui16_throttle, THROTTLE_MAX, THROTTLE_OFFSET,PH_CURRENT_MAX,0);
 				  //check for throttle override
 #ifdef NCTE
 				  if(int32_temp_current_target<uint16_mapped_throttle)int32_temp_current_target=uint16_mapped_throttle;
@@ -923,7 +925,7 @@ int main(void)
 		  //print values for debugging
 
 
-		 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", uint32_SPEEDx100_cumulated, ui16_throttle, uint32_tics_filtered>>3, int32_current_target, uint32_PAS, (uint16_t)adcData[1], MS.u_d,MS.u_q, SystemState);
+		 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", uint32_SPEEDx100_cumulated, ui16_throttle, uint32_tics_filtered>>3, int32_current_target, uint32_PAS, uint16_mapped_throttle, MS.u_d,MS.u_q, SystemState);
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5]),(uint16_t)(adcData[6])) ;
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",tic_array[0],tic_array[1],tic_array[2],tic_array[3],tic_array[4],tic_array[5]) ;
 		  i=0;
