@@ -191,7 +191,7 @@
 #define PAGE_FULL             ((uint8_t)0x80)
 
 /* Variables' number */
-#define NB_OF_VAR             ((uint8_t)0x08)
+#define NB_OF_VAR             ((uint8_t)0x0D)
 
 #define EEPROM_POS_HALL_ORDER	((uint16_t)0x00)
 #define EEPROM_POS_HALL_45	  	((uint16_t)0x01)
