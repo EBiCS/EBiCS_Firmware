@@ -84,14 +84,13 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 	//Control iq
 
 	PI_flag=1;
+//	if (MS_FOC->KV_detect_flag) {
+//   	        MS_FOC->u_q=MS_FOC->KV_detect_flag;
+//	        MS_FOC->u_d=0;
+//	}
+//	else runPIcontrol();
 
-
-//set static voltage for hall angle detection
-	if(!MS_FOC->hall_angle_detect_flag){
-		MS_FOC->u_q=0;
-		MS_FOC->u_d=200;
-	}
-	else runPIcontrol();
+	runPIcontrol();
 
 	//inverse Park transformation
 	arm_inv_park_q31(MS_FOC->u_d, MS_FOC->u_q, &q31_u_alpha, &q31_u_beta, -sinevalue, cosinevalue);
