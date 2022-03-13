@@ -164,7 +164,6 @@ uint16_t uint16_mapped_PAS=0;
 uint16_t uint16_mapped_BRAKE=0;
 uint16_t uint16_half_rotation_counter=0;
 uint16_t uint16_full_rotation_counter=0;
-int32_t int32_current_target=0;
 int32_t int32_temp_current_target=0;
 q31_t q31_PLL_error=0;
 q31_t q31_t_Battery_Current_accumulated=0;
@@ -335,9 +334,15 @@ int main(void)
   MS.Speed=128000;
   MS.assist_level=1;
   MS.regen_level=7;
+	MS.i_q_setpoint = 0;
+	MS.i_d_setpoint = 0;
+	MS.angle_est=SPEED_PLL;
+
+
   MP.pulses_per_revolution = PULSES_PER_REVOLUTION;
   MP.wheel_cirumference = WHEEL_CIRCUMFERENCE;
   MP.speedLimit=SPEEDLIMIT;
+
 
   //init PI structs
   PI_id.gain_i=I_FACTOR_I_D;
@@ -707,8 +712,8 @@ int main(void)
 
 				//if(!HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin)){
 					//if(tics_to_speed(uint32_tics_filtered>>3)>6)int32_current_target=-REGEN_CURRENT; //only apply regen, if motor is turning fast enough
-				if(tics_to_speed(uint32_tics_filtered>>3)>6)int32_current_target=-uint16_mapped_BRAKE;
-				else int32_current_target=0;
+				if(tics_to_speed(uint32_tics_filtered>>3)>6)MS.i_q_setpoint=-uint16_mapped_BRAKE;
+				else MS.i_q_setpoint=0;
 				}
 
 #else
@@ -716,15 +721,15 @@ int main(void)
 		else brake_flag=1;
 				if(brake_flag){
 
-						if(tics_to_speed(uint32_tics_filtered>>3)>6)int32_current_target=-REGEN_CURRENT; //only apply regen, if motor is turning fast enough
-						else int32_current_target=0;
+						if(tics_to_speed(uint32_tics_filtered>>3)>6)MS.i_q_setpoint=-REGEN_CURRENT; //only apply regen, if motor is turning fast enough
+						else MS.i_q_setpoint=0;
 				}
 
 #endif
 				//next priority: undervoltage protection
-				else if(MS.Voltage<VOLTAGE_MIN)int32_current_target=0;
+				else if(MS.Voltage<VOLTAGE_MIN)MS.i_q_setpoint=0;
 				//next priority: push assist
-				else if(ui8_Push_Assist_flag)int32_current_target=PUSHASSIST_CURRENT;
+				else if(ui8_Push_Assist_flag)MS.i_q_setpoint=PUSHASSIST_CURRENT;
 				// last priority normal ride conditiones
 				else {
 
@@ -852,10 +857,10 @@ int main(void)
 
 
 				  //ramp down setpoint at speed limit
-					int32_current_target=map(uint32_SPEEDx100_cumulated>>SPEEDFILTER, MP.speedLimit*100,(MP.speedLimit+2)*100,int32_temp_current_target,0);
+					MS.i_q_setpoint=map(uint32_SPEEDx100_cumulated>>SPEEDFILTER, MP.speedLimit*100,(MP.speedLimit+2)*100,int32_temp_current_target,0);
 			//auto KV detect
 			  if(ui8_KV_detect_flag){
-				  int32_current_target=ui8_KV_detect_flag;
+				  MS.i_q_setpoint=ui8_KV_detect_flag;
 				  if(ui16_KV_detect_counter>32){
 					  ui8_KV_detect_flag++;
 					  ui16_KV_detect_counter=0;
@@ -873,7 +878,7 @@ int main(void)
 
 //------------------------------------------------------------------------------------------------------------
 				//enable PWM if power is wanted
-	  if (int32_current_target>0&&!READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)){
+	  if (MS.i_q_setpoint>0&&!READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)){
 
 		  uint16_half_rotation_counter=0;
 		  uint16_full_rotation_counter=0;
@@ -1691,7 +1696,7 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 	// call FOC procedure if PWM is enabled
 
 	if (READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)){
-	FOC_calculation(i16_ph1_current, i16_ph2_current, q31_rotorposition_absolute, (((int16_t)i8_direction*i8_reverse_flag)*int32_current_target), &MS);
+	FOC_calculation(i16_ph1_current, i16_ph2_current, q31_rotorposition_absolute, (((int16_t)i8_direction*i8_reverse_flag)*MS.i_q_setpoint), &MS);
 	}
 	//temp5=__HAL_TIM_GET_COUNTER(&htim1);
 	//set PWM
@@ -2266,10 +2271,10 @@ void runPIcontrol(){
 		  //reset battery current flag with small hysteresis
 		  if(brake_flag==0){
 		  //if(HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin)){
-			  if(((int32_current_target*MS.u_abs)>>11)*(uint16_t)(CAL_I>>8)<(BATTERYCURRENT_MAX*7)>>3)ui8_BC_limit_flag=0;
+			  if(((MS.i_q_setpoint*MS.u_abs)>>11)*(uint16_t)(CAL_I>>8)<(BATTERYCURRENT_MAX*7)>>3)ui8_BC_limit_flag=0;
 		  }
 		  else{
-			  if(((int32_current_target*MS.u_abs)>>11)*(uint16_t)(CAL_I>>8)>(-REGEN_CURRENT_MAX*7)>>3)ui8_BC_limit_flag=0;
+			  if(((MS.i_q_setpoint*MS.u_abs)>>11)*(uint16_t)(CAL_I>>8)>(-REGEN_CURRENT_MAX*7)>>3)ui8_BC_limit_flag=0;
 		  }
 
 		  //control iq
@@ -2277,7 +2282,7 @@ void runPIcontrol(){
 		  //if
 		  if (!ui8_BC_limit_flag){
 			  PI_iq.recent_value = MS.i_q;
-			  PI_iq.setpoint = i8_direction*i8_reverse_flag*int32_current_target;
+			  PI_iq.setpoint = i8_direction*i8_reverse_flag*MS.i_q_setpoint;
 		  }
 		  else{
 			  if(brake_flag==0){

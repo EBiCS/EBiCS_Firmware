@@ -65,10 +65,12 @@
 //#define SPEEDTHROTTLE
 #define THROTTLE_OVERRIDE
 #define REGEN_CURRENT_MAX 10000
-#define SPEED_PLL
+
+
 #define P_FACTOR_PLL 10
 #define I_FACTOR_PLL 10
 #define AUTODETECT 0
+#define SPEED_PLL 1 //1 for using PLL, 0 for angle extrapolation
 
 #define EXTERNAL 1
 #define INTERNAL 0
