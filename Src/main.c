@@ -2300,6 +2300,7 @@ void runPIcontrol(){
 
 		  //Control id
 		  PI_id.recent_value = MS.i_d;
+		  PI_id.setpoint = MS.i_d_setpoint;
 		  q31_u_d_temp = -PI_control(&PI_id); //control direct current to zero
 
 
