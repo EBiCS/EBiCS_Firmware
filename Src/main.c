@@ -567,7 +567,7 @@ int main(void)
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG)
     printf_("Lishui FOC v1.0 \n ");
-    printf_("Motor specific angle:  %d, direction %d \n ", q31_rotorposition_motor_specific, i16_hall_order);
+
 #endif
 
 
@@ -2199,9 +2199,7 @@ void autodetect() {
 
 	MS.hall_angle_detect_flag = 1;
 #if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG)
-	printf_("Motor specific angle:  %d, direction %d, zerocrossing %d \n ",
-			(int16_t) (((q31_rotorposition_motor_specific >> 23) * 180) >> 8),
-			i16_hall_order);
+
 #endif
 
 
