@@ -43,8 +43,8 @@
 #define THROTTLE_OFFSET 2050
 #define THROTTLE_MAX 800
 #define WHEEL_CIRCUMFERENCE 2200
-#define GEAR_RATIO 22 //dummy for testing
-#define SPEEDLIMIT 15
+#define GEAR_RATIO 11 //dummy for testing
+#define SPEEDLIMIT 25
 #define PULSES_PER_REVOLUTION 1
 #define PH_CURRENT_MAX 1200
 #define BATTERYCURRENT_MAX 15000
