@@ -1879,7 +1879,7 @@ void kingmeter_update(void)
 #if (SPEEDSOURCE  == EXTERNAL)
     	KM.Tx.Wheeltime_ms = ((MS.Speed>>3)*PULSES_PER_REVOLUTION); //>>3 because of 8 kHz counter frequency, so 8 tics per ms
 #else
-    	KM.Tx.Wheeltime_ms = (MS.Speed*GEAR_RATIO*6)>>10; //>>9 because of 500kHZ timer2 frequency, >>1 for gear ratio?! 512 tics per ms should be OK *6 because of 6 hall interrupts per electric revolution.
+    	KM.Tx.Wheeltime_ms = (MS.Speed*GEAR_RATIO*6)>>11; //>>9 because of 500kHZ timer2 frequency, >>1 for gear ratio?! 512 tics per ms should be OK *6 because of 6 hall interrupts per electric revolution.
 #endif
     }
     else
