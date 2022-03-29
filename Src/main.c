@@ -684,15 +684,17 @@ int main(void)
 		else brake_flag=1;
 				if(brake_flag){
 
-						if(tics_to_speed(uint32_tics_filtered>>3)>6)int32_current_target=-REGEN_CURRENT; //only apply regen, if motor is turning fast enough
-						else int32_current_target=0;
+						if(tics_to_speed(uint32_tics_filtered>>3)>6)int32_temp_current_target=-REGEN_CURRENT; //only apply regen, if motor is turning fast enough
+						else int32_temp_current_target=0;
 				}
 
 #endif
 				//next priority: undervoltage protection
-				else if(MS.Voltage<VOLTAGE_MIN)int32_current_target=0;
+				else if(MS.Voltage<VOLTAGE_MIN)int32_temp_current_target=0;
 				//next priority: push assist
-				else if(ui8_Push_Assist_flag)int32_current_target=PUSHASSIST_CURRENT;
+				else if(ui8_Push_Assist_flag){
+					int32_temp_current_target=PUSHASSIST_CURRENT;
+				}
 				// last priority normal ride conditiones
 				else {
 
@@ -830,12 +832,17 @@ int main(void)
 				} //end else for normal riding
 				  //ramp down setpoint at speed limit
 #ifdef LEGALFLAG
+			if(!brake_flag){ //only ramp down if no regen active
 				if(uint32_PAS_counter<PAS_TIMEOUT){
 					int32_current_target=map(uint32_SPEEDx100_cumulated>>SPEEDFILTER, MP.speedLimit*100,(MP.speedLimit+2)*100,int32_temp_current_target,0);
 					}
 				else{ //limit to 6km/h if pedals are not turning
 					int32_current_target=map(uint32_SPEEDx100_cumulated>>SPEEDFILTER, 500,700,int32_temp_current_target,0);
 					}
+				}
+			else int32_current_target=int32_temp_current_target;
+#else
+				int32_current_target=int32_temp_current_target;
 #endif
 
 					//auto KV detect
