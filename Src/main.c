@@ -827,10 +827,15 @@ int main(void)
 #endif	//end NCTE
 #endif //end throttle override
 
-
+				} //end else for normal riding
 				  //ramp down setpoint at speed limit
+				if(uint32_PAS<PAS_TIMEOUT){
 					int32_current_target=map(uint32_SPEEDx100_cumulated>>SPEEDFILTER, MP.speedLimit*100,(MP.speedLimit+2)*100,int32_temp_current_target,0);
-			//auto KV detect
+					}
+				else{ //limit to 6km/h if pedals are not turning
+					int32_current_target=map(uint32_SPEEDx100_cumulated>>SPEEDFILTER, 500,700,int32_temp_current_target,0);
+					}
+					//auto KV detect
 			  if(ui8_KV_detect_flag){
 				  int32_current_target=ui8_KV_detect_flag;
 				  if(ui16_KV_detect_counter>32){
@@ -846,7 +851,7 @@ int main(void)
 
 
 			  }//end KV detect
-			} //end else for normal riding
+
 
 //------------------------------------------------------------------------------------------------------------
 				//enable PWM if power is wanted
