@@ -829,12 +829,15 @@ int main(void)
 
 				} //end else for normal riding
 				  //ramp down setpoint at speed limit
-				if(uint32_PAS<PAS_TIMEOUT){
+#ifdef LEGALFLAG
+				if(uint32_PAS_counter<PAS_TIMEOUT){
 					int32_current_target=map(uint32_SPEEDx100_cumulated>>SPEEDFILTER, MP.speedLimit*100,(MP.speedLimit+2)*100,int32_temp_current_target,0);
 					}
 				else{ //limit to 6km/h if pedals are not turning
 					int32_current_target=map(uint32_SPEEDx100_cumulated>>SPEEDFILTER, 500,700,int32_temp_current_target,0);
 					}
+#endif
+
 					//auto KV detect
 			  if(ui8_KV_detect_flag){
 				  int32_current_target=ui8_KV_detect_flag;

@@ -88,6 +88,7 @@
 #define PAS_EXTI8_EXTI_IRQn EXTI9_5_IRQn
 
 #define NCTE
+#define LEGALFLAG
 
 /* ########################## Assert Selection ############################## */
 /**
