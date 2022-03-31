@@ -673,22 +673,21 @@ int main(void)
 
 		if(brake_flag){
 
-				//if(!HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin)){
-					//if(tics_to_speed(uint32_tics_filtered>>3)>6)int32_current_target=-REGEN_CURRENT; //only apply regen, if motor is turning fast enough
-				if(tics_to_speed(uint32_tics_filtered>>3)>6)int32_current_target=-uint16_mapped_BRAKE;
-				else int32_current_target=0;
-				}
+				if(tics_to_speed(uint32_tics_filtered>>3)>6)int32_temp_current_target = uint16_mapped_BRAKE;
+				else int32_temp_current_target=0;
+				
 
 #else
 		if(HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin)) brake_flag=0;
 		else brake_flag=1;
 				if(brake_flag){
 
-						if(tics_to_speed(uint32_tics_filtered>>3)>6)int32_temp_current_target=-REGEN_CURRENT; //only apply regen, if motor is turning fast enough
-						else int32_temp_current_target=0;
-				}
+						if(tics_to_speed(uint32_tics_filtered>>3)>6)int32_temp_current_target=REGEN_CURRENT; //only apply regen, if motor is turning fast enough
+						else int32_temp_current_target=0;				
 
 #endif
+	  			int32_temp_current_target= -map(MS.Voltage,BATTERYVOLTAGE_MAX-1000,BATTERYVOLTAGE_MAX,int32_temp_current_target,0);
+				}
 				//next priority: undervoltage protection
 				else if(MS.Voltage<VOLTAGE_MIN)int32_temp_current_target=0;
 				//next priority: push assist
