@@ -682,11 +682,13 @@ int main(void)
 		else brake_flag=1;
 				if(brake_flag){
 
-						if(tics_to_speed(uint32_tics_filtered>>3)>6)int32_temp_current_target=REGEN_CURRENT; //only apply regen, if motor is turning fast enough
-						else int32_temp_current_target=0;				
+						if(tics_to_speed(uint32_tics_filtered>>3)>6){
+							int32_temp_current_target=REGEN_CURRENT; //only apply regen, if motor is turning fast enough
+							}
+						else int32_temp_current_target=0;
 
 #endif
-	  			int32_temp_current_target= -map(MS.Voltage,BATTERYVOLTAGE_MAX-1000,BATTERYVOLTAGE_MAX,int32_temp_current_target,0);
+	  			int32_temp_current_target= -map(MS.Voltage*CAL_V,BATTERYVOLTAGE_MAX-1000,BATTERYVOLTAGE_MAX,int32_temp_current_target,0);
 				}
 				//next priority: undervoltage protection
 				else if(MS.Voltage<VOLTAGE_MIN)int32_temp_current_target=0;
@@ -944,7 +946,7 @@ int main(void)
 		  //print values for debugging
 
 
-		 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", uint32_SPEEDx100_cumulated, ui16_throttle, tics_to_speed(uint32_tics_filtered>>3), int32_current_target, uint32_PAS, uint16_mapped_throttle, MS.u_d,MS.u_q, SystemState);
+		 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", MS.Voltage*CAL_V, int32_current_target, ui16_throttle, tics_to_speed(uint32_tics_filtered>>3), uint32_PAS, uint16_mapped_throttle, MS.u_d,MS.u_q, SystemState);
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5]),(uint16_t)(adcData[6])) ;
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",tic_array[0],tic_array[1],tic_array[2],tic_array[3],tic_array[4],tic_array[5]) ;
 		  i=0;
