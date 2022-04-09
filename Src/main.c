@@ -167,6 +167,7 @@ uint16_t uint16_full_rotation_counter=0;
 int32_t int32_current_target=0;
 int32_t int32_temp_current_target=0;
 int64_t int64_temp_help=0;
+int64_t int64_temp_help1=0;
 
 q31_t q31_t_Battery_Current_accumulated=0;
 
@@ -907,9 +908,10 @@ int main(void)
 
 		  if(ui8_KV_detect_flag){ui16_KV_detect_counter++;}
 //10k NTC with 10k voltage divider to 3.3V, see https://onlinegdb.com/CqYdia1Fq and https://www.mikrocontroller.net/attachment/155971/NTC-Tabelle.xls
-		  int64_temp_help= ((adcData[6]>>4)*(adcData[6]>>4)*(adcData[6]>>4)*132)>>28;
-		  int64_temp_help+=((adcData[6]>>4)*(adcData[6]>>4)*-182)>>18;
-		  int64_temp_help+=((adcData[6]>>4)*99)>>8;
+		  int64_temp_help1=(int64_t)(adcData[6]>>2);
+		  int64_temp_help= (int64_temp_help1*int64_temp_help1*int64_temp_help1*132)>>28;
+		  int64_temp_help+=(int64_temp_help1*int64_temp_help1*-182)>>18;
+		  int64_temp_help+=(int64_temp_help1*99)>>8;
 		  MS.Temperature = int64_temp_help-60;//adcData[6]*41>>8; //0.16 is calibration constant: Analog_in[10mV/Â°C]/ADC value. Depending on the sensor LM35)
 		  MS.Voltage=adcData[0];
 		  if(uint32_SPEED_counter>127999){
