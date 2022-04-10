@@ -182,8 +182,6 @@ $(BUILD_DIR)/%.hex: $(BUILD_DIR)/%.elf | $(BUILD_DIR)
 	
 $(BUILD_DIR)/%.bin: $(BUILD_DIR)/%.elf | $(BUILD_DIR)
 	$(BIN) $< $@	
-
-stat "build/EBiCS_Firmware.bin"
 	
 $(BUILD_DIR):
 	mkdir $@		
@@ -198,5 +196,12 @@ clean:
 # dependencies
 #######################################
 -include $(wildcard $(BUILD_DIR)/*.d)
+
+#######################################
+# post build
+#######################################
+post-build:
+	-@echo 'code size in flash:'
+	stat "build/EBiCS_Firmware.bin"
 
 # *** EOF ***
