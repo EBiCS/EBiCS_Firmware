@@ -182,6 +182,8 @@ $(BUILD_DIR)/%.hex: $(BUILD_DIR)/%.elf | $(BUILD_DIR)
 	
 $(BUILD_DIR)/%.bin: $(BUILD_DIR)/%.elf | $(BUILD_DIR)
 	$(BIN) $< $@	
+
+stat "build/EBiCS_Firmware.bin"
 	
 $(BUILD_DIR):
 	mkdir $@		

@@ -166,8 +166,8 @@ uint16_t uint16_half_rotation_counter=0;
 uint16_t uint16_full_rotation_counter=0;
 int32_t int32_current_target=0;
 int32_t int32_temp_current_target=0;
-int64_t int64_temp_help=0;
-int64_t int64_temp_help1=0;
+//int64_t int64_temp_help=0;
+//int64_t int64_temp_help1=0;
 
 q31_t q31_t_Battery_Current_accumulated=0;
 
@@ -272,6 +272,7 @@ int32_t speed_to_tics (uint8_t speed);
 int8_t tics_to_speed (uint32_t tics);
 int16_t internal_tics_to_speedx100 (uint32_t tics);
 int16_t external_tics_to_speedx100 (uint32_t tics);
+int NTC_ADC2Temperature(unsigned int adc_value);
 
 enum state {Stop, SixStep, Regen, Running, BatteryCurrentLimit};
 enum state SystemState;
@@ -908,11 +909,13 @@ int main(void)
 
 		  if(ui8_KV_detect_flag){ui16_KV_detect_counter++;}
 //10k NTC with 10k voltage divider to 3.3V, see https://onlinegdb.com/CqYdia1Fq and https://www.mikrocontroller.net/attachment/155971/NTC-Tabelle.xls
-		  int64_temp_help1=(int64_t)(adcData[6]>>2);
-		  int64_temp_help= (int64_temp_help1*int64_temp_help1*int64_temp_help1*132)>>28;
-		  int64_temp_help+=(int64_temp_help1*int64_temp_help1*-182)>>18;
-		  int64_temp_help+=(int64_temp_help1*99)>>8;
-		  MS.Temperature = int64_temp_help-60;//adcData[6]*41>>8; //0.16 is calibration constant: Analog_in[10mV/Ã‚Â°C]/ADC value. Depending on the sensor LM35)
+//		  int64_temp_help1=(int64_t)(adcData[6]>>2);
+//		  int64_temp_help= (int64_temp_help1*int64_temp_help1*int64_temp_help1*132)>>28;
+//		  int64_temp_help+=(int64_temp_help1*int64_temp_help1*-182)>>18;
+//		  int64_temp_help+=(int64_temp_help1*99)>>8;
+//		  MS.Temperature = int64_temp_help-60;//adcData[6]*41>>8; //0.16 is calibration constant: Analog_in[10mV/Ã‚Â°C]/ADC value. Depending on the sensor LM35)
+		  MS.Temperature = NTC_ADC2Temperature(adcData[6]);
+
 		  MS.Voltage=adcData[0];
 		  if(uint32_SPEED_counter>127999){
 			  MS.Speed =128000;
@@ -2345,6 +2348,45 @@ q31_t speed_PLL (q31_t ist, q31_t soll, uint8_t speedadapt)
     q31_d_dc=q31_p+q31_d_i;
     return (q31_d_dc);
   }
+
+
+int NTC_table[33] = {
+  15942, 13113, 10284, 8756, 7710, 6913, 6264,
+  5714, 5234, 4804, 4412, 4051, 3712, 3391,
+  3084, 2788, 2500, 2217, 1938, 1659, 1379,
+  1096, 805, 505, 190, -144, -505, -905, -1361,
+  -1907, -2614, -3700, -4786
+};
+
+
+//https://www.sebulli.com/ntc/index.php?lang=de&points=32&unit=0.01&resolution=12+Bit&circuit=pullup&resistor=10000&r25=10000&beta=3900&test_resistance=5330&tmin=-10&tmax=140
+/**
+* \brief    Konvertiert das ADC Ergebnis in einen Temperaturwert.
+*
+*           Mit p1 und p2 wird der Stützpunkt direkt vor und nach dem
+*           ADC Wert ermittelt. Zwischen beiden Stützpunkten wird linear
+*           interpoliert. Der Code ist sehr klein und schnell.
+*           Es wird lediglich eine Ganzzahl-Multiplikation verwendet.
+*           Die Division kann vom Compiler durch eine Schiebeoperation.
+*           ersetzt werden.
+*
+*           Im Temperaturbereich von -10°C bis 140°C beträgt der Fehler
+*           durch die Verwendung einer Tabelle 3.642°C
+*
+* \param    adc_value  Das gewandelte ADC Ergebnis
+* \return              Die Temperatur in 0.01 °C
+*
+*/
+int NTC_ADC2Temperature(unsigned int adc_value){
+
+  int p1,p2;
+  /* Stützpunkt vor und nach dem ADC Wert ermitteln. */
+  p1 = NTC_table[ (adc_value >> 7)  ];
+  p2 = NTC_table[ (adc_value >> 7)+1];
+
+  /* Zwischen beiden Punkten linear interpolieren. */
+  return p1 - ( (p1-p2) * (adc_value & 0x007F) ) / 128;
+};
 
 /* USER CODE END 4 */
 
