@@ -272,7 +272,8 @@ int32_t speed_to_tics (uint8_t speed);
 int8_t tics_to_speed (uint32_t tics);
 int16_t internal_tics_to_speedx100 (uint32_t tics);
 int16_t external_tics_to_speedx100 (uint32_t tics);
-int NTC_ADC2Temperature(unsigned int adc_value);
+//int NTC_ADC2Temperature(unsigned int adc_value);
+int16_t T_NTC(uint16_t ADC);
 
 enum state {Stop, SixStep, Regen, Running, BatteryCurrentLimit};
 enum state SystemState;
@@ -848,7 +849,7 @@ int main(void)
 #else
 				int32_current_target=int32_temp_current_target;
 #endif
-
+				int32_current_target=map(MS.Temperature, 120,130,int32_current_target,0); //ramp down power with temperature to avoid overheating the motor
 					//auto KV detect
 			  if(ui8_KV_detect_flag){
 				  int32_current_target=ui8_KV_detect_flag;
@@ -914,8 +915,8 @@ int main(void)
 //		  int64_temp_help+=(int64_temp_help1*int64_temp_help1*-182)>>18;
 //		  int64_temp_help+=(int64_temp_help1*99)>>8;
 //		  MS.Temperature = int64_temp_help-60;//adcData[6]*41>>8; //0.16 is calibration constant: Analog_in[10mV/Ã‚Â°C]/ADC value. Depending on the sensor LM35)
-		  MS.Temperature = NTC_ADC2Temperature(adcData[6]);
-
+		//  MS.Temperature = NTC_ADC2Temperature(adcData[6]);
+		  MS.Temperature = T_NTC(adcData[6]); //Thank you Hendrik ;-)
 		  MS.Voltage=adcData[0];
 		  if(uint32_SPEED_counter>127999){
 			  MS.Speed =128000;
@@ -2349,44 +2350,87 @@ q31_t speed_PLL (q31_t ist, q31_t soll, uint8_t speedadapt)
     return (q31_d_dc);
   }
 
+int16_t T_NTC(uint16_t ADC) // ADC 12 Bit, 10k Pullup, Rückgabewert in °C
 
-int NTC_table[33] = {
-  15942, 13113, 10284, 8756, 7710, 6913, 6264,
-  5714, 5234, 4804, 4412, 4051, 3712, 3391,
-  3084, 2788, 2500, 2217, 1938, 1659, 1379,
-  1096, 805, 505, 190, -144, -505, -905, -1361,
-  -1907, -2614, -3700, -4786
-};
+{
+    uint16_t Ux1000 = 3300;
+    uint16_t U2x1000 = ADC*Ux1000/4095;
+    uint16_t R1 = 10000;
+    uint32_t R = U2x1000*R1/(Ux1000-U2x1000);
+// 	printf("R= %d\r\n",R);
+//  printf("u2= %d\r\n",U2x1000);
+        if(!R) return 0x7fff;
+
+        if(R >> 19) return 0x8000;
+
+        R <<= 13;
+
+        uint8_t n1 = 0;
+
+        uint16_t n;
+
+        uint32_t R2 = R;
+
+        while(R >> n1 > 1) n1++;
+
+        for(n = 8*(n1-13); R2 >> n1; n++)
+
+        {
+
+                R = R2;
+
+                R2 -= (R >> 10)*85; // Annäherung 1-85/1024 für 2^(-1/8)
+
+        }
+
+        for(n = 8*(n-1); R >> n1; n++)
+
+                R -= (R >> 10)*11; // Annäherung 1-11/1024 für 2^(-1/64)
+
+        int16_t T6 = 2160580/(n+357)-1639; // Berechnung für 10 kOhm-NTC (bei 25 °C) mit beta=3900 K
+
+        return (T6 > 0 ? T6+3 : T6-2)/6; // Rundung
+
+}
 
 
-//https://www.sebulli.com/ntc/index.php?lang=de&points=32&unit=0.01&resolution=12+Bit&circuit=pullup&resistor=10000&r25=10000&beta=3900&test_resistance=5330&tmin=-10&tmax=140
-/**
-* \brief    Konvertiert das ADC Ergebnis in einen Temperaturwert.
-*
-*           Mit p1 und p2 wird der Stützpunkt direkt vor und nach dem
-*           ADC Wert ermittelt. Zwischen beiden Stützpunkten wird linear
-*           interpoliert. Der Code ist sehr klein und schnell.
-*           Es wird lediglich eine Ganzzahl-Multiplikation verwendet.
-*           Die Division kann vom Compiler durch eine Schiebeoperation.
-*           ersetzt werden.
-*
-*           Im Temperaturbereich von -10°C bis 140°C beträgt der Fehler
-*           durch die Verwendung einer Tabelle 3.642°C
-*
-* \param    adc_value  Das gewandelte ADC Ergebnis
-* \return              Die Temperatur in 0.01 °C
-*
-*/
-int NTC_ADC2Temperature(unsigned int adc_value){
-
-  int p1,p2;
-  /* Stützpunkt vor und nach dem ADC Wert ermitteln. */
-  p1 = NTC_table[ (adc_value >> 7)  ];
-  p2 = NTC_table[ (adc_value >> 7)+1];
-
-  /* Zwischen beiden Punkten linear interpolieren. */
-  return p1 - ( (p1-p2) * (adc_value & 0x007F) ) / 128;
-};
+//int NTC_table[33] = {
+//  15942, 13113, 10284, 8756, 7710, 6913, 6264,
+//  5714, 5234, 4804, 4412, 4051, 3712, 3391,
+//  3084, 2788, 2500, 2217, 1938, 1659, 1379,
+//  1096, 805, 505, 190, -144, -505, -905, -1361,
+//  -1907, -2614, -3700, -4786
+//};
+//
+//
+////https://www.sebulli.com/ntc/index.php?lang=de&points=32&unit=0.01&resolution=12+Bit&circuit=pullup&resistor=10000&r25=10000&beta=3900&test_resistance=5330&tmin=-10&tmax=140
+///**
+//* \brief    Konvertiert das ADC Ergebnis in einen Temperaturwert.
+//*
+//*           Mit p1 und p2 wird der Stützpunkt direkt vor und nach dem
+//*           ADC Wert ermittelt. Zwischen beiden Stützpunkten wird linear
+//*           interpoliert. Der Code ist sehr klein und schnell.
+//*           Es wird lediglich eine Ganzzahl-Multiplikation verwendet.
+//*           Die Division kann vom Compiler durch eine Schiebeoperation.
+//*           ersetzt werden.
+//*
+//*           Im Temperaturbereich von -10°C bis 140°C beträgt der Fehler
+//*           durch die Verwendung einer Tabelle 3.642°C
+//*
+//* \param    adc_value  Das gewandelte ADC Ergebnis
+//* \return              Die Temperatur in 0.01 °C
+//*
+//*/
+//int NTC_ADC2Temperature(unsigned int adc_value){
+//
+//  int p1,p2;
+//  /* Stützpunkt vor und nach dem ADC Wert ermitteln. */
+//  p1 = NTC_table[ (adc_value >> 7)  ];
+//  p2 = NTC_table[ (adc_value >> 7)+1];
+//
+//  /* Zwischen beiden Punkten linear interpolieren. */
+//  return p1 - ( (p1-p2) * (adc_value & 0x007F) ) / 128;
+//};
 
 /* USER CODE END 4 */
 
