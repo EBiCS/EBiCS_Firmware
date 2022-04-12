@@ -100,7 +100,7 @@ uint8_t ui8_hall_state=0;
 uint8_t ui8_hall_state_old=0;
 uint8_t ui8_hall_case =0;
 uint16_t ui16_tim2_recent=0;
-uint16_t ui16_timertics=5000; 					//timertics between two hall events for 60Â° interpolation
+uint16_t ui16_timertics=5000; 					//timertics between two hall events for 60Ã‚Â° interpolation
 uint16_t ui16_throttle;
 uint16_t ui16_brake_adc;
 uint32_t ui32_throttle_cumulated;
@@ -188,7 +188,7 @@ uint16_t switchtime[3];
 volatile uint16_t adcData[8]; //Buffer for ADC1 Input
 q31_t tic_array[6];
 
-//Rotor angle scaled from degree to q31 for arm_math. -180Â°-->-2^31, 0Â°-->0, +180Â°-->+2^31
+//Rotor angle scaled from degree to q31 for arm_math. -180Ã‚Â°-->-2^31, 0Ã‚Â°-->0, +180Ã‚Â°-->+2^31
 const q31_t DEG_0 = 0;
 const q31_t DEG_plus60 = 715827883; //744755980
 const q31_t DEG_plus120= 1431655765; //1442085801
@@ -705,7 +705,7 @@ int main(void)
 
 		#ifdef TS_MODE //torque-sensor mode
 					//calculate current target form torque, cadence and assist level
-					int32_temp_current_target = (TS_COEF*(int16_t)(MS.assist_level)* (uint32_torque_cumulated>>5)/uint32_PAS)>>8; //>>5 aus Mittelung über eine Kurbelumdrehung, >>8 aus KM5S-Protokoll Assistlevel 0..255
+					int32_temp_current_target = (TS_COEF*(int16_t)(MS.assist_level)* (uint32_torque_cumulated>>5)/uint32_PAS)>>8; //>>5 aus Mittelung Ã¼ber eine Kurbelumdrehung, >>8 aus KM5S-Protokoll Assistlevel 0..255
 
 					//limit currest target to max value
 					if(int32_temp_current_target>PH_CURRENT_MAX) int32_temp_current_target = PH_CURRENT_MAX;
@@ -914,7 +914,7 @@ int main(void)
 //		  int64_temp_help= (int64_temp_help1*int64_temp_help1*int64_temp_help1*132)>>28;
 //		  int64_temp_help+=(int64_temp_help1*int64_temp_help1*-182)>>18;
 //		  int64_temp_help+=(int64_temp_help1*99)>>8;
-//		  MS.Temperature = int64_temp_help-60;//adcData[6]*41>>8; //0.16 is calibration constant: Analog_in[10mV/Â°C]/ADC value. Depending on the sensor LM35)
+//		  MS.Temperature = int64_temp_help-60;//adcData[6]*41>>8; //0.16 is calibration constant: Analog_in[10mV/Ã‚Â°C]/ADC value. Depending on the sensor LM35)
 		//  MS.Temperature = NTC_ADC2Temperature(adcData[6]);
 		  MS.Temperature = T_NTC(adcData[6]); //Thank you Hendrik ;-)
 		  MS.Voltage=adcData[0];
@@ -1081,7 +1081,7 @@ static void MX_ADC1_Init(void)
     /**Common config 
     */
   hadc1.Instance = ADC1;
-  hadc1.Init.ScanConvMode = ADC_SCAN_ENABLE; //Scan muÃ fÃ¼r getriggerte Wandlung gesetzt sein
+  hadc1.Init.ScanConvMode = ADC_SCAN_ENABLE; //Scan muÃƒÂŸ fÃƒÂ¼r getriggerte Wandlung gesetzt sein
   hadc1.Init.ContinuousConvMode = DISABLE;
   hadc1.Init.DiscontinuousConvMode = DISABLE;
   hadc1.Init.ExternalTrigConv = ADC_EXTERNALTRIGCONV_T3_TRGO;// Trigger regular ADC with timer 3 ADC_EXTERNALTRIGCONV_T1_CC1;// // ADC_SOFTWARE_START; //
@@ -1110,10 +1110,10 @@ static void MX_ADC1_Init(void)
   sConfigInjected.InjectedNbrOfConversion = 1;
   sConfigInjected.InjectedSamplingTime = ADC_SAMPLETIME_1CYCLE_5;
   sConfigInjected.ExternalTrigInjecConv = ADC_EXTERNALTRIGINJECCONV_T1_CC4; // Hier bin ich nicht sicher ob Trigger out oder direkt CC4
-  sConfigInjected.AutoInjectedConv = DISABLE; //muÃ aus sein
+  sConfigInjected.AutoInjectedConv = DISABLE; //muÃƒÂŸ aus sein
   sConfigInjected.InjectedDiscontinuousConvMode = DISABLE;
   sConfigInjected.InjectedOffset = ui16_ph1_offset;//1900;
-  HAL_ADC_Stop(&hadc1); //ADC muÃ gestoppt sein, damit Triggerquelle gesetzt werden kann.
+  HAL_ADC_Stop(&hadc1); //ADC muÃƒÂŸ gestoppt sein, damit Triggerquelle gesetzt werden kann.
   if (HAL_ADCEx_InjectedConfigChannel(&hadc1, &sConfigInjected) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
@@ -1667,7 +1667,7 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 			q31_rotorposition_absolute=q31_rotorposition_PLL;
 #else
 			//estimation by extrapolating directly from the hallsensor information
-			q31_rotorposition_absolute = q31_rotorposition_hall + (q31_t)(i16_hall_order * i8_recent_rotor_direction * ((10923 * ui16_tim2_recent)/ui16_timertics)<<16); //interpolate angle between two hallevents by scaling timer2 tics, 10923<<16 is 715827883 = 60°
+			q31_rotorposition_absolute = q31_rotorposition_hall + (q31_t)(i16_hall_order * i8_recent_rotor_direction * ((10923 * ui16_tim2_recent)/ui16_timertics)<<16); //interpolate angle between two hallevents by scaling timer2 tics, 10923<<16 is 715827883 = 60Â°
 #endif
 	   }
 		   else { //run in 6 step mode
@@ -2036,19 +2036,19 @@ int32_t map (int32_t x, int32_t in_min, int32_t in_max, int32_t out_min, int32_t
 //assuming, a proper AD conversion takes 350 timer tics, to be confirmed. DT+TR+TS deadtime + noise subsiding + sample time
 void dyn_adc_state(q31_t angle){
 	if (switchtime[2]>switchtime[0] && switchtime[2]>switchtime[1]){
-		MS.char_dyn_adc_state = 1; // -90Â° .. +30Â°: Phase C at high dutycycles
+		MS.char_dyn_adc_state = 1; // -90Ã‚Â° .. +30Ã‚Â°: Phase C at high dutycycles
 		if(switchtime[2]>1500)TIM1->CCR4 =  switchtime[2]-TRIGGER_OFFSET_ADC;
 		else TIM1->CCR4 = TRIGGER_DEFAULT;
 	}
 
 	if (switchtime[0]>switchtime[1] && switchtime[0]>switchtime[2]) {
-		MS.char_dyn_adc_state = 2; // +30Â° .. 150Â° Phase A at high dutycycles
+		MS.char_dyn_adc_state = 2; // +30Ã‚Â° .. 150Ã‚Â° Phase A at high dutycycles
 		if(switchtime[0]>1500)TIM1->CCR4 =  switchtime[0]-TRIGGER_OFFSET_ADC;
 		else TIM1->CCR4 = TRIGGER_DEFAULT;
 	}
 
 	if (switchtime[1]>switchtime[0] && switchtime[1]>switchtime[2]){
-		MS.char_dyn_adc_state = 3; // +150 .. -90Â° Phase B at high dutycycles
+		MS.char_dyn_adc_state = 3; // +150 .. -90Ã‚Â° Phase B at high dutycycles
 		if(switchtime[1]>1500)TIM1->CCR4 =  switchtime[1]-TRIGGER_OFFSET_ADC;
 		else TIM1->CCR4 = TRIGGER_DEFAULT;
 	}
@@ -2109,7 +2109,7 @@ void autodetect(){
    	q31_t diffangle=0;
    	HAL_Delay(5);
    	for(i=0;i<1080;i++){
-   		q31_rotorposition_absolute+=11930465; //drive motor in open loop with steps of 1°
+   		q31_rotorposition_absolute+=11930465; //drive motor in open loop with steps of 1Â°
    		HAL_Delay(5);
    		if (q31_rotorposition_absolute>-300&&q31_rotorposition_absolute<300){
    			switch (ui8_hall_case) //12 cases for each transition from one stage to the next. 6x forward, 6x reverse
@@ -2350,7 +2350,7 @@ q31_t speed_PLL (q31_t ist, q31_t soll, uint8_t speedadapt)
     return (q31_d_dc);
   }
 
-int16_t T_NTC(uint16_t ADC) // ADC 12 Bit, 10k Pullup, R�ckgabewert in �C
+int16_t T_NTC(uint16_t ADC) // ADC 12 Bit, 10k Pullup, Rückgabewert in °C
 
 {
     uint16_t Ux1000 = 3300;
@@ -2359,36 +2359,12 @@ int16_t T_NTC(uint16_t ADC) // ADC 12 Bit, 10k Pullup, R�ckgabewert in �C
     uint32_t R = U2x1000*R1/(Ux1000-U2x1000);
 // 	printf("R= %d\r\n",R);
 //  printf("u2= %d\r\n",U2x1000);
-        if(!R) return 0x7fff;
-
-        if(R >> 19) return 0x8000;
-
-        R <<= 13;
-
-        uint8_t n1 = 0;
-
-        uint16_t n;
-
-        uint32_t R2 = R;
-
-        while(R >> n1 > 1) n1++;
-
-        for(n = 8*(n1-13); R2 >> n1; n++)
-
-        {
-
-                R = R2;
-
-                R2 -= (R >> 10)*85; // Ann�herung 1-85/1024 f�r 2^(-1/8)
-
-        }
-
-        for(n = 8*(n-1); R >> n1; n++)
-
-                R -= (R >> 10)*11; // Ann�herung 1-11/1024 f�r 2^(-1/64)
-
-        int16_t T6 = 2160580/(n+357)-1639; // Berechnung f�r 10 kOhm-NTC (bei 25 �C) mit beta=3900 K
-
+     if(R >> 19) return -44;
+     uint16_t n = 0;
+     while(R >> n > 1) n++;
+     	R <<= 13;
+     	for(n <<= 6; R >> (n >> 6) >> 13; n++) R -= (R >> 10)*11; // Annäherung 1-11/1024 für 2^(-1/64)
+        int16_t T6 = 2160580/(n+357)-1639; // Berechnung für 10 kOhm-NTC (bei 25 °C) mit beta=3900 K
         return (T6 > 0 ? T6+3 : T6-2)/6; // Rundung
 
 }
@@ -2407,24 +2383,24 @@ int16_t T_NTC(uint16_t ADC) // ADC 12 Bit, 10k Pullup, R�ckgabewert in �C
 ///**
 //* \brief    Konvertiert das ADC Ergebnis in einen Temperaturwert.
 //*
-//*           Mit p1 und p2 wird der St�tzpunkt direkt vor und nach dem
-//*           ADC Wert ermittelt. Zwischen beiden St�tzpunkten wird linear
+//*           Mit p1 und p2 wird der Stützpunkt direkt vor und nach dem
+//*           ADC Wert ermittelt. Zwischen beiden Stützpunkten wird linear
 //*           interpoliert. Der Code ist sehr klein und schnell.
 //*           Es wird lediglich eine Ganzzahl-Multiplikation verwendet.
 //*           Die Division kann vom Compiler durch eine Schiebeoperation.
 //*           ersetzt werden.
 //*
-//*           Im Temperaturbereich von -10�C bis 140�C betr�gt der Fehler
-//*           durch die Verwendung einer Tabelle 3.642�C
+//*           Im Temperaturbereich von -10°C bis 140°C beträgt der Fehler
+//*           durch die Verwendung einer Tabelle 3.642°C
 //*
 //* \param    adc_value  Das gewandelte ADC Ergebnis
-//* \return              Die Temperatur in 0.01 �C
+//* \return              Die Temperatur in 0.01 °C
 //*
 //*/
 //int NTC_ADC2Temperature(unsigned int adc_value){
 //
 //  int p1,p2;
-//  /* St�tzpunkt vor und nach dem ADC Wert ermitteln. */
+//  /* Stützpunkt vor und nach dem ADC Wert ermitteln. */
 //  p1 = NTC_table[ (adc_value >> 7)  ];
 //  p2 = NTC_table[ (adc_value >> 7)+1];
 //
