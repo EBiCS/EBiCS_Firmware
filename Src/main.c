@@ -839,17 +839,17 @@ int main(void)
 #ifdef LEGALFLAG
 			if(!brake_flag){ //only ramp down if no regen active
 				if(uint32_PAS_counter<PAS_TIMEOUT){
-					int32_current_target=map(uint32_SPEEDx100_cumulated>>SPEEDFILTER, MP.speedLimit*100,(MP.speedLimit+2)*100,int32_temp_current_target,0);
+					int32_temp_current_target=map(uint32_SPEEDx100_cumulated>>SPEEDFILTER, MP.speedLimit*100,(MP.speedLimit+2)*100,int32_temp_current_target,0);
 					}
 				else{ //limit to 6km/h if pedals are not turning
-					int32_current_target=map(uint32_SPEEDx100_cumulated>>SPEEDFILTER, 500,700,int32_temp_current_target,0);
+					int32_temp_current_target=map(uint32_SPEEDx100_cumulated>>SPEEDFILTER, 500,700,int32_temp_current_target,0);
 					}
 				}
-			else int32_current_target=int32_temp_current_target;
+//			else int32_temp_current_target=int32_temp_current_target;
 #else
 				int32_current_target=int32_temp_current_target;
 #endif
-				int32_current_target=map(MS.Temperature, 120,130,int32_current_target,0); //ramp down power with temperature to avoid overheating the motor
+				int32_current_target=map(MS.Temperature, 120,130,int32_temp_current_target,0); //ramp down power with temperature to avoid overheating the motor
 					//auto KV detect
 			  if(ui8_KV_detect_flag){
 				  int32_current_target=ui8_KV_detect_flag;
@@ -955,7 +955,7 @@ int main(void)
 		  //print values for debugging
 
 
-		 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", MS.Voltage*CAL_V, int32_current_target, ui16_throttle, tics_to_speed(uint32_tics_filtered>>3), uint32_PAS, uint16_mapped_throttle, MS.u_d,MS.u_q, SystemState);
+		 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", MS.Temperature, int32_current_target, ui16_throttle, adcData[6], uint32_PAS, uint16_mapped_throttle, MS.u_d,MS.u_q, SystemState);
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5]),(uint16_t)(adcData[6])) ;
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",tic_array[0],tic_array[1],tic_array[2],tic_array[3],tic_array[4],tic_array[5]) ;
 		  i=0;
@@ -1915,7 +1915,8 @@ void kingmeter_update(void)
 
     //KM.Tx.Wheeltime_ms = 25;
 
-    KM.Tx.Error = KM_ERROR_NONE;
+    if(MS.Temperature<130) KM.Tx.Error = KM_ERROR_NONE;
+    else KM.Tx.Error = KM_ERROR_OVHT;
 
     KM.Tx.Current_x10 = (uint16_t) (MS.Battery_Current/100); //MS.Battery_Current is in mA
 
