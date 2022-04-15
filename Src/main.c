@@ -768,7 +768,7 @@ int main(void)
 			  //check for throttle override
 			  if(int32_temp_current_target<uint16_mapped_throttle)int32_temp_current_target=uint16_mapped_throttle;
 
-#else
+#else //else NTCE
 			  // read in throttle for throttle override
 			  uint16_mapped_throttle = map(ui16_throttle, THROTTLE_OFFSET, THROTTLE_MAX, 0,PH_CURRENT_MAX);
 			  //check for throttle override
@@ -824,14 +824,23 @@ int main(void)
 
 
 
-#else
+#else //speedthrottle
 					int32_temp_current_target=uint16_mapped_throttle;
 #endif  //end speedthrottle
 
-
-
 				  } //end else of throttle override
 #endif	//end NCTE
+#else //throttle override
+#ifndef TS_MODE //normal PAS Mode
+
+			    if (uint32_PAS_counter < PAS_TIMEOUT) int32_temp_current_target = uint16_mapped_PAS;		//set current target in torque-simulation-mode, if pedals are turning
+				  else  {
+					  int32_temp_current_target= 0;//pedals are not turning, stop motor
+					  uint32_PAS_cumulated=32000;
+					  uint32_PAS=32000;
+				  }
+#endif // TS_MODE
+
 #endif //end throttle override
 
 				} //end else for normal riding
@@ -846,9 +855,9 @@ int main(void)
 					}
 				}
 //			else int32_temp_current_target=int32_temp_current_target;
-#else
+#else //legalflag
 				int32_current_target=int32_temp_current_target;
-#endif
+#endif //legalflag
 				int32_current_target=map(MS.Temperature, 120,130,int32_temp_current_target,0); //ramp down power with temperature to avoid overheating the motor
 					//auto KV detect
 			  if(ui8_KV_detect_flag){
