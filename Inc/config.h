@@ -54,7 +54,7 @@
 #define FRAC_LOW 15
 //#define TS_MODE
 //#define TQONAD1
-#define DISPLAY_TYPE DISPLAY_TYPE_DEBUG
+#define DISPLAY_TYPE DISPLAY_TYPE_KINGMETER_901U
 #define REVERSE 1
 #define PUSHASSIST_CURRENT 30
 #define VOLTAGE_MIN 300
@@ -69,7 +69,7 @@
 
 #define P_FACTOR_PLL 10
 #define I_FACTOR_PLL 10
-#define AUTODETECT 1
+#define AUTODETECT 0
 #define SPEED_PLL 1 //1 for using PLL, 0 for angle extrapolation
 
 #define EXTERNAL 1
