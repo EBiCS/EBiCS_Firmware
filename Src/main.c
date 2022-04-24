@@ -260,7 +260,7 @@ static void MX_ADC1_Init(void);
 static void MX_ADC2_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_TIM3_Init(void);
-
+int16_t T_NTC(uint16_t ADC);
 
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
                                 
@@ -962,9 +962,11 @@ int main(void)
 
 
 		  if(ui8_KV_detect_flag){ui16_KV_detect_counter++;}
-
-
-		  MS.Temperature = adcData[6]*41>>8; //0.16 is calibration constant: Analog_in[10mV/Â°C]/ADC value. Depending on the sensor LM35)
+#if (R_TEMP_PULLUP)
+		  MS.Temperature = T_NTC(adcData[6]); //Thank you Hendrik ;-)
+#else
+		  MS.Temperature=25;
+#endif
 		  MS.Voltage=adcData[0];
 		  if(uint32_SPEED_counter>127999){
 			  MS.Speed =128000;
@@ -1958,9 +1960,8 @@ void kingmeter_update(void)
     }
 
 
-    //KM.Tx.Wheeltime_ms = 25;
-
-    KM.Tx.Error = KM_ERROR_NONE;
+    if(MS.Temperature<130) KM.Tx.Error = KM_ERROR_NONE;
+    else KM.Tx.Error = KM_ERROR_OVHT;
 
     KM.Tx.Current_x10 = (uint16_t) (MS.Battery_Current/100); //MS.Battery_Current is in mA
 
@@ -2389,6 +2390,27 @@ q31_t speed_PLL (q31_t ist, q31_t soll, uint8_t speedadapt)
     q31_d_dc=q31_p+q31_d_i;
     return (q31_d_dc);
   }
+
+#if (R_TEMP_PULLUP)
+int16_t T_NTC(uint16_t ADC) // ADC 12 Bit, 10k Pullup, Rückgabewert in °C
+
+{
+    uint16_t Ux1000 = 3300;
+    uint16_t U2x1000 = ADC*Ux1000/4095;
+    uint16_t R1 = R_TEMP_PULLUP;
+    uint32_t R = U2x1000*R1/(Ux1000-U2x1000);
+// 	printf("R= %d\r\n",R);
+//  printf("u2= %d\r\n",U2x1000);
+     if(R >> 19) return -44;
+     uint16_t n = 0;
+     while(R >> n > 1) n++;
+     	R <<= 13;
+     	for(n <<= 6; R >> (n >> 6) >> 13; n++) R -= (R >> 10)*11; // Annäherung 1-11/1024 für 2^(-1/64)
+        int16_t T6 = 2160580/(n+357)-1639; // Berechnung für 10 kOhm-NTC (bei 25 °C) mit beta=3900 K
+        return (T6 > 0 ? T6+3 : T6-2)/6; // Rundung
+
+}
+#endif
 
 /* USER CODE END 4 */
 

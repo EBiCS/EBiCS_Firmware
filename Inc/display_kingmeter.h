@@ -122,6 +122,7 @@ typedef struct
 
 #define KM_ERROR_NONE           0x00
 #define KM_ERROR_COMM           0x30
+#define KM_ERROR_OVHT			0x25
 
 typedef struct
 {
