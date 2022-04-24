@@ -101,7 +101,7 @@ CPU = -mcpu=cortex-m3
 
 
 # mcu
-MCU = $(CPU) -mthumb $(FPU) $(FLOAT-ABI)
+MCU = $(CPU) -mthumb -mfloat-abi=soft '-D__weak=__attribute__((weak))'
 
 # macros for gcc
 # AS defines
@@ -111,8 +111,7 @@ AS_DEFS =
 C_DEFS =  \
 -DUSE_HAL_DRIVER \
 -DSTM32F103x6 \
--DARM_MATH_CM3
-
+-DARM_MATH_CM3 '-D__packed=__attribute__((__packed__))'
 
 # AS includes
 AS_INCLUDES = 
@@ -133,12 +132,12 @@ ASFLAGS = $(MCU) $(AS_DEFS) $(AS_INCLUDES) $(OPT) -Wall -fdata-sections -ffuncti
 CFLAGS = $(MCU) $(C_DEFS) $(C_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections
 
 ifeq ($(DEBUG), 1)
-CFLAGS += -g -gdwarf-2
+CFLAGS += -g3
 endif
 
 
 # Generate dependency information
-CFLAGS += -MMD -MP -MF"$(@:%.o=%.d)"
+# CFLAGS += -MMD -MP -MF"$(@:%.o=%.d)"
 
 
 #######################################
@@ -154,7 +153,7 @@ LDFLAGS = $(MCU) -specs=nano.specs -T$(LDSCRIPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(BU
 
 # default action: build all
 all: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).hex $(BUILD_DIR)/$(TARGET).bin
-
+		
 
 #######################################
 # build the application
@@ -182,10 +181,11 @@ $(BUILD_DIR)/%.hex: $(BUILD_DIR)/%.elf | $(BUILD_DIR)
 	
 $(BUILD_DIR)/%.bin: $(BUILD_DIR)/%.elf | $(BUILD_DIR)
 	$(BIN) $< $@	
+	$(MAKE) --no-print-directory post-build
 	
 $(BUILD_DIR):
-	mkdir $@		
-
+	mkdir $@	
+	
 #######################################
 # clean up
 #######################################
@@ -196,5 +196,12 @@ clean:
 # dependencies
 #######################################
 -include $(wildcard $(BUILD_DIR)/*.d)
+
+#######################################
+# post build
+#######################################
+post-build:
+	-@echo 'code size in flash:'
+	stat "build/EBiCS_Firmware.bin"
 
 # *** EOF ***
