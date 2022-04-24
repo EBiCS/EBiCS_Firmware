@@ -504,11 +504,17 @@ int main(void)
 #endif
 
 //run autodect, whenn brake is pulled an throttle is pulled for 10 at startup
+#ifndef NCTE
+
   	while ((!HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin))&&(adcData[1]>(THROTTLE_OFFSET+20))){
+
   				HAL_Delay(200);
   	   			y++;
   	   			if(y==35) autodetect();
   	   			}
+#else
+  	ui32_throttle_cumulated=THROTTLE_OFFSET<<4;
+#endif
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG)
    	printf_("phase current offsets:  %d, %d, %d \n ", ui16_ph1_offset, ui16_ph2_offset, ui16_ph3_offset);
@@ -518,7 +524,11 @@ int main(void)
 
 #endif
 
+#ifdef NCTE
+   	while(adcData[1]<THROTTLE_OFFSET)
+#else
    	while(adcData[1]>THROTTLE_OFFSET)
+#endif
    	  	{
    	  	//do nothing (For Safety at switching on)
    	  	}
@@ -644,7 +654,11 @@ int main(void)
 		  ui8_PAS_flag=0;
 		  //read in and sum up torque-signal within one crank revolution (for sempu sensor 32 PAS pulses/revolution, 2^5=32)
 		  uint32_torque_cumulated -= uint32_torque_cumulated>>5;
+#ifdef NCTE
+		  if(ui16_throttle<THROTTLE_OFFSET)uint32_torque_cumulated += (THROTTLE_OFFSET-ui16_throttle);
+#else
 		  if(ui16_throttle>THROTTLE_OFFSET)uint32_torque_cumulated += (ui16_throttle-THROTTLE_OFFSET);
+#endif
 		  }
 	  }
 #if (SPEEDSOURCE == INTERNAL) && ((DISPLAY_TYPE == DISPLAY_TYPE_KUNTENG)||(DISPLAY_TYPE == DISPLAY_TYPE_BAFANG))
@@ -721,11 +735,15 @@ int main(void)
 		else brake_flag=1;
 				if(brake_flag){
 
-						if(tics_to_speed(uint32_tics_filtered>>3)>6)MS.i_q_setpoint=-REGEN_CURRENT; //only apply regen, if motor is turning fast enough
-						else MS.i_q_setpoint=0;
-				}
+						if(tics_to_speed(uint32_tics_filtered>>3)>6){
+							int32_temp_current_target=REGEN_CURRENT; //only apply regen, if motor is turning fast enough
+							}
+						else int32_temp_current_target=0;
 
 #endif
+	  			int32_temp_current_target= -map(MS.Voltage*CAL_V,BATTERYVOLTAGE_MAX-1000,BATTERYVOLTAGE_MAX,int32_temp_current_target,0);
+				}
+
 				//next priority: undervoltage protection
 				else if(MS.Voltage<VOLTAGE_MIN)MS.i_q_setpoint=0;
 				//next priority: push assist
@@ -791,10 +809,19 @@ int main(void)
 
 #ifdef THROTTLE_OVERRIDE
 
-				  // read in throttle for throttle override
-				  uint16_mapped_throttle = map(ui16_throttle, THROTTLE_OFFSET , THROTTLE_MAX, 0, PH_CURRENT_MAX);
-				  //check for throttle override
-				  if(uint16_mapped_PAS>uint16_mapped_throttle)   {
+
+#ifdef NCTE
+			  // read in throttle for throttle override
+			  uint16_mapped_throttle = map(ui16_throttle, THROTTLE_MAX, THROTTLE_OFFSET,PH_CURRENT_MAX,0);
+			  //check for throttle override
+			  if(int32_temp_current_target<uint16_mapped_throttle)int32_temp_current_target=uint16_mapped_throttle;
+
+#else //else NTCE
+			  // read in throttle for throttle override
+			  uint16_mapped_throttle = map(ui16_throttle, THROTTLE_OFFSET, THROTTLE_MAX, 0,PH_CURRENT_MAX);
+			  //check for throttle override
+
+			  if(uint16_mapped_PAS>uint16_mapped_throttle)   {
 
 
 
@@ -845,20 +872,42 @@ int main(void)
 
 
 
-#else
+#else //speedthrottle
 					int32_temp_current_target=uint16_mapped_throttle;
 #endif  //end speedthrottle
 
-
-
 				  } //end else of throttle override
+#endif	//end NCTE
+#else //throttle override
+#ifndef TS_MODE //normal PAS Mode
+
+			    if (uint32_PAS_counter < PAS_TIMEOUT) int32_temp_current_target = uint16_mapped_PAS;		//set current target in torque-simulation-mode, if pedals are turning
+				  else  {
+					  int32_temp_current_target= 0;//pedals are not turning, stop motor
+					  uint32_PAS_cumulated=32000;
+					  uint32_PAS=32000;
+				  }
+#endif // TS_MODE
 
 #endif //end throttle override
 
-
+				} //end else for normal riding
 				  //ramp down setpoint at speed limit
-					MS.i_q_setpoint=map(uint32_SPEEDx100_cumulated>>SPEEDFILTER, MP.speedLimit*100,(MP.speedLimit+2)*100,int32_temp_current_target,0);
-			//auto KV detect
+#ifdef LEGALFLAG
+			if(!brake_flag){ //only ramp down if no regen active
+				if(uint32_PAS_counter<PAS_TIMEOUT){
+					int32_temp_current_target=map(uint32_SPEEDx100_cumulated>>SPEEDFILTER, MP.speedLimit*100,(MP.speedLimit+2)*100,int32_temp_current_target,0);
+					}
+				else{ //limit to 6km/h if pedals are not turning
+					int32_temp_current_target=map(uint32_SPEEDx100_cumulated>>SPEEDFILTER, 500,700,int32_temp_current_target,0);
+					}
+				}
+//			else int32_temp_current_target=int32_temp_current_target;
+#else //legalflag
+				int32_current_target=int32_temp_current_target;
+#endif //legalflag
+				MS.i_q_setpoint=map(MS.Temperature, 120,130,int32_temp_current_target,0); //ramp down power with temperature to avoid overheating the motor
+				//auto KV detect
 			  if(ui8_KV_detect_flag){
 				  MS.i_q_setpoint=ui8_KV_detect_flag;
 				  if(ui16_KV_detect_counter>32){
@@ -874,7 +923,8 @@ int main(void)
 
 
 			  }//end KV detect
-			} //end else for normal riding
+
+
 
 //------------------------------------------------------------------------------------------------------------
 				//enable PWM if power is wanted

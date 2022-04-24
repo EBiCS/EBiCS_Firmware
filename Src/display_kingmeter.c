@@ -312,7 +312,7 @@ static void KM_618U_Service(KINGMETER_t* KM_ctx)
     if(KM_ctx->RxState == RXSTATE_DONE)
     {
 
-        // Buffer über DMA senden
+        // Buffer ueber DMA senden
         HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuff, KM_MAX_TXBUFF);
        // HAL_Delay(6);
 
@@ -395,6 +395,7 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
 	    if (j<k && l==k+1){
 	      	Rx_message_length=l-j+1;
 	      	handshake_position=KM_ctx->RxBuff[9+j];
+	      //	if(KM_ctx->RxBuff[j+8]==0xAB)autodetect(); //run autodetect at startup, if current is set to 21.5 amps (for EBS Displays)
 	      	//HAL_Delay(100);
 		   HAL_UART_DMAStop(&huart1);
 
@@ -593,7 +594,7 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
                 KM_ctx->Settings.SPS_SpdMagnets      =  KM_ctx->RxBuff[9];             // 1..4
                 KM_ctx->Settings.VOL_1_UnderVolt_x10 = (((uint16_t) KM_ctx->RxBuff[11])<<8) | KM_ctx->RxBuff[11];
                 KM_ctx->Settings.WheelSize_mm        = (((uint16_t) KM_ctx->RxBuff[12])<<8) | KM_ctx->RxBuff[13];
-
+                if(KM_ctx->RxBuff[8]==0xAB)autodetect();
 
                 // Prepare Tx message with handshake code
                 TxBuff[0] = 0X3A;                                       // StartCode
