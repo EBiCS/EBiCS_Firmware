@@ -31,6 +31,9 @@ jobs:
       uses: fiam/arm-none-eabi-gcc@v1.0.2
       with:
         release: '9-2020-q2'
+    - name: Create folder
+      run: mkdir -p build && cp -R dist build
+          
     - name: make
       run: make
       
