@@ -10,7 +10,7 @@ OBJS += \
 build/startup_stm32f103x6.o 
 
 
-# Each subdirectory must supply rules for building sources it contributes
+# Each subdirectory must supply rules for building sources it contributes 
 build/%.o: Startup/%.s
 	@echo 'Building file: $<'
 	@echo 'Invoking: MCU GCC Assembler'
