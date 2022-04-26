@@ -54,7 +54,7 @@ build/stm32f1xx_hal_tim.d \
 build/stm32f1xx_hal_tim_ex.d \
 build/stm32f1xx_hal_uart.d 
 
-INC_PATH = INC
+INC_PATH = Inc
 DRIVERS_PATH = Drivers/STM32F1xx_HAL_Driver/Inc
 LEGACY_PATH = Drivers/STM32F1xx_HAL_Driver/Inc/Legacy
 DEVICE_PATH = Drivers/CMSIS/Device/ST/STM32F1xx/Include
