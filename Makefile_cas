@@ -43,7 +43,6 @@ Src/stm32f1xx_it.c \
 Src/print.c \
 Src/stm32f1xx_hal_msp.c \
 Src/display_bafang.c \
-Src/display_ebics.c \
 Src/display_kingmeter.c \
 Src/display_kunteng.c \
 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_gpio_ex.c \
@@ -127,9 +126,9 @@ C_INCLUDES =  \
 
 
 # compile gcc flags
-ASFLAGS = $(MCU) $(AS_DEFS) $(AS_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections
+ASFLAGS = $(MCU) $(AS_DEFS) $(AS_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections 
 
-CFLAGS = $(MCU) $(C_DEFS) $(C_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections
+CFLAGS = $(MCU) $(C_DEFS) $(C_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections 
 
 ifeq ($(DEBUG), 1)
 CFLAGS += -g3

@@ -20,11 +20,10 @@ copy subdir_startup.mk startup\subdir.mk
 
 copy STLINK_FLASH.ld ..\STM32F103C6Tx_FLASH.ld
 copy STLINK_system_stm32f1xx.c ..\Src\system_stm32f1xx.c
-
+pause
 make all
 
 ST-LINK_CLI.exe -c SWD -P LishuiFOC_01.hex -V
 
 pause
 
-exit
