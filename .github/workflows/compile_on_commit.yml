@@ -27,13 +27,12 @@ jobs:
 
         # enable workflow command processing
         echo "::`echo -n ${{ github.token }} | sha256sum | head -c 64`::"
+    - name: Create folder
+      run: mkdir build 
     - name: arm-none-eabi-gcc
       uses: fiam/arm-none-eabi-gcc@v1.0.2
       with:
         release: '9-2020-q2'
-    - name: Create folder
-      run: mkdir -p build && cp -R dist build
-          
     - name: make
       run: make
       
