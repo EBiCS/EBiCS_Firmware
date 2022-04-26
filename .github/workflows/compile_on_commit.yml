@@ -30,7 +30,7 @@ jobs:
     - name: Create folder
       run: |
         mkdir build 
-        ls build
+        ls ${{ github.workspace }}
     - name: arm-none-eabi-gcc
       uses: fiam/arm-none-eabi-gcc@v1.0.2
       with:
