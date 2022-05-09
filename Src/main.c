@@ -899,7 +899,7 @@ int main(void)
 				}
 //			else int32_temp_current_target=int32_temp_current_target;
 #else //legalflag
-				int32_current_target=int32_temp_current_target;
+				MS.i_q_setpoint=int32_temp_current_target;
 #endif //legalflag
 				MS.i_q_setpoint=map(MS.Temperature, 120,130,int32_temp_current_target,0); //ramp down power with temperature to avoid overheating the motor
 				//auto KV detect
