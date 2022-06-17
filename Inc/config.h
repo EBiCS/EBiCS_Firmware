@@ -40,7 +40,7 @@
 #define TS_COEF 90000
 #define PAS_TIMEOUT 8000
 #define RAMP_END 1600
-#define THROTTLE_OFFSET 900
+#define THROTTLE_OFFSET 1500
 #define THROTTLE_MAX 3000
 #define WHEEL_CIRCUMFERENCE 2200
 #define GEAR_RATIO 11 //dummy for testing
@@ -52,7 +52,7 @@
 //#define DIRDET
 #define FRAC_HIGH 30
 #define FRAC_LOW 15
-//#define TS_MODE
+#define TS_MODE
 //#define TQONAD1
 #define DISPLAY_TYPE DISPLAY_TYPE_DEBUG
 #define REVERSE 1
@@ -66,7 +66,7 @@
 //#define SPEEDTHROTTLE
 #define THROTTLE_OVERRIDE
 #define REGEN_CURRENT_MAX 10000
-#define SPEED_PLL
+//#define SPEED_PLL
 #define P_FACTOR_PLL 10
 #define I_FACTOR_PLL 10
 #define AUTODETECT 1
