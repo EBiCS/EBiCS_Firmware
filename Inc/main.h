@@ -90,7 +90,7 @@
 #define NCTE
 #define LEGALFLAG
 #define BATTERYVOLTAGE_MAX 41500
-#define R_TEMP_PULLUP 10000
+#define R_TEMP_PULLUP 0
 
 /* ########################## Assert Selection ############################## */
 /**
