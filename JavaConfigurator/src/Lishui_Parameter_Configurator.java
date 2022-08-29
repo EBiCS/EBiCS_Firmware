@@ -586,9 +586,13 @@ public void AddListItem(File newFile) {
 					iWriter.println(RB_FAST_LOOP_LOG.isSelected()); 
                                         
                                         if (RB_SPEED_PLL.isSelected()) {
-						text_to_save = "#define SPEED_PLL";
+						text_to_save = "#define SPEED_PLL 1";
 						pWriter.println(text_to_save);
 					}
+                                        else{
+                                                text_to_save = "#define SPEED_PLL 0";
+						pWriter.println(text_to_save);
+                                        }
 					iWriter.println(RB_SPEED_PLL.isSelected()); 
 
                                         if (RB_SPEEDTHROTTLE.isSelected()) {
