@@ -459,7 +459,7 @@ int main(void)
 #endif
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_EBiCS)
-       ebics_init();
+     //  ebics_init();
 #endif
 
 
@@ -614,7 +614,7 @@ int main(void)
 #endif
 
 #if (DISPLAY_TYPE & DISPLAY_TYPE_EBiCS)
-	  process_ant_page(&MS, &MP);
+	//  process_ant_page(&MS, &MP);
 #endif
 
 	  ui8_UART_flag=0;
@@ -1043,7 +1043,7 @@ int main(void)
 			  	  break;
 			  }//end switch
 
-			  send_ant_page(ui8_LEV_Page_to_send, &MS, &MP);
+			//  send_ant_page(ui8_LEV_Page_to_send, &MS, &MP);
 
 			  ui8_main_LEV_Page_counter++;
 			  if(ui8_main_LEV_Page_counter>4)ui8_main_LEV_Page_counter=1;
@@ -1925,7 +1925,7 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *UartHandle) {
 #endif
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_EBiCS)
-       ebics_init();
+//       ebics_init();
 #endif
 
 }
