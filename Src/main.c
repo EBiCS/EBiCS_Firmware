@@ -721,8 +721,8 @@ int main(void)
 
 				//if(!HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin)){
 					//if(tics_to_speed(uint32_tics_filtered>>3)>6)int32_current_target=-REGEN_CURRENT; //only apply regen, if motor is turning fast enough
-				if(tics_to_speed(uint32_tics_filtered>>3)>6)MS.i_q_setpoint=-uint16_mapped_BRAKE;
-				else MS.i_q_setpoint=0;
+				if(tics_to_speed(uint32_tics_filtered>>3)>6)int32_temp_current_target=-uint16_mapped_BRAKE;
+				else int32_temp_current_target=0;
 
 
 #else
@@ -740,9 +740,9 @@ int main(void)
 				}
 
 				//next priority: undervoltage protection
-				else if(MS.Voltage<VOLTAGE_MIN)MS.i_q_setpoint=0;
+				else if(MS.Voltage<VOLTAGE_MIN)int32_temp_current_target=0;
 				//next priority: push assist
-				else if(ui8_Push_Assist_flag)MS.i_q_setpoint=PUSHASSIST_CURRENT;
+				else if(ui8_Push_Assist_flag)int32_temp_current_target=PUSHASSIST_CURRENT;
 				// last priority normal ride conditiones
 				else {
 
