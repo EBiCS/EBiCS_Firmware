@@ -34,7 +34,7 @@
 #include <stdarg.h>     // (...) parameter handling
 
 
-#include "stm32f103x6.h"	// only this STM headerfile is used
+#include "stm32f103xB.h"	// only this STM headerfile is used
 
 
 

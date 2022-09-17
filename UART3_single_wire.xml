@@ -10,8 +10,8 @@
 ]>
 
 <targetDefinitions>
-  <board id="lishuifoc_01">
-    <name>LishuiFOC_01</name>
+  <board id="uart3_single_wire">
+    <name>UART3_single_wire</name>
     <dbgIF>SWD</dbgIF>
     <dbgDEV>ST-Link</dbgDEV>
     <mcuId>stm32f103c8tx</mcuId>
