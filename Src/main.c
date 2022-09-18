@@ -54,6 +54,7 @@
 #include "FOC.h"
 #include "config.h"
 #include "eeprom.h"
+#include "hubsensor.h"
 
 
 #if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
@@ -95,7 +96,7 @@ UART_HandleTypeDef huart3;
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
 
-
+Hubsensor_t hubdata;
 uint32_t ui32_tim1_counter=0;
 uint32_t ui32_tim3_counter=0;
 uint8_t ui8_hall_state=0;
@@ -411,6 +412,8 @@ int main(void)
   MX_TIM2_Init();
   MX_TIM3_Init();
 
+  Hubsensor_Init (&hubdata);
+
  // Start Timer 1
     if(HAL_TIM_Base_Start_IT(&htim1) != HAL_OK)
       {
@@ -601,7 +604,7 @@ int main(void)
 	  PI_flag=0;
 	  }*/
 	  //display message processing
-	  if(ui8_UART_flag){
+	  if(ui8_UART_flag==1){
 #if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
 	  kingmeter_update();
 #endif
@@ -622,6 +625,12 @@ int main(void)
 #endif
 
 	  ui8_UART_flag=0;
+	  }
+
+	  if(ui8_UART_flag==3){
+
+		  Hubsensor_Service(&hubdata);
+		  ui8_UART_flag=0;
 	  }
 
 
@@ -725,8 +734,8 @@ int main(void)
 
 				//if(!HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin)){
 					//if(tics_to_speed(uint32_tics_filtered>>3)>6)int32_current_target=-REGEN_CURRENT; //only apply regen, if motor is turning fast enough
-				if(tics_to_speed(uint32_tics_filtered>>3)>6)MS.i_q_setpoint=-uint16_mapped_BRAKE;
-				else MS.i_q_setpoint=0;
+				if(tics_to_speed(uint32_tics_filtered>>3)>6)int32_temp_current_target=-uint16_mapped_BRAKE;
+				else int32_temp_current_target=0;
 
 
 #else
@@ -744,9 +753,9 @@ int main(void)
 				}
 
 				//next priority: undervoltage protection
-				else if(MS.Voltage<VOLTAGE_MIN)MS.i_q_setpoint=0;
+				else if(MS.Voltage<VOLTAGE_MIN)int32_temp_current_target=0;
 				//next priority: push assist
-				else if(ui8_Push_Assist_flag)MS.i_q_setpoint=PUSHASSIST_CURRENT;
+				else if(ui8_Push_Assist_flag)int32_temp_current_target=PUSHASSIST_CURRENT;
 				// last priority normal ride conditiones
 				else {
 
@@ -1938,7 +1947,9 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *UartHandle)
 {
-	ui8_UART_flag=1;
+	if(UartHandle == &huart1) ui8_UART_flag=1;
+
+	else ui8_UART_flag=3;
 
 }
 
