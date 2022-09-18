@@ -1025,7 +1025,7 @@ int main(void)
 		  i=0;
 		  while (buffer[i] != '\0')
 		  {i++;}
-		   HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);
+		  HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);
 
 
 		  ui8_print_flag=0;
@@ -1496,7 +1496,7 @@ static void MX_USART1_UART_Init(void)
 #elif (DISPLAY_TYPE == DISPLAY_TYPE_BAFANG)
   huart1.Init.BaudRate = 1200;
 #else
-  huart1.Init.BaudRate = 9600;
+  huart1.Init.BaudRate = 57600;
 #endif
 
 
