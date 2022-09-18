@@ -534,7 +534,7 @@ int main(void)
 #ifdef NCTE
    	while(adcData[1]<THROTTLE_OFFSET)
 #else
-   	while(adcData[1]>THROTTLE_OFFSET)
+//   	while(adcData[1]>THROTTLE_OFFSET)
 #endif
    	  	{
    	  	//do nothing (For Safety at switching on)
@@ -1017,14 +1017,15 @@ int main(void)
 #if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG && !defined(FAST_LOOP_LOG))
 		  //print values for debugging
 
+		  sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n", hubdata.HS_Overtemperature, hubdata.HS_Pedalposition, hubdata.HS_Pedals_turning, hubdata.HS_Torque, hubdata.HS_Wheel_turning, hubdata.HS_Wheeltime );
 
-		 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", adcData[1],MS.Temperature, ui32_KV, MS.i_q_setpoint, uint32_PAS, int32_temp_current_target , MS.u_d,MS.u_q, SystemState);
+		 //sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", adcData[1],MS.Temperature, ui32_KV, MS.i_q_setpoint, uint32_PAS, int32_temp_current_target , MS.u_d,MS.u_q, SystemState);
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5]),(uint16_t)(adcData[6])) ;
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",tic_array[0],tic_array[1],tic_array[2],tic_array[3],tic_array[4],tic_array[5]) ;
 		  i=0;
 		  while (buffer[i] != '\0')
 		  {i++;}
-		 HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);
+		   HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);
 
 
 		  ui8_print_flag=0;
@@ -1495,7 +1496,7 @@ static void MX_USART1_UART_Init(void)
 #elif (DISPLAY_TYPE == DISPLAY_TYPE_BAFANG)
   huart1.Init.BaudRate = 1200;
 #else
-  huart1.Init.BaudRate = 56000;
+  huart1.Init.BaudRate = 9600;
 #endif
 
 
