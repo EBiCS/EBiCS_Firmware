@@ -55,4 +55,4 @@ jobs:
       with:
         path: ${{ github.workspace }}/output
         name: EBiCS_build_${{ github.run_number }}
-        retention-days: 5
+        retention-days: 10
