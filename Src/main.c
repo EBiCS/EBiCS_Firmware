@@ -721,7 +721,7 @@ int main(void)
 
 				//if(!HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin)){
 					//if(tics_to_speed(uint32_tics_filtered>>3)>6)int32_current_target=-REGEN_CURRENT; //only apply regen, if motor is turning fast enough
-				if(tics_to_speed(uint32_tics_filtered>>3)>6)int32_temp_current_target=-uint16_mapped_BRAKE;
+				if(tics_to_speed(uint32_tics_filtered>>3)>6)int32_temp_current_target=uint16_mapped_BRAKE;
 				else int32_temp_current_target=0;
 
 
