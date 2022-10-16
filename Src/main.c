@@ -338,7 +338,7 @@ int main(void)
   //initialize MS struct.
   MS.hall_angle_detect_flag=1;
   MS.Speed=128000;
-  MS.assist_level=5;
+  MS.assist_level=3;
   MS.regen_level=7;
 	MS.i_q_setpoint = 0;
 	MS.i_d_setpoint = 0;
@@ -767,6 +767,9 @@ int main(void)
 						uint32_PAS_counter=0;
 					}
 					if(uint32_PAS_counter>PAS_TIMEOUT)int32_temp_current_target=0;
+
+					uint16_mapped_throttle = map(ui16_throttle, THROTTLE_OFFSET, THROTTLE_MAX, 0,PH_CURRENT_MAX);
+					if(uint16_mapped_throttle>int32_temp_current_target)int32_temp_current_target=uint16_mapped_throttle;
 				} //end else for normal riding
 				  //ramp down setpoint at speed limit
 #ifdef LEGALFLAG
@@ -887,7 +890,7 @@ int main(void)
 
 		//  sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n", hubdata.HS_Overtemperature, hubdata.HS_Pedalposition, hubdata.HS_Pedals_turning, hubdata.HS_Torque, hubdata.HS_Wheel_turning, hubdata.HS_Wheeltime );
 
-		 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", adcData[1],hubdata.HS_Pedals_turning, hubdata.HS_Torque, hubdata.HS_Wheeltime, hubdata.HS_Pedalposition, MS.i_q, MS.i_q_setpoint, int32_temp_current_target ,  SystemState);
+		 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", uint16_mapped_throttle,hubdata.HS_Pedals_turning, hubdata.HS_Torque, hubdata.HS_Wheeltime, hubdata.HS_Pedalposition, MS.i_q, MS.i_q_setpoint, int32_temp_current_target ,  SystemState);
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5]),(uint16_t)(adcData[6])) ;
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",tic_array[0],tic_array[1],tic_array[2],tic_array[3],tic_array[4],tic_array[5]) ;
 		  i=0;
