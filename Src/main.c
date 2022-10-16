@@ -121,6 +121,7 @@ uint16_t j=0;
 uint16_t k=0;
 uint16_t y=0;
 uint8_t brake_flag=0;
+uint8_t pedalposition_old=0;
 volatile uint8_t ui8_overflow_flag=0;
 uint8_t ui8_slowloop_counter=0;
 volatile uint8_t ui8_adc_inj_flag=0;
@@ -337,7 +338,7 @@ int main(void)
   //initialize MS struct.
   MS.hall_angle_detect_flag=1;
   MS.Speed=128000;
-  MS.assist_level=1;
+  MS.assist_level=5;
   MS.regen_level=7;
 	MS.i_q_setpoint = 0;
 	MS.i_d_setpoint = 0;
@@ -759,146 +760,13 @@ int main(void)
 				// last priority normal ride conditiones
 				else {
 
-		#ifdef TS_MODE //torque-sensor mode
-					//calculate current target form torque, cadence and assist level
-					int32_temp_current_target = (TS_COEF*(int16_t)(MS.assist_level)* (uint32_torque_cumulated>>5)/uint32_PAS)>>8; //>>5 aus Mittelung über eine Kurbelumdrehung, >>8 aus KM5S-Protokoll Assistlevel 0..255
-
-					//limit currest target to max value
-					if(int32_temp_current_target>PH_CURRENT_MAX) int32_temp_current_target = PH_CURRENT_MAX;
-					//set target to zero, if pedals are not turning
-					if(uint32_PAS_counter > PAS_TIMEOUT){
-						int32_temp_current_target = 0;
-						if(uint32_torque_cumulated>0)uint32_torque_cumulated--; //ramp down cumulated torque value
+					int32_temp_current_target = (hubdata.HS_Torque*MS.assist_level);
+					if(int32_temp_current_target>PH_CURRENT_MAX)int32_temp_current_target=PH_CURRENT_MAX;
+					if(hubdata.HS_Pedalposition!=pedalposition_old){
+						pedalposition_old=hubdata.HS_Pedalposition;
+						uint32_PAS_counter=0;
 					}
-
-
-
-		#else		// torque-simulation mode with throttle override
-
-		#if (DISPLAY_TYPE == DISPLAY_TYPE_BAFANG)
-			  uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, (PH_CURRENT_MAX*(int32_t)(assist_factor[MS.assist_level]))>>8, 0); // level in range 0...5
-		#endif
-
-		#if (DISPLAY_TYPE == DISPLAY_TYPE_KUNTENG)
-			  uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, (PH_CURRENT_MAX*(int32_t)(MS.assist_level))/5, 0); // level in range 0...5
-		#endif
-
-		#if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_618U)
-			  uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, (PH_CURRENT_MAX*(int32_t)(MS.assist_level-1))>>2, 0); // level in range 1...5
-		#endif
-
-		#if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_901U)
-			  uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, ((PH_CURRENT_MAX*(int32_t)(MS.assist_level)))>>8, 0); // level in range 0...255
-		#endif
-
-		#if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG)
-			 uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, PH_CURRENT_MAX, 0); // Full amps in debug mode
-		#endif
-
-
-
-		#ifdef DIRDET
-			  if (uint32_PAS_counter< PAS_TIMEOUT){
-				  if ((uint32_PAS_fraction < FRAC_LOW ||uint32_PAS_fraction > FRAC_HIGH)){
-					  uint16_mapped_PAS= 0;//pedals are turning backwards, stop motor
-				  }
-			  }
-			  else uint32_PAS_HIGH_accumulated=uint32_PAS_cumulated;
-		#endif //end direction detection
-
-
-		#endif //end if else TQ sensor mode
-
-#ifdef INDIVIDUAL_MODES
-
-			  int32_temp_current_target = (int32_temp_current_target * ui8_speedfactor)>>8;
-
-#endif
-
-#ifdef THROTTLE_OVERRIDE
-
-
-#ifdef NCTE
-			  // read in throttle for throttle override
-			  uint16_mapped_throttle = map(ui16_throttle, THROTTLE_MAX, THROTTLE_OFFSET,PH_CURRENT_MAX,0);
-			  //check for throttle override
-			  if(int32_temp_current_target<uint16_mapped_throttle)int32_temp_current_target=uint16_mapped_throttle;
-
-#else //else NTCE
-			  // read in throttle for throttle override
-			  uint16_mapped_throttle = map(ui16_throttle, THROTTLE_OFFSET, THROTTLE_MAX, 0,PH_CURRENT_MAX);
-			  //check for throttle override
-
-			  if(uint16_mapped_PAS>uint16_mapped_throttle)   {
-
-
-
-				    if (uint32_PAS_counter < PAS_TIMEOUT) int32_temp_current_target = uint16_mapped_PAS;		//set current target in torque-simulation-mode, if pedals are turning
-					  else  {
-						  int32_temp_current_target= 0;//pedals are not turning, stop motor
-						  uint32_PAS_cumulated=32000;
-						  uint32_PAS=32000;
-					  }
-
-				  }
-				  else {
-
-#ifdef SPEEDTHROTTLE
-
-
-					uint16_mapped_throttle = uint16_mapped_throttle*SPEEDLIMIT/PH_CURRENT_MAX;//throttle override: calulate speed target from thottle
-
-
-
-
-					  PI_speed.setpoint = uint16_mapped_throttle*100;
-					  PI_speed.recent_value = internal_tics_to_speedx100(uint32_tics_filtered>>3);
-					 if( PI_speed.setpoint)SET_BIT(TIM1->BDTR, TIM_BDTR_MOE);
-					if (internal_tics_to_speedx100(uint32_tics_filtered>>3)<300){//control current slower than 3 km/h
-						PI_speed.limit_i=100;
-						PI_speed.limit_output=100;
-						int32_temp_current_target = PI_control(&PI_speed);
-
-						if(int32_temp_current_target>100)int32_temp_current_target=100;
-						if(int32_temp_current_target*i8_direction*i8_reverse_flag<0){
-							int32_temp_current_target=0;
-						}
-
-					}
-					else{
-
-
-						if(ui8_SPEED_control_flag){//update current target only, if new hall event was detected
-							PI_speed.limit_i=PH_CURRENT_MAX;
-							PI_speed.limit_output=PH_CURRENT_MAX;
-							int32_temp_current_target = PI_control(&PI_speed);
-							ui8_SPEED_control_flag=0;
-							}
-						if(int32_temp_current_target*i8_direction*i8_reverse_flag<0)int32_temp_current_target=0;
-
-						}
-
-
-
-#else //speedthrottle
-					int32_temp_current_target=uint16_mapped_throttle;
-#endif  //end speedthrottle
-
-				  } //end else of throttle override
-#endif	//end NCTE
-#else //throttle override
-#ifndef TS_MODE //normal PAS Mode
-
-			    if (uint32_PAS_counter < PAS_TIMEOUT) int32_temp_current_target = uint16_mapped_PAS;		//set current target in torque-simulation-mode, if pedals are turning
-				  else  {
-					  int32_temp_current_target= 0;//pedals are not turning, stop motor
-					  uint32_PAS_cumulated=32000;
-					  uint32_PAS=32000;
-				  }
-#endif // TS_MODE
-
-#endif //end throttle override
-
+					if(uint32_PAS_counter>PAS_TIMEOUT)int32_temp_current_target=0;
 				} //end else for normal riding
 				  //ramp down setpoint at speed limit
 #ifdef LEGALFLAG
@@ -1017,9 +885,9 @@ int main(void)
 #if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG && !defined(FAST_LOOP_LOG))
 		  //print values for debugging
 
-		  sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n", hubdata.HS_Overtemperature, hubdata.HS_Pedalposition, hubdata.HS_Pedals_turning, hubdata.HS_Torque, hubdata.HS_Wheel_turning, hubdata.HS_Wheeltime );
+		//  sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n", hubdata.HS_Overtemperature, hubdata.HS_Pedalposition, hubdata.HS_Pedals_turning, hubdata.HS_Torque, hubdata.HS_Wheel_turning, hubdata.HS_Wheeltime );
 
-		 //sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", adcData[1],MS.Temperature, ui32_KV, MS.i_q_setpoint, uint32_PAS, int32_temp_current_target , MS.u_d,MS.u_q, SystemState);
+		 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", adcData[1],hubdata.HS_Pedals_turning, hubdata.HS_Torque, hubdata.HS_Wheeltime, hubdata.HS_Pedalposition, MS.i_q, MS.i_q_setpoint, int32_temp_current_target ,  SystemState);
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5]),(uint16_t)(adcData[6])) ;
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",tic_array[0],tic_array[1],tic_array[2],tic_array[3],tic_array[4],tic_array[5]) ;
 		  i=0;
@@ -1496,7 +1364,7 @@ static void MX_USART1_UART_Init(void)
 #elif (DISPLAY_TYPE == DISPLAY_TYPE_BAFANG)
   huart1.Init.BaudRate = 1200;
 #else
-  huart1.Init.BaudRate = 57600;
+  huart1.Init.BaudRate = 56000;
 #endif
 
 
