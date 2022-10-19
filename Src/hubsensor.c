@@ -34,11 +34,11 @@ void Hubsensor_Service (Hubsensor_t* HS_data){
 		HS_data->HS_Overtemperature = UART3_RxBuff[i-6]>>7;
 		HS_data->HS_Pedalposition = UART3_RxBuff[i-5]&127;
 		HS_data->HS_Pedals_turning = UART3_RxBuff[i-5]>>7;
+		torque_cumulated-=torque_cumulated>>4;
 		if(torque_offset<(UART3_RxBuff[i-6]&127)){
-			torque_cumulated-=torque_cumulated>>4;
 			torque_cumulated+=(UART3_RxBuff[i-6]&127)-torque_offset;
-			HS_data->HS_Torque = torque_cumulated>>4;
-		}
+			}
+		HS_data->HS_Torque = torque_cumulated>>4;
 		HS_data->HS_Wheel_turning = UART3_RxBuff[i-4]>>7;
 		HS_data->HS_Wheeltime = ((UART3_RxBuff[i-4]&127)<<8)+UART3_RxBuff[i-3];
 		//printf_("%d, %d, %d, %d, %d, %d, %d\r\n",i, HS_data->HS_Overtemperature, HS_data->HS_Pedalposition, HS_data->HS_Pedals_turning, HS_data->HS_Torque, HS_data->HS_Wheel_turning, HS_data->HS_Wheeltime );
