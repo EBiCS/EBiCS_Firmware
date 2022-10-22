@@ -19,7 +19,7 @@ uint16_t torque_max = 1024;
 uint16_t torque_cumulated = 0;
 
 void Hubsensor_Init (Hubsensor_t* HS_data){
-    if (HAL_UART_Receive_DMA(&huart3, (uint8_t *)UART3_RxBuff,21) != HAL_OK)
+    if (HAL_UART_Receive_DMA(&huart3, (uint8_t *)UART3_RxBuff,14) != HAL_OK)
      {
  	   Error_Handler();
      }
