@@ -890,7 +890,7 @@ int main(void)
 
 		//  sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n", hubdata.HS_Overtemperature, hubdata.HS_Pedalposition, hubdata.HS_Pedals_turning, hubdata.HS_Torque, hubdata.HS_Wheel_turning, hubdata.HS_Wheeltime );
 
-		 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", uint16_mapped_throttle,hubdata.HS_UARTFail, hubdata.HS_Torque, hubdata.HS_Wheeltime, hubdata.HS_Pedalposition, MS.i_q, MS.i_q_setpoint, int32_temp_current_target ,  SystemState);
+		 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", temp6, hubdata.HS_UARTFail, hubdata.HS_Torque, hubdata.HS_Wheeltime, hubdata.HS_Pedalposition, MS.i_q, MS.i_q_setpoint, int32_temp_current_target ,  SystemState);
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5]),(uint16_t)(adcData[6])) ;
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",tic_array[0],tic_array[1],tic_array[2],tic_array[3],tic_array[4],tic_array[5]) ;
 		  i=0;
@@ -2295,8 +2295,8 @@ q31_t speed_PLL (q31_t ist, q31_t soll, uint8_t speedadapt)
     q31_t q31_p;
     static q31_t q31_d_i = 0;
     static q31_t q31_d_dc = 0;
-    temp6 = soll-ist;
-    temp5 = speedadapt;
+    //temp6 = soll-ist;
+    //temp5 = speedadapt;
     q31_p=(soll - ist)>>(P_FACTOR_PLL-speedadapt);   				//7 for Shengyi middrive, 10 for BionX IGH3
     q31_d_i+=(soll - ist)>>(I_FACTOR_PLL-speedadapt);				//11 for Shengyi middrive, 10 for BionX IGH3
 
