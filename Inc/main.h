@@ -91,6 +91,7 @@
 #define LEGALFLAG
 #define BATTERYVOLTAGE_MAX 41500
 #define R_TEMP_PULLUP 0
+#define NTC_BETA 3900
 
 /* ########################## Assert Selection ############################## */
 /**
@@ -178,6 +179,19 @@ typedef struct
 
 
 }MotorParams_t;
+
+#ifdef R_TEMP_PULLUP
+
+typedef struct
+{
+
+	uint16_t       	num;
+	uint16_t       	denum;
+
+
+}NTC_Mult_t;
+
+#endif
 
 /* USER CODE END Private defines */
 

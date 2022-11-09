@@ -261,6 +261,7 @@ static void MX_ADC2_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_TIM3_Init(void);
 int16_t T_NTC(uint16_t ADC);
+void set_NTC_beta(void);
 
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
                                 
@@ -285,8 +286,9 @@ int8_t tics_to_speed (uint32_t tics);
 int16_t internal_tics_to_speedx100 (uint32_t tics);
 int16_t external_tics_to_speedx100 (uint32_t tics);
 
-
-
+#if (R_TEMP_PULLUP)
+NTC_Mult_t NTC_beta;
+#endif
 
 
 /* USER CODE END PFP */
@@ -585,6 +587,10 @@ int main(void)
 
 	get_standstill_position();
 
+ // Calculate multipliers for NTC 10k Beta value
+#if (R_TEMP_PULLUP)
+	set_NTC_beta();
+#endif
 
   /* USER CODE END 2 */
 
@@ -2407,9 +2413,21 @@ int16_t T_NTC(uint16_t ADC) // ADC 12 Bit, 10k Pullup, Rückgabewert in °C
      while(R >> n > 1) n++;
      	R <<= 13;
      	for(n <<= 6; R >> (n >> 6) >> 13; n++) R -= (R >> 10)*11; // Annäherung 1-11/1024 für 2^(-1/64)
-        int16_t T6 = 2160580/(n+357)-1639; // Berechnung für 10 kOhm-NTC (bei 25 °C) mit beta=3900 K
+        int16_t T6 = NTC_beta.num/(n+NTC_beta.denum)-1639; // Berechnung für 10 kOhm-NTC (bei 25 °C) mit beta=NTC_BETA
         return (T6 > 0 ? T6+3 : T6-2)/6; // Rundung
 
+}
+
+void set_NTC_beta()
+{
+    // 6*64/ln(2)*NTC_BETA
+    // ((6*64/ln(2) << 16)*(NTC_BETA << 16)) >> 32
+    NTC_beta.num = (((uint64_t)36306609) * (((uint64_t)NTC_BETA) << 16)) >> 32;
+    // For 10k NTC:
+    // (64)/(ln(2)*298.15)*NTC_BETA-((64/ln(2)*ln(10000))-0.5
+    // (((64/(ln(2)*298.15) << 16) * (NTC_BETA << 16)) - ((64/ln(2)*ln(10000)) << 16 - 0.5 << 16) >> 32
+    NTC_beta.denum = ((uint64_t)((uint64_t)20295 * ((uint64_t)NTC_BETA << 16)) -
+                            (uint64_t)3650351083316) >> 32;
 }
 #endif
 
