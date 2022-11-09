@@ -208,6 +208,10 @@ uint16_t VirtAddVarTab[NB_OF_VAR] = { 	EEPROM_POS_HALL_ORDER,
 		EEPROM_POS_HALL_64
 	};
 
+#if R_TEMP_PULLUP
+uint16_t ui16_adc_temp;
+#endif
+
 enum state {Stop, SixStep, Regen, Running, BatteryCurrentLimit, Interpolation, PLL, IdleRun};
 enum state SystemState;
 
@@ -589,7 +593,7 @@ int main(void)
 
  // Calculate multipliers for NTC 10k Beta value
 #if (R_TEMP_PULLUP)
-	set_NTC_beta();
+    set_NTC_beta();
 #endif
 
   /* USER CODE END 2 */
@@ -969,7 +973,11 @@ int main(void)
 
 		  if(ui8_KV_detect_flag){ui16_KV_detect_counter++;}
 #if (R_TEMP_PULLUP)
-		  MS.Temperature = T_NTC(adcData[6]); //Thank you Hendrik ;-)
+          ui16_adc_temp = adcData[6]; // adcData[5] on LSW12G
+#if (SP_TEMP_MULTIPLEX)               // ADC needs to be above this value to register temperature
+          if (ui16_adc_temp > SP_TEMP_MULTIPLEX) // 150 is a good starting point with 220R pull-up
+#endif
+          MS.Temperature = T_NTC(ui16_adc_temp); //Thank you Hendrik ;-)
 #else
 		  MS.Temperature=25;
 #endif

@@ -92,6 +92,7 @@
 #define BATTERYVOLTAGE_MAX 41500
 #define R_TEMP_PULLUP 0
 #define NTC_BETA 3900
+#define SP_TEMP_MULTIPLEX 0 // high-pass ADC value on NTC-Hall multiplexed wire
 
 /* ########################## Assert Selection ############################## */
 /**
