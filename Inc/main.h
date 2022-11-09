@@ -185,8 +185,8 @@ typedef struct
 typedef struct
 {
 
-	uint16_t       	num;
-	uint16_t       	denum;
+	uint32_t       	num;
+	uint32_t       	denum;
 
 
 }NTC_Mult_t;
