@@ -32,6 +32,7 @@ void Hubsensor_Service (Hubsensor_t* HS_data){
 	while (i>7&& UART3_RxBuff[i-1]!=0xFF){ //assuming 0xFF is the EndOfMessage Byte and the first byte has no information in the upper 3 bits.
 		i--;
 	}
+	temp5=UART3_RxBuff[i-7];
 	temp6=i;
 	//printf_("%d , %d, %d  %d\n ", i, UART3_RxBuff[i-7],(UART3_RxBuff[i-7]+UART3_RxBuff[i-6]+UART3_RxBuff[i-5]+UART3_RxBuff[i-4]+UART3_RxBuff[i-3])%256,UART3_RxBuff[i-2]+1);
 	if (i>7&&(UART3_RxBuff[i-7]+UART3_RxBuff[i-6]+UART3_RxBuff[i-5]+UART3_RxBuff[i-4]+UART3_RxBuff[i-3])%256 == UART3_RxBuff[i-2]+1){
