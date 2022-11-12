@@ -48,7 +48,7 @@
 #define PULSES_PER_REVOLUTION 1
 #define PH_CURRENT_MAX 600
 #define BATTERYCURRENT_MAX 10000
-#define SPEC_ANGLE -167026406L //BionX IGH3 -143165476
+#define SPEC_ANGLE -167026406L //Value no longer needed
 //#define DIRDET
 #define FRAC_HIGH 30
 #define FRAC_LOW 15
@@ -69,16 +69,16 @@
 
 #define P_FACTOR_PLL 10
 #define I_FACTOR_PLL 10
-#define AUTODETECT 0
+#define AUTODETECT 1
 #define SPEED_PLL 0 //1 for using PLL, 0 for angle extrapolation
 
 #define EXTERNAL 1
 #define INTERNAL 0
-#define SPEEDSOURCE EXTERNAL
+#define SPEEDSOURCE INTERNAL
 #define SPEEDFILTER 1
 #define SIXSTEPTHRESHOLD 20000
 
 #define SPDSHFT 0
-#define ADC_BRAKE
+//#define ADC_BRAKE
 
 #endif /* CONFIG_H_ */
