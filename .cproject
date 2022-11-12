@@ -231,12 +231,6 @@
 	<storageModule moduleId="cdtBuildSystem" version="4.0.0">
 		<project id="LishuiFOC_01.fr.ac6.managedbuild.target.gnu.cross.exe.994910867" name="Executable" projectType="fr.ac6.managedbuild.target.gnu.cross.exe"/>
 	</storageModule>
-	<storageModule moduleId="scannerConfiguration">
-		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-		<scannerConfigBuildInfo instanceId="fr.ac6.managedbuild.config.gnu.cross.exe.debug.167643868;fr.ac6.managedbuild.config.gnu.cross.exe.debug.167643868.;fr.ac6.managedbuild.tool.gnu.cross.c.compiler.1060768628;fr.ac6.managedbuild.tool.gnu.cross.c.compiler.input.c.1824825171">
-			<autodiscovery enabled="false" problemReportingEnabled="true" selectedProfileId=""/>
-		</scannerConfigBuildInfo>
-	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
 	<storageModule moduleId="refreshScope" versionNumber="2">
 		<configuration configurationName="Debug">
@@ -245,4 +239,10 @@
 		<configuration configurationName="Release"/>
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
+	<storageModule moduleId="scannerConfiguration">
+		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		<scannerConfigBuildInfo instanceId="fr.ac6.managedbuild.config.gnu.cross.exe.debug.129419374;fr.ac6.managedbuild.config.gnu.cross.exe.debug.129419374.;fr.ac6.managedbuild.tool.gnu.cross.c.compiler.1444774539;fr.ac6.managedbuild.tool.gnu.cross.c.compiler.input.c.195054889">
+			<autodiscovery enabled="false" problemReportingEnabled="true" selectedProfileId=""/>
+		</scannerConfigBuildInfo>
+	</storageModule>
 </cproject>
