@@ -519,7 +519,8 @@ int main(void)
 #if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG)
    	printf_("phase current offsets:  %d, %d, %d \n ", ui16_ph1_offset, ui16_ph2_offset, ui16_ph3_offset);
 #if (AUTODETECT == 1)
-   	autodetect();
+   	if(adcData[0]>VOLTAGE_MIN) autodetect();
+   	else printf_("Battery voltage too low!:  %d,\n ",adcData[0]);
 #endif
 
 #endif
@@ -908,10 +909,12 @@ int main(void)
 				  if(ui16_KV_detect_counter>32){
 					  ui8_KV_detect_flag++;
 					  ui16_KV_detect_counter=0;
-					  if(MS.u_abs>1900)ui8_KV_detect_flag=0;
-					  HAL_FLASH_Unlock();
+					  if(MS.u_abs>1900){
+						  ui8_KV_detect_flag=0;
+					 	  HAL_FLASH_Unlock();
 					      EE_WriteVariable(EEPROM_POS_KV, (int16_t) ui32_KV);
-					  HAL_FLASH_Lock();
+					      HAL_FLASH_Lock();
+					  }
 				  }
 				  ui32_KV -=ui32_KV>>4;
 				  ui32_KV += ((uint32_SPEEDx100_cumulated*_T))/(MS.Voltage*MS.u_q);
@@ -2248,10 +2251,6 @@ void autodetect() {
 	HAL_FLASH_Lock();
 
 	MS.hall_angle_detect_flag = 1;
-#if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG)
-
-#endif
-
 
     HAL_Delay(5);
     ui8_KV_detect_flag = 30;
