@@ -78,7 +78,7 @@
 #define BRAKE_LIGHT_GPIO_Port GPIOB
 #define PAS_Pin GPIO_PIN_8
 #define PAS_GPIO_Port GPIOB
-#define Brake_Pin GPIO_PIN_11
+#define Brake_Pin GPIO_PIN_11  // put a 15 here for new generation controllers!
 #define Brake_GPIO_Port GPIOA
 #define Speed_EXTI5_Pin GPIO_PIN_5
 #define Speed_EXTI5_GPIO_Port GPIOB
@@ -88,8 +88,8 @@
 #define PAS_EXTI8_EXTI_IRQn EXTI9_5_IRQn
 
 //#define NCTE
-#define LEGALFLAG
-#define BATTERYVOLTAGE_MAX 41500
+//#define LEGALFLAG
+#define BATTERYVOLTAGE_MAX 53000
 #define R_TEMP_PULLUP 0
 #define NTC_BETA 3900
 #define SP_TEMP_MULTIPLEX 0 // high-pass ADC value on NTC-Hall multiplexed wire

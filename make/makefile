@@ -8,7 +8,7 @@ RM := rm -rf
 
 # All of the sources participating in the build are defined here
 -include sources.mk
--include startup/subdir.mk
+-include Startup/subdir.mk
 -include Src/subdir.mk
 -include Drivers/STM32F1xx_HAL_Driver/Src/subdir.mk
 -include subdir.mk
@@ -24,7 +24,6 @@ endif
 endif
 
 -include ../makefile.defs
-
 SRC_PATH = ../Drivers/CMSIS
 
 # Add inputs and outputs from these tool invocations to the build variables 
@@ -36,7 +35,7 @@ all: LishuiFOC_01.elf
 LishuiFOC_01.elf: $(OBJS) $(USER_OBJS) ../STM32F103C6Tx_FLASH.ld
 	@echo 'Building target: $@'
 	@echo 'Invoking: MCU GCC Linker'
-	arm-none-eabi-gcc -mcpu=cortex-m3 -mthumb -mfloat-abi=soft -L $(SRC_PATH) -specs=nosys.specs -specs=nano.specs -T"../STM32F103C6Tx_FLASH.ld" -Wl,-Map=output.map -Wl,--gc-sections -o "LishuiFOC_01.elf" @"objects.list" $(USER_OBJS) $(LIBS) -lm
+	arm-none-eabi-gcc -mcpu=cortex-m3 -mthumb -mfloat-abi=soft -L$(SRC_PATH) -specs=nosys.specs -specs=nano.specs -T"../STM32F103C6Tx_FLASH.ld" -Wl,-Map=output.map -Wl,--gc-sections -o "LishuiFOC_01.elf" @"objects.list" $(USER_OBJS) $(LIBS) -lm
 	@echo 'Finished building target: $@'
 	@echo ' '
 	$(MAKE) --no-print-directory post-build
@@ -49,7 +48,9 @@ clean:
 post-build:
 	-@echo 'Generating hex and Printing size information:'
 	arm-none-eabi-objcopy -O ihex "LishuiFOC_01.elf" "LishuiFOC_01.hex"
+	arm-none-eabi-objcopy -O binary "LishuiFOC_01.elf" "LishuiFOC_01.bin"
 	arm-none-eabi-size "LishuiFOC_01.elf"
+	stat "LishuiFOC_01.bin"
 	-@echo ' '
 
 .PHONY: all clean dependents
