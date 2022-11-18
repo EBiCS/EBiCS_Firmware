@@ -826,9 +826,6 @@ int main(void)
 					  uint32_PAS=32000;
 				  }
 
-#else			  //TS-Mode
-			    if (uint32_PAS_counter > PAS_TIMEOUT) int32_temp_current_target = 0;		//Kill motor if PAS is timed out
-
 #endif		// end #ifndef TS_MODE
 			    //check for throttle override
 				if(uint16_mapped_throttle>int32_temp_current_target){
