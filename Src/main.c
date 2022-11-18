@@ -809,27 +809,29 @@ int main(void)
 #ifdef NCTE
 			  // read in throttle for throttle override
 			  uint16_mapped_throttle = map(ui16_throttle, THROTTLE_MAX, THROTTLE_OFFSET,PH_CURRENT_MAX,0);
-			  //check for throttle override
-			  if(int32_temp_current_target<uint16_mapped_throttle)int32_temp_current_target=uint16_mapped_throttle;
+
 
 #else //else NTCE
 			  // read in throttle for throttle override
 			  uint16_mapped_throttle = map(ui16_throttle, THROTTLE_OFFSET, THROTTLE_MAX, 0,PH_CURRENT_MAX);
-			  //check for throttle override
 
-			  if(uint16_mapped_PAS>uint16_mapped_throttle)   {
+#endif //end NTCE
 
+#ifndef TS_MODE //normal PAS Mode
 
-
-				    if (uint32_PAS_counter < PAS_TIMEOUT) int32_temp_current_target = uint16_mapped_PAS;		//set current target in torque-simulation-mode, if pedals are turning
-					  else  {
-						  int32_temp_current_target= 0;//pedals are not turning, stop motor
-						  uint32_PAS_cumulated=32000;
-						  uint32_PAS=32000;
-					  }
-
+			    if (uint32_PAS_counter < PAS_TIMEOUT) int32_temp_current_target = uint16_mapped_PAS;		//set current target in torque-simulation-mode, if pedals are turning
+				  else  {
+					  int32_temp_current_target= 0;//pedals are not turning, stop motor
+					  uint32_PAS_cumulated=32000;
+					  uint32_PAS=32000;
 				  }
-				  else {
+
+#else			  //TS-Mode
+			    if (uint32_PAS_counter > PAS_TIMEOUT) int32_temp_current_target = 0;		//Kill motor if PAS is timed out
+
+#endif		// end #ifndef TS_MODE
+			    //check for throttle override
+				if(uint16_mapped_throttle>int32_temp_current_target){
 
 #ifdef SPEEDTHROTTLE
 
@@ -873,17 +875,6 @@ int main(void)
 #endif  //end speedthrottle
 
 				  } //end else of throttle override
-#endif	//end NCTE
-#else //throttle override
-#ifndef TS_MODE //normal PAS Mode
-
-			    if (uint32_PAS_counter < PAS_TIMEOUT) int32_temp_current_target = uint16_mapped_PAS;		//set current target in torque-simulation-mode, if pedals are turning
-				  else  {
-					  int32_temp_current_target= 0;//pedals are not turning, stop motor
-					  uint32_PAS_cumulated=32000;
-					  uint32_PAS=32000;
-				  }
-#endif // TS_MODE
 
 #endif //end throttle override
 
