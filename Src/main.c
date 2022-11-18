@@ -799,7 +799,7 @@ int main(void)
 
 #ifdef INDIVIDUAL_MODES
 
-			  int32_temp_current_target = (int32_temp_current_target * ui8_speedfactor)>>8;
+			  uint16_mapped_PAS = (uint16_mapped_PAS * ui8_speedfactor)>>8;
 
 #endif
 
@@ -870,7 +870,7 @@ int main(void)
 
 
 
-#else //speedthrottle
+#else // end speedthrottle
 					int32_temp_current_target=uint16_mapped_throttle;
 #endif  //end speedthrottle
 
