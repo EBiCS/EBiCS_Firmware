@@ -662,19 +662,21 @@ int main(void)
 #endif
 		  }
 	  }
+
+	  //SPEED signal processing
 #if (SPEEDSOURCE == INTERNAL)
 			  MS.Speed = uint32_tics_filtered>>3;
 #else
-	  //SPEED signal processing
+
 	  if(ui8_SPEED_flag){
 
 		  if(uint32_SPEED_counter>200){ //debounce
 			  MS.Speed = uint32_SPEED_counter;
-		  //HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-		  uint32_SPEED_counter =0;
-		  ui8_SPEED_flag=0;
-		uint32_SPEEDx100_cumulated -=uint32_SPEEDx100_cumulated>>SPEEDFILTER;
-		uint32_SPEEDx100_cumulated +=external_tics_to_speedx100(MS.Speed);
+			  //HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+			  uint32_SPEED_counter =0;
+			  ui8_SPEED_flag=0;
+			  uint32_SPEEDx100_cumulated -=uint32_SPEEDx100_cumulated>>SPEEDFILTER;
+			  uint32_SPEEDx100_cumulated +=external_tics_to_speedx100(MS.Speed);
 		  }
 	  }
 #endif
