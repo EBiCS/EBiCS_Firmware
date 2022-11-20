@@ -91,6 +91,8 @@
 #define LEGALFLAG
 #define BATTERYVOLTAGE_MAX 53000
 #define R_TEMP_PULLUP 0
+#define NTC_BETA 3900
+#define SP_TEMP_MULTIPLEX 0 // high-pass ADC value on NTC-Hall multiplexed wire
 
 /* ########################## Assert Selection ############################## */
 /**
@@ -178,6 +180,19 @@ typedef struct
 
 
 }MotorParams_t;
+
+#ifdef R_TEMP_PULLUP
+
+typedef struct
+{
+
+	uint32_t       	num;
+	uint32_t       	denum;
+
+
+}NTC_Mult_t;
+
+#endif
 
 /* USER CODE END Private defines */
 

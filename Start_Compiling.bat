@@ -23,7 +23,7 @@ copy STLINK_system_stm32f1xx.c ..\Src\system_stm32f1xx.c
 
 make all
 
-ST-LINK_CLI.exe -c SWD -P LishuiFOC_01.hex -V
+ST-LINK_CLI.exe -c SWD SWCLK=8 -P LishuiFOC_01.hex -V
 
 pause
 
