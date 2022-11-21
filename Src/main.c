@@ -656,9 +656,9 @@ int main(void)
 		  //read in and sum up torque-signal within one crank revolution (for sempu sensor 32 PAS pulses/revolution, 2^5=32)
 		  uint32_torque_cumulated -= uint32_torque_cumulated>>5;
 #ifdef NCTE
-		  if(ui16_throttle<THROTTLE_OFFSET)uint32_torque_cumulated += (THROTTLE_OFFSET-ui16_throttle);
+		  if(ui16_throttle<TORQUE_OFFSET)uint32_torque_cumulated += (TORQUE_OFFSET-ui16_throttle);
 #else
-		  if(ui16_throttle>THROTTLE_OFFSET)uint32_torque_cumulated += (ui16_throttle-THROTTLE_OFFSET);
+		  if(ui16_throttle>TORQUE_OFFSET)uint32_torque_cumulated += (ui16_throttle-TORQUE_OFFSET);
 #endif
 		  }
 	  }
@@ -739,7 +739,8 @@ int main(void)
 						else int32_temp_current_target=0;
 
 #endif
-	  			int32_temp_current_target= -map(MS.Voltage*CAL_V,BATTERYVOLTAGE_MAX-1000,BATTERYVOLTAGE_MAX,int32_temp_current_target,0);
+						HAL_GPIO_WritePin(BRAKE_LIGHT_GPIO_Port, BRAKE_LIGHT_Pin, GPIO_PIN_SET);
+						int32_temp_current_target= -map(MS.Voltage*CAL_V,BATTERYVOLTAGE_MAX-1000,BATTERYVOLTAGE_MAX,int32_temp_current_target,0);
 				}
 
 				//next priority: undervoltage protection
@@ -748,6 +749,7 @@ int main(void)
 				else if(ui8_Push_Assist_flag)int32_temp_current_target=PUSHASSIST_CURRENT;
 				// last priority normal ride conditiones
 				else {
+					HAL_GPIO_WritePin(BRAKE_LIGHT_GPIO_Port, BRAKE_LIGHT_Pin, GPIO_PIN_RESET);
 
 		#ifdef TS_MODE //torque-sensor mode
 					//calculate current target form torque, cadence and assist level
@@ -808,16 +810,18 @@ int main(void)
 #ifdef THROTTLE_OVERRIDE
 
 
-#ifdef NCTE
-			  // read in throttle for throttle override
-			  uint16_mapped_throttle = map(ui16_throttle, THROTTLE_MAX, THROTTLE_OFFSET,PH_CURRENT_MAX,0);
+//#ifdef NCTE
+//			  // read in throttle for throttle override
+//			  uint16_mapped_throttle = map(ui16_throttle, THROTTLE_MAX, THROTTLE_OFFSET,PH_CURRENT_MAX,0);
+//
+//
+//#else //else NTCE
+//			  // read in throttle for throttle override
+//			  uint16_mapped_throttle = map(adcData[1], THROTTLE_OFFSET, THROTTLE_MAX, 0,PH_CURRENT_MAX);
+//
+//#endif //end NTCE
 
-
-#else //else NTCE
-			  // read in throttle for throttle override
-			  uint16_mapped_throttle = map(ui16_throttle, THROTTLE_OFFSET, THROTTLE_MAX, 0,PH_CURRENT_MAX);
-
-#endif //end NTCE
+			  uint16_mapped_throttle = map(adcData[1], THROTTLE_OFFSET, THROTTLE_MAX, 0,PH_CURRENT_MAX); //throttle override, no torque override in this version actually
 
 #ifndef TS_MODE //normal PAS Mode
 
@@ -1566,17 +1570,19 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(Brake_GPIO_Port, &GPIO_InitStruct);
 
 
-  /*Configure GPIO pins : Speed_EXTI5_Pin PAS_EXTI8_Pin */
-  GPIO_InitStruct.Pin = Speed_EXTI5_Pin|PAS_EXTI8_Pin;
+  /*Configure GPIO pins : Speed_EXTI3_Pin PAS_EXTI8_Pin */
+  GPIO_InitStruct.Pin = Speed_EXTI3_Pin|PAS_EXTI8_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
 
+
   /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI3_IRQn, 0, 0); //for speedsensor interrupt
+  HAL_NVIC_EnableIRQ(EXTI3_IRQn);
 
-
-  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 2, 0);
+  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 2, 0);//for PAS interrupt
   HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
 
 }
@@ -1884,10 +1890,10 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 	}
 
 	//Speed processing
-	if(GPIO_Pin == Speed_EXTI5_Pin)
+	if(GPIO_Pin == Speed_EXTI3_Pin)
 	{
 
-			ui8_SPEED_flag = 1; //with debounce
+		ui8_SPEED_flag = 1; //with debounce
 
 	}
 
