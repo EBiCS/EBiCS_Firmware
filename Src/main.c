@@ -101,9 +101,9 @@ uint8_t ui8_hall_state_old=0;
 uint8_t ui8_hall_case =0;
 uint16_t ui16_tim2_recent=0;
 uint16_t ui16_timertics=5000; 					//timertics between two hall events for 60Â° interpolation
-uint16_t ui16_throttle;
+uint16_t ui16_torque;
 uint16_t ui16_brake_adc;
-uint32_t ui32_throttle_cumulated;
+uint32_t ui32_torque_raw_cumulated;
 uint32_t ui32_brake_adc_cumulated;
 uint16_t ui16_ph1_offset=0;
 uint16_t ui16_ph2_offset=0;
@@ -513,7 +513,7 @@ int main(void)
   	   			if(y==35) autodetect();
   	   			}
 #else
-  	ui32_throttle_cumulated=THROTTLE_OFFSET<<4;
+  	ui32_torque_raw_cumulated=THROTTLE_OFFSET<<4;
 #endif
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG)
@@ -624,16 +624,16 @@ int main(void)
 
 	  //process regualr ADC
 	  if(ui8_adc_regular_flag){
-		ui32_throttle_cumulated -= ui32_throttle_cumulated>>4;
+		ui32_torque_raw_cumulated -= ui32_torque_raw_cumulated>>4;
 	#ifdef TQONAD1
-		ui32_throttle_cumulated += adcData[6]; //get value from AD1 PB1
+		ui32_torque_raw_cumulated += adcData[6]; //get value from AD1 PB1
 	#else
-		ui32_throttle_cumulated += adcData[1]; //get value from SP
+		ui32_torque_raw_cumulated += adcData[1]; //get value from SP
 	#endif
 		ui32_brake_adc_cumulated -= ui32_brake_adc_cumulated>>4;
 		ui32_brake_adc_cumulated+=adcData[5];//get value for analog brake from AD2 = PB0
 		ui16_brake_adc=ui32_brake_adc_cumulated>>4;
-		ui16_throttle = ui32_throttle_cumulated>>4;
+		ui16_torque = ui32_torque_raw_cumulated>>4;
 
 		ui8_adc_regular_flag=0;
 
@@ -656,9 +656,9 @@ int main(void)
 		  //read in and sum up torque-signal within one crank revolution (for sempu sensor 32 PAS pulses/revolution, 2^5=32)
 		  uint32_torque_cumulated -= uint32_torque_cumulated>>5;
 #ifdef NCTE
-		  if(ui16_throttle<TORQUE_OFFSET)uint32_torque_cumulated += (TORQUE_OFFSET-ui16_throttle);
+		  if(ui16_torque<TORQUE_OFFSET)uint32_torque_cumulated += (TORQUE_OFFSET-ui16_torque);
 #else
-		  if(ui16_throttle>TORQUE_OFFSET)uint32_torque_cumulated += (ui16_throttle-TORQUE_OFFSET);
+		  if(ui16_torque>TORQUE_OFFSET)uint32_torque_cumulated += (ui16_torque-TORQUE_OFFSET);
 #endif
 		  }
 	  }

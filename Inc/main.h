@@ -72,9 +72,9 @@
 #define Temperature_GPIO_Port GPIOB
 #define LED_Pin GPIO_PIN_2
 #define LED_GPIO_Port GPIOB
-#define LIGHT_Pin GPIO_PIN_12
+#define LIGHT_Pin GPIO_PIN_11
 #define LIGHT_GPIO_Port GPIOA
-#define BRAKE_LIGHT_Pin GPIO_PIN_11
+#define BRAKE_LIGHT_Pin GPIO_PIN_12
 #define BRAKE_LIGHT_GPIO_Port GPIOA
 #define PAS_Pin GPIO_PIN_8
 #define PAS_GPIO_Port GPIOB
@@ -82,10 +82,9 @@
 #define Brake_GPIO_Port GPIOA
 #define Speed_EXTI3_Pin GPIO_PIN_3
 #define Speed_EXTI3_GPIO_Port GPIOB
-#define Speed_EXTI5_EXTI_IRQn EXTI9_5_IRQn
 #define PAS_EXTI8_Pin GPIO_PIN_8
 #define PAS_EXTI8_GPIO_Port GPIOB
-#define PAS_EXTI8_EXTI_IRQn EXTI9_5_IRQn
+
 
 //#define NCTE
 #define LEGALFLAG
