@@ -159,7 +159,7 @@ uint16_t ui16_erps=0;
 
 uint32_t uint32_torque_cumulated=0;
 uint32_t uint32_PAS_cumulated=32000;
-uint16_t uint16_mapped_throttle=0;
+int16_t int16_mapped_throttle=0;
 uint16_t uint16_mapped_PAS=0;
 uint16_t uint16_mapped_BRAKE=0;
 uint16_t uint16_half_rotation_counter=0;
@@ -528,7 +528,7 @@ int main(void)
 #ifdef NCTE
    	while(adcData[1]<THROTTLE_OFFSET)
 #else
-   	while(adcData[1]>THROTTLE_OFFSET)
+   //	while(adcData[1]>THROTTLE_OFFSET)
 #endif
    	  	{
    	  	//do nothing (For Safety at switching on)
@@ -810,13 +810,19 @@ int main(void)
 
 #ifdef NCTE
 			  // read in throttle for throttle override
-			  uint16_mapped_throttle = map(ui16_throttle, THROTTLE_MAX, THROTTLE_OFFSET,PH_CURRENT_MAX,0);
+			  int16_mapped_throttle = map(ui16_throttle, THROTTLE_MAX, THROTTLE_OFFSET,PH_CURRENT_MAX,0);
 
 
 #else //else NTCE
 			  // read in throttle for throttle override
-			  uint16_mapped_throttle = map(ui16_throttle, THROTTLE_OFFSET, THROTTLE_MAX, 0,PH_CURRENT_MAX);
 
+			  if (ui16_throttle<1800){
+				  int16_mapped_throttle = map(ui16_throttle, THROTTLE_OFFSET, 1800, -PH_CURRENT_MAX,0);
+			  }
+			  else if(ui16_throttle>1900){
+				  int16_mapped_throttle = map(ui16_throttle, 1900, THROTTLE_MAX, 0, PH_CURRENT_MAX);
+			  }
+			  else int16_mapped_throttle = 0;
 #endif //end NTCE
 
 #ifndef TS_MODE //normal PAS Mode
@@ -830,17 +836,17 @@ int main(void)
 
 #endif		// end #ifndef TS_MODE
 			    //check for throttle override
-				if(uint16_mapped_throttle>int32_temp_current_target){
+				if(int16_mapped_throttle != int32_temp_current_target){
 
 #ifdef SPEEDTHROTTLE
 
 
-					uint16_mapped_throttle = uint16_mapped_throttle*SPEEDLIMIT/PH_CURRENT_MAX;//throttle override: calulate speed target from thottle
+					int16_mapped_throttle = int16_mapped_throttle*SPEEDLIMIT/PH_CURRENT_MAX;//throttle override: calulate speed target from thottle
 
 
 
 
-					  PI_speed.setpoint = uint16_mapped_throttle*100;
+					  PI_speed.setpoint = int16_mapped_throttle*100;
 					  PI_speed.recent_value = internal_tics_to_speedx100(uint32_tics_filtered>>3);
 					 if( PI_speed.setpoint)SET_BIT(TIM1->BDTR, TIM_BDTR_MOE);
 					if (internal_tics_to_speedx100(uint32_tics_filtered>>3)<300){//control current slower than 3 km/h
@@ -870,7 +876,7 @@ int main(void)
 
 
 #else // end speedthrottle
-					int32_temp_current_target=uint16_mapped_throttle;
+					int32_temp_current_target=int16_mapped_throttle;
 #endif  //end speedthrottle
 
 				  } //end else of throttle override
@@ -916,7 +922,7 @@ int main(void)
 
 //------------------------------------------------------------------------------------------------------------
 				//enable PWM if power is wanted
-	  if (MS.i_q_setpoint>0&&!READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)){
+	  if (MS.i_q_setpoint&&!READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)){
 
 		  uint16_half_rotation_counter=0;
 		  uint16_full_rotation_counter=0;
@@ -998,7 +1004,7 @@ int main(void)
 		  //print values for debugging
 
 
-		 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", adcData[1],MS.Temperature, ui32_KV, MS.i_q_setpoint, uint32_PAS, int32_temp_current_target , MS.u_d,MS.u_q, SystemState);
+		 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", adcData[1],MS.Temperature, int16_mapped_throttle, MS.i_q_setpoint, uint32_PAS, int32_temp_current_target , MS.i_d,MS.i_q, SystemState);
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5]),(uint16_t)(adcData[6])) ;
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",tic_array[0],tic_array[1],tic_array[2],tic_array[3],tic_array[4],tic_array[5]) ;
 		  i=0;
@@ -2135,7 +2141,7 @@ static void set_inj_channel(char state){
 
 }
 uint8_t throttle_is_set(void){
-	if(uint16_mapped_throttle > 0)
+	if(int16_mapped_throttle > 0)
 	{
 		return 1;
 	}
