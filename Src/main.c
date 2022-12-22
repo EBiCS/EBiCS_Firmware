@@ -109,10 +109,9 @@ uint16_t ui16_ph1_offset=0;
 uint16_t ui16_ph2_offset=0;
 uint16_t ui16_ph3_offset=0;
 int16_t i16_ph1_current=0;
-
 int16_t i16_ph2_current=0;
-int16_t i16_ph2_current_filter=0;
 int16_t i16_ph3_current=0;
+uint8_t ui8_cruise_control_flag=0;
 uint16_t i=0;
 uint16_t j=0;
 uint16_t k=0;
@@ -496,7 +495,7 @@ int main(void)
 
 #if defined (ADC_BRAKE)
 
-  	while ((adcData[5]>THROTTLE_OFFSET)&&(adcData[1]>(THROTTLE_MAX-THROTTLE_OFFSET))){HAL_Delay(200);
+  	while ((adcData[5]>THROTTLE_MIN)&&(adcData[1]>(THROTTLE_MAX-THROTTLE_MIN))){HAL_Delay(200);
    	   	   			y++;
    	   	   			if(y==35) autodetect();
    	   	   			}
@@ -506,14 +505,14 @@ int main(void)
 //run autodect, whenn brake is pulled an throttle is pulled for 10 at startup
 #ifndef NCTE
 
-  	while ((!HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin))&&(adcData[1]>(THROTTLE_OFFSET+20))){
+  	while ((!HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin))&&(adcData[1]>(THROTTLE_MIN+20))){
 
   				HAL_Delay(200);
   	   			y++;
   	   			if(y==35) autodetect();
   	   			}
 #else
-  	ui32_throttle_cumulated=THROTTLE_OFFSET<<4;
+  	ui32_throttle_cumulated=THROTTLE_MIN<<4;
 #endif
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG)
@@ -526,7 +525,7 @@ int main(void)
 #endif
 
 #ifdef NCTE
-   	while(adcData[1]<THROTTLE_OFFSET)
+   	while(adcData[1]<THROTTLE_MIN)
 #else
    //	while(adcData[1]>THROTTLE_OFFSET)
 #endif
@@ -656,9 +655,9 @@ int main(void)
 		  //read in and sum up torque-signal within one crank revolution (for sempu sensor 32 PAS pulses/revolution, 2^5=32)
 		  uint32_torque_cumulated -= uint32_torque_cumulated>>5;
 #ifdef NCTE
-		  if(ui16_throttle<THROTTLE_OFFSET)uint32_torque_cumulated += (THROTTLE_OFFSET-ui16_throttle);
+		  if(ui16_throttle<THROTTLE_MIN)uint32_torque_cumulated += (THROTTLE_MIN-ui16_throttle);
 #else
-		  if(ui16_throttle>THROTTLE_OFFSET)uint32_torque_cumulated += (ui16_throttle-THROTTLE_OFFSET);
+		  if(ui16_throttle>THROTTLE_MIN)uint32_torque_cumulated += (ui16_throttle-THROTTLE_MIN);
 #endif
 		  }
 	  }
@@ -666,27 +665,28 @@ int main(void)
 	  //SPEED signal processing
 #if (SPEEDSOURCE == INTERNAL)
 			  MS.Speed = uint32_tics_filtered>>3;
-#else
 
-	  if(ui8_SPEED_flag){
 
+	  if(ui8_SPEED_flag){ //Speedpin used for activating cruise control. Toggle cruise control flag
 		  if(uint32_SPEED_counter>200){ //debounce
-			  MS.Speed = uint32_SPEED_counter;
-			  //HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-			  uint32_SPEED_counter =0;
+			  if(ui8_cruise_control_flag) ui8_cruise_control_flag=0;
+			  else {
+				  ui8_cruise_control_flag=1;
+				  PI_speed.setpoint = internal_tics_to_speedx100(uint32_tics_filtered>>3);
+		  	  }
 			  ui8_SPEED_flag=0;
-			  uint32_SPEEDx100_cumulated -=uint32_SPEEDx100_cumulated>>SPEEDFILTER;
-			  uint32_SPEEDx100_cumulated +=external_tics_to_speedx100(MS.Speed);
 		  }
+
 	  }
 #endif
+
 	  if(ui8_SPEED_control_flag){
 #if (SPEEDSOURCE == INTERNAL)
 		uint32_SPEEDx100_cumulated -=uint32_SPEEDx100_cumulated>>SPEEDFILTER;
 		uint32_SPEEDx100_cumulated +=internal_tics_to_speedx100(uint32_tics_filtered>>3);
 #endif
 		ui16_erps=500000/((uint32_tics_filtered>>3)*6);
-		ui8_SPEED_control_flag=0;
+		if(!ui8_cruise_control_flag)ui8_SPEED_control_flag=0;
 	  }
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG && defined(FAST_LOOP_LOG))
@@ -713,7 +713,7 @@ int main(void)
 
 
 #ifdef ADC_BRAKE
-		uint16_mapped_BRAKE = map(ui16_brake_adc, THROTTLE_OFFSET , THROTTLE_MAX, 0, REGEN_CURRENT);
+		uint16_mapped_BRAKE = map(ui16_brake_adc, THROTTLE_MIN , THROTTLE_MAX, 0, REGEN_CURRENT);
 
 
 		if(uint16_mapped_BRAKE>0) brake_flag=1;
@@ -732,7 +732,7 @@ int main(void)
 		if(HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin)) brake_flag=0;
 		else brake_flag=1;
 				if(brake_flag){
-
+						ui8_cruise_control_flag=0; //disable cruise control, if brake is applied
 						if(tics_to_speed(uint32_tics_filtered>>3)>6){
 							int32_temp_current_target=REGEN_CURRENT; //only apply regen, if motor is turning fast enough
 							}
@@ -810,17 +810,17 @@ int main(void)
 
 #ifdef NCTE
 			  // read in throttle for throttle override
-			  int16_mapped_throttle = map(ui16_throttle, THROTTLE_MAX, THROTTLE_OFFSET,PH_CURRENT_MAX,0);
+			  int16_mapped_throttle = map(ui16_throttle, THROTTLE_MAX, THROTTLE_MIN,PH_CURRENT_MAX,0);
 
 
 #else //else NTCE
 			  // read in throttle for throttle override
 
-			  if (ui16_throttle<1800){
-				  int16_mapped_throttle = map(ui16_throttle, THROTTLE_OFFSET, 1800, -PH_CURRENT_MAX,0);
+			  if (ui16_throttle<THROTTLE_MID-50){
+				  int16_mapped_throttle = map(ui16_throttle, THROTTLE_MIN, THROTTLE_MID-50, -PH_CURRENT_MAX,0);
 			  }
-			  else if(ui16_throttle>1900){
-				  int16_mapped_throttle = map(ui16_throttle, 1900, THROTTLE_MAX, 0, PH_CURRENT_MAX);
+			  else if(ui16_throttle>THROTTLE_MID+50){
+				  int16_mapped_throttle = map(ui16_throttle, THROTTLE_MID+50, THROTTLE_MAX, 0, PH_CURRENT_MAX);
 			  }
 			  else int16_mapped_throttle = 0;
 #endif //end NTCE
@@ -838,16 +838,10 @@ int main(void)
 			    //check for throttle override
 				if(int16_mapped_throttle != int32_temp_current_target){
 
-#ifdef SPEEDTHROTTLE
+			if(ui8_cruise_control_flag){
 
 
-					int16_mapped_throttle = int16_mapped_throttle*SPEEDLIMIT/PH_CURRENT_MAX;//throttle override: calulate speed target from thottle
-
-
-
-
-					  PI_speed.setpoint = int16_mapped_throttle*100;
-					  PI_speed.recent_value = internal_tics_to_speedx100(uint32_tics_filtered>>3);
+					 PI_speed.recent_value = internal_tics_to_speedx100(uint32_tics_filtered>>3);
 					 if( PI_speed.setpoint)SET_BIT(TIM1->BDTR, TIM_BDTR_MOE);
 					if (internal_tics_to_speedx100(uint32_tics_filtered>>3)<300){//control current slower than 3 km/h
 						PI_speed.limit_i=100;
@@ -855,9 +849,10 @@ int main(void)
 						int32_temp_current_target = PI_control(&PI_speed);
 
 						if(int32_temp_current_target>100)int32_temp_current_target=100;
-						if(int32_temp_current_target*i8_direction*i8_reverse_flag<0){
-							int32_temp_current_target=0;
-						}
+						if(int32_temp_current_target<-100)int32_temp_current_target=-100;
+//						if(int32_temp_current_target*i8_direction*i8_reverse_flag<0){
+//							int32_temp_current_target=0;
+//						}
 
 					}
 					else{
@@ -869,15 +864,14 @@ int main(void)
 							int32_temp_current_target = PI_control(&PI_speed);
 							ui8_SPEED_control_flag=0;
 							}
-						if(int32_temp_current_target*i8_direction*i8_reverse_flag<0)int32_temp_current_target=0;
+//						if(int32_temp_current_target*i8_direction*i8_reverse_flag<0)int32_temp_current_target=0;
 
 						}
 
+			} //end cruise control
 
+					else int32_temp_current_target=int16_mapped_throttle;
 
-#else // end speedthrottle
-					int32_temp_current_target=int16_mapped_throttle;
-#endif  //end speedthrottle
 
 				  } //end else of throttle override
 
