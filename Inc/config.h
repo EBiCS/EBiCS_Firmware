@@ -35,8 +35,8 @@
 #define I_FACTOR_I_Q 2
 #define P_FACTOR_I_D 50
 #define I_FACTOR_I_D 2
-#define P_FACTOR_SPEED 1
-#define I_FACTOR_SPEED 10
+#define P_FACTOR_SPEED 10
+#define I_FACTOR_SPEED 1
 #define TS_COEF 16000000
 #define PAS_TIMEOUT 8000
 #define RAMP_END 1600
@@ -63,7 +63,7 @@
 //#define FAST_LOOP_LOG
 //#define DISABLE_DYNAMIC_ADC
 //#define INDIVIDUAL_MODES
-//#define SPEEDTHROTTLE
+#define SPEEDTHROTTLE
 #define THROTTLE_OVERRIDE
 #define REGEN_CURRENT_MAX 10000
 

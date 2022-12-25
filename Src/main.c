@@ -367,7 +367,7 @@ int main(void)
   PI_speed.setpoint = 0;
   PI_speed.limit_output = PH_CURRENT_MAX;
   PI_speed.max_step=50;
-  PI_speed.shift=5;
+  PI_speed.shift=8;
   PI_speed.limit_i=PH_CURRENT_MAX;
 
 #endif
@@ -673,6 +673,8 @@ int main(void)
 			  else {
 				  ui8_cruise_control_flag=1;
 				  PI_speed.setpoint = internal_tics_to_speedx100(uint32_tics_filtered>>3);
+				  PI_speed.integral_part=0;
+				  PI_speed.out=0;
 		  	  }
 			  ui8_SPEED_flag=0;
 		  }
@@ -686,7 +688,8 @@ int main(void)
 		uint32_SPEEDx100_cumulated +=internal_tics_to_speedx100(uint32_tics_filtered>>3);
 #endif
 		ui16_erps=500000/((uint32_tics_filtered>>3)*6);
-		if(!ui8_cruise_control_flag)ui8_SPEED_control_flag=0;
+		ui8_SPEED_control_flag=0;
+		temp5=1;
 	  }
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG && defined(FAST_LOOP_LOG))
@@ -836,7 +839,7 @@ int main(void)
 
 #endif		// end #ifndef TS_MODE
 			    //check for throttle override
-				if(int16_mapped_throttle != int32_temp_current_target){
+				if(1){
 
 			if(ui8_cruise_control_flag){
 
@@ -850,23 +853,24 @@ int main(void)
 
 						if(int32_temp_current_target>100)int32_temp_current_target=100;
 						if(int32_temp_current_target<-100)int32_temp_current_target=-100;
-//						if(int32_temp_current_target*i8_direction*i8_reverse_flag<0){
-//							int32_temp_current_target=0;
-//						}
+					//	if(int32_temp_current_target*i8_direction*i8_recent_rotor_direction<0)int32_temp_current_target=0;
+
 
 					}
 					else{
 
 
-						if(ui8_SPEED_control_flag){//update current target only, if new hall event was detected
+						if(temp5){//update current target only, if new hall event was detected
 							PI_speed.limit_i=PH_CURRENT_MAX;
 							PI_speed.limit_output=PH_CURRENT_MAX;
 							int32_temp_current_target = PI_control(&PI_speed);
-							ui8_SPEED_control_flag=0;
-							}
-//						if(int32_temp_current_target*i8_direction*i8_reverse_flag<0)int32_temp_current_target=0;
-
+							temp6=int32_temp_current_target;
+							temp5=0;
 						}
+						int32_temp_current_target=i8_direction*i8_recent_rotor_direction*temp6;
+					//	if(int32_temp_current_target*i8_direction*i8_recent_rotor_direction<0)int32_temp_current_target=0;
+
+					}
 
 			} //end cruise control
 
@@ -890,6 +894,7 @@ int main(void)
 				}
 //			else int32_temp_current_target=int32_temp_current_target;
 #else //legalflag
+
 				MS.i_q_setpoint=int32_temp_current_target;
 #endif //legalflag
 				MS.i_q_setpoint=map(MS.Temperature, 120,130,int32_temp_current_target,0); //ramp down power with temperature to avoid overheating the motor
@@ -998,7 +1003,7 @@ int main(void)
 		  //print values for debugging
 
 
-		 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", adcData[1],MS.Temperature, int16_mapped_throttle, MS.i_q_setpoint, uint32_PAS, int32_temp_current_target , MS.i_d,MS.i_q, SystemState);
+		 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", adcData[1],ui8_cruise_control_flag, PI_speed.setpoint,  PI_speed.recent_value,MS.i_q_setpoint, int32_temp_current_target , temp6 ,temp6*i8_direction*i8_recent_rotor_direction, SystemState);
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5]),(uint16_t)(adcData[6])) ;
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",tic_array[0],tic_array[1],tic_array[2],tic_array[3],tic_array[4],tic_array[5]) ;
 		  i=0;
@@ -2365,8 +2370,7 @@ q31_t speed_PLL (q31_t ist, q31_t soll, uint8_t speedadapt)
     q31_t q31_p;
     static q31_t q31_d_i = 0;
     static q31_t q31_d_dc = 0;
-    temp6 = soll-ist;
-    temp5 = speedadapt;
+
     q31_p=(soll - ist)>>(P_FACTOR_PLL-speedadapt);   				//7 for Shengyi middrive, 10 for BionX IGH3
     q31_d_i+=(soll - ist)>>(I_FACTOR_PLL-speedadapt);				//11 for Shengyi middrive, 10 for BionX IGH3
 
