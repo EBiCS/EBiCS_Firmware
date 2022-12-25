@@ -152,6 +152,7 @@ q31_t q31_rotorposition_PLL = 0;
 q31_t q31_angle_per_tic = 0;
 
 uint8_t ui8_UART_Counter=0;
+uint8_t ui8_CruiseControl_timeout_Counter=0;
 int8_t i8_recent_rotor_direction=1;
 int16_t i16_hall_order=1;
 uint16_t ui16_erps=0;
@@ -864,6 +865,7 @@ int main(void)
 							PI_speed.limit_i=PH_CURRENT_MAX;
 							PI_speed.limit_output=PH_CURRENT_MAX;
 							int32_temp_current_target = PI_control(&PI_speed);
+							//workaround to avoid compiler optimizing this if out...
 							temp6=int32_temp_current_target;
 							temp5=0;
 						}
@@ -957,6 +959,16 @@ int main(void)
 	      	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
 	      	//HAL_GPIO_WritePin(BRAKE_LIGHT_GPIO_Port, BRAKE_LIGHT_Pin, GPIO_PIN_SET);
 		}
+
+		// disable cruise control, if throttle is operated, 2 seconds after activating cruise control
+		if(ui8_cruise_control_flag){
+			if (ui8_CruiseControl_timeout_Counter<32)ui8_CruiseControl_timeout_Counter++;
+			if (ui8_CruiseControl_timeout_Counter&&int16_mapped_throttle){
+				ui8_cruise_control_flag=0;
+				ui8_CruiseControl_timeout_Counter=0;
+				}
+
+			}
 
 
 		  if(ui8_KV_detect_flag){ui16_KV_detect_counter++;}
@@ -2140,7 +2152,7 @@ static void set_inj_channel(char state){
 
 }
 uint8_t throttle_is_set(void){
-	if(int16_mapped_throttle > 0)
+	if(int16_mapped_throttle)
 	{
 		return 1;
 	}
@@ -2148,7 +2160,7 @@ uint8_t throttle_is_set(void){
 }
 void autodetect() {
 	SET_BIT(TIM1->BDTR, TIM_BDTR_MOE);
-	MS.hall_angle_detect_flag = 0; //set uq to contstant value in FOC.c for open loop control
+	MS.hall_angle_detect_flag = 0; //set uq to constant value in FOC.c for open loop control
 	q31_rotorposition_absolute = 1 << 31;
 	i16_hall_order = 1;//reset hall order
 	MS.i_d_setpoint= 300; //set MS.id to appr. 2000mA
