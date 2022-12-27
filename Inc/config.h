@@ -35,8 +35,8 @@
 #define I_FACTOR_I_Q 2
 #define P_FACTOR_I_D 50
 #define I_FACTOR_I_D 2
-#define P_FACTOR_SPEED 10
-#define I_FACTOR_SPEED 1
+#define P_FACTOR_SPEED 100
+#define I_FACTOR_SPEED 10
 #define TS_COEF 16000000
 #define PAS_TIMEOUT 8000
 #define RAMP_END 1600
@@ -56,7 +56,7 @@
 //#define TS_MODE
 //#define TQONAD1
 #define DISPLAY_TYPE DISPLAY_TYPE_DEBUG
-#define REVERSE 1
+#define REVERSE -1
 #define PUSHASSIST_CURRENT 30
 #define VOLTAGE_MIN 300
 #define REGEN_CURRENT 200

@@ -367,8 +367,8 @@ int main(void)
   PI_speed.gain_p=P_FACTOR_SPEED;
   PI_speed.setpoint = 0;
   PI_speed.limit_output = PH_CURRENT_MAX;
-  PI_speed.max_step=50;
-  PI_speed.shift=8;
+  PI_speed.max_step=500;
+  PI_speed.shift=4;
   PI_speed.limit_i=PH_CURRENT_MAX;
 
 #endif
@@ -862,16 +862,16 @@ int main(void)
 
 
 						if(ui8_SPEED_control_flag){//update current target only, if new hall event was detected
-							PI_speed.limit_i=10;
+							PI_speed.limit_i=PH_CURRENT_MAX;
 							PI_speed.limit_output=PH_CURRENT_MAX;
 
-							int32_temp_current_target = i8_direction*i8_recent_rotor_direction*PI_control(&PI_speed);
+							temp6 = i8_direction*i8_recent_rotor_direction*PI_control(&PI_speed);
 							//int32_temp_current_target = PI_control(&PI_speed);
 							//workaround to avoid compiler optimizing this if out...
 							//temp6=int32_temp_current_target;
 							ui8_SPEED_control_flag=0;
 						}
-					//	int32_temp_current_target=i8_direction*i8_recent_rotor_direction*temp6;
+						int32_temp_current_target=temp6;
 					//	if(int32_temp_current_target*i8_direction*i8_recent_rotor_direction<0)int32_temp_current_target=0;
 
 					}
