@@ -164,7 +164,7 @@ uint16_t uint16_mapped_PAS=0;
 uint16_t uint16_mapped_BRAKE=0;
 uint16_t uint16_half_rotation_counter=0;
 uint16_t uint16_full_rotation_counter=0;
-int32_t int32_temp_current_target=0;
+volatile int32_t int32_temp_current_target=0;
 q31_t q31_PLL_error=0;
 q31_t q31_t_Battery_Current_accumulated=0;
 
@@ -689,8 +689,8 @@ int main(void)
 		uint32_SPEEDx100_cumulated +=internal_tics_to_speedx100(uint32_tics_filtered>>3);
 #endif
 		ui16_erps=500000/((uint32_tics_filtered>>3)*6);
-		ui8_SPEED_control_flag=0;
-		temp5=1;
+		if(!ui8_cruise_control_flag)ui8_SPEED_control_flag=0;
+
 	  }
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG && defined(FAST_LOOP_LOG))
@@ -861,15 +861,17 @@ int main(void)
 					else{
 
 
-						if(temp5){//update current target only, if new hall event was detected
-							PI_speed.limit_i=PH_CURRENT_MAX;
+						if(ui8_SPEED_control_flag){//update current target only, if new hall event was detected
+							PI_speed.limit_i=10;
 							PI_speed.limit_output=PH_CURRENT_MAX;
-							int32_temp_current_target = PI_control(&PI_speed);
+
+							int32_temp_current_target = i8_direction*i8_recent_rotor_direction*PI_control(&PI_speed);
+							//int32_temp_current_target = PI_control(&PI_speed);
 							//workaround to avoid compiler optimizing this if out...
-							temp6=int32_temp_current_target;
-							temp5=0;
+							//temp6=int32_temp_current_target;
+							ui8_SPEED_control_flag=0;
 						}
-						int32_temp_current_target=i8_direction*i8_recent_rotor_direction*temp6;
+					//	int32_temp_current_target=i8_direction*i8_recent_rotor_direction*temp6;
 					//	if(int32_temp_current_target*i8_direction*i8_recent_rotor_direction<0)int32_temp_current_target=0;
 
 					}
@@ -964,8 +966,8 @@ int main(void)
 		if(ui8_cruise_control_flag){
 			if (ui8_CruiseControl_timeout_Counter<32)ui8_CruiseControl_timeout_Counter++;
 			if (ui8_CruiseControl_timeout_Counter&&int16_mapped_throttle){
-				ui8_cruise_control_flag=0;
-				ui8_CruiseControl_timeout_Counter=0;
+//				ui8_cruise_control_flag=0;
+//				ui8_CruiseControl_timeout_Counter=0;
 				}
 
 			}
