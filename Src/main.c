@@ -342,6 +342,7 @@ int main(void)
   MP.pulses_per_revolution = PULSES_PER_REVOLUTION;
   MP.wheel_cirumference = WHEEL_CIRCUMFERENCE;
   MP.speedLimit=SPEEDLIMIT;
+  MP.battery_current_max = BATTERYCURRENT_MAX;
 
 
   //init PI structs
@@ -1988,6 +1989,8 @@ void kingmeter_update(void)
     {
     	ui8_Push_Assist_flag=0;
     }
+//    MP.speedLimit=KM.Rx.SPEEDMAX_Limit;
+//    MP.battery_current_max = KM.Rx.CUR_Limit_mA;
 
 
 
@@ -2303,12 +2306,12 @@ void runPIcontrol(){
 
 		  MS.Battery_Current = (q31_t_Battery_Current_accumulated>>8)*i8_direction*i8_reverse_flag; //Battery current in mA
 		  //Check battery current limit
-		  if(MS.Battery_Current>BATTERYCURRENT_MAX) ui8_BC_limit_flag=1;
+		  if(MS.Battery_Current>MP.battery_current_max) ui8_BC_limit_flag=1;
 		  if(MS.Battery_Current<-REGEN_CURRENT_MAX) ui8_BC_limit_flag=1;
 		  //reset battery current flag with small hysteresis
 		  if(brake_flag==0){
 		  //if(HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin)){
-			  if(((MS.i_q_setpoint*MS.u_abs)>>11)*(uint16_t)(CAL_I>>8)<(BATTERYCURRENT_MAX*7)>>3)ui8_BC_limit_flag=0;
+			  if(((MS.i_q_setpoint*MS.u_abs)>>11)*(uint16_t)(CAL_I>>8)<(MP.battery_current_max*7)>>3)ui8_BC_limit_flag=0;
 		  }
 		  else{
 			  if(((MS.i_q_setpoint*MS.u_abs)>>11)*(uint16_t)(CAL_I>>8)>(-REGEN_CURRENT_MAX*7)>>3)ui8_BC_limit_flag=0;
@@ -2325,7 +2328,7 @@ void runPIcontrol(){
 			  if(brake_flag==0){
 			 // if(HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin)){
 				  PI_iq.recent_value=  (MS.Battery_Current>>6)*i8_direction*i8_reverse_flag;
-				  PI_iq.setpoint = (BATTERYCURRENT_MAX>>6)*i8_direction*i8_reverse_flag;
+				  PI_iq.setpoint = (MP.battery_current_max>>6)*i8_direction*i8_reverse_flag;
 			  	}
 			  else{
 				  PI_iq.recent_value=  (MS.Battery_Current>>6)*i8_direction*i8_reverse_flag;
