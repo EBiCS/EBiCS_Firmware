@@ -335,12 +335,12 @@ static void KM_618U_Service(KINGMETER_t* KM_ctx)
 //      KM_ctx->Rx.OverSpeed;
 
         // Decode Speedlimit
-        KM_ctx->Rx.SPEEDMAX_Limit_x10 = (((KM_ctx->RxBuff[2] & 0xF8) >> 3) + 10) * 10;
+        KM_ctx->Rx.SPEEDMAX_Limit = (((KM_ctx->RxBuff[2] & 0xF8) >> 3) + 10);
 
         // Decode Wheelsize by hashtable
         KM_ctx->Settings.WheelSize_mm = KM_WHEELSIZE[KM_ctx->RxBuff[2] & 0x07];
 
-//      KM_ctx->Rx.CUR_Limit_x10;
+//      KM_ctx->Rx.CUR_Limit_mA;
     }
 }
 #endif
