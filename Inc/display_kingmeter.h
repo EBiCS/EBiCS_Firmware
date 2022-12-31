@@ -113,8 +113,8 @@ typedef struct
     uint8_t  Throttle;                  // KM_THROTTLE_OFF / KM_THROTTLE_ON
     uint8_t  CruiseControl;             // KM_CRUISE_OFF / KM_CRUISE_ON
     uint8_t  OverSpeed;                 // KM_OVERSPEED_OFF / KM_OVERSPEED_ON
-    uint16_t SPEEDMAX_Limit_x10;        // Unit: 0.1km/h
-    uint16_t CUR_Limit_x10;             // Unit: 0.1A
+    uint16_t SPEEDMAX_Limit;        	// Unit: km/h
+    uint16_t CUR_Limit_mA;              // Unit: mA
 
 }RX_PARAM_t;
 

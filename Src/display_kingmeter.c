@@ -185,8 +185,8 @@ void KingMeter_Init (KINGMETER_t* KM_ctx)
     KM_ctx->Rx.Throttle                     = KM_THROTTLE_ON;
     KM_ctx->Rx.CruiseControl                = KM_CRUISE_OFF;
     KM_ctx->Rx.OverSpeed                    = KM_OVERSPEED_NO;
-    KM_ctx->Rx.SPEEDMAX_Limit_x10           = (uint16_t) (spd_max1 * 10);
-    KM_ctx->Rx.CUR_Limit_x10                = 150;
+    KM_ctx->Rx.SPEEDMAX_Limit          		= SPEEDLIMIT;
+    KM_ctx->Rx.CUR_Limit_mA                 = BATTERYCURRENT_MAX;
 
     // Parameters to be send to display in operation mode:
     KM_ctx->Tx.Battery                      = KM_BATTERY_NORMAL;
@@ -395,8 +395,11 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
 	    if (j<k && l==k+1){
 	      	Rx_message_length=l-j+1;
 	      	handshake_position=KM_ctx->RxBuff[9+j];
-	      //	if(KM_ctx->RxBuff[j+8]==0xAB)autodetect(); //run autodetect at startup, if current is set to 21.5 amps (for EBS Displays)
-	      	//HAL_Delay(100);
+	        KM_ctx->Rx.SPEEDMAX_Limit          		= KM_ctx->RxBuff[j+11];;
+	        KM_ctx->Rx.CUR_Limit_mA                 = (KM_ctx->RxBuff[j+8]&0x3F)*500;
+//	        if(KM_ctx->Rx.CUR_Limit_mA==21500)autodetect();
+//	      	if(KM_ctx->RxBuff[j+8]==0xAB)autodetect(); //run autodetect at startup, if current is set to 21.5 amps (for EBS Displays)
+//	      	HAL_Delay(100);
 		   HAL_UART_DMAStop(&huart1);
 
 		    if (HAL_UART_Receive_DMA(&huart1, (uint8_t *)KM_ctx->RxBuff, Rx_message_length) != HAL_OK)
@@ -553,8 +556,8 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
                 KM_ctx->Rx.Throttle           = (KM_ctx->RxBuff[5] & 0x04) >> 2;    // KM_THROTTLE_OFF / KM_THROTTLE_ON
                 KM_ctx->Rx.CruiseControl      = (KM_ctx->RxBuff[5] & 0x02) >> 1;    // KM_CRUISE_OFF / KM_CRUISE_ON
                 KM_ctx->Rx.OverSpeed          = (KM_ctx->RxBuff[5] & 0x01);         // KM_OVERSPEED_NO / KM_OVERSPEED_YES
-                KM_ctx->Rx.SPEEDMAX_Limit_x10 = (((uint16_t) KM_ctx->RxBuff[7])<<8)  | KM_ctx->RxBuff[6];
-                KM_ctx->Rx.CUR_Limit_x10      = (((uint16_t) KM_ctx->RxBuff[9])<<8) | KM_ctx->RxBuff[8];
+//                KM_ctx->Rx.SPEEDMAX_Limit     = (((uint16_t) KM_ctx->RxBuff[7])<<8)  | KM_ctx->RxBuff[6];
+//                KM_ctx->Rx.CUR_Limit_mA      = (((uint16_t) KM_ctx->RxBuff[9])<<8) | KM_ctx->RxBuff[8];
 
 
                 // Prepare Tx message
@@ -594,7 +597,11 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
                 KM_ctx->Settings.SPS_SpdMagnets      =  KM_ctx->RxBuff[9];             // 1..4
                 KM_ctx->Settings.VOL_1_UnderVolt_x10 = (((uint16_t) KM_ctx->RxBuff[11])<<8) | KM_ctx->RxBuff[11];
                 KM_ctx->Settings.WheelSize_mm        = (((uint16_t) KM_ctx->RxBuff[12])<<8) | KM_ctx->RxBuff[13];
-                if(KM_ctx->RxBuff[8]==0xAB)autodetect();
+
+    	        KM_ctx->Rx.SPEEDMAX_Limit          		= KM_ctx->RxBuff[11];;
+    	        KM_ctx->Rx.CUR_Limit_mA                 = (KM_ctx->RxBuff[8]&0x3F)*500;
+
+    	        if(KM_ctx->Rx.CUR_Limit_mA==21500)autodetect();
 
                 // Prepare Tx message with handshake code
                 TxBuff[0] = 0X3A;                                       // StartCode
