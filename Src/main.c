@@ -146,6 +146,8 @@ uint32_t uint32_PAS_HIGH_accumulated= 32000;
 uint32_t uint32_PAS_fraction= 100;
 uint32_t uint32_SPEED_counter=32000;
 uint32_t uint32_SPEEDx100_cumulated=0;
+int32_t int32_Accel=0;
+int32_t uint32_SPEEDx100_cumulated_old=0;
 uint32_t uint32_PAS=32000;
 
 q31_t q31_rotorposition_PLL = 0;
@@ -668,6 +670,7 @@ int main(void)
 			  MS.Speed = uint32_tics_filtered>>3;
 
 
+
 	  if(ui8_SPEED_flag){ //Speedpin used for activating cruise control. Toggle cruise control flag
 		  if(uint32_SPEED_counter>200){ //debounce
 			  if(ui8_cruise_control_flag) ui8_cruise_control_flag=0;
@@ -687,6 +690,8 @@ int main(void)
 #if (SPEEDSOURCE == INTERNAL)
 		uint32_SPEEDx100_cumulated -=uint32_SPEEDx100_cumulated>>SPEEDFILTER;
 		uint32_SPEEDx100_cumulated +=internal_tics_to_speedx100(uint32_tics_filtered>>3);
+		int32_Accel=uint32_SPEEDx100_cumulated-uint32_SPEEDx100_cumulated_old;
+		uint32_SPEEDx100_cumulated_old=uint32_SPEEDx100_cumulated;
 #endif
 		ui16_erps=500000/((uint32_tics_filtered>>3)*6);
 		if(!ui8_cruise_control_flag)ui8_SPEED_control_flag=0;
@@ -1001,7 +1006,7 @@ int main(void)
 #endif
 //check if rotor is turning
 
-		  if((uint16_full_rotation_counter>7999||uint16_half_rotation_counter>7999)){
+		  if((uint16_full_rotation_counter>23999||uint16_half_rotation_counter>23999)){
 			  SystemState = Stop;
 			  if(READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)){
 			  CLEAR_BIT(TIM1->BDTR, TIM_BDTR_MOE); //Disable PWM if motor is not turning
@@ -1017,7 +1022,7 @@ int main(void)
 		  //print values for debugging
 
 
-		 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", adcData[1],ui8_cruise_control_flag, PI_speed.setpoint,  PI_speed.recent_value,MS.i_q_setpoint, int32_temp_current_target , temp6 ,temp6*i8_direction*i8_recent_rotor_direction, SystemState);
+		 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", adcData[1],ui8_cruise_control_flag, PI_speed.setpoint,  uint32_SPEEDx100_cumulated>>SPEEDFILTER, int32_Accel, MS.i_q_setpoint, MS.i_q, int32_temp_current_target, SystemState);
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5]),(uint16_t)(adcData[6])) ;
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",tic_array[0],tic_array[1],tic_array[2],tic_array[3],tic_array[4],tic_array[5]) ;
 		  i=0;
@@ -1616,8 +1621,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 			  if(HAL_GPIO_ReadPin(PAS_GPIO_Port, PAS_Pin))uint32_PAS_HIGH_counter++;
 		}
 		if (uint32_SPEED_counter<128000)uint32_SPEED_counter++;					//counter for external Speedsensor
-		if(uint16_full_rotation_counter<8000)uint16_full_rotation_counter++;	//full rotation counter for motor standstill detection
-		if(uint16_half_rotation_counter<8000)uint16_half_rotation_counter++;	//half rotation counter for motor standstill detection
+		if(uint16_full_rotation_counter<24000)uint16_full_rotation_counter++;	//full rotation counter for motor standstill detection
+		if(uint16_half_rotation_counter<24000)uint16_half_rotation_counter++;	//half rotation counter for motor standstill detection
 
 	}
 }
