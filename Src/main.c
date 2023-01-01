@@ -676,7 +676,7 @@ int main(void)
 			  if(ui8_cruise_control_flag) ui8_cruise_control_flag=0;
 			  else {
 				  ui8_cruise_control_flag=1;
-				  PI_speed.setpoint = internal_tics_to_speedx100(uint32_tics_filtered>>3);
+				  PI_speed.setpoint = uint32_SPEEDx100_cumulated>>SPEEDFILTER;
 				  PI_speed.integral_part=0;
 				  PI_speed.out=0;
 		  	  }
@@ -850,7 +850,7 @@ int main(void)
 			if(ui8_cruise_control_flag){
 
 
-					 PI_speed.recent_value = internal_tics_to_speedx100(uint32_tics_filtered>>3);
+					 PI_speed.recent_value = uint32_SPEEDx100_cumulated>>SPEEDFILTER;
 					 if( PI_speed.setpoint)SET_BIT(TIM1->BDTR, TIM_BDTR_MOE);
 					if (internal_tics_to_speedx100(uint32_tics_filtered>>3)<300){//control current slower than 3 km/h
 						PI_speed.limit_i=100;
