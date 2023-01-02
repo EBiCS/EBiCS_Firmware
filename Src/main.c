@@ -907,7 +907,7 @@ int main(void)
 			//	MS.i_q_setpoint=int32_temp_current_target;
 #endif //legalflag
 				int32_temp_current_target=map(MS.Temperature, 120,130,int32_temp_current_target,0); //ramp down power with temperature to avoid overheating the motor
-				MS.i_q_setpoint=map(int32_Accel, 25,60,int32_temp_current_target,0); //ramp down power with temperature to avoid overheating the motor
+				MS.i_q_setpoint=map(int32_Accel, 45,90,int32_temp_current_target,0); //ramp down power with temperature to avoid overheating the motor
 
 
 				//auto KV detect
