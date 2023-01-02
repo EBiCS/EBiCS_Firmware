@@ -850,7 +850,7 @@ int main(void)
 			if(ui8_cruise_control_flag){
 
 
-					 PI_speed.recent_value = uint32_SPEEDx100_cumulated>>SPEEDFILTER;
+					 PI_speed.recent_value = internal_tics_to_speedx100(uint32_tics_filtered>>3);
 					 if( PI_speed.setpoint)SET_BIT(TIM1->BDTR, TIM_BDTR_MOE);
 					if (internal_tics_to_speedx100(uint32_tics_filtered>>3)<300){//control current slower than 3 km/h
 						PI_speed.limit_i=100;
@@ -904,9 +904,12 @@ int main(void)
 //			else int32_temp_current_target=int32_temp_current_target;
 #else //legalflag
 
-				MS.i_q_setpoint=int32_temp_current_target;
+			//	MS.i_q_setpoint=int32_temp_current_target;
 #endif //legalflag
-				MS.i_q_setpoint=map(MS.Temperature, 120,130,int32_temp_current_target,0); //ramp down power with temperature to avoid overheating the motor
+				int32_temp_current_target=map(MS.Temperature, 120,130,int32_temp_current_target,0); //ramp down power with temperature to avoid overheating the motor
+				MS.i_q_setpoint=map(int32_Accel, 25,60,int32_temp_current_target,0); //ramp down power with temperature to avoid overheating the motor
+
+
 				//auto KV detect
 			  if(ui8_KV_detect_flag){
 				  MS.i_q_setpoint=ui8_KV_detect_flag;
