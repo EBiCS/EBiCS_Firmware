@@ -629,7 +629,7 @@ int main(void)
 	  }
 
 	  if(ui8_UART_flag==3){
-
+		 // printf_("UART3 Rx! \n ");
 		  Hubsensor_Service(&hubdata);
 		  ui8_UART_flag=0;
 	  }
@@ -1402,9 +1402,13 @@ static void MX_USART3_UART_Init(void)
   huart3.Init.Mode = UART_MODE_TX_RX;
   huart3.Init.HwFlowCtl = UART_HWCONTROL_NONE;
   huart3.Init.OverSampling = UART_OVERSAMPLING_16;
-  if (HAL_HalfDuplex_Init(&huart3) != HAL_OK)
+//  if (HAL_HalfDuplex_Init(&huart3) != HAL_OK)
+//  {
+//    Error_Handler();
+//  }
+  if (HAL_UART_Init(&huart3) != HAL_OK)
   {
-    Error_Handler();
+    _Error_Handler(__FILE__, __LINE__);
   }
   /* USER CODE BEGIN USART3_Init 2 */
 
