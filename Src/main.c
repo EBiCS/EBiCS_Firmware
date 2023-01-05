@@ -103,7 +103,7 @@ uint16_t ui16_tim2_recent=0;
 uint16_t ui16_timertics=5000; 					//timertics between two hall events for 60Â° interpolation
 uint16_t ui16_throttle;
 uint16_t ui16_brake_adc;
-uint32_t ui32_throttle_cumulated;
+uint32_t ui32_throttle_cumulated = THROTTLE_MID<<4;
 uint32_t ui32_brake_adc_cumulated;
 uint16_t ui16_ph1_offset=0;
 uint16_t ui16_ph2_offset=0;
@@ -530,7 +530,7 @@ int main(void)
 #ifdef NCTE
    	while(adcData[1]<THROTTLE_MIN)
 #else
-   //	while(adcData[1]>THROTTLE_OFFSET)
+   	while(adcData[1]>THROTTLE_MID+50 || adcData[1]<THROTTLE_MID-50)
 #endif
    	  	{
    	  	//do nothing (For Safety at switching on)
@@ -957,6 +957,7 @@ int main(void)
 	  //slow loop procedere @16Hz, for LEV standard every 4th loop run, send page,
 	  if(ui32_tim3_counter>500){
 
+	//	HAL_GPIO_TogglePin (BEEPER_GPIO_Port, BEEPER_Pin);
 
 		if(HAL_GPIO_ReadPin(LED_GPIO_Port, LED_Pin)){
 
@@ -1021,11 +1022,25 @@ int main(void)
 		  else if(ui8_6step_flag) SystemState = SixStep;
 		  else SystemState = Running;
 
+		  if(READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)&&i8_direction*i8_recent_rotor_direction==-1) HAL_GPIO_WritePin(BEEPER_GPIO_Port, BEEPER_Pin, GPIO_PIN_SET);
+		  else HAL_GPIO_WritePin(BEEPER_GPIO_Port, BEEPER_Pin, GPIO_PIN_RESET);
+
+
+
 #if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG && !defined(FAST_LOOP_LOG))
 		  //print values for debugging
 
 
-		 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", adcData[1],ui8_cruise_control_flag, PI_speed.setpoint,  uint32_SPEEDx100_cumulated>>SPEEDFILTER, int32_Accel, MS.i_q_setpoint, MS.i_q, int32_temp_current_target, SystemState);
+		 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n",
+				 adcData[1],
+				 ui8_cruise_control_flag,
+				 PI_speed.setpoint,
+				 uint32_SPEEDx100_cumulated>>SPEEDFILTER,
+				 int16_mapped_throttle,
+				 MS.i_q_setpoint,
+				 MS.i_q,
+				 i8_direction*i8_recent_rotor_direction,
+				 SystemState);
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5]),(uint16_t)(adcData[6])) ;
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",tic_array[0],tic_array[1],tic_array[2],tic_array[3],tic_array[4],tic_array[5]) ;
 		  i=0;
@@ -1585,6 +1600,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(BRAKE_LIGHT_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : BEEPER_Pin */
+  GPIO_InitStruct.Pin = BEEPER_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(BEEPER_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : Brake_Pin */
   GPIO_InitStruct.Pin = Brake_Pin;
