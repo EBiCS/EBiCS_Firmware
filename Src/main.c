@@ -746,7 +746,7 @@ int main(void)
 				//next priority: undervoltage protection
 				else if(MS.Voltage<VOLTAGE_MIN)int32_temp_current_target=0;
 				//next priority: push assist
-				else if(ui8_Push_Assist_flag)int32_temp_current_target=PUSHASSIST_CURRENT;
+				else if(ui8_Push_Assist_flag)int32_temp_current_target=(MS.assist_level*PUSHASSIST_CURRENT)>>8;
 				// last priority normal ride conditiones
 				else {
 
@@ -2287,15 +2287,15 @@ int32_t speed_to_tics (uint8_t speed){
 }
 
 int8_t tics_to_speed (uint32_t tics){
-	return WHEEL_CIRCUMFERENCE*5*3600/(6*GEAR_RATIO*tics*10);;
+	return WHEEL_CIRCUMFERENCE*5*3600/(6*GEAR_RATIO*tics*10);
 }
 
 int16_t internal_tics_to_speedx100 (uint32_t tics){
-	return WHEEL_CIRCUMFERENCE*50*3600/(6*GEAR_RATIO*tics);;
+	return WHEEL_CIRCUMFERENCE*50*3600/(6*GEAR_RATIO*tics);
 }
 
 int16_t external_tics_to_speedx100 (uint32_t tics){
-	return WHEEL_CIRCUMFERENCE*8*360/(PULSES_PER_REVOLUTION*tics);;
+	return WHEEL_CIRCUMFERENCE*8*360/(PULSES_PER_REVOLUTION*tics);
 }
 
 void runPIcontrol(){

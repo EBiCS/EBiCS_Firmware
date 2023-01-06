@@ -395,7 +395,7 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
 	    if (j<k && l==k+1){
 	      	Rx_message_length=l-j+1;
 	      	handshake_position=KM_ctx->RxBuff[9+j];
-	        KM_ctx->Rx.SPEEDMAX_Limit          		= KM_ctx->RxBuff[j+11];;
+	        KM_ctx->Rx.SPEEDMAX_Limit          		= KM_ctx->RxBuff[j+11];
 	        KM_ctx->Rx.CUR_Limit_mA                 = (KM_ctx->RxBuff[j+8]&0x3F)*500;
 //	        if(KM_ctx->Rx.CUR_Limit_mA==21500)autodetect();
 //	      	if(KM_ctx->RxBuff[j+8]==0xAB)autodetect(); //run autodetect at startup, if current is set to 21.5 amps (for EBS Displays)
@@ -598,7 +598,7 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
                 KM_ctx->Settings.VOL_1_UnderVolt_x10 = (((uint16_t) KM_ctx->RxBuff[11])<<8) | KM_ctx->RxBuff[11];
                 KM_ctx->Settings.WheelSize_mm        = (((uint16_t) KM_ctx->RxBuff[12])<<8) | KM_ctx->RxBuff[13];
 
-    	        KM_ctx->Rx.SPEEDMAX_Limit          		= KM_ctx->RxBuff[11];;
+    	        KM_ctx->Rx.SPEEDMAX_Limit          		= KM_ctx->RxBuff[11];
     	        KM_ctx->Rx.CUR_Limit_mA                 = (KM_ctx->RxBuff[8]&0x3F)*500;
 
     	        if(KM_ctx->Rx.CUR_Limit_mA==21500)autodetect();
