@@ -974,9 +974,9 @@ int main(void)
 		// disable cruise control, if throttle is operated, 2 seconds after activating cruise control
 		if(ui8_cruise_control_flag){
 			if (ui8_CruiseControl_timeout_Counter<32)ui8_CruiseControl_timeout_Counter++;
-			if (ui8_CruiseControl_timeout_Counter&&int16_mapped_throttle){
-//				ui8_cruise_control_flag=0;
-//				ui8_CruiseControl_timeout_Counter=0;
+			if (ui8_CruiseControl_timeout_Counter==32&&int16_mapped_throttle){
+				ui8_cruise_control_flag=0;
+				ui8_CruiseControl_timeout_Counter=0;
 				}
 
 			}
