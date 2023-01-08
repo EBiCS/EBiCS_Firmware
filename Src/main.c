@@ -980,6 +980,7 @@ int main(void)
 				}
 
 			}
+		else ui8_CruiseControl_timeout_Counter=0;
 
 
 		  if(ui8_KV_detect_flag){ui16_KV_detect_counter++;}
