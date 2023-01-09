@@ -601,7 +601,8 @@ int main(void)
 	  //display message processing
 	  if(ui8_UART_flag){
 #if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
-	  kingmeter_update();
+	  //kingmeter_update();
+	  KingMeter_Service(&KM);
 #endif
 
 
@@ -941,18 +942,18 @@ int main(void)
 	  //slow loop procedere @16Hz, for LEV standard every 4th loop run, send page,
 	  if(ui32_tim3_counter>500){
 
-
-		if(HAL_GPIO_ReadPin(LED_GPIO_Port, LED_Pin)){
-
-      	//HAL_GPIO_WritePin(LIGHT_GPIO_Port, LIGHT_Pin, GPIO_PIN_RESET);
-      	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
-      	//HAL_GPIO_WritePin(BRAKE_LIGHT_GPIO_Port, BRAKE_LIGHT_Pin, GPIO_PIN_RESET);
-		}
-		else{
-	      	//HAL_GPIO_WritePin(LIGHT_GPIO_Port, LIGHT_Pin, GPIO_PIN_SET);
-	      	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
-	      	//HAL_GPIO_WritePin(BRAKE_LIGHT_GPIO_Port, BRAKE_LIGHT_Pin, GPIO_PIN_SET);
-		}
+		  HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+//		if(HAL_GPIO_ReadPin(LED_GPIO_Port, LED_Pin)){
+//
+//      	//HAL_GPIO_WritePin(LIGHT_GPIO_Port, LIGHT_Pin, GPIO_PIN_RESET);
+//      	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
+//      	//HAL_GPIO_WritePin(BRAKE_LIGHT_GPIO_Port, BRAKE_LIGHT_Pin, GPIO_PIN_RESET);
+//		}
+//		else{
+//	      	//HAL_GPIO_WritePin(LIGHT_GPIO_Port, LIGHT_Pin, GPIO_PIN_SET);
+//	      	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
+//	      	//HAL_GPIO_WritePin(BRAKE_LIGHT_GPIO_Port, BRAKE_LIGHT_Pin, GPIO_PIN_SET);
+//		}
 
 
 		  if(ui8_KV_detect_flag){ui16_KV_detect_counter++;}
@@ -1490,7 +1491,7 @@ static void MX_USART1_UART_Init(void)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
-
+  __HAL_UART_ENABLE_IT(&huart1, UART_IT_IDLE);
 }
 
 /** 
@@ -1511,8 +1512,8 @@ static void MX_DMA_Init(void)
   HAL_NVIC_SetPriority(DMA1_Channel4_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Channel4_IRQn);
   /* DMA1_Channel5_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA1_Channel5_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(DMA1_Channel5_IRQn);
+  //HAL_NVIC_SetPriority(DMA1_Channel5_IRQn, 0, 0);
+  //HAL_NVIC_EnableIRQ(DMA1_Channel5_IRQn);
 
 }
 
@@ -1896,6 +1897,13 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *UartHandle)
 {
+	//ui8_UART_flag=1;
+
+}
+
+void UART_IdleItCallback(void)
+{
+
 	ui8_UART_flag=1;
 
 }
@@ -1962,7 +1970,7 @@ void kingmeter_update(void)
 
 
     /* Receive Rx parameters/settings and send Tx parameters */
-    KingMeter_Service(&KM);
+   // KingMeter_Service(&KM);
 
 
     /* Apply Rx parameters */
