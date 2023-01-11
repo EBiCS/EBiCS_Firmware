@@ -56,7 +56,7 @@
 #include "eeprom.h"
 
 
-#if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
+#if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER|| DISPLAY_TYPE & DISPLAY_TYPE_DEBUG)
   #include "display_kingmeter.h"
 #endif
 
@@ -216,7 +216,7 @@ enum state SystemState;
 
 
 //variables for display communication
-#if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
+#if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER|| DISPLAY_TYPE & DISPLAY_TYPE_DEBUG)
 KINGMETER_t KM;
 #endif
 
@@ -267,7 +267,7 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
-#if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
+#if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER|| DISPLAY_TYPE & DISPLAY_TYPE_DEBUG)
 void kingmeter_update(void);
 #endif
 
@@ -446,8 +446,9 @@ int main(void)
             }
 
 
-#if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
+#if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER || DISPLAY_TYPE & DISPLAY_TYPE_DEBUG)
        KingMeter_Init (&KM);
+
 #endif
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_BAFANG)
@@ -600,7 +601,7 @@ int main(void)
 	  }*/
 	  //display message processing
 	  if(ui8_UART_flag){
-#if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
+#if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER||DISPLAY_TYPE & DISPLAY_TYPE_DEBUG)
 	  //kingmeter_update();
 	  KingMeter_Service(&KM);
 #endif
@@ -891,9 +892,12 @@ int main(void)
 					}
 				}
 //			else int32_temp_current_target=int32_temp_current_target;
-#else //legalflag
-				MS.i_q_setpoint=int32_temp_current_target;
+
 #endif //legalflag
+
+#if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER || DISPLAY_TYPE & DISPLAY_TYPE_DEBUG)
+			if(KM.DirectSetpoint!=-1)int32_temp_current_target=(KM.DirectSetpoint*PH_CURRENT_MAX)>>7;
+#endif
 				MS.i_q_setpoint=map(MS.Temperature, 120,130,int32_temp_current_target,0); //ramp down power with temperature to avoid overheating the motor
 				//auto KV detect
 			  if(ui8_KV_detect_flag){
@@ -918,7 +922,7 @@ int main(void)
 
 //------------------------------------------------------------------------------------------------------------
 				//enable PWM if power is wanted
-	  if (MS.i_q_setpoint>0&&!READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)){
+	  if (MS.i_q_setpoint&&!READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)){
 
 		  uint16_half_rotation_counter=0;
 		  uint16_full_rotation_counter=0;
@@ -1477,7 +1481,7 @@ static void MX_USART1_UART_Init(void)
 #elif (DISPLAY_TYPE == DISPLAY_TYPE_BAFANG)
   huart1.Init.BaudRate = 1200;
 #else
-  huart1.Init.BaudRate = 56000;
+  huart1.Init.BaudRate = 9600;
 #endif
 
 
@@ -1934,7 +1938,7 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *UartHandle) {
 
 
 
-#if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
+#if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER || DISPLAY_TYPE & DISPLAY_TYPE_DEBUG)
 void kingmeter_update(void)
 {
     /* Prepare Tx parameters */

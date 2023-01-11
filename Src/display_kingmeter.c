@@ -1,7 +1,7 @@
 /*
 Library for King-Meter displays
 
-Copyright © 2015 Michael Fabry (Michael@Fabry.de)
+Copyright ï¿½ 2015 Michael Fabry (Michael@Fabry.de)
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "stm32f1xx_hal.h"
 #include "print.h"
 
-#if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
+#if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER|| DISPLAY_TYPE & DISPLAY_TYPE_DEBUG)
 
 // Definitions
 #define RXSTATE_STARTCODE   0
@@ -46,7 +46,7 @@ UART_HandleTypeDef huart3;
 
 
 // Hashtable used for handshaking in 901U protocol
-#if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_901U)
+#if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_901U|| DISPLAY_TYPE & DISPLAY_TYPE_DEBUG)
  const uint8_t KM_901U_HANDSHAKE[64] =
  {
  		137,
@@ -122,7 +122,7 @@ UART_HandleTypeDef huart3;
 static void KM_618U_Service(KINGMETER_t* KM_ctx);
 #endif
 
-#if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_901U)
+#if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_901U|| DISPLAY_TYPE & DISPLAY_TYPE_DEBUG)
 static void KM_901U_Service(KINGMETER_t* KM_ctx);
 #endif
 
@@ -151,7 +151,7 @@ void KingMeter_Init (KINGMETER_t* KM_ctx)
 
 
     KM_ctx->RxState                         = RXSTATE_STARTCODE;
-    KM_ctx->LastRx                          = 0; //hier aktuellen Timerwert als Startzeitpunkt
+    KM_ctx->DirectSetpoint                  = 0xFF; //hier aktuellen Timerwert als Startzeitpunkt
 
     for(i=0; i<KM_MAX_RXBUFF; i++)
     {
@@ -177,7 +177,7 @@ void KingMeter_Init (KINGMETER_t* KM_ctx)
     KM_ctx->Rx.AssistLevel                  = 3; 					//J-LCD Level 1...5
 #endif
 
-#if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_901U)
+#if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_901U|| DISPLAY_TYPE & DISPLAY_TYPE_DEBUG)
 	KM_ctx->Rx.AssistLevel                  = 128;					//MK5S Level 0...255
 #endif
 
@@ -206,7 +206,7 @@ void KingMeter_Init (KINGMETER_t* KM_ctx)
      }
 #endif
 
-#if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_901U)
+#if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_901U|| DISPLAY_TYPE & DISPLAY_TYPE_DEBUG)
     //Start UART with DMA
     if (HAL_UART_Receive_DMA(&huart1, (uint8_t *)KM_ctx->RxBuff, 64) != HAL_OK)
      {
@@ -228,7 +228,7 @@ void KingMeter_Service(KINGMETER_t* KM_ctx)
     KM_618U_Service(KM_ctx);
     #endif
 
-    #if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_901U)
+    #if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_901U|| DISPLAY_TYPE & DISPLAY_TYPE_DEBUG)
     KM_901U_Service(KM_ctx);
     #endif
 }
@@ -351,7 +351,7 @@ static void KM_618U_Service(KINGMETER_t* KM_ctx)
 
 
 
-#if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_901U)
+#if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_901U|| DISPLAY_TYPE & DISPLAY_TYPE_DEBUG)
 /****************************************************************************************************
  * KM_901U_Service() - Communication protocol of 901U firmware
  *
@@ -359,20 +359,14 @@ static void KM_618U_Service(KINGMETER_t* KM_ctx)
 static void KM_901U_Service(KINGMETER_t* KM_ctx)
 {
 	static uint8_t  TxBuffer[KM_MAX_TXBUFF];
-	uint8_t  m;
-//    static uint8_t  message_position=0xFF; //recent position in message-array
-//    static uint8_t  k; //position of CR 0x0D
-//    static uint8_t  l; //position of LF 0x0A
+	static uint8_t  m;
     static uint8_t  last_pointer_position;
     static uint8_t  recent_pointer_position;
-//    static uint8_t  first_run_flag=0;
-//    static uint8_t  n=0;
-//    static uint8_t  o=0;
+
 
     uint16_t CheckSum;
 
     uint8_t  TxCnt;
-  //  static uint8_t  handshake_position;
     static uint8_t  Rx_message_length;
     static uint8_t  KM_Message[32];
 
@@ -405,12 +399,12 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
             		{
             		CheckSum = CheckSum + KM_Message[m];            // Calculate CheckSum
             		}
-
+           		CheckSum-=(KM_Message[m]+((KM_Message[m+1])<<8));
 
      			switch(KM_Message[2])
     			        {
     			            case 0x52:      // Operation mode
-    			            	if((lowByte(CheckSum)) == KM_Message[m] && (highByte(CheckSum)) == KM_Message[m+1]) //low-byte and high-byte
+    			            	if(!CheckSum) //low-byte and high-byte
     			            		{
 
     			            		//HAL_UART_Transmit(&huart3, (uint8_t *)&KM_Message, Rx_message_length,50);
@@ -461,7 +455,7 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
     			            case 0x53:      // Settings mode
 
     			                // Decode Rx message
-    			            	if((lowByte(CheckSum)) == KM_ctx->RxBuff[m] && (highByte(CheckSum)) == KM_ctx->RxBuff[m+1]) //low-byte and high-byte
+    			            	if(!CheckSum) //low-byte and high-byte
     			            		{
     			            		kingmeter_update();
     			                KM_ctx->Settings.PAS_RUN_Direction   = (KM_Message[4] & 0x80) >> 7; // KM_PASDIR_FORWARD / KM_PASDIR_BACKWARD
@@ -503,6 +497,13 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
     			                //TxBuffer[5] = KM_901U_HANDSHAKE[KM_ctx->RxBuff[14]];      // Handshake answer
     			                TxCnt = 9;
     			                break;
+
+    			            case 0x54:      // Operation mode
+    			            	if(!CheckSum) //low-byte and high-byte
+    			            		{
+    			            		KM_ctx->DirectSetpoint=KM_Message[4];
+    			            		}
+    			            	break;
 
     			            default:
     			                TxCnt = 0;
