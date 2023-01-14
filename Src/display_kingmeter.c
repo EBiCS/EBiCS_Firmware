@@ -370,8 +370,8 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
     static uint8_t  Rx_message_length;
     static uint8_t  KM_Message[32];
 
-    int  *zeiger;
-    zeiger= &KM_Message;
+    uint8_t *zeiger;
+    zeiger= KM_Message;
 
     recent_pointer_position = 64-DMA1_Channel5->CNDTR;
 
