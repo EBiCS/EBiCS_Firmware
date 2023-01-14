@@ -946,18 +946,8 @@ int main(void)
 	  //slow loop procedere @16Hz, for LEV standard every 4th loop run, send page,
 	  if(ui32_tim3_counter>500){
 
-		  HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-//		if(HAL_GPIO_ReadPin(LED_GPIO_Port, LED_Pin)){
-//
-//      	//HAL_GPIO_WritePin(LIGHT_GPIO_Port, LIGHT_Pin, GPIO_PIN_RESET);
-//      	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
-//      	//HAL_GPIO_WritePin(BRAKE_LIGHT_GPIO_Port, BRAKE_LIGHT_Pin, GPIO_PIN_RESET);
-//		}
-//		else{
-//	      	//HAL_GPIO_WritePin(LIGHT_GPIO_Port, LIGHT_Pin, GPIO_PIN_SET);
-//	      	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
-//	      	//HAL_GPIO_WritePin(BRAKE_LIGHT_GPIO_Port, BRAKE_LIGHT_Pin, GPIO_PIN_SET);
-//		}
+		//  HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+
 
 
 		  if(ui8_KV_detect_flag){ui16_KV_detect_counter++;}
@@ -1984,12 +1974,12 @@ void kingmeter_update(void)
     if(KM.Rx.Headlight == KM_HEADLIGHT_OFF)
         {
         	HAL_GPIO_WritePin(LIGHT_GPIO_Port, LIGHT_Pin, GPIO_PIN_RESET);
-        	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
+
         }
         else // KM_HEADLIGHT_ON, KM_HEADLIGHT_LOW, KM_HEADLIGHT_HIGH
         {
         	HAL_GPIO_WritePin(LIGHT_GPIO_Port, LIGHT_Pin, GPIO_PIN_SET);
-        	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
+
         }
 
 
