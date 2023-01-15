@@ -2421,6 +2421,7 @@ void _Error_Handler(char *file, int line)
   /* User can add his own implementation to report the HAL error return state */
   while(1)
   {
+	  CLEAR_BIT(TIM1->BDTR, TIM_BDTR_MOE); // Disable PWM in case of an error.
   }
   /* USER CODE END Error_Handler_Debug */
 }
