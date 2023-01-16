@@ -263,6 +263,7 @@ static void MX_ADC2_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_TIM3_Init(void);
 int16_t T_NTC(uint16_t ADC);
+void init_watchdog(void);
 void MX_IWDG_Init(void);
 
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
@@ -331,7 +332,7 @@ int main(void)
   MX_GPIO_Init();
   MX_DMA_Init();
   MX_USART1_UART_Init();
-  MX_IWDG_Init();
+
 
   //initialize MS struct.
   MS.hall_angle_detect_flag=1;
@@ -591,7 +592,7 @@ int main(void)
     CLEAR_BIT(TIM1->BDTR, TIM_BDTR_MOE);//Disable PWM
 
 	get_standstill_position();
-
+	//init_watchdog();
 
   /* USER CODE END 2 */
 
@@ -599,6 +600,8 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	 // HAL_IWDG_Refresh(&hiwdg);
+
 	 /* if(PI_flag){
 	  runPIcontrol();
 	  PI_flag=0;
@@ -1052,7 +1055,7 @@ int main(void)
 
   }
   /* USER CODE END 3 */
-		HAL_IWDG_Refresh(&hiwdg);
+
 }
 
 /**
@@ -1609,6 +1612,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 {
 	ui8_adc_regular_flag=1;
+
 }
 
 //injected ADC
@@ -2410,7 +2414,7 @@ int16_t T_NTC(uint16_t ADC) // ADC 12 Bit, 10k Pullup, Rückgabewert in °C
 
 }
 #endif
-void init_watchdog()
+void init_watchdog(void)
 {
 
     if(__HAL_RCC_GET_FLAG(RCC_FLAG_IWDGRST))
@@ -2419,7 +2423,7 @@ void init_watchdog()
     	printf_("watchdog reset!\n");
 
         // do not continue here if reset from watchdog
-        while(1){}
+        //while(1){}
         //__HAL_RCC_CLEAR_RESET_FLAGS();
     }
     else
