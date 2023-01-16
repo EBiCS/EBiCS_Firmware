@@ -47,7 +47,7 @@
 #define SPEEDLIMIT 25
 #define PULSES_PER_REVOLUTION 1
 #define PH_CURRENT_MAX 600
-#define BATTERYCURRENT_MAX 15000
+#define BATTERYCURRENT_MAX 20000
 #define SPEC_ANGLE -167026406L //Value no longer needed
 //#define DIRDET
 #define FRAC_HIGH 30

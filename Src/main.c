@@ -42,6 +42,7 @@
 
 
 
+
 /* USER CODE BEGIN Includes */
 
 // Lishui BLCD FOC Open Source Firmware
@@ -85,10 +86,11 @@ TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
 
-
 UART_HandleTypeDef huart1;
 DMA_HandleTypeDef hdma_usart1_tx;
 DMA_HandleTypeDef hdma_usart1_rx;
+
+IWDG_HandleTypeDef hiwdg;
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
@@ -261,6 +263,7 @@ static void MX_ADC2_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_TIM3_Init(void);
 int16_t T_NTC(uint16_t ADC);
+void MX_IWDG_Init(void);
 
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
                                 
@@ -328,6 +331,7 @@ int main(void)
   MX_GPIO_Init();
   MX_DMA_Init();
   MX_USART1_UART_Init();
+  MX_IWDG_Init();
 
   //initialize MS struct.
   MS.hall_angle_detect_flag=1;
@@ -1048,7 +1052,7 @@ int main(void)
 
   }
   /* USER CODE END 3 */
-
+		HAL_IWDG_Refresh(&hiwdg);
 }
 
 /**
@@ -2406,7 +2410,48 @@ int16_t T_NTC(uint16_t ADC) // ADC 12 Bit, 10k Pullup, Rückgabewert in °C
 
 }
 #endif
+void init_watchdog()
+{
 
+    if(__HAL_RCC_GET_FLAG(RCC_FLAG_IWDGRST))
+    {
+
+    	printf_("watchdog reset!\n");
+
+        // do not continue here if reset from watchdog
+        while(1){}
+        //__HAL_RCC_CLEAR_RESET_FLAGS();
+    }
+    else
+    {
+
+    	printf_("regular reset\n\n");
+
+    }
+    // start independent watchdog
+    MX_IWDG_Init();
+
+
+}
+
+/* IWDG init function */
+void MX_IWDG_Init(void)
+{
+  // RM0008 - Table 96 IWDG timout period in seconds:
+  // (IWDG_PRESCALER) * (Period + 1) / f_LSI
+  // datasheet STM32F103x4 -> f_LSI = 40'000 Hz
+  //
+  // 4 * 500 / 40000 = 0.05s
+  hiwdg.Instance = IWDG;
+  hiwdg.Init.Prescaler = IWDG_PRESCALER_4;
+  hiwdg.Init.Reload = 500;
+  // start the watchdog timer
+  if (HAL_IWDG_Init(&hiwdg) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+}
 /* USER CODE END 4 */
 
 /**
