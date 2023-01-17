@@ -12,6 +12,7 @@
 "./build/stm32f1xx_hal_rcc_ex.o"
 "./build/stm32f1xx_hal_tim.o"
 "./build/stm32f1xx_hal_tim_ex.o"
+"./build/stm32f1xx_hal_iwdg.o"
 "./build/stm32f1xx_hal_uart.o"
 "./build/FOC.o"
 "./build/display_bafang.o"
