@@ -592,7 +592,7 @@ int main(void)
     CLEAR_BIT(TIM1->BDTR, TIM_BDTR_MOE);//Disable PWM
 
 	get_standstill_position();
-	//init_watchdog();
+	init_watchdog();
 
   /* USER CODE END 2 */
 
@@ -600,7 +600,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	 // HAL_IWDG_Refresh(&hiwdg);
+	 HAL_IWDG_Refresh(&hiwdg);
 
 	 /* if(PI_flag){
 	  runPIcontrol();
@@ -2165,6 +2165,7 @@ void autodetect() {
 //	q31_t diffangle = 0;
 	HAL_Delay(5);
 	for (i = 0; i < 1080; i++) {
+		HAL_IWDG_Refresh(&hiwdg);
 		q31_rotorposition_absolute += 11930465; //drive motor in open loop with steps of 1 deg
 		HAL_Delay(5);
 		//printf_("%d, %d, %d, %d\n", temp3>>16,temp4>>16,temp5,temp6);
@@ -2443,12 +2444,12 @@ void MX_IWDG_Init(void)
 {
   // RM0008 - Table 96 IWDG timout period in seconds:
   // (IWDG_PRESCALER) * (Period + 1) / f_LSI
-  // datasheet STM32F103x4 -> f_LSI = 40'000 Hz
+  // datasheet STM32F103x4 -> f_LSI = 40'000 Hz ?!
   //
-  // 4 * 500 / 40000 = 0.05s
+  // 32 * 1000 / 32000 = 1s
   hiwdg.Instance = IWDG;
-  hiwdg.Init.Prescaler = IWDG_PRESCALER_4;
-  hiwdg.Init.Reload = 500;
+  hiwdg.Init.Prescaler = IWDG_PRESCALER_32;
+  hiwdg.Init.Reload = 1000;
   // start the watchdog timer
   if (HAL_IWDG_Init(&hiwdg) != HAL_OK)
   {
