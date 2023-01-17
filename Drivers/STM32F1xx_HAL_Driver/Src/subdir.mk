@@ -18,6 +18,7 @@ Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_rcc.c \
 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_rcc_ex.c \
 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim.c \
 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim_ex.c \
+Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_iwdg.c \
 Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_uart.c 
 
 OBJS += \
@@ -35,6 +36,7 @@ build/stm32f1xx_hal_rcc.o \
 build/stm32f1xx_hal_rcc_ex.o \
 build/stm32f1xx_hal_tim.o \
 build/stm32f1xx_hal_tim_ex.o \
+build/stm32f1xx_hal_iwdg.o \
 build/stm32f1xx_hal_uart.o 
 
 C_DEPS += \
@@ -52,6 +54,7 @@ build/stm32f1xx_hal_rcc.d \
 build/stm32f1xx_hal_rcc_ex.d \
 build/stm32f1xx_hal_tim.d \
 build/stm32f1xx_hal_tim_ex.d \
+build/stm32f1xx_hal_iwdg.d \
 build/stm32f1xx_hal_uart.d 
 
 INC_PATH = Inc
