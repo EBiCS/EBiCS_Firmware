@@ -375,7 +375,7 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
     if(recent_pointer_position>last_pointer_position){
     	Rx_message_length=recent_pointer_position-last_pointer_position;
     	//printf_("groesser %d, %d, %d \n ",recent_pointer_position,last_pointer_position, Rx_message_length);
-    	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
+    	//HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
     	memcpy(KM_Message,KM_ctx->RxBuff+last_pointer_position,Rx_message_length);
     	//HAL_UART_Transmit(&huart3, (uint8_t *)&KM_Message, Rx_message_length,50);
 	}
@@ -383,7 +383,7 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
     	Rx_message_length=recent_pointer_position+64-last_pointer_position;
      	memcpy(KM_Message,KM_ctx->RxBuff+last_pointer_position,64-last_pointer_position);
         memcpy(KM_Message+64-last_pointer_position,KM_ctx->RxBuff,recent_pointer_position);
-        HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
+      //  HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
 
 
     }

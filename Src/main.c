@@ -651,6 +651,8 @@ int main(void)
 
 	  //PAS signal processing
 	  if(ui8_PAS_flag){
+
+
 		  if(uint32_PAS_counter>100){ //debounce
 		  uint32_PAS_cumulated -= uint32_PAS_cumulated>>2;
 		  uint32_PAS_cumulated += uint32_PAS_counter;
@@ -679,7 +681,7 @@ int main(void)
 #else
 
 	  if(ui8_SPEED_flag){
-
+		 // HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
 		  if(uint32_SPEED_counter>200){ //debounce
 			  MS.Speed = uint32_SPEED_counter;
 			  //HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
@@ -1507,10 +1509,10 @@ static void MX_DMA_Init(void)
 
   /* DMA interrupt init */
   /* DMA1_Channel1_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 0, 0);
+  HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 3, 0);
   HAL_NVIC_EnableIRQ(DMA1_Channel1_IRQn);
   /* DMA1_Channel4_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA1_Channel4_IRQn, 0, 0);
+  HAL_NVIC_SetPriority(DMA1_Channel4_IRQn, 3, 0);
   HAL_NVIC_EnableIRQ(DMA1_Channel4_IRQn);
   /* DMA1_Channel5_IRQn interrupt configuration */
   //HAL_NVIC_SetPriority(DMA1_Channel5_IRQn, 0, 0);
@@ -1588,9 +1590,10 @@ static void MX_GPIO_Init(void)
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
+	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
 	if (htim == &htim3) {
 
-#ifdef SPEED_PLL
+#if SPEED_PLL
 		   if(!READ_BIT(TIM1->BDTR, TIM_BDTR_MOE))q31_rotorposition_PLL += (q31_angle_per_tic<<1);
 #endif
 
@@ -1604,6 +1607,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		if(uint16_half_rotation_counter<8000)uint16_half_rotation_counter++;	//half rotation counter for motor standstill detection
 
 	}
+	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
 }
 
 
@@ -1760,6 +1764,7 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef* htim)
 {
 	 //__HAL_TIM_SET_COUNTER(&htim2,0); //reset tim2 counter
+	//	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
 
 		ui16_timertics = TIM2->CCR1;
 
@@ -1860,7 +1865,7 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef* htim)
 			q31_angle_per_tic = speed_PLL(q31_rotorposition_PLL,q31_rotorposition_hall,0);
 		}
 
-	#ifdef SPEED_PLL
+	#if SPEED_PLL
 		if(ui16_erps>30){   //360 interpolation at higher erps
 			if(ui8_hall_case==32||ui8_hall_case==23){
 				q31_angle_per_tic = speed_PLL(q31_rotorposition_PLL,q31_rotorposition_hall, SPDSHFT*tics_higher_limit/(uint32_tics_filtered>>3));
@@ -1874,13 +1879,13 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef* htim)
 
 	#endif
 
-
+	//	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
 
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-
+	//HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
 	//PAS processing
 	if(GPIO_Pin == PAS_EXTI8_Pin)
 	{
@@ -1894,7 +1899,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 			ui8_SPEED_flag = 1; //with debounce
 
 	}
-
+	//HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *UartHandle)
