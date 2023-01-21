@@ -955,7 +955,7 @@ int main(void)
 	  //slow loop procedere @16Hz, for LEV standard every 4th loop run, send page,
 	  if(ui32_tim3_counter>500){
 		  if(__HAL_RCC_GET_FLAG(RCC_FLAG_IWDGRST)) HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
-		  else HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+		//  else HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
 
 
 
@@ -1765,6 +1765,8 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef* htim)
 {
 	 //__HAL_TIM_SET_COUNTER(&htim2,0); //reset tim2 counter
 	//	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
+	if(TIM3->CNT-temp5>10){ //debounce
+		temp5=TIM3->CNT;
 
 		ui16_timertics = TIM2->CCR1;
 
@@ -1880,6 +1882,8 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef* htim)
 	#endif
 
 	//	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
+	}
+	else HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
 
 }
 
@@ -2384,8 +2388,8 @@ q31_t speed_PLL (q31_t ist, q31_t soll, uint8_t speedadapt)
     q31_t q31_p;
     static q31_t q31_d_i = 0;
     static q31_t q31_d_dc = 0;
-    temp6 = soll-ist;
-    temp5 = speedadapt;
+   // temp6 = soll-ist;
+   // temp5 = speedadapt;
     q31_p=(soll - ist)>>(P_FACTOR_PLL-speedadapt);   				//7 for Shengyi middrive, 10 for BionX IGH3
     q31_d_i+=(soll - ist)>>(I_FACTOR_PLL-speedadapt);				//11 for Shengyi middrive, 10 for BionX IGH3
 
