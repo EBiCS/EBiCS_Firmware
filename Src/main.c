@@ -954,8 +954,8 @@ int main(void)
 //----------------------------------------------------------------------------------------------------------------------------------------------------------
 	  //slow loop procedere @16Hz, for LEV standard every 4th loop run, send page,
 	  if(ui32_tim3_counter>500){
-
-		//  HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+		  if(__HAL_RCC_GET_FLAG(RCC_FLAG_IWDGRST)) HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
+		  else HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
 
 
 
@@ -1590,7 +1590,7 @@ static void MX_GPIO_Init(void)
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
+	//HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
 	if (htim == &htim3) {
 
 #if SPEED_PLL
@@ -1607,7 +1607,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		if(uint16_half_rotation_counter<8000)uint16_half_rotation_counter++;	//half rotation counter for motor standstill detection
 
 	}
-	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
+	//HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
 }
 
 
@@ -2427,14 +2427,14 @@ void init_watchdog(void)
     {
 
     	printf_("watchdog reset!\n");
-
+    	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
         // do not continue here if reset from watchdog
         //while(1){}
         //__HAL_RCC_CLEAR_RESET_FLAGS();
     }
     else
     {
-
+    	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
     	printf_("regular reset\n\n");
 
     }
@@ -2454,7 +2454,7 @@ void MX_IWDG_Init(void)
   // 32 * 1000 / 32000 = 1s
   hiwdg.Instance = IWDG;
   hiwdg.Init.Prescaler = IWDG_PRESCALER_32;
-  hiwdg.Init.Reload = 1000;
+  hiwdg.Init.Reload = 500;
   // start the watchdog timer
   if (HAL_IWDG_Init(&hiwdg) != HAL_OK)
   {
