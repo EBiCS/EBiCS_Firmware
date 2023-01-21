@@ -955,7 +955,7 @@ int main(void)
 	  //slow loop procedere @16Hz, for LEV standard every 4th loop run, send page,
 	  if(ui32_tim3_counter>500){
 		  if(__HAL_RCC_GET_FLAG(RCC_FLAG_IWDGRST)) HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
-		//  else HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+		  else HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
 
 
 
@@ -1765,7 +1765,7 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef* htim)
 {
 	 //__HAL_TIM_SET_COUNTER(&htim2,0); //reset tim2 counter
 	//	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
-	if(TIM3->CNT-temp5>10){ //debounce
+
 		temp5=TIM3->CNT;
 
 		ui16_timertics = TIM2->CCR1;
@@ -1882,8 +1882,7 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef* htim)
 	#endif
 
 	//	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
-	}
-	else HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+
 
 }
 
