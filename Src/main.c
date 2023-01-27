@@ -1412,7 +1412,7 @@ static void MX_TIM2_Init(void)
 	  sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_RISING;
 	  sConfigIC.ICSelection = TIM_ICSELECTION_TRC;
 	  sConfigIC.ICPrescaler = TIM_ICPSC_DIV1;
-	  sConfigIC.ICFilter = 8;
+	  sConfigIC.ICFilter = 15;
 	  if (HAL_TIM_IC_ConfigChannel(&htim2, &sConfigIC, TIM_CHANNEL_1) != HAL_OK)
 	  {
 	    _Error_Handler(__FILE__, __LINE__);
