@@ -364,7 +364,7 @@ void USART1_IRQHandler(void)
 	  {
 	    // clear the IDLE interrupt
 	    // see RM0008 27.6.1 Status register (USART_SR)
-	    __HAL_UART_CLEAR_IDLEFLAG(&huart1);
+	  //  __HAL_UART_CLEAR_IDLEFLAG(&huart1);
 
 	    // Disable uart idle interrupt here and enable it again at the end of the uart processing?
 	    // -> Decided not to do it and assuming the cpu is fast enough to always process incoming messages.
@@ -376,6 +376,7 @@ void USART1_IRQHandler(void)
 	    //
 	    //HAL_UART_RxCpltCallback(&huart1);
 	    UART_IdleItCallback();
+
 	  }
 	  else
 	  {
