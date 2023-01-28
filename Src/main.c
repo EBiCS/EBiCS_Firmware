@@ -1916,7 +1916,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *UartHandle)
 
 void UART_IdleItCallback(void)
 {
-	__HAL_UART_CLEAR_IDLEFLAG(&huart1);
 	ui8_UART_flag=1;
 
 }
