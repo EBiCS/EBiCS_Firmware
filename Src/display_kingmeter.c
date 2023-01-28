@@ -507,10 +507,10 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
     			            default:
     			                TxCnt = 0;
     			        }
-     				TxCnt = 9;
+
 
     			        // Send prepared message
-    			        if(TxCnt != 0)
+    			        if(TxCnt && !CheckSum)
     			        {
     			            CheckSum = 0x0000;
 
