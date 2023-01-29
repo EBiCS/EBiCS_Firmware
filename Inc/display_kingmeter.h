@@ -141,7 +141,7 @@ typedef struct
 
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_901U|| DISPLAY_TYPE & DISPLAY_TYPE_DEBUG)
- #define KM_MAX_RXBUFF 30
+ #define KM_MAX_RXBUFF 64
  #define KM5S_NM_RXBUFF 15 // KM5S RX-Buffer length for normal mode
  #define KM_MAX_TXBUFF 13
 #endif

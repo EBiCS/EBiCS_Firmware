@@ -612,7 +612,7 @@ int main(void)
 #if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER||DISPLAY_TYPE & DISPLAY_TYPE_DEBUG)
 	  //kingmeter_update();
 
-	  KingMeter_Service(&KM);
+	//  KingMeter_Service(&KM);
 #endif
 
 
@@ -956,8 +956,10 @@ int main(void)
 //----------------------------------------------------------------------------------------------------------------------------------------------------------
 	  //slow loop procedere @16Hz, for LEV standard every 4th loop run, send page,
 	  if(ui32_tim3_counter>500){
-		  if(__HAL_RCC_GET_FLAG(RCC_FLAG_IWDGRST)) HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
-		 else HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+//		  if(__HAL_RCC_GET_FLAG(RCC_FLAG_IWDGRST)) HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
+//		 else HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+
+		  KingMeter_Service(&KM);
 
 
 
@@ -1497,7 +1499,7 @@ static void MX_USART1_UART_Init(void)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
-  __HAL_UART_ENABLE_IT(&huart1, UART_IT_IDLE);
+ // __HAL_UART_ENABLE_IT(&huart1, UART_IT_IDLE);
 }
 
 /** 
@@ -1908,22 +1910,22 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 	//HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
 }
 
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *UartHandle)
-{
-	//ui8_UART_flag=1;
+//void HAL_UART_RxCpltCallback(UART_HandleTypeDef *UartHandle)
+//{
+//	//ui8_UART_flag=1;
+//
+//}
 
-}
+//void UART_IdleItCallback(void)
+//{
+//	ui8_UART_flag=1;
+//
+//}
 
-void UART_IdleItCallback(void)
-{
-	ui8_UART_flag=1;
-
-}
-
-void HAL_UART_TxCpltCallback(UART_HandleTypeDef *UartHandle)
-{
-	ui8_UART_TxCplt_flag=1;
-}
+//void HAL_UART_TxCpltCallback(UART_HandleTypeDef *UartHandle)
+//{
+//	ui8_UART_TxCplt_flag=1;
+//}
 
 void HAL_UART_ErrorCallback(UART_HandleTypeDef *UartHandle) {
 #if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)

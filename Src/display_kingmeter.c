@@ -359,40 +359,119 @@ static void KM_618U_Service(KINGMETER_t* KM_ctx)
 static void KM_901U_Service(KINGMETER_t* KM_ctx)
 {
 	static uint8_t  TxBuffer[KM_MAX_TXBUFF];
-	static uint8_t  m;
+	static uint8_t  m; //for loop counter
     static uint8_t  last_pointer_position;
     static uint8_t  recent_pointer_position;
-
+    static uint8_t  start_position;
+    static uint8_t  end_position;
+    static uint8_t  comState=0;
 
     uint16_t CheckSum;
 
-    uint8_t  TxCnt;
+    static uint8_t  TxCnt;
     static uint8_t  Rx_message_length;
     static uint8_t  KM_Message[32];
 
     recent_pointer_position = 64-DMA1_Channel5->CNDTR;
 
     if(recent_pointer_position>last_pointer_position){
-    	Rx_message_length=recent_pointer_position-last_pointer_position;
-    	//printf_("groesser %d, %d, %d \n ",recent_pointer_position,last_pointer_position, Rx_message_length);
-    	//HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
-    	memcpy(KM_Message,KM_ctx->RxBuff+last_pointer_position,Rx_message_length);
-    	//HAL_UART_Transmit(&huart3, (uint8_t *)&KM_Message, Rx_message_length,50);
+
+
+    		 if(!comState){
+    			for(int i=last_pointer_position;i<recent_pointer_position;i++){
+    				if(KM_ctx->RxBuff[i]==0x3A&&KM_ctx->RxBuff[(i+1)%64]==0x1A){
+    					start_position=i;
+    					comState=1;
+    				}
+    			}
+
+    		}
+    		 if(comState==1){
+    			for(int i=last_pointer_position;i<recent_pointer_position;i++){
+    				if(KM_ctx->RxBuff[i]==0x0D&&KM_ctx->RxBuff[(i+1)%64]==0x0A){
+    					end_position=((i+2)%64);
+    					comState=2;
+    				}
+    			}
+
+    		}
+
+
+
+    	if(comState==2){
+    		Rx_message_length=end_position-start_position;
+    		if(Rx_message_length>4&&Rx_message_length<32){
+    			memcpy(KM_Message,KM_ctx->RxBuff+start_position,Rx_message_length);
+    			comState=3;
+    			//HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+    		}
+
+    	}
+    	last_pointer_position=recent_pointer_position;
 	}
-    else {
-    	Rx_message_length=recent_pointer_position+64-last_pointer_position;
-     	memcpy(KM_Message,KM_ctx->RxBuff+last_pointer_position,64-last_pointer_position);
-        memcpy(KM_Message+64-last_pointer_position,KM_ctx->RxBuff,recent_pointer_position);
+    else if(recent_pointer_position<last_pointer_position){
+    	//HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+		 if(!comState){
+			for(int i=last_pointer_position;i<recent_pointer_position+64;i++){
+				if(KM_ctx->RxBuff[i%64]==0x3A&&KM_ctx->RxBuff[(i+1)%64]==0x1A){
+					start_position=i%64;
+					comState=1;
+				}
+			}
+
+		}
+		 if(comState==1){
+			for(int i=last_pointer_position;i<recent_pointer_position+64;i++){
+				if(KM_ctx->RxBuff[i%64]==0x0D&&KM_ctx->RxBuff[(i+1)%64]==0x0A){
+					end_position=i%64;
+					comState=2;
+				}
+			}
+
+		}
+
+		 if(comState==2){
+
+			 if(end_position>start_position){
+		    		Rx_message_length=end_position-start_position;
+		    		if(Rx_message_length>4&&Rx_message_length<32){
+		    			memcpy(KM_Message,KM_ctx->RxBuff+start_position,Rx_message_length);
+		    			comState=3;
+		    			//HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+		    		}
+		    		else{
+    			    	comState=0;
+    			    	start_position=0;
+    			    	end_position=0;
+		    		}
+			 }
+
+			 else{
+				 Rx_message_length=64-start_position+end_position;
+				 if(Rx_message_length>4&&Rx_message_length<32){
+					 memcpy(KM_Message,KM_ctx->RxBuff+start_position,64-start_position);
+					 memcpy(KM_Message+(64-start_position),KM_ctx->RxBuff,end_position);
+					 comState=3;
+					 //HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+				 }
+		    	else{
+ 			    	comState=0;
+ 			    	start_position=0;
+ 			    	end_position=0;
+		    		}
+			 }
+    	}
+
       //  HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
 
-
+		 last_pointer_position=recent_pointer_position;
     }
-    last_pointer_position=recent_pointer_position;
+
     //HAL_UART_Transmit(&huart3, (uint8_t *)&KM_Message, Rx_message_length,50);
 
 
 
-
+	if(comState==3){
             	CheckSum = 0x0000;
             	for(m=1; m<(4+KM_Message[3]); m++)
             		{
@@ -527,9 +606,15 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
     			            TxBuffer[TxCnt+3] = 0x0A;
 
     			            HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuffer, TxCnt+4);
+    			            HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
     			            //HAL_UART_Transmit(&huart3, (uint8_t *)&TxBuffer, TxCnt+4,50);
     			            //printf_("%d, %d \n ",TxCnt+4,KM_Message[2]);
     			        }
+
+    			    	comState=0;
+    			    	start_position=0;
+    			    	end_position=0;
+			}
 
 
 
