@@ -107,6 +107,7 @@ uint16_t ui16_throttle;
 uint16_t ui16_brake_adc;
 uint32_t ui32_throttle_cumulated;
 uint32_t ui32_brake_adc_cumulated;
+uint32_t ui32_int_Temp_cumulated;
 uint16_t ui16_ph1_offset=0;
 uint16_t ui16_ph2_offset=0;
 uint16_t ui16_ph3_offset=0;
@@ -967,6 +968,11 @@ int main(void)
 #else
 		  MS.Temperature=25;
 #endif
+		  //filter internal temperature reading
+		  ui32_int_Temp_cumulated-=ui32_int_Temp_cumulated>>5;
+		  ui32_int_Temp_cumulated+=adcData[7];
+		  MS.int_Temperature=(((2360-(ui32_int_Temp_cumulated>>5))*24)>>7)+25;
+
 		  MS.Voltage=adcData[0];
 		  if(uint32_SPEED_counter>32000){
 			  MS.Speed = 32000;
@@ -1006,7 +1012,7 @@ int main(void)
 		  //print values for debugging
 
 
-		 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", adcData[7],(((2360-adcData[7])*24)>>7)+25, uint32_SPEEDx100_cumulated>>SPEEDFILTER, MS.i_q_setpoint, uint32_PAS, int32_temp_current_target , MS.u_d,MS.u_q, SystemState);
+		 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", adcData[7],MS.int_Temperature, uint32_SPEEDx100_cumulated>>SPEEDFILTER, MS.i_q_setpoint, uint32_PAS, int32_temp_current_target , MS.u_d,MS.u_q, SystemState);
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5]),(uint16_t)(adcData[6])) ;
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",tic_array[0],tic_array[1],tic_array[2],tic_array[3],tic_array[4],tic_array[5]) ;
 		  i=0;

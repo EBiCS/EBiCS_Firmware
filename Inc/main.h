@@ -151,6 +151,7 @@ typedef struct
 	uint8_t 		assist_level;
 	uint8_t 		regen_level;
 	int16_t         Temperature;
+	int16_t         int_Temperature;
 	int8_t         	system_state;
 	int8_t         	gear_state;
 	int8_t         	error_state;
