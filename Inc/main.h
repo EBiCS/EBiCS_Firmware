@@ -176,7 +176,7 @@ typedef struct
 	uint8_t       	speedLimit;
 	uint8_t       	pulses_per_revolution;
 	uint16_t       	phase_current_max;
-	int16_t       	battery_current_max;
+	int32_t       	battery_current_max;
 
 
 }MotorParams_t;
