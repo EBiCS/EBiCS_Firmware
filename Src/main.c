@@ -184,7 +184,7 @@ const uint8_t assist_profile[2][6]= {	{0,10,20,30,45,48},
 										{64,64,128,200,255,0}};
 
 uint16_t switchtime[3];
-volatile uint16_t adcData[8]; //Buffer for ADC1 Input
+volatile uint16_t adcData[9]; //Buffer for ADC1 Input
 q31_t tic_array[6];
 
 //Rotor angle scaled from degree to q31 for arm_math. -180Â°-->-2^31, 0Â°-->0, +180Â°-->+2^31
@@ -407,7 +407,7 @@ int main(void)
 
 
   //HAL_ADC_Start_IT(&hadc1);
-  HAL_ADCEx_MultiModeStart_DMA(&hadc1, (uint32_t*)adcData, 7);
+  HAL_ADCEx_MultiModeStart_DMA(&hadc1, (uint32_t*)adcData, 8);
   HAL_ADC_Start_IT(&hadc2);
   MX_TIM1_Init(); //Hier die Reihenfolge getauscht!
   MX_TIM2_Init();
@@ -1006,7 +1006,7 @@ int main(void)
 		  //print values for debugging
 
 
-		 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", adcData[1],(((2010-adcData[7])*24)>>7)+25, uint32_SPEEDx100_cumulated>>SPEEDFILTER, MS.i_q_setpoint, uint32_PAS, int32_temp_current_target , MS.u_d,MS.u_q, SystemState);
+		 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", adcData[7],(((2360-adcData[7])*24)>>7)+25, uint32_SPEEDx100_cumulated>>SPEEDFILTER, MS.i_q_setpoint, uint32_PAS, int32_temp_current_target , MS.u_d,MS.u_q, SystemState);
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5]),(uint16_t)(adcData[6])) ;
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",tic_array[0],tic_array[1],tic_array[2],tic_array[3],tic_array[4],tic_array[5]) ;
 		  i=0;

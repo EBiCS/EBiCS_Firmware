@@ -366,7 +366,7 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
 
     uint16_t CheckSum;
 
-    uint8_t  TxCnt;
+    static uint8_t  TxCnt;
     static uint8_t  Rx_message_length;
     static uint8_t  KM_Message[32];
 
