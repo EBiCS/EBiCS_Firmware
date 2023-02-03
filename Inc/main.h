@@ -91,6 +91,17 @@
 //#define LEGALFLAG
 #define BATTERYVOLTAGE_MAX 53000
 #define R_TEMP_PULLUP 0
+#define USE_FIX_POSITIONS 0
+//Put values from the startup message after autodetect here, if you want to use fix positions. 32bit values for the hall angles!
+#define KV 11
+#define HALL_ORDER 1
+#define HALL_45 60
+#define HALL_51 120
+#define HALL_13 180
+#define HALL_32 240
+#define HALL_26 300
+#define HALL_64 0
+
 
 /* ########################## Assert Selection ############################## */
 /**
