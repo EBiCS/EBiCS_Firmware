@@ -107,7 +107,7 @@ uint16_t ui16_throttle;
 uint16_t ui16_brake_adc;
 uint32_t ui32_throttle_cumulated;
 uint32_t ui32_brake_adc_cumulated;
-uint32_t ui32_int_Temp_cumulated;
+uint32_t ui32_int_Temp_cumulated = INT_TEMP_25<<5;
 uint16_t ui16_ph1_offset=0;
 uint16_t ui16_ph2_offset=0;
 uint16_t ui16_ph3_offset=0;
@@ -526,6 +526,7 @@ int main(void)
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG)
    	printf_("phase current offsets:  %d, %d, %d \n ", ui16_ph1_offset, ui16_ph2_offset, ui16_ph3_offset);
+   	printf_("internal temperature raw reading:  %d, \n ", adcData[7]);
 #if (AUTODETECT == 1)
    	if(adcData[0]>VOLTAGE_MIN) autodetect();
    	else printf_("Battery voltage too low!:  %d,\n ",adcData[0]);
@@ -552,32 +553,32 @@ int main(void)
    	   		EE_ReadVariable(EEPROM_POS_HALL_45, &temp);
    	   		Hall_45 = temp<<16;
    	   		printf_("Hall_45: %d \n",	(int16_t) (((Hall_45 >> 23) * 180) >> 8));
-   	   		printf_("Hall_45: %d \n",	Hall_45);
+   	   		printf_("Hall_45: %u \n",	Hall_45);
 
    	   		EE_ReadVariable(EEPROM_POS_HALL_51, &temp);
    	   		Hall_51 = temp<<16;
    	   		printf_("Hall_51: %d \n",	(int16_t) (((Hall_51 >> 23) * 180) >> 8));
-   	   		printf_("Hall_51: %d \n",	Hall_51);
+   	   		printf_("Hall_51: %u \n",	Hall_51);
 
    	   		EE_ReadVariable(EEPROM_POS_HALL_13, &temp);
    	   		Hall_13 = temp<<16;
    	   		printf_("Hall_13: %d \n",	(int16_t) (((Hall_13 >> 23) * 180) >> 8));
-   	   		printf_("Hall_13: %d \n",	Hall_13);
+   	   		printf_("Hall_13: %u \n",	Hall_13);
 
    	   		EE_ReadVariable(EEPROM_POS_HALL_32, &temp);
    	   		Hall_32 = temp<<16;
    	   		printf_("Hall_32: %d \n",	(int16_t) (((Hall_32 >> 23) * 180) >> 8));
-   	   		printf_("Hall_32: %d \n",	Hall_32);
+   	   		printf_("Hall_32: %u \n",	Hall_32);
 
    	   		EE_ReadVariable(EEPROM_POS_HALL_26, &temp);
    	   		Hall_26 = temp<<16;
    	   		printf_("Hall_26: %d \n",	(int16_t) (((Hall_26 >> 23) * 180) >> 8));
-   	   		printf_("Hall_26: %d \n",	Hall_26);
+   	   		printf_("Hall_26: %u \n",	Hall_26);
 
    	   		EE_ReadVariable(EEPROM_POS_HALL_64, &temp);
    	  		Hall_64 = temp<<16;
    	  		printf_("Hall_64: %d \n",	(int16_t) (((Hall_64 >> 23) * 180) >> 8));
-   	  		printf_("Hall_64: %d \n",	Hall_64);
+   	  		printf_("Hall_64: %u \n",	Hall_64);
 
    	  		EE_ReadVariable(EEPROM_POS_KV, &ui32_KV);
    	  		if(!ui32_KV)ui32_KV=111;
@@ -926,6 +927,9 @@ int main(void)
 			if(KM.DirectSetpoint!=-1)int32_temp_current_target=(KM.DirectSetpoint*PH_CURRENT_MAX)>>7;
 #endif
 				MS.i_q_setpoint=map(MS.Temperature, 120,130,int32_temp_current_target,0); //ramp down power with temperature to avoid overheating the motor
+				MS.i_q_setpoint=map(MS.int_Temperature, 70,80,MS.i_q_setpoint,0); //ramp down power with processor temperatur to avoid overheating the controller
+
+
 				//auto KV detect
 			  if(ui8_KV_detect_flag){
 				  MS.i_q_setpoint=ui8_KV_detect_flag;
@@ -986,7 +990,7 @@ int main(void)
 		  //filter internal temperature reading
 		  ui32_int_Temp_cumulated-=ui32_int_Temp_cumulated>>5;
 		  ui32_int_Temp_cumulated+=adcData[7];
-		  MS.int_Temperature=(((2360-(ui32_int_Temp_cumulated>>5))*24)>>7)+25;
+		  MS.int_Temperature=(((INT_TEMP_25-(ui32_int_Temp_cumulated>>5))*24)>>7)+25;
 
 		  MS.Voltage=adcData[0];
 		  if(uint32_SPEED_counter>32000){
