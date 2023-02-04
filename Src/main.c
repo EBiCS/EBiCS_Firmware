@@ -546,7 +546,7 @@ int main(void)
    	  	}
    	//read internal temp calibration from emulated EEPROM
    	EE_ReadVariable(EEPROM_INT_TEMP_V25, &i16_int_Temp_V25);
-   	if(i16_int_Temp_V25==0xFFFF)i16_int_Temp_V25=INT_TEMP_25; //use value from main.h, if not in EEPROM yet.
+   	if(!i16_int_Temp_V25)i16_int_Temp_V25=INT_TEMP_25; //use value from main.h, if not in EEPROM yet.
 
 #if (!USE_FIX_POSITIONS)
    	EE_ReadVariable(EEPROM_POS_HALL_ORDER, &i16_hall_order);
@@ -1036,7 +1036,7 @@ int main(void)
 		  //print values for debugging
 
 
-		 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", adcData[7],MS.int_Temperature, uint32_SPEEDx100_cumulated>>SPEEDFILTER, MS.i_q_setpoint, uint32_PAS, int32_temp_current_target , MS.u_d,MS.u_q, SystemState);
+		 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", adcData[7],MS.int_Temperature, i16_int_Temp_V25, MS.i_q_setpoint, uint32_PAS, int32_temp_current_target , MS.u_d,MS.u_q, SystemState);
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5]),(uint16_t)(adcData[6])) ;
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",tic_array[0],tic_array[1],tic_array[2],tic_array[3],tic_array[4],tic_array[5]) ;
 		  i=0;
@@ -1985,10 +1985,10 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *UartHandle) {
 }
 
 void get_internal_temp_offset(void){
-	int16_t temp=0;
+	int32_t temp=0;
     for(i=0;i<32;i++){
     	while(!ui8_adc_regular_flag){}
-    	temp+=adcData[6];
+    	temp+=adcData[7];
     	ui8_adc_regular_flag=0;
     }
 		HAL_FLASH_Unlock();
