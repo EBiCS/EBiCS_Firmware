@@ -470,6 +470,7 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
     			    	        KM_ctx->Rx.CUR_Limit_mA                 = (KM_Message[8]&0x3F)*500;
 
     			    	        if(KM_ctx->Rx.CUR_Limit_mA==21500)autodetect();
+    			    	        if(KM_ctx->Rx.CUR_Limit_mA==20500)get_internal_temp_offset();
     			            		}
 
     			                // Prepare Tx message with handshake code

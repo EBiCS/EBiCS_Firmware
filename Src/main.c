@@ -108,6 +108,7 @@ uint16_t ui16_brake_adc;
 uint32_t ui32_throttle_cumulated;
 uint32_t ui32_brake_adc_cumulated;
 uint32_t ui32_int_Temp_cumulated = INT_TEMP_25<<5;
+int16_t i16_int_Temp_V25;
 uint16_t ui16_ph1_offset=0;
 uint16_t ui16_ph2_offset=0;
 uint16_t ui16_ph3_offset=0;
@@ -208,7 +209,8 @@ uint16_t VirtAddVarTab[NB_OF_VAR] = { 	EEPROM_POS_HALL_ORDER,
 		EEPROM_POS_HALL_13,
 		EEPROM_POS_HALL_32,
 		EEPROM_POS_HALL_26,
-		EEPROM_POS_HALL_64
+		EEPROM_POS_HALL_64,
+		EEPROM_INT_TEMP_V25
 	};
 
 enum state {Stop, SixStep, Regen, Running, BatteryCurrentLimit, Interpolation, PLL, IdleRun};
@@ -266,7 +268,7 @@ static void MX_TIM3_Init(void);
 int16_t T_NTC(uint16_t ADC);
 void init_watchdog(void);
 void MX_IWDG_Init(void);
-
+void get_internal_temp_offset(void);
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
                                 
 
@@ -542,6 +544,9 @@ int main(void)
    	  	{
    	  	//do nothing (For Safety at switching on)
    	  	}
+   	//read internal temp calibration from emulated EEPROM
+   	EE_ReadVariable(EEPROM_INT_TEMP_V25, &i16_int_Temp_V25);
+   	if(i16_int_Temp_V25==0xFFFF)i16_int_Temp_V25=INT_TEMP_25; //use value from main.h, if not in EEPROM yet.
 
 #if (!USE_FIX_POSITIONS)
    	EE_ReadVariable(EEPROM_POS_HALL_ORDER, &i16_hall_order);
@@ -990,7 +995,7 @@ int main(void)
 		  //filter internal temperature reading
 		  ui32_int_Temp_cumulated-=ui32_int_Temp_cumulated>>5;
 		  ui32_int_Temp_cumulated+=adcData[7];
-		  MS.int_Temperature=(((INT_TEMP_25-(ui32_int_Temp_cumulated>>5))*24)>>7)+25;
+		  MS.int_Temperature=(((i16_int_Temp_V25-(ui32_int_Temp_cumulated>>5))*24)>>7)+25;
 
 		  MS.Voltage=adcData[0];
 		  if(uint32_SPEED_counter>32000){
@@ -1978,6 +1983,20 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *UartHandle) {
 #endif
 
 }
+
+void get_internal_temp_offset(void){
+	int16_t temp=0;
+    for(i=0;i<32;i++){
+    	while(!ui8_adc_regular_flag){}
+    	temp+=adcData[6];
+    	ui8_adc_regular_flag=0;
+    }
+		HAL_FLASH_Unlock();
+		EE_WriteVariable(EEPROM_INT_TEMP_V25,temp>>5);
+		HAL_FLASH_Lock();
+}
+
+
 
 
 
