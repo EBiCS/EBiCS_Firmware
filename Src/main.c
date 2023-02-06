@@ -2029,8 +2029,10 @@ void kingmeter_update(void)
     }
 
 #endif
-    if(MS.Temperature<130) KM.Tx.Error = KM_ERROR_NONE;
-    else KM.Tx.Error = KM_ERROR_OVHT;
+    if(MS.Temperature>130) KM.Tx.Error = KM_ERROR_OVHT;
+    else if(MS.int_Temperature>80)KM.Tx.Error = KM_ERROR_IOVHT;
+    else KM.Tx.Error = KM_ERROR_NONE;
+
 
     KM.Tx.Current_x10 = (uint16_t) (MS.Battery_Current/100); //MS.Battery_Current is in mA
 
