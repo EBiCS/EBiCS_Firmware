@@ -948,7 +948,7 @@ int main(void)
 		    }
 		  __HAL_TIM_SET_COUNTER(&htim2,0); //reset tim2 counter
 		  ui16_timertics=20000; //set interval between two hallevents to a large value
-		  i8_recent_rotor_direction=i8_direction*i8_reverse_flag;
+		  i8_recent_rotor_direction=i8_direction*i8_reverse_flag*sign(int32_temp_current_target);
 		  get_standstill_position();
 	  }
 
@@ -1760,7 +1760,7 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 		} else {
 			ui8_overflow_flag = 1;
 			if(MS.KV_detect_flag)q31_rotorposition_absolute = q31_rotorposition_hall;
-			else q31_rotorposition_absolute = q31_rotorposition_hall+i8_direction*deg_30;//offset of 30 degree to get the middle of the sector
+			else q31_rotorposition_absolute = q31_rotorposition_hall+i8_direction+sign(int32_temp_current_target)*deg_30;//offset of 30 degree to get the middle of the sector
 			MS.system_state=SixStep;
 				//	}
 
