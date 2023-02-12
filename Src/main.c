@@ -370,7 +370,7 @@ int main(void)
   PI_speed.setpoint = 0;
   PI_speed.limit_output = PH_CURRENT_MAX;
   PI_speed.max_step=500;
-  PI_speed.shift=4;
+  PI_speed.shift=7;
   PI_speed.limit_i=PH_CURRENT_MAX;
 
 #endif
