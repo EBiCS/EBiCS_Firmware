@@ -1760,7 +1760,7 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 		} else {
 			ui8_overflow_flag = 1;
 			if(MS.KV_detect_flag)q31_rotorposition_absolute = q31_rotorposition_hall;
-			else q31_rotorposition_absolute = q31_rotorposition_hall+i8_direction+sign(int32_temp_current_target)*deg_30;//offset of 30 degree to get the middle of the sector
+			else q31_rotorposition_absolute = q31_rotorposition_hall+i8_direction*sign(int32_temp_current_target)*deg_30;//offset of 30 degree to get the middle of the sector
 			MS.system_state=SixStep;
 				//	}
 
