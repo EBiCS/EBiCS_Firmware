@@ -932,8 +932,9 @@ int main(void)
 			if(KM.DirectSetpoint!=-1)int32_temp_current_target=(KM.DirectSetpoint*PH_CURRENT_MAX)>>7;
 #endif
 				MS.i_q_setpoint=map(MS.Temperature, 120,130,int32_temp_current_target,0); //ramp down power with temperature to avoid overheating the motor
+#if(INT_TEMP_25)
 				MS.i_q_setpoint=map(MS.int_Temperature, 70,80,MS.i_q_setpoint,0); //ramp down power with processor temperatur to avoid overheating the controller
-
+#endif
 
 				//auto KV detect
 			  if(ui8_KV_detect_flag){
@@ -973,7 +974,7 @@ int main(void)
 		    }
 		  __HAL_TIM_SET_COUNTER(&htim2,0); //reset tim2 counter
 		  ui16_timertics=20000; //set interval between two hallevents to a large value
-		  i8_recent_rotor_direction=i8_direction*i8_reverse_flag;
+		  i8_recent_rotor_direction=i8_direction*i8_reverse_flag*sign(MS.i_q_setpoint);
 		  get_standstill_position();
 	  }
 
@@ -1762,7 +1763,7 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 		} else {
 			ui8_overflow_flag = 1;
 			if(MS.KV_detect_flag)q31_rotorposition_absolute = q31_rotorposition_hall;
-			else q31_rotorposition_absolute = q31_rotorposition_hall+i8_direction*deg_30;//offset of 30 degree to get the middle of the sector
+			else q31_rotorposition_absolute = q31_rotorposition_hall+i8_direction*sign(MS.i_q_setpoint)*deg_30;//offset of 30 degree to get the middle of the sector
 			MS.system_state=SixStep;
 				//	}
 
