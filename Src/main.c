@@ -338,7 +338,7 @@ int main(void)
   //initialize MS struct.
   MS.hall_angle_detect_flag=1;
   MS.Speed=128000;
-  MS.assist_level=3;
+  MS.assist_level=127;
   MS.regen_level=7;
 	MS.i_q_setpoint = 0;
 	MS.i_d_setpoint = 0;
@@ -675,27 +675,14 @@ int main(void)
 #endif
 		  }
 	  }
-#if (SPEEDSOURCE == INTERNAL)
-			  MS.Speed = uint32_tics_filtered>>3;
-#else
-	  //SPEED signal processing
-	  if(ui8_SPEED_flag){
 
-		  if(uint32_SPEED_counter>200){ //debounce
-			  MS.Speed = uint32_SPEED_counter;
-		  //HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-		  uint32_SPEED_counter =0;
-		  ui8_SPEED_flag=0;
-		uint32_SPEEDx100_cumulated -=uint32_SPEEDx100_cumulated>>SPEEDFILTER;
-		uint32_SPEEDx100_cumulated +=external_tics_to_speedx100(MS.Speed);
-		  }
-	  }
-#endif
+
+
 	  if(ui8_SPEED_control_flag){
-#if (SPEEDSOURCE == INTERNAL)
+		MS.Speed = uint32_tics_filtered>>3;
 		uint32_SPEEDx100_cumulated -=uint32_SPEEDx100_cumulated>>SPEEDFILTER;
 		uint32_SPEEDx100_cumulated +=internal_tics_to_speedx100(uint32_tics_filtered>>3);
-#endif
+
 		ui16_erps=500000/((uint32_tics_filtered>>3)*6);
 		ui8_SPEED_control_flag=0;
 	  }
@@ -760,7 +747,7 @@ int main(void)
 				// last priority normal ride conditiones
 				else {
 
-					int32_temp_current_target = (hubdata.HS_Torque*MS.assist_level);
+					int32_temp_current_target = ((hubdata.HS_Torque*MS.assist_level*TS_COEF)>>8);
 					if(int32_temp_current_target>PH_CURRENT_MAX)int32_temp_current_target=PH_CURRENT_MAX;
 					if(hubdata.HS_Pedalposition!=pedalposition_old){
 						pedalposition_old=hubdata.HS_Pedalposition;
@@ -1871,7 +1858,7 @@ void kingmeter_update(void)
 
 
 #if (SPEEDSOURCE  == EXTERNAL)
-    	KM.Tx.Wheeltime_ms = ((MS.Speed>>3)*PULSES_PER_REVOLUTION); //>>3 because of 8 kHz counter frequency, so 8 tics per ms
+    	KM.Tx.Wheeltime_ms = hubdata.HS_Wheeltime<<1; //>>3 because of 8 kHz counter frequency, so 8 tics per ms
 #else
         if(__HAL_TIM_GET_COUNTER(&htim2) < 12000)
         {
