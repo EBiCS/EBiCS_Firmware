@@ -503,11 +503,13 @@ int main(void)
 #endif
 
    	ui8_adc_offset_done_flag=1;
+   	init_watchdog();
 
 #if defined (ADC_BRAKE)
 
   	while ((adcData[5]>THROTTLE_OFFSET)&&(adcData[1]>(THROTTLE_MAX-THROTTLE_OFFSET))){HAL_Delay(200);
-   	   	   			y++;
+  	 	 	 	 	HAL_IWDG_Refresh(&hiwdg);
+  					y++;
    	   	   			if(y==35) autodetect();
    	   	   			}
 
@@ -517,7 +519,7 @@ int main(void)
 #ifndef NCTE
 
   	while ((!HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin))&&(adcData[1]>(THROTTLE_OFFSET+20))){
-
+  				HAL_IWDG_Refresh(&hiwdg);
   				HAL_Delay(200);
   	   			y++;
   	   			if(y==35) autodetect();
@@ -542,7 +544,7 @@ int main(void)
    	while(adcData[1]>THROTTLE_OFFSET)
 #endif
    	  	{
-   	  	//do nothing (For Safety at switching on)
+   		HAL_IWDG_Refresh(&hiwdg);//do nothing (For Safety at switching on)
    	  	}
    	//read internal temp calibration from emulated EEPROM
    	EE_ReadVariable(EEPROM_INT_TEMP_V25, &i16_int_Temp_V25);
@@ -614,7 +616,10 @@ int main(void)
     CLEAR_BIT(TIM1->BDTR, TIM_BDTR_MOE);//Disable PWM
 
 	get_standstill_position();
-	init_watchdog();
+
+
+//	init_watchdog();
+
 
   /* USER CODE END 2 */
 
