@@ -37,8 +37,8 @@
 #define I_FACTOR_I_D 2
 #define P_FACTOR_SPEED 1
 #define I_FACTOR_SPEED 10
-#define TS_COEF 16000000
-#define PAS_TIMEOUT 8000
+#define TS_COEF 8000
+#define PAS_TIMEOUT 3000
 #define RAMP_END 1600
 #define THROTTLE_OFFSET 900
 #define THROTTLE_MAX 2800
@@ -46,8 +46,8 @@
 #define GEAR_RATIO 11 //dummy for testing
 #define SPEEDLIMIT 25
 #define PULSES_PER_REVOLUTION 1
-#define PH_CURRENT_MAX 600
-#define BATTERYCURRENT_MAX 10000
+#define PH_CURRENT_MAX 1350
+#define BATTERYCURRENT_MAX 17000
 #define SPEC_ANGLE -167026406L //Value no longer needed
 //#define DIRDET
 #define FRAC_HIGH 30
@@ -69,12 +69,12 @@
 
 #define P_FACTOR_PLL 10
 #define I_FACTOR_PLL 10
-#define AUTODETECT 1
+#define AUTODETECT 0
 #define SPEED_PLL 0 //1 for using PLL, 0 for angle extrapolation
 
 #define EXTERNAL 1
 #define INTERNAL 0
-#define SPEEDSOURCE EXTERNAL
+#define SPEEDSOURCE INTERNAL
 #define SPEEDFILTER 1
 #define SIXSTEPTHRESHOLD 20000
 
