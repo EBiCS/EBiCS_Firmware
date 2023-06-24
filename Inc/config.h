@@ -53,7 +53,7 @@
 #define FRAC_HIGH 30
 #define FRAC_LOW 15
 #define TS_MODE
-//#define TQONAD1
+#define TQONAD1
 #define DISPLAY_TYPE DISPLAY_TYPE_DEBUG
 #define REVERSE 1
 #define PUSHASSIST_CURRENT 30

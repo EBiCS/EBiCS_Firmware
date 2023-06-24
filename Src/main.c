@@ -1002,9 +1002,9 @@ int main(void)
 		  //print values for debugging
 
 
-		 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", adcData[1],MS.Temperature, ui32_KV, MS.i_q_setpoint, uint32_PAS, int32_temp_current_target , MS.u_d,MS.u_q, SystemState);
-		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5]),(uint16_t)(adcData[6])) ;
-		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",tic_array[0],tic_array[1],tic_array[2],tic_array[3],tic_array[4],tic_array[5]) ;
+		  sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", adcData[1],adcData[6], uint32_SPEEDx100_cumulated>>SPEEDFILTER, uint32_PAS, MS.Battery_Current, int32_temp_current_target , MS.i_q, MS.u_abs, SystemState);
+		  // sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5]),(uint16_t)(adcData[6])) ;
+		  // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",tic_array[0],tic_array[1],tic_array[2],tic_array[3],tic_array[4],tic_array[5]) ;
 		  i=0;
 		  while (buffer[i] != '\0')
 		  {i++;}
@@ -1569,9 +1569,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(Brake_GPIO_Port, &GPIO_InitStruct);
 
-
-  /*Configure GPIO pins : Speed_EXTI3_Pin PAS_EXTI8_Pin */
-  GPIO_InitStruct.Pin = Speed_EXTI3_Pin|PAS_EXTI8_Pin;
+  /*Configure GPIO pins : Speed_EXTI5_Pin PAS_EXTI8_Pin */
+  GPIO_InitStruct.Pin = Speed_EXTI5_Pin|PAS_EXTI8_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
@@ -1579,10 +1578,7 @@ static void MX_GPIO_Init(void)
 
 
   /* EXTI interrupt init*/
-  HAL_NVIC_SetPriority(EXTI3_IRQn, 0, 0); //for speedsensor interrupt
-  HAL_NVIC_EnableIRQ(EXTI3_IRQn);
-
-  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 2, 0);//for PAS interrupt
+  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 2, 0);//for PAS and Speed interrupt
   HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
 
 }
@@ -1890,7 +1886,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 	}
 
 	//Speed processing
-	if(GPIO_Pin == Speed_EXTI3_Pin)
+	if(GPIO_Pin == Speed_EXTI5_Pin)
 	{
 
 		ui8_SPEED_flag = 1; //with debounce

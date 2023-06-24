@@ -72,26 +72,28 @@
 #define Temperature_GPIO_Port GPIOB
 #define LED_Pin GPIO_PIN_2
 #define LED_GPIO_Port GPIOB
-#define LIGHT_Pin GPIO_PIN_11
+#define LIGHT_Pin GPIO_PIN_9
 #define LIGHT_GPIO_Port GPIOA
-#define BRAKE_LIGHT_Pin GPIO_PIN_12
+#define BRAKE_LIGHT_Pin GPIO_PIN_10
 #define BRAKE_LIGHT_GPIO_Port GPIOA
 #define PAS_Pin GPIO_PIN_8
 #define PAS_GPIO_Port GPIOB
 #define Brake_Pin GPIO_PIN_15  // put a 15 here for new generation controllers!
 #define Brake_GPIO_Port GPIOA
-#define Speed_EXTI3_Pin GPIO_PIN_3
-#define Speed_EXTI3_GPIO_Port GPIOB
+#define Speed_EXTI5_Pin GPIO_PIN_5
+#define Speed_EXTI5_GPIO_Port GPIOB
+#define Speed_EXTI5_EXTI_IRQn EXTI9_5_IRQn
 #define PAS_EXTI8_Pin GPIO_PIN_8
 #define PAS_EXTI8_GPIO_Port GPIOB
+#define PAS_EXTI8_EXTI_IRQn EXTI9_5_IRQn
 
 
-//#define NCTE
-#define LEGALFLAG
+#define NCTE
+//#define LEGALFLAG
 #define BATTERYVOLTAGE_MAX 53000
 #define R_TEMP_PULLUP 0
-#define TORQUE_OFFSET 600
-#define TORQUE_MAX 3000
+#define TORQUE_OFFSET 1600
+#define TORQUE_MAX 600
 
 /* ########################## Assert Selection ############################## */
 /**
