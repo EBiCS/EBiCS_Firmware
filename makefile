@@ -33,7 +33,7 @@ SRC_PATH = Drivers/CMSIS
 all: LishuiFOC_01.elf
 
 # Tool invocations
-LishuiFOC_01.elf: $(OBJS) $(USER_OBJS) STM32F103C6Tx_FLASH_Bootloader.ld
+LishuiFOC_01.elf: $(OBJS) $(USER_OBJS) STM32F103C8Tx_FLASH_Bootloader.ld
 	@echo 'Building target: $@'
 	@echo 'Invoking: MCU GCC Linker'
 	arm-none-eabi-gcc -mcpu=cortex-m3 -mthumb -mfloat-abi=soft -L $(SRC_PATH) -specs=nosys.specs -specs=nano.specs -T"STM32F103C6Tx_FLASH_Bootloader.ld" -Wl,-Map=output.map -Wl,--gc-sections -o "build/EBiCS_Firmware.elf" @"objects.list" $(USER_OBJS) $(LIBS) -lm
