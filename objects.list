@@ -23,4 +23,4 @@
 "./build/stm32f1xx_hal_msp.o"
 "./build/stm32f1xx_it.o"
 "./build/system_stm32f1xx_Bootloader.o"
-"./build/startup_stm32f103x6.o"
+"./build/startup_stm32f103xb.o"
