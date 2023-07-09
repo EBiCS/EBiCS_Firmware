@@ -340,7 +340,7 @@ int main(void)
   //initialize MS struct.
   MS.hall_angle_detect_flag=1;
   MS.Speed=128000;
-  MS.assist_level=1;
+  MS.assist_level=127;
   MS.regen_level=7;
 	MS.i_q_setpoint = 0;
 	MS.i_d_setpoint = 0;
@@ -1041,8 +1041,7 @@ int main(void)
 #if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG && !defined(FAST_LOOP_LOG))
 		  //print values for debugging
 
-
-		 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", adcData[7],MS.int_Temperature, i16_int_Temp_V25, MS.i_q_setpoint, uint32_PAS, int32_temp_current_target , MS.u_d,MS.u_q, SystemState);
+          sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", adcData[1],adcData[6], uint32_SPEEDx100_cumulated>>SPEEDFILTER, uint32_PAS, MS.Battery_Current, int32_temp_current_target , MS.i_q, MS.u_abs, SystemState);
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5]),(uint16_t)(adcData[6])) ;
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",tic_array[0],tic_array[1],tic_array[2],tic_array[3],tic_array[4],tic_array[5]) ;
 		  i=0;
@@ -1529,7 +1528,7 @@ static void MX_USART1_UART_Init(void)
 #elif (DISPLAY_TYPE == DISPLAY_TYPE_BAFANG)
   huart1.Init.BaudRate = 1200;
 #else
-  huart1.Init.BaudRate = 56000;
+  huart1.Init.BaudRate = 9600;
 #endif
 
 
@@ -2521,7 +2520,7 @@ void MX_IWDG_Init(void)
   // 32 * 1000 / 32000 = 1s
   hiwdg.Instance = IWDG;
   hiwdg.Init.Prescaler = IWDG_PRESCALER_32;
-  hiwdg.Init.Reload = 500;
+  hiwdg.Init.Reload = 1000;
   // start the watchdog timer
   if (HAL_IWDG_Init(&hiwdg) != HAL_OK)
   {
