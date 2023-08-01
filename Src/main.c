@@ -174,7 +174,7 @@ q31_t q31_t_Battery_Current_accumulated=0;
 
 q31_t q31_rotorposition_absolute;
 q31_t q31_rotorposition_hall;
-q31_t q31_rotorposition_motor_specific = SPEC_ANGLE;
+//q31_t q31_rotorposition_motor_specific = SPEC_ANGLE;
 q31_t q31_u_d_temp=0;
 q31_t q31_u_q_temp=0;
 int16_t i16_sinus=0;

@@ -246,7 +246,7 @@ void KingMeter_Service(KINGMETER_t* KM_ctx)
 static void KM_618U_Service(KINGMETER_t* KM_ctx)
 {
     uint8_t  i;
-    static uint8_t TxBuffer[KM_MAX_TxBuffer];
+    static uint8_t TxBuffer[KM_MAX_TXBUFF];
     KM_ctx->RxState = RXSTATE_SENDTXMSG;
 
 // Send message to display
@@ -316,7 +316,7 @@ static void KM_618U_Service(KINGMETER_t* KM_ctx)
     {
 
         // Buffer ueber DMA senden
-        HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuffer, KM_MAX_TxBuffer);
+        HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuffer, KM_MAX_TXBUFF);
        // HAL_Delay(6);
 
         KM_ctx->RxState = RXSTATE_STARTCODE;
@@ -338,7 +338,7 @@ static void KM_618U_Service(KINGMETER_t* KM_ctx)
 //      KM_ctx->Rx.OverSpeed;
 
         // Decode Speedlimit
-        KM_ctx->Rx.SPEEDMAX_Limit_x10 = (((KM_ctx->RxBuff[2] & 0xF8) >> 3) + 10) * 10;
+        KM_ctx->Rx.SPEEDMAX_Limit= (((KM_ctx->RxBuff[2] & 0xF8) >> 3) + 10) * 10;
 
         // Decode Wheelsize by hashtable
         KM_ctx->Settings.WheelSize_mm = KM_WHEELSIZE[KM_ctx->RxBuff[2] & 0x07];
