@@ -636,12 +636,14 @@ int main(void)
 	  }*/
 	  //display message processing
 	  if(ui8_UART_flag){
-#if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER||DISPLAY_TYPE & DISPLAY_TYPE_DEBUG)
-	  //kingmeter_update();
+#if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_901U||DISPLAY_TYPE & DISPLAY_TYPE_DEBUG)
 
 	  KingMeter_Service(&KM);
 #endif
+#if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_618U)
+	  kingmeter_update();
 
+#endif
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_BAFANG)
 	  bafang_update();
@@ -2043,7 +2045,9 @@ void kingmeter_update(void)
 
 
     /* Receive Rx parameters/settings and send Tx parameters */
-   // KingMeter_Service(&KM);
+#if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_618U)
+	  KingMeter_Service(&KM);
+#endif
 
 
     /* Apply Rx parameters */
