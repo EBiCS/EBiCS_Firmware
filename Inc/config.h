@@ -67,9 +67,9 @@
 
 //---------------------------------------------------------------------
 //Throttle settings
-#define THROTTLE_OFFSET 1260
+#define THROTTLE_OFFSET 1250
 #define THROTTLE_MAX 2850
-#define THROTTLE_OVERRIDE
+//#define THROTTLE_OVERRIDE
 
 //--------------------------------------------------------------------
 //Speed settings
@@ -85,9 +85,9 @@
 //power settings
 #define PH_CURRENT_MAX 1200
 #define BATTERYCURRENT_MAX 14000
-#define REVERSE 1
+#define REVERSE 1 //1 for normal direction, -1 for reverse
 #define PUSHASSIST_CURRENT 300
-#define VOLTAGE_MIN 300
+#define VOLTAGE_MIN 1320 //33V
 
 //---------------------------------------------------------------------
 //torquesensor settings
@@ -97,13 +97,13 @@
 
 //---------------------------------------------------------------------
 //Display settings
-#define DISPLAY_TYPE DISPLAY_TYPE_KINGMETER_618U
+#define DISPLAY_TYPE DISPLAY_TYPE_DEBUG
 
 
 //---------------------------------------------------------------------
 //Regen settings
 
-#define REGEN_CURRENT 200
+#define REGEN_CURRENT 800
 #define REGEN_CURRENT_MAX 10000
 //#define ADC_BRAKE
 
