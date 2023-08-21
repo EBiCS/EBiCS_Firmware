@@ -16,6 +16,7 @@ typedef struct
     uint8_t         HS_Wheel_turning;
     uint16_t        HS_Torque;
     uint16_t        HS_Wheeltime;
+    int16_t       	HS_Temperature;
     uint8_t         HS_UARTFail;
     uint8_t         HS_Pedalposition;
 
