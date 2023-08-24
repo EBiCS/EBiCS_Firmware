@@ -269,8 +269,8 @@ static void KM_618U_Service(KINGMETER_t* KM_ctx)
         }
 
         TxBuffer[2] = (uint8_t) ((KM_ctx->Tx.Current_x10 * 3) / 10);      // Current unit: 1/3A
-        TxBuffer[3] = (KM_ctx->Tx.Wheeltime_ms)>>8; //High byte of wheeltime
-        TxBuffer[4] = (KM_ctx->Tx.Wheeltime_ms)|0xFF; // Mask lower 8 bits
+        TxBuffer[3] = highByte(KM_ctx->Tx.Wheeltime_ms);  //High byte of wheeltime
+        TxBuffer[4] = lowByte(KM_ctx->Tx.Wheeltime_ms);  // Mask lower 8 bits
         TxBuffer[5] = 0x7A;                                               // Reply with WheelSize 26" / Maxspeed 25km/h (no influence on display)
         TxBuffer[6] = KM_ctx->Tx.Error;
 
