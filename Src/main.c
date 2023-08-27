@@ -103,7 +103,7 @@ uint16_t ui16_tim2_recent=0;
 uint16_t ui16_timertics=5000; 					//timertics between two hall events for 60Â° interpolation
 uint16_t ui16_throttle;
 uint16_t ui16_brake_adc;
-uint32_t ui32_throttle_cumulated = THROTTLE_MID<<4;
+uint32_t ui32_throttle_cumulated;
 uint32_t ui32_brake_adc_cumulated;
 uint16_t ui16_ph1_offset=0;
 uint16_t ui16_ph2_offset=0;
@@ -162,6 +162,7 @@ uint16_t ui16_erps=0;
 uint32_t uint32_torque_cumulated=0;
 uint32_t uint32_PAS_cumulated=32000;
 int16_t int16_mapped_throttle=0;
+uint16_t ui16_throttle_mid = THROTTLE_MID;
 uint16_t uint16_mapped_PAS=0;
 uint16_t uint16_mapped_BRAKE=0;
 uint16_t uint16_half_rotation_counter=0;
@@ -480,12 +481,15 @@ int main(void)
     	temp1+=adcData[2];
     	temp2+=adcData[3];
     	temp3+=adcData[4];
+    	temp4+=adcData[1];
     	ui8_adc_regular_flag=0;
 
     }
     ui16_ph1_offset=temp1>>5;
     ui16_ph2_offset=temp2>>5;
     ui16_ph3_offset=temp3>>5;
+    ui16_throttle_mid=temp4>>5;
+    ui32_throttle_cumulated = ui16_throttle_mid<<4;
 
 #ifdef DISABLE_DYNAMIC_ADC // set  injected channel with offsets
 	 ADC1->JSQR=0b00100000000000000000; //ADC1 injected reads phase A JL = 0b00, JSQ4 = 0b00100 (decimal 4 = channel 4)
@@ -530,7 +534,7 @@ int main(void)
 #ifdef NCTE
    	while(adcData[1]<THROTTLE_MIN)
 #else
-   	while(adcData[1]>THROTTLE_MID+50 || adcData[1]<THROTTLE_MID-50)
+ //  	while(adcData[1]>ui16_throttle_mid+50 || adcData[1]<ui16_throttle_mid-50)
 #endif
    	  	{
    	  	//do nothing (For Safety at switching on)
@@ -825,11 +829,11 @@ int main(void)
 #else //else NTCE
 			  // read in throttle for throttle override
 
-			  if (ui16_throttle<THROTTLE_MID-50){
-				  int16_mapped_throttle = map(ui16_throttle, THROTTLE_MIN, THROTTLE_MID-50, -PH_CURRENT_MAX,0);
+			  if (ui16_throttle<ui16_throttle_mid-50){
+				  int16_mapped_throttle = map(ui16_throttle, THROTTLE_MIN, ui16_throttle_mid-50, -PH_CURRENT_MAX,0);
 			  }
-			  else if(ui16_throttle>THROTTLE_MID+50){
-				  int16_mapped_throttle = map(ui16_throttle, THROTTLE_MID+50, THROTTLE_MAX, 0, PH_CURRENT_MAX);
+			  else if(ui16_throttle>ui16_throttle_mid+50){
+				  int16_mapped_throttle = map(ui16_throttle, ui16_throttle_mid+50, THROTTLE_MAX, 0, PH_CURRENT_MAX);
 			  }
 			  else int16_mapped_throttle = 0;
 #endif //end NTCE
