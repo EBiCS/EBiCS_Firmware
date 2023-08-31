@@ -2,7 +2,7 @@
  * display_ebics.c
  *
  *  Created on: 12.11.2020
- *  Author: Gaswerke
+ *      Author: Gaswerke
  */
 
 #include "main.h"
