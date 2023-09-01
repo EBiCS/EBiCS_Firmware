@@ -20,7 +20,7 @@
 #define THROTTLE_OFFSET 1275//950//1210 			//ADC-value at closed throttle 670 for throttle, 1255 for TS
 #define THROTTLE_MAX 3015
 #define TS_COEF 800					//coefficient for torque-sensor-mode
-#define TS_MODE						//Torquesensor-Mode
+//#define TS_MODE						//Torquesensor-Mode
 #define PAS_TIMEOUT 12000			//time tics @ 16kHz untils motor stops
 #define RAMP_END 4000					//time tics @ 16kHz where motor reaches full level power
 #define PH_CURRENT_MAX 300			//iq value (phase current in rotating frame), not calibrated yet
@@ -45,9 +45,9 @@
 
 //Constants for Motor model of observer
 #define INDUCTANCE	2LL		//war nach Messung 13 (mit einfachem LCR-Tester)		//H = V*s/A Induktivität in µH/100 Shengyi hat 200µHenry Induktivität 2^16*0,0002 -->>>16 in Observer um auf Henry zukommen
-#define RESISTANCE 120LL		//war nach Messung 60	//Ohm = V/A Widerstand in Shengi ist 117mOhm -->2^9*0,117 >>9 in Observer um auf Ohm zu kommen.
-#define FLUX_LINKAGE 2400LL			//V*s/rad von Hand angepasst
-#define GAMMA 13LL					//per trial and error
+#define RESISTANCE 120LL		//Für ShengyiMM 80	//Ohm = V/A Widerstand in Shengi ist 117mOhm -->2^9*0,117 >>9 in Observer um auf Ohm zu kommen.
+#define FLUX_LINKAGE 2400LL			//Für ShengyiMM 1800| V*s/rad von Hand angepasst
+#define GAMMA 13LL					//Für ShengyiMM 10| per trial and error
 
 
 #define _T 2048						//Periode des Timers1 zur Einstellung der PWM Frequenz 2048 ergibt 16kHz

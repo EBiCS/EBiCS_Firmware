@@ -442,7 +442,7 @@ int main(void) {
 	  uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, (PH_CURRENT_MAX*(int32_t)(KM.Rx.AssistLevel-1))>>2, 0); // level in range 1...5
 #endif
 
-#if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_901U)
+#if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_FISCHER_1822)
 	  uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, (PH_CURRENT_MAX*(int32_t)(KM.Rx.AssistLevel))>>8, 0); // level in range 0...255
 #endif
 #ifdef TS_MODE //torque-sensor mode
