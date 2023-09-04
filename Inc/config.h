@@ -67,7 +67,7 @@
 
 //---------------------------------------------------------------------
 //Throttle settings
-#define THROTTLE_OFFSET 1250
+#define THROTTLE_OFFSET 1250   //only default value, throttle offset is set at startup automatically
 #define THROTTLE_MAX 2850
 //#define THROTTLE_OVERRIDE
 
@@ -91,13 +91,13 @@
 
 //---------------------------------------------------------------------
 //torquesensor settings
-#define TS_COEF 2000
+#define TS_COEF 2400
 #define TS_MODE
 //#define TQONAD1
 
 //---------------------------------------------------------------------
 //Display settings
-#define DISPLAY_TYPE DISPLAY_TYPE_KINGMETER_618U
+#define DISPLAY_TYPE DISPLAY_TYPE_DEBUG
 
 
 //---------------------------------------------------------------------

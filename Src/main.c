@@ -104,6 +104,7 @@ uint8_t ui8_hall_case =0;
 uint16_t ui16_tim2_recent=0;
 uint16_t ui16_timertics=5000; 					//timertics between two hall events for 60Â° interpolation
 uint16_t ui16_throttle;
+uint16_t ui16_throttle_offset = THROTTLE_OFFSET;
 uint16_t ui16_brake_adc;
 uint32_t ui32_throttle_cumulated;
 uint32_t ui32_brake_adc_cumulated;
@@ -490,10 +491,16 @@ int main(void)
     	temp3+=adcData[4];
     	ui8_adc_regular_flag=0;
 
+#ifdef TQONAD1
+    	temp4+=adcData[5];
+#else
+    	temp4+=adcData[1];
+#endif
     }
     ui16_ph1_offset=temp1>>5;
     ui16_ph2_offset=temp2>>5;
     ui16_ph3_offset=temp3>>5;
+    ui16_throttle_offset=temp4>>5;
 
 #ifdef DISABLE_DYNAMIC_ADC // set  injected channel with offsets
 	 ADC1->JSQR=0b00100000000000000000; //ADC1 injected reads phase A JL = 0b00, JSQ4 = 0b00100 (decimal 4 = channel 4)
@@ -507,7 +514,7 @@ int main(void)
 
 #if defined (ADC_BRAKE)
 
-  	while ((adcData[5]>THROTTLE_OFFSET)&&(adcData[1]>(THROTTLE_MAX-THROTTLE_OFFSET))){HAL_Delay(200);
+  	while ((adcData[5]>ui16_throttle_offset)&&(adcData[1]>(THROTTLE_MAX-ui16_throttle_offset))){HAL_Delay(200);
   	 	 	 	 	HAL_IWDG_Refresh(&hiwdg);
   					y++;
    	   	   			if(y==35) autodetect();
@@ -518,14 +525,14 @@ int main(void)
 //run autodect, whenn brake is pulled an throttle is pulled for 10 at startup
 #ifndef NCTE
 
-  	while ((!HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin))&&(adcData[1]>(THROTTLE_OFFSET+20))){
+  	while ((!HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin))&&(adcData[1]>(ui16_throttle_offset+20))){
   				HAL_IWDG_Refresh(&hiwdg);
   				HAL_Delay(200);
   	   			y++;
   	   			if(y==35) autodetect();
   	   			}
 #else
-  	ui32_throttle_cumulated=THROTTLE_OFFSET<<4;
+  	ui32_throttle_cumulated=ui16_throttle_offset<<4;
 #endif
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG)
@@ -539,9 +546,9 @@ int main(void)
 #endif
 
 #ifdef NCTE
-   	while(adcData[1]<THROTTLE_OFFSET)
+   	while(adcData[1]<ui16_throttle_offset)
 #else
-  // 	while(adcData[1]>THROTTLE_OFFSET)
+  // 	while(adcData[1]>ui16_throttle_offset)
 #endif
    	  	{
    		HAL_IWDG_Refresh(&hiwdg);//do nothing (For Safety at switching on)
@@ -699,9 +706,9 @@ int main(void)
 		  //read in and sum up torque-signal within one crank revolution (for sempu sensor 32 PAS pulses/revolution, 2^5=32)
 		  uint32_torque_cumulated -= uint32_torque_cumulated>>5;
 #ifdef NCTE
-		  if(ui16_throttle<THROTTLE_OFFSET)uint32_torque_cumulated += (THROTTLE_OFFSET-ui16_throttle);
+		  if(ui16_throttle<ui16_throttle_offset)uint32_torque_cumulated += (ui16_throttle_offset-ui16_throttle);
 #else
-		  if(ui16_throttle>THROTTLE_OFFSET)uint32_torque_cumulated += (ui16_throttle-THROTTLE_OFFSET);
+		  if(ui16_throttle>ui16_throttle_offset)uint32_torque_cumulated += (ui16_throttle-ui16_throttle_offset);
 #endif
 		  }
 	  }
@@ -756,7 +763,7 @@ int main(void)
 
 
 #ifdef ADC_BRAKE
-		uint16_mapped_BRAKE = map(ui16_brake_adc, THROTTLE_OFFSET , THROTTLE_MAX, 0, REGEN_CURRENT);
+		uint16_mapped_BRAKE = map(ui16_brake_adc, ui16_throttle_offset , THROTTLE_MAX, 0, REGEN_CURRENT);
 
 
 		if(uint16_mapped_BRAKE>0) brake_flag=1;
@@ -853,12 +860,12 @@ int main(void)
 
 #ifdef NCTE
 			  // read in throttle for throttle override
-			  uint16_mapped_throttle = map(ui16_throttle, THROTTLE_MAX, THROTTLE_OFFSET,PH_CURRENT_MAX,0);
+			  uint16_mapped_throttle = map(ui16_throttle, THROTTLE_MAX, ui16_throttle_offset,PH_CURRENT_MAX,0);
 
 
 #else //else NTCE
 			  // read in throttle for throttle override
-			  uint16_mapped_throttle = map(ui16_throttle, THROTTLE_OFFSET, THROTTLE_MAX, 0,PH_CURRENT_MAX);
+			  uint16_mapped_throttle = map(ui16_throttle, ui16_throttle_offset, THROTTLE_MAX, 0,PH_CURRENT_MAX);
 
 #endif //end NTCE
 
@@ -1043,7 +1050,7 @@ int main(void)
 #if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG && !defined(FAST_LOOP_LOG))
 		  //print values for debugging
 
-          sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", adcData[1],brake_flag, uint32_SPEEDx100_cumulated>>SPEEDFILTER, uint32_PAS, MS.Battery_Current, int32_temp_current_target , MS.i_q, MS.u_abs, SystemState);
+          sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", adcData[1],ui16_throttle_offset, uint32_SPEEDx100_cumulated>>SPEEDFILTER, uint32_PAS, MS.Battery_Current, int32_temp_current_target , MS.i_q, MS.u_abs, SystemState);
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5]),(uint16_t)(adcData[6])) ;
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",tic_array[0],tic_array[1],tic_array[2],tic_array[3],tic_array[4],tic_array[5]) ;
 		  i=0;
