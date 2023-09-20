@@ -482,7 +482,7 @@ int main(void)
 
     CLEAR_BIT(TIM1->BDTR, TIM_BDTR_MOE);//Disable PWM
 
-    HAL_Delay(200); //wait for stable conditions
+    HAL_Delay(500); //wait for stable conditions
 
     for(i=0;i<32;i++){
     	while(!ui8_adc_regular_flag){}
