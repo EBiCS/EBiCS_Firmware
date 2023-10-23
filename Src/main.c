@@ -500,7 +500,7 @@ int main(void)
     ui16_ph1_offset=temp1>>5;
     ui16_ph2_offset=temp2>>5;
     ui16_ph3_offset=temp3>>5;
-    ui16_throttle_offset=temp4>>5;
+    ui16_throttle_offset=(temp4>>5)+5;
 
 #ifdef DISABLE_DYNAMIC_ADC // set  injected channel with offsets
 	 ADC1->JSQR=0b00100000000000000000; //ADC1 injected reads phase A JL = 0b00, JSQ4 = 0b00100 (decimal 4 = channel 4)
@@ -856,18 +856,18 @@ int main(void)
 #endif
 
 #ifdef THROTTLE_OVERRIDE
-
-
-#ifdef NCTE
 			  // read in throttle for throttle override
-			  uint16_mapped_throttle = map(ui16_throttle, THROTTLE_MAX, ui16_throttle_offset,PH_CURRENT_MAX,0);
 
-
-#else //else NTCE
-			  // read in throttle for throttle override
+#if (CONTROL_MODE == MOTOR_CURRENT)
 			  uint16_mapped_throttle = map(ui16_throttle, ui16_throttle_offset, THROTTLE_MAX, 0,PH_CURRENT_MAX);
+#elif (CONTROL_MODE == BATTERY_CURRENT)
+			  uint16_mapped_throttle = map(ui16_throttle, ui16_throttle_offset, THROTTLE_MAX, 0,MP.battery_current_max);
 
-#endif //end NTCE
+#endif
+
+
+
+
 
 #ifndef TS_MODE //normal PAS Mode
 
@@ -1050,7 +1050,16 @@ int main(void)
 #if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG && !defined(FAST_LOOP_LOG))
 		  //print values for debugging
 
-          sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", adcData[1],ui16_throttle_offset, uint32_SPEEDx100_cumulated>>SPEEDFILTER, uint32_PAS, MS.Battery_Current, int32_temp_current_target , MS.i_q, MS.u_abs, SystemState);
+          sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n",
+        		  adcData[1],
+				  ui16_throttle_offset,
+				  uint32_SPEEDx100_cumulated>>SPEEDFILTER,
+				  uint32_PAS,
+				  MS.Battery_Current,
+				  int32_temp_current_target ,
+				  MS.i_q,
+				  MS.u_abs,
+				  SystemState);
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5]),(uint16_t)(adcData[6])) ;
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",tic_array[0],tic_array[1],tic_array[2],tic_array[3],tic_array[4],tic_array[5]) ;
 		  i=0;
@@ -2411,12 +2420,18 @@ void runPIcontrol(){
 		  }
 
 		  //control iq
-
+#if (CONTROL_MODE == MOTOR_CURRENT)
 		  //if
 		  if (!ui8_BC_limit_flag){
 			  PI_iq.recent_value = MS.i_q;
 			  PI_iq.setpoint = i8_direction*i8_reverse_flag*MS.i_q_setpoint;
 		  }
+#elif (CONTROL_MODE == BATTERY_CURRENT)
+		  if (!ui8_BC_limit_flag){
+			  PI_iq.recent_value = (MS.Battery_Current>>2)*i8_direction*i8_reverse_flag;
+			  PI_iq.setpoint = i8_direction*i8_reverse_flag*MS.i_q_setpoint>>2;
+		  }
+#endif
 		  else{
 			  if(brake_flag==0){
 			 // if(HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin)){
