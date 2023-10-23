@@ -377,8 +377,8 @@ int main(void)
   PI_speed.gain_p=P_FACTOR_SPEED;
   PI_speed.setpoint = 0;
   PI_speed.limit_output = PH_CURRENT_MAX;
-  PI_speed.max_step=50;
-  PI_speed.shift=5;
+  PI_speed.max_step=500;
+  PI_speed.shift=10;
   PI_speed.limit_i=PH_CURRENT_MAX;
 
 #endif
@@ -734,9 +734,11 @@ int main(void)
 #if (SPEEDSOURCE == INTERNAL)
 		uint32_SPEEDx100_cumulated -=uint32_SPEEDx100_cumulated>>SPEEDFILTER;
 		uint32_SPEEDx100_cumulated +=internal_tics_to_speedx100(uint32_tics_filtered>>3);
+#else
+		ui8_SPEED_control_flag=0;
 #endif
 		ui16_erps=500000/((uint32_tics_filtered>>3)*6);
-		ui8_SPEED_control_flag=0;
+
 	  }
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG && defined(FAST_LOOP_LOG))
@@ -873,37 +875,36 @@ int main(void)
 
 			    if (uint32_PAS_counter < PAS_TIMEOUT) int32_temp_current_target = uint16_mapped_PAS;		//set current target in torque-simulation-mode, if pedals are turning
 				  else  {
-					  int32_temp_current_target= 0;//pedals are not turning, stop motor
+					 // int32_temp_current_target= 0;//pedals are not turning, stop motor
 					  uint32_PAS_cumulated=32000;
 					  uint32_PAS=32000;
 				  }
 
 #endif		// end #ifndef TS_MODE
 			    //check for throttle override
-				if(uint16_mapped_throttle>int32_temp_current_target){
+
 
 #ifdef SPEEDTHROTTLE
 
 
-					uint16_mapped_throttle = uint16_mapped_throttle*SPEEDLIMIT/PH_CURRENT_MAX;//throttle override: calulate speed target from thottle
 
-
-
-
-					  PI_speed.setpoint = uint16_mapped_throttle*100;
+					  PI_speed.setpoint = map(ui16_throttle, ui16_throttle_offset, THROTTLE_MAX, 0,SPEEDLIMIT*100);
 					  PI_speed.recent_value = internal_tics_to_speedx100(uint32_tics_filtered>>3);
-					 if( PI_speed.setpoint)SET_BIT(TIM1->BDTR, TIM_BDTR_MOE);
+					  if( PI_speed.setpoint)SET_BIT(TIM1->BDTR, TIM_BDTR_MOE);
 					if (internal_tics_to_speedx100(uint32_tics_filtered>>3)<300){//control current slower than 3 km/h
+
 						PI_speed.limit_i=100;
 						PI_speed.limit_output=100;
 						int32_temp_current_target = PI_control(&PI_speed);
 
-						if(int32_temp_current_target>100)int32_temp_current_target=100;
+						ui8_SPEED_control_flag=0;
+
 						if(int32_temp_current_target*i8_direction*i8_reverse_flag<0){
 							int32_temp_current_target=0;
 						}
+					 }
 
-					}
+
 					else{
 
 
@@ -911,6 +912,7 @@ int main(void)
 							PI_speed.limit_i=PH_CURRENT_MAX;
 							PI_speed.limit_output=PH_CURRENT_MAX;
 							int32_temp_current_target = PI_control(&PI_speed);
+							temp4=int32_temp_current_target;
 							ui8_SPEED_control_flag=0;
 							}
 						if(int32_temp_current_target*i8_direction*i8_reverse_flag<0)int32_temp_current_target=0;
@@ -920,10 +922,10 @@ int main(void)
 
 
 #else // end speedthrottle
-					int32_temp_current_target=uint16_mapped_throttle;
+					 if(uint16_mapped_throttle>int32_temp_current_target)int32_temp_current_target=uint16_mapped_throttle;
 #endif  //end speedthrottle
 
-				  } //end else of throttle override
+
 
 #endif //end throttle override
 
@@ -1052,12 +1054,12 @@ int main(void)
 
           sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n",
         		  adcData[1],
-				  ui16_throttle_offset,
 				  uint32_SPEEDx100_cumulated>>SPEEDFILTER,
-				  uint32_PAS,
-				  MS.Battery_Current,
+				  PI_speed.setpoint,
+				  PI_speed.recent_value,
 				  int32_temp_current_target ,
 				  MS.i_q,
+				  MS.Battery_Current,
 				  MS.u_abs,
 				  SystemState);
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5]),(uint16_t)(adcData[6])) ;
