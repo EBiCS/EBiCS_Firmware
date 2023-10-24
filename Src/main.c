@@ -734,7 +734,10 @@ int main(void)
 #if (SPEEDSOURCE == INTERNAL)
 		uint32_SPEEDx100_cumulated -=uint32_SPEEDx100_cumulated>>SPEEDFILTER;
 		uint32_SPEEDx100_cumulated +=internal_tics_to_speedx100(uint32_tics_filtered>>3);
-#else
+
+#endif
+
+#ifndef SPEEDTHROTTLE
 		ui8_SPEED_control_flag=0;
 #endif
 		ui16_erps=500000/((uint32_tics_filtered>>3)*6);
@@ -875,7 +878,9 @@ int main(void)
 
 			    if (uint32_PAS_counter < PAS_TIMEOUT) int32_temp_current_target = uint16_mapped_PAS;		//set current target in torque-simulation-mode, if pedals are turning
 				  else  {
-					 // int32_temp_current_target= 0;//pedals are not turning, stop motor
+#ifndef SPEEDTHROTTLE
+					  int32_temp_current_target= 0;//pedals are not turning, stop motor
+#endif
 					  uint32_PAS_cumulated=32000;
 					  uint32_PAS=32000;
 				  }
@@ -975,8 +980,12 @@ int main(void)
 
 //------------------------------------------------------------------------------------------------------------
 				//enable PWM if power is wanted
-	  if (MS.i_q_setpoint&&!READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)){
 
+#if (CONTROL_MODE == DUTYCYCLE)
+		if (ui16_throttle>ui16_throttle_offset&&!READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)){
+#else
+		if (MS.i_q_setpoint&&!READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)){
+#endif
 		  uint16_half_rotation_counter=0;
 		  uint16_full_rotation_counter=0;
 		    TIM1->CCR1 = 1023; //set initial PWM values
@@ -1053,14 +1062,14 @@ int main(void)
 		  //print values for debugging
 
           sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n",
-        		  adcData[1],
+        		  adcData[1]-ui16_throttle_offset,
+				  MS.u_q,
 				  uint32_SPEEDx100_cumulated>>SPEEDFILTER,
 				  PI_speed.setpoint,
 				  PI_speed.recent_value,
 				  int32_temp_current_target ,
-				  MS.i_q,
+				  MS.i_q*38,
 				  MS.Battery_Current,
-				  MS.u_abs,
 				  SystemState);
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5]),(uint16_t)(adcData[6])) ;
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",tic_array[0],tic_array[1],tic_array[2],tic_array[3],tic_array[4],tic_array[5]) ;
@@ -2406,7 +2415,7 @@ void runPIcontrol(){
 
 
 		  q31_t_Battery_Current_accumulated -= q31_t_Battery_Current_accumulated>>8;
-		  q31_t_Battery_Current_accumulated += ((MS.i_q*MS.u_abs)>>11)*(uint16_t)(CAL_I>>8);
+		  q31_t_Battery_Current_accumulated += ((MS.i_q*MS.u_q)>>11)*(uint16_t)(CAL_I>>8);
 
 		  MS.Battery_Current = (q31_t_Battery_Current_accumulated>>8)*i8_direction*i8_reverse_flag; //Battery current in mA
 		  //Check battery current limit
@@ -2422,18 +2431,21 @@ void runPIcontrol(){
 		  }
 
 		  //control iq
+		  if (!ui8_BC_limit_flag){
 #if (CONTROL_MODE == MOTOR_CURRENT)
 		  //if
-		  if (!ui8_BC_limit_flag){
+
 			  PI_iq.recent_value = MS.i_q;
 			  PI_iq.setpoint = i8_direction*i8_reverse_flag*MS.i_q_setpoint;
-		  }
+
 #elif (CONTROL_MODE == BATTERY_CURRENT)
-		  if (!ui8_BC_limit_flag){
+
 			  PI_iq.recent_value = (MS.Battery_Current>>2)*i8_direction*i8_reverse_flag;
 			  PI_iq.setpoint = i8_direction*i8_reverse_flag*MS.i_q_setpoint>>2;
-		  }
+
 #endif
+
+		  }
 		  else{
 			  if(brake_flag==0){
 			 // if(HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin)){
@@ -2446,7 +2458,13 @@ void runPIcontrol(){
 			    }
 		  }
 
+#if (CONTROL_MODE == DUTYCYCLE)
+		  q31_u_q_temp = map(ui16_throttle, ui16_throttle_offset, THROTTLE_MAX, 0,_U_MAX);
+		  q31_u_q_temp = map(MS.Battery_Current, MP.battery_current_max-1000, MP.battery_current_max, q31_u_q_temp,0);
+
+#else
 			  q31_u_q_temp =  PI_control(&PI_iq);
+#endif
 
 		  //Control id
 		  PI_id.recent_value = MS.i_d;
