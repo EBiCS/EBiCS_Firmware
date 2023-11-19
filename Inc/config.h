@@ -69,7 +69,7 @@
 //Throttle settings
 #define THROTTLE_OFFSET 1250   //only default value, throttle offset is set at startup automatically
 #define THROTTLE_MAX 2850
-//#define THROTTLE_OVERRIDE
+#define THROTTLE_OVERRIDE
 
 //--------------------------------------------------------------------
 //Speed settings
