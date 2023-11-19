@@ -218,13 +218,14 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 
 if(!MS_FOC->Motor_state&&int16_i_q_target>20){
 
-	MS_FOC->u_d=200;
-	q31_teta_obs+=(2684354<<3);
+	MS_FOC->u_d=startup_counter>>4;
+	q31_teta_obs+=(2684354);
 	startup_counter++;
-	if (startup_counter>5000){
+	if (startup_counter>4000){
 		MS_FOC->Motor_state=1;
 		startup_counter=0;
 	}
+	temp5=startup_counter;
 }
 
 
@@ -248,9 +249,8 @@ if(MS_FOC->Motor_state){
 	else {
 		MS_FOC->Speed=10000;
 		MS_FOC->Motor_state=0;
-		startup_counter=0;
 	}
-	//temp5=q31_erps_counter;
+
 	if (q31_angle_old>(1<<25)&&q31_teta_obs<-(1<<25)&&q31_erps_counter>15){   //Find switch from +180° to -179,999° to detect one completed electric revolution.
 
 		q31_erps_filtered-=q31_erps_filtered>>4;
@@ -263,8 +263,8 @@ if(MS_FOC->Motor_state){
 
 
 
-	temp5=fl_e_alpha_obs;
-	temp6=fl_e_beta_obs;
+	//temp5=fl_e_alpha_obs;
+	//temp6=fl_e_beta_obs;
 	//temp3=q31_teta_obs>>24;
 	//temp5=q31_teta>>24;
 	//temp6=q31_teta_obs>>24;
