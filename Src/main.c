@@ -1213,19 +1213,34 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 		q31_rotorposition_hall = DEG_0 + SPEC_ANGLE;
 		break;
 	case 1: //60°
-		q31_rotorposition_hall = DEG_plus60 + SPEC_ANGLE;
+		if (SPEC_ANGLE >= DEG_plus120)
+			q31_rotorposition_hall = (q31_t)((long long)DEG_plus60 + SPEC_ANGLE - 0xFFFFFFFF);
+		else
+			q31_rotorposition_hall = (q31_t)((long long)DEG_plus60 + SPEC_ANGLE);
 		break;
 	case 3: //120°
-		q31_rotorposition_hall = DEG_plus120 + SPEC_ANGLE;
+		if (SPEC_ANGLE >= DEG_plus60)
+			q31_rotorposition_hall = (q31_t)((long long)DEG_plus120 + SPEC_ANGLE - 0xFFFFFFFF);
+		else
+			q31_rotorposition_hall = (q31_t)((long long)DEG_plus120 + SPEC_ANGLE);
 		break;
 	case 2: //180°
-		q31_rotorposition_hall = DEG_plus180 + SPEC_ANGLE; 	//overflow doesn't matter?!
+		if (SPEC_ANGLE > 0)
+			q31_rotorposition_hall = (q31_t)((long long)DEG_plus180 + SPEC_ANGLE - 0xFFFFFFFF);
+		else
+			q31_rotorposition_hall = (q31_t)((long long)DEG_plus180 + SPEC_ANGLE);
 		break;
 	case 6: //240°-->-120°
-		q31_rotorposition_hall = DEG_minus120 + SPEC_ANGLE;
+		if (SPEC_ANGLE <= DEG_minus60)
+			q31_rotorposition_hall = (q31_t)((long long)DEG_minus120 + SPEC_ANGLE + 0xFFFFFFFF);
+		else
+			q31_rotorposition_hall = (q31_t)((long long)DEG_minus120 + SPEC_ANGLE);
 		break;
 	case 4: //300°-->-60°
-		q31_rotorposition_hall = DEG_minus60 + SPEC_ANGLE;
+		if (SPEC_ANGLE <= DEG_minus120)
+			q31_rotorposition_hall = (q31_t)((long long)DEG_minus60 + SPEC_ANGLE + 0xFFFFFFFF);
+		else
+			q31_rotorposition_hall = (q31_t)((long long)DEG_minus60 + SPEC_ANGLE);
 		break;
 
 	} // end case
