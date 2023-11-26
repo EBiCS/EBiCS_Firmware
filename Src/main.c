@@ -155,7 +155,7 @@ int16_t wheel_time = 1000;							//duration of one wheel rotation for speed calc
 int16_t current_display;							//pepared battery current for display
 int16_t throttle_stat;								//throttle value, not linked to ADC-Value yet
 int16_t poti_stat;									//scaled assist level
-
+q31_t startup_counter=0;
 int16_t tim1cc4=1948;									//cc4 value of timer 1 for injected ADC timing
 
 MotorState_t MS;
@@ -375,7 +375,18 @@ int main(void) {
 	  //PI-control processing
 	  if(PI_flag){
 
-		  if(!MS.Motor_state&&uint16_current_target>0){ MS.u_q =  PI_control_i_q(MS.i_q, 160);}
+		  if(!MS.Motor_state&&uint16_current_target>0){
+			 // MS.u_q =  PI_control_i_q(MS.i_q, 160);
+			  uint16_current_target/=(21-startup_counter);
+			  	startup_counter++;
+			  	if (startup_counter>20){
+			  		MS.Motor_state=1;
+			  		startup_counter=0;
+			  	}
+			  	temp5=startup_counter;
+			  }
+
+
 
 		  else {
 
@@ -390,8 +401,9 @@ int main(void) {
 			  q31_u_d_temp = -PI_control_i_d(MS.i_d, 0); //control direct current to zero
 
 			  	//limit voltage in rotating frame, refer chapter 4.10.1 of UM1052
-			  MS.u_abs = (q31_t)hypot((double)q31_u_d_temp, (double)q31_u_q_temp); //absolute value of U in static frame
-
+			 // MS.u_abs = (q31_t)hypot((double)q31_u_d_temp, (double)q31_u_q_temp); //absolute value of U in static frame
+				arm_sqrt_q31((q31_u_d_temp*q31_u_d_temp+q31_u_q_temp*q31_u_q_temp)<<1,&MS.u_abs);
+				MS.u_abs = (MS.u_abs>>16)+1;
 
 
 				if (MS.u_abs > _U_MAX){
