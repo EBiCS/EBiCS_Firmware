@@ -175,6 +175,10 @@ q31_t q31_u_d_temp=0;
 q31_t q31_u_q_temp=0;
 int16_t i16_sinus=0;
 int16_t i16_cosinus=0;
+
+q31_t q31_delta_teta;
+q31_t q31_delta_teta_obs;
+
 char buffer[100];
 char char_dyn_adc_state_old=1;
 const uint8_t assist_factor[10]={0, 51, 102, 153, 204, 255, 255, 255, 255, 255};
@@ -208,7 +212,7 @@ uint16_t VirtAddVarTab[NB_OF_VAR] = { 	EEPROM_POS_HALL_ORDER,
 		EEPROM_POS_HALL_64
 	};
 
-enum state {Stop, SixStep, Regen, Running, BatteryCurrentLimit, Interpolation, PLL, IdleRun};
+
 enum state SystemState;
 
 #define iabs(x) (((x) >= 0)?(x):-(x))
@@ -337,6 +341,7 @@ int main(void)
 	MS.i_q_setpoint = 0;
 	MS.i_d_setpoint = 0;
 	MS.angle_est=SPEED_PLL;
+	MS.Obs_flag=1;
 
 
   MP.pulses_per_revolution = PULSES_PER_REVOLUTION;
@@ -942,18 +947,8 @@ int main(void)
 	  //slow loop procedere @16Hz, for LEV standard every 4th loop run, send page,
 	  if(ui32_tim3_counter>500){
 
-
-		if(HAL_GPIO_ReadPin(LED_GPIO_Port, LED_Pin)){
-
-      	//HAL_GPIO_WritePin(LIGHT_GPIO_Port, LIGHT_Pin, GPIO_PIN_RESET);
-      	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
-      	//HAL_GPIO_WritePin(BRAKE_LIGHT_GPIO_Port, BRAKE_LIGHT_Pin, GPIO_PIN_RESET);
-		}
-		else{
-	      	//HAL_GPIO_WritePin(LIGHT_GPIO_Port, LIGHT_Pin, GPIO_PIN_SET);
-	      	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
-	      	//HAL_GPIO_WritePin(BRAKE_LIGHT_GPIO_Port, BRAKE_LIGHT_Pin, GPIO_PIN_SET);
-		}
+		  HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+		  arm_sin_cos_q31(FILTER_DELAY/((MS.Speed)+1), &MS.sin_delay_filter, &MS.cos_delay_filter);
 
 
 		  if(ui8_KV_detect_flag){ui16_KV_detect_counter++;}
@@ -983,18 +978,21 @@ int main(void)
 
 #endif
 //check if rotor is turning
+		  if(!MS.Obs_flag){
+				if ((uint16_full_rotation_counter > 7999
+						|| uint16_half_rotation_counter > 7999)) {
+					SystemState = Stop;
+					if (READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)) {
+						CLEAR_BIT(TIM1->BDTR, TIM_BDTR_MOE); //Disable PWM if motor is not turning
+						uint32_tics_filtered = 1000000;
+						get_standstill_position();
+					}
 
-		  if((uint16_full_rotation_counter>7999||uint16_half_rotation_counter>7999)){
-			  SystemState = Stop;
-			  if(READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)){
-			  CLEAR_BIT(TIM1->BDTR, TIM_BDTR_MOE); //Disable PWM if motor is not turning
-			  uint32_tics_filtered=1000000;
-			  get_standstill_position();
-			  }
-
+				} else if (ui8_6step_flag)
+					SystemState = SixStep;
+				else
+					SystemState = Running;
 		  }
-		  else if(ui8_6step_flag) SystemState = SixStep;
-		  else SystemState = Running;
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG && !defined(FAST_LOOP_LOG))
 		  //print values for debugging
@@ -1689,6 +1687,9 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 	//extrapolate recent rotor position
 	ui16_tim2_recent = __HAL_TIM_GET_COUNTER(&htim2); // read in timertics since last event
 	if (MS.hall_angle_detect_flag) {
+
+		if(!MS.Obs_flag){
+
 		if(ui16_timertics<SIXSTEPTHRESHOLD && ui16_tim2_recent<200)ui8_6step_flag=0;
 		if(ui16_timertics>(SIXSTEPTHRESHOLD*6)>>2)ui8_6step_flag=1;
 
@@ -1716,6 +1717,7 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 				//	}
 
 		}
+	} //end else Obs_flag
 	} //end if hall angle detect
 	//temp2=(((q31_rotorposition_absolute >> 23) * 180) >> 8);
 	__enable_irq(); //EXIT CRITICAL SECTION!!!!!!!!!!!!!!
@@ -1735,8 +1737,20 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 	//int16_current_target=0;
 	// call FOC procedure if PWM is enabled
 
-	if (READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)){
-	FOC_calculation(i16_ph1_current, i16_ph2_current, q31_rotorposition_absolute, (((int16_t)i8_direction*i8_reverse_flag)*MS.i_q_setpoint), &MS);
+//	if (READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)){
+//	FOC_calculation(i16_ph1_current, i16_ph2_current, q31_rotorposition_absolute, (((int16_t)i8_direction*i8_reverse_flag)*MS.i_q_setpoint), &MS);
+//	}
+
+	if(!MS.Obs_flag)
+	{
+		// call FOC procedure, if PWM is enabled
+		if(READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)){
+			FOC_calculation(i16_ph1_current, i16_ph2_current, q31_rotorposition_absolute, (((int16_t)i8_direction*i8_reverse_flag)*MS.i_q_setpoint), &MS);
+	}
+	}
+
+	else{
+		FOC_calculation(i16_ph1_current, i16_ph2_current, MS.teta_obs, (((int16_t)i8_direction*i8_reverse_flag)*MS.i_q_setpoint), &MS); //q31_teta_obs
 	}
 	//temp5=__HAL_TIM_GET_COUNTER(&htim1);
 	//set PWM

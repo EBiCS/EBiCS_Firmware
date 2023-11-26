@@ -94,6 +94,9 @@
 #define R_TEMP_PULLUP 0
 #define TORQUE_OFFSET 1580
 #define TORQUE_MAX 850
+#define SPEC_ANGLE  -1312351118L		//Shengyi Heckmotor aus Fischer ETH1606 per trial and error
+#define FILTER_DELAY 59652323<<4	 //1073741824L	// for angle correction of i_alfa + i_beta
+enum state {Stop, SixStep, Regen, Running, BatteryCurrentLimit, Interpolation, PLL, IdleRun, Sensorless};
 
 /* ########################## Assert Selection ############################## */
 /**
@@ -157,6 +160,10 @@ typedef struct
 	int8_t         	error_state;
 	int8_t 			angle_est;
 	int16_t 		KV_detect_flag;
+	q31_t			teta_obs;
+	int8_t 			Obs_flag;
+	q31_t       	sin_delay_filter;
+	q31_t       	cos_delay_filter;
 
 }MotorState_t;
 
