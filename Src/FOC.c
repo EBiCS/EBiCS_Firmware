@@ -219,15 +219,17 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 	runPIcontrol();
 
 	if(!MS_FOC->system_state&&int16_i_q_target>20){
-
-		MS_FOC->u_d=startup_counter>>4;
+		//MS_FOC->system_state=OpenLoop;
+		MS_FOC->i_d_setpoint= startup_counter>>4;
 		MS_FOC->teta_obs+=(2684354);
 		startup_counter++;
 		if (startup_counter>4000){
 			MS_FOC->system_state=Sensorless;
 			startup_counter=0;
+			MS_FOC->i_d_setpoint=0;
+
 		}
-		temp5=startup_counter;
+
 	}
 
 	//inverse Park transformation
@@ -241,6 +243,7 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 		else {
 			MS_FOC->Speed=10000;
 			MS_FOC->system_state=Stop;
+			if(!int16_i_q_target)CLEAR_BIT(TIM1->BDTR, TIM_BDTR_MOE);
 		}
 
 		if (q31_angle_old>(1<<25)&&MS_FOC->teta_obs<-(1<<25)&&q31_erps_counter>15){   //Find switch from +180° to -179,999° to detect one completed electric revolution.

@@ -998,7 +998,7 @@ int main(void)
 		  //print values for debugging
 
 
-		  sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", adcData[1],adcData[6], uint32_SPEEDx100_cumulated>>SPEEDFILTER, uint32_PAS, MS.Battery_Current, int32_temp_current_target , MS.i_q, MS.u_abs, SystemState);
+		  sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", adcData[1],MS.i_q_setpoint, uint32_SPEEDx100_cumulated>>SPEEDFILTER, uint32_PAS, MS.Battery_Current, int32_temp_current_target , MS.i_q, MS.u_abs, MS.system_state);
 		  // sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5]),(uint16_t)(adcData[6])) ;
 		  // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",tic_array[0],tic_array[1],tic_array[2],tic_array[3],tic_array[4],tic_array[5]) ;
 		  i=0;
@@ -2380,7 +2380,7 @@ q31_t speed_PLL (q31_t ist, q31_t soll, uint8_t speedadapt)
     static q31_t q31_d_i = 0;
     static q31_t q31_d_dc = 0;
     temp6 = soll-ist;
-    temp5 = speedadapt;
+  //  temp5 = speedadapt;
     q31_p=(soll - ist)>>(P_FACTOR_PLL-speedadapt);   				//7 for Shengyi middrive, 10 for BionX IGH3
     q31_d_i+=(soll - ist)>>(I_FACTOR_PLL-speedadapt);				//11 for Shengyi middrive, 10 for BionX IGH3
 

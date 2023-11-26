@@ -25,12 +25,12 @@
 #define TRIGGER_DEFAULT 2020
 #define _T 2028
 #define CAL_BAT_V 256
-#define CAL_V 25
+#define CAL_V 15LL<<8
 #define CAL_I 38LL<<8
-#define INDUCTANCE 6LL
-#define RESISTANCE 40LL
-#define FLUX_LINKAGE 1200LL
-#define GAMMA 9LL
+#define INDUCTANCE 12LL
+#define RESISTANCE 220LL
+#define FLUX_LINKAGE 2400LL
+#define GAMMA 13LL
 //#define FAST_LOOP_LOG
 //#define DISABLE_DYNAMIC_ADC
 //#define INDIVIDUAL_MODES
@@ -67,7 +67,7 @@
 
 //---------------------------------------------------------------------
 //Throttle settings
-#define THROTTLE_OFFSET 1250   //only default value, throttle offset is set at startup automatically
+#define THROTTLE_OFFSET 690   //only default value, throttle offset is set at startup automatically
 #define THROTTLE_MAX 2850
 #define THROTTLE_OVERRIDE
 
