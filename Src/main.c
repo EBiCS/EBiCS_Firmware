@@ -341,7 +341,7 @@ int main(void)
 	MS.i_q_setpoint = 0;
 	MS.i_d_setpoint = 0;
 	MS.angle_est=SPEED_PLL;
-	MS.Obs_flag=1;
+	MS.Obs_flag=0;
 
 
   MP.pulses_per_revolution = PULSES_PER_REVOLUTION;
@@ -668,7 +668,7 @@ int main(void)
 
 	  //SPEED signal processing
 #if (SPEEDSOURCE == INTERNAL)
-			  MS.Speed = uint32_tics_filtered>>3;
+			 if(!MS.Obs_flag) MS.Speed = uint32_tics_filtered>>3;
 #else
 
 	  if(ui8_SPEED_flag){
@@ -743,7 +743,7 @@ int main(void)
 
 #endif
 						HAL_GPIO_WritePin(BRAKE_LIGHT_GPIO_Port, BRAKE_LIGHT_Pin, GPIO_PIN_SET);
-						int32_temp_current_target= -map(MS.Voltage*CAL_V,BATTERYVOLTAGE_MAX-1000,BATTERYVOLTAGE_MAX,int32_temp_current_target,0);
+						int32_temp_current_target= -map(MS.Voltage*CAL_BAT_V,BATTERYVOLTAGE_MAX-1000,BATTERYVOLTAGE_MAX,int32_temp_current_target,0);
 				}
 
 				//next priority: undervoltage protection
@@ -948,8 +948,8 @@ int main(void)
 	  if(ui32_tim3_counter>500){
 
 		  HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-		  arm_sin_cos_q31(FILTER_DELAY/((MS.Speed)+1), &MS.sin_delay_filter, &MS.cos_delay_filter);
-
+		  if(MS.Obs_flag)arm_sin_cos_q31(FILTER_DELAY/((MS.Speed)+1), &MS.sin_delay_filter, &MS.cos_delay_filter);
+		  if(MS.Speed<8000&&!MS.Obs_flag)MS.Obs_flag=1;
 
 		  if(ui8_KV_detect_flag){ui16_KV_detect_counter++;}
 #if (R_TEMP_PULLUP)
@@ -958,12 +958,14 @@ int main(void)
 		  MS.Temperature=25;
 #endif
 		  MS.Voltage=adcData[0];
+#if (SPEEDSOURCE == EXTERNAL)
 		  if(uint32_SPEED_counter>127999){
 			  MS.Speed =128000;
-#if (SPEEDSOURCE == EXTERNAL)
+
 			  uint32_SPEEDx100_cumulated=0;
-#endif
+
 		  }
+#endif
 
 #ifdef INDIVIDUAL_MODES
 		  // GET recent speedcase for assist profile
@@ -998,7 +1000,7 @@ int main(void)
 		  //print values for debugging
 
 
-		  sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", adcData[1],MS.i_q_setpoint, uint32_SPEEDx100_cumulated>>SPEEDFILTER, uint32_PAS, MS.Battery_Current, int32_temp_current_target , MS.i_q, MS.u_abs, MS.system_state);
+		  sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", adcData[1],MS.i_q_setpoint, MS.Speed, temp4, MS.Obs_flag, int32_temp_current_target , MS.i_q, MS.u_abs, MS.system_state);
 		  // sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5]),(uint16_t)(adcData[6])) ;
 		  // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",tic_array[0],tic_array[1],tic_array[2],tic_array[3],tic_array[4],tic_array[5]) ;
 		  i=0;
@@ -1686,38 +1688,42 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 
 	//extrapolate recent rotor position
 	ui16_tim2_recent = __HAL_TIM_GET_COUNTER(&htim2); // read in timertics since last event
-	if (MS.hall_angle_detect_flag) {
+		if (MS.hall_angle_detect_flag) {
 
-		if(!MS.Obs_flag){
+			if (!MS.Obs_flag) {
 
-		if(ui16_timertics<SIXSTEPTHRESHOLD && ui16_tim2_recent<200)ui8_6step_flag=0;
-		if(ui16_timertics>(SIXSTEPTHRESHOLD*6)>>2)ui8_6step_flag=1;
+				if (ui16_timertics < SIXSTEPTHRESHOLD && ui16_tim2_recent < 200)
+					ui8_6step_flag = 0;
+				if (ui16_timertics > (SIXSTEPTHRESHOLD * 6) >> 2)
+					ui8_6step_flag = 1;
 
+				if (MS.angle_est) {
+					q31_rotorposition_PLL += q31_angle_per_tic;
+				}
+				if (ui16_tim2_recent < ui16_timertics + (ui16_timertics >> 2)
+						&& !ui8_overflow_flag && !ui8_6step_flag) { //prevent angle running away at standstill
+					if (MS.angle_est && iabs(q31_PLL_error) < deg_30) {
+						q31_rotorposition_absolute = q31_rotorposition_PLL;
+						MS.system_state = PLL;
+					} else {
+						q31_rotorposition_absolute = q31_rotorposition_hall
+								+ (q31_t) (i8_recent_rotor_direction
+										* ((10923 * ui16_tim2_recent)
+												/ ui16_timertics) << 16); //interpolate angle between two hallevents by scaling timer2 tics, 10923<<16 is 715827883 = 60deg
+						MS.system_state = Interpolation;
+					}
+				} else {
+					ui8_overflow_flag = 1;
+					if (MS.KV_detect_flag)
+						q31_rotorposition_absolute = q31_rotorposition_hall;
+					else
+						q31_rotorposition_absolute = q31_rotorposition_hall
+								+ i8_direction * deg_30; //offset of 30 degree to get the middle of the sector
+					MS.system_state = SixStep;
+					//	}
 
-		if(MS.angle_est){
-			q31_rotorposition_PLL += q31_angle_per_tic;
-		}
-		if (ui16_tim2_recent < ui16_timertics+(ui16_timertics>>2) && !ui8_overflow_flag && !ui8_6step_flag) { //prevent angle running away at standstill
-			if(MS.angle_est&&iabs(q31_PLL_error)<deg_30){
-				q31_rotorposition_absolute=q31_rotorposition_PLL;
-				MS.system_state=PLL;
-			}
-		else{
-			q31_rotorposition_absolute = q31_rotorposition_hall
-					+ (q31_t) (i8_recent_rotor_direction
-							* ((10923 * ui16_tim2_recent) / ui16_timertics)
-							<< 16); //interpolate angle between two hallevents by scaling timer2 tics, 10923<<16 is 715827883 = 60deg
-			MS.system_state=Interpolation;
-			}
-		} else {
-			ui8_overflow_flag = 1;
-			if(MS.KV_detect_flag)q31_rotorposition_absolute = q31_rotorposition_hall;
-			else q31_rotorposition_absolute = q31_rotorposition_hall+i8_direction*deg_30;//offset of 30 degree to get the middle of the sector
-			MS.system_state=SixStep;
-				//	}
-
-		}
-	} //end else Obs_flag
+				}
+			} //end else Obs_flag
 	} //end if hall angle detect
 	//temp2=(((q31_rotorposition_absolute >> 23) * 180) >> 8);
 	__enable_irq(); //EXIT CRITICAL SECTION!!!!!!!!!!!!!!
@@ -1741,17 +1747,21 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 //	FOC_calculation(i16_ph1_current, i16_ph2_current, q31_rotorposition_absolute, (((int16_t)i8_direction*i8_reverse_flag)*MS.i_q_setpoint), &MS);
 //	}
 
-	if(!MS.Obs_flag)
-	{
-		// call FOC procedure, if PWM is enabled
-		if(READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)){
-			FOC_calculation(i16_ph1_current, i16_ph2_current, q31_rotorposition_absolute, (((int16_t)i8_direction*i8_reverse_flag)*MS.i_q_setpoint), &MS);
-	}
-	}
+		if (!MS.Obs_flag) {
+			// call FOC procedure, if PWM is enabled
+			if (READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)) {
+				FOC_calculation(i16_ph1_current, i16_ph2_current,
+						q31_rotorposition_absolute,
+						(((int16_t) i8_direction * i8_reverse_flag)
+								* MS.i_q_setpoint), &MS);
+			}
+		}
 
-	else{
-		FOC_calculation(i16_ph1_current, i16_ph2_current, MS.teta_obs, (((int16_t)i8_direction*i8_reverse_flag)*MS.i_q_setpoint), &MS); //q31_teta_obs
-	}
+		else {
+			FOC_calculation(i16_ph1_current, i16_ph2_current, MS.teta_obs,
+					(((int16_t) i8_direction * i8_reverse_flag)
+							* MS.i_q_setpoint), &MS); //q31_teta_obs
+		}
 	//temp5=__HAL_TIM_GET_COUNTER(&htim1);
 	//set PWM
 
@@ -2160,7 +2170,7 @@ void autodetect() {
 	MS.hall_angle_detect_flag = 0; //set uq to contstant value in FOC.c for open loop control
 	q31_rotorposition_absolute = 1 << 31;
 	i16_hall_order = 1;//reset hall order
-	MS.i_d_setpoint= 300; //set MS.id to appr. 2000mA
+	MS.i_d_setpoint= 200; //set MS.id to appr. 2000mA
 	MS.i_q_setpoint= 0;
 //	uint8_t zerocrossing = 0;
 //	q31_t diffangle = 0;
@@ -2228,7 +2238,6 @@ void autodetect() {
     TIM1->CCR1 = 1023; //set initial PWM values
     TIM1->CCR2 = 1023;
     TIM1->CCR3 = 1023;
-    MS.hall_angle_detect_flag=1;
     MS.i_d = 0;
     MS.i_q = 0;
     MS.u_d=0;

@@ -214,26 +214,29 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 		while(1){}						//stay here until hard reset
 	}
 
-	//Control iq
 
 	runPIcontrol();
 
-	if(!MS_FOC->system_state&&int16_i_q_target>20){
-		//MS_FOC->system_state=OpenLoop;
-		MS_FOC->i_d_setpoint= startup_counter>>4;
-		MS_FOC->teta_obs+=(2684354);
-		startup_counter++;
-		if (startup_counter>4000){
-			MS_FOC->system_state=Sensorless;
-			startup_counter=0;
-			MS_FOC->i_d_setpoint=0;
+	if (MS_FOC->Obs_flag) {
+		if (!MS_FOC->system_state && int16_i_q_target > 20) {
+			//MS_FOC->system_state=OpenLoop;
+			MS_FOC->u_d = 200;
+			MS_FOC->u_q = 0;
+			MS_FOC->teta_obs = (268435 * startup_counter) << 2;	//+=(2684354);
+			startup_counter++;
+			if (startup_counter > 8000) {
+				MS_FOC->system_state = Sensorless;
+				startup_counter = 0;
+
+			}
 
 		}
-
 	}
 
 	//inverse Park transformation
 	arm_inv_park_q31(MS_FOC->u_d, MS_FOC->u_q, &q31_u_alpha, &q31_u_beta, -sinevalue, cosinevalue);
+
+
 	observer_update(((long long)q31_u_alpha*(long long)MS_FOC->Voltage*CAL_V)>>11, ((long long)(-q31_u_beta*(long long)MS_FOC->Voltage*CAL_V))>>11, (long long)((-q31_i_alpha_corr)*CAL_I), (long long)((-q31_i_beta_corr)*CAL_I), &fl_e_alpha_obs, &fl_e_beta_obs);
 
 	if(MS_FOC->system_state){
@@ -243,15 +246,16 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 		else {
 			MS_FOC->Speed=10000;
 			MS_FOC->system_state=Stop;
-			if(!int16_i_q_target)CLEAR_BIT(TIM1->BDTR, TIM_BDTR_MOE);
+			if(!int16_i_q_target&&MS_FOC->Obs_flag)CLEAR_BIT(TIM1->BDTR, TIM_BDTR_MOE);
+			MS_FOC->Obs_flag=0;//reset for Hall sensor startup
 		}
 
 		if (q31_angle_old>(1<<25)&&MS_FOC->teta_obs<-(1<<25)&&q31_erps_counter>15){   //Find switch from +180° to -179,999° to detect one completed electric revolution.
 
 			q31_erps_filtered-=q31_erps_filtered>>4;
 			q31_erps_filtered+=q31_erps_counter;
-			MS_FOC->Speed=q31_erps_filtered>>4;
-
+			if(MS_FOC->Obs_flag)MS_FOC->Speed=q31_erps_filtered>>4;
+			temp4=q31_erps_filtered>>4;
 			q31_erps_counter=0;
 		}
 		q31_angle_old=MS_FOC->teta_obs;
@@ -447,7 +451,7 @@ void observer_update(long long v_alpha, long long v_beta, long long i_alpha, lon
 	//temp1 =-R_ia;
 	//temp2 =v_alpha;
 	//temp3 =((*e_alpha * err)>>gamma_tmp);
-	temp4 =err;
+	//temp4 =err;
 
 
 	*e_alpha= x1 - L_ia;// + (eaf>>24);
