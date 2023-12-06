@@ -97,6 +97,7 @@
 #define SPEC_ANGLE  -1312351118L		//Shengyi Heckmotor aus Fischer ETH1606 per trial and error
 #define FILTER_DELAY 59652323<<4	 //1073741824L	// for angle correction of i_alfa + i_beta
 enum state {Stop, SixStep, Regen, Running, BatteryCurrentLimit, Interpolation, PLL, IdleRun, Sensorless, OpenLoop};
+enum com_mode {Hallsensor, Sensorless_openloop, Sensorless_startkick, Hallsensor_Sensorless};
 
 /* ########################## Assert Selection ############################## */
 /**
@@ -185,6 +186,7 @@ typedef struct
 	uint8_t       	pulses_per_revolution;
 	uint16_t       	phase_current_max;
 	int16_t       	spec_angle;
+	uint8_t       	com_mode;
 
 
 }MotorParams_t;

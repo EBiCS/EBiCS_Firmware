@@ -161,13 +161,13 @@ uint16_t LUT_atan[101]={0,
 TIM_HandleTypeDef htim1;
 
 
-void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int16_t int16_i_q_target, MotorState_t* MS_FOC);
+void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int16_t int16_i_q_target, MotorState_t* MS_FOC, MotorParams_t* MP_FOC);
 void svpwm(q31_t q31_u_alpha, q31_t q31_u_beta);
 q31_t atan2_LUT(q31_t e_alpha, q31_t e_beta);
 void observer_update(long long v_alpha, long long v_beta, long long i_alpha, long long i_beta,  q31_t *e_alpha,q31_t *e_beta);
 int utils_truncate_number_abs(long long *number, q31_t max);
 
-void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int16_t int16_i_q_target, MotorState_t* MS_FOC)
+void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int16_t int16_i_q_target, MotorState_t* MS_FOC, MotorParams_t* MP_FOC)
 {
 
 	 q31_t q31_i_alpha = 0;
@@ -217,14 +217,14 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 
 	runPIcontrol();
 
-	if (MS_FOC->Obs_flag) {
+	if (MP_FOC->com_mode==Sensorless_openloop&&MS_FOC->Obs_flag) {
 		if (!MS_FOC->system_state && int16_i_q_target > 20) {
 			//MS_FOC->system_state=OpenLoop;
 			MS_FOC->u_d = 200;
 			MS_FOC->u_q = 0;
 			MS_FOC->teta_obs = (268435 * startup_counter) << 2;	//+=(2684354);
 			startup_counter++;
-			if (startup_counter > 8000) {
+			if (startup_counter > 4000) {
 				MS_FOC->system_state = Sensorless;
 				startup_counter = 0;
 
@@ -247,7 +247,7 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 			MS_FOC->Speed=10000;
 			MS_FOC->system_state=Stop;
 			if(!int16_i_q_target&&MS_FOC->Obs_flag)CLEAR_BIT(TIM1->BDTR, TIM_BDTR_MOE);
-			MS_FOC->Obs_flag=0;//reset for Hall sensor startup
+			if(MP_FOC->com_mode==Hallsensor_Sensorless)MS_FOC->Obs_flag=0;//reset for Hall sensor startup
 		}
 
 		if (q31_angle_old>(1<<25)&&MS_FOC->teta_obs<-(1<<25)&&q31_erps_counter>15){   //Find switch from +180° to -179,999° to detect one completed electric revolution.

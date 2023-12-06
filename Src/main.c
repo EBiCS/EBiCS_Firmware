@@ -347,7 +347,8 @@ int main(void)
   MP.pulses_per_revolution = PULSES_PER_REVOLUTION;
   MP.wheel_cirumference = WHEEL_CIRCUMFERENCE;
   MP.speedLimit=SPEEDLIMIT;
-
+  MP.com_mode=Sensorless_openloop;
+if(MP.com_mode==Sensorless_openloop)MS.Obs_flag=1;
 
   //init PI structs
   PI_id.gain_i=I_FACTOR_I_D;
@@ -949,7 +950,7 @@ int main(void)
 
 		  HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
 		  if(MS.Obs_flag)arm_sin_cos_q31(FILTER_DELAY/((MS.Speed)+1), &MS.sin_delay_filter, &MS.cos_delay_filter);
-		  if(MS.Speed<8000&&!MS.Obs_flag)MS.Obs_flag=1;
+		  if(MP.com_mode==Hallsensor_Sensorless&&MS.Speed<8000&&!MS.Obs_flag)MS.Obs_flag=1;
 
 		  if(ui8_KV_detect_flag){ui16_KV_detect_counter++;}
 #if (R_TEMP_PULLUP)
@@ -1000,7 +1001,7 @@ int main(void)
 		  //print values for debugging
 
 
-		  sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", adcData[1],MS.i_q_setpoint, MS.Speed, temp4, MS.Obs_flag, int32_temp_current_target , MS.i_q, MS.u_abs, MS.system_state);
+		  sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", adcData[1],MS.i_q_setpoint, MS.Speed, temp4, MS.Obs_flag, int32_temp_current_target , MS.i_q, MS.teta_obs, MS.system_state);
 		  // sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5]),(uint16_t)(adcData[6])) ;
 		  // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",tic_array[0],tic_array[1],tic_array[2],tic_array[3],tic_array[4],tic_array[5]) ;
 		  i=0;
@@ -1753,14 +1754,14 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 				FOC_calculation(i16_ph1_current, i16_ph2_current,
 						q31_rotorposition_absolute,
 						(((int16_t) i8_direction * i8_reverse_flag)
-								* MS.i_q_setpoint), &MS);
+								* MS.i_q_setpoint), &MS, &MP);
 			}
 		}
 
 		else {
 			FOC_calculation(i16_ph1_current, i16_ph2_current, MS.teta_obs,
 					(((int16_t) i8_direction * i8_reverse_flag)
-							* MS.i_q_setpoint), &MS); //q31_teta_obs
+							* MS.i_q_setpoint), &MS, &MP); //q31_teta_obs
 		}
 	//temp5=__HAL_TIM_GET_COUNTER(&htim1);
 	//set PWM
