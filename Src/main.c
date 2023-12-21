@@ -148,7 +148,7 @@ uint32_t uint32_PAS_fraction= 100;
 uint32_t uint32_SPEED_counter=32000;
 uint32_t uint32_SPEEDx100_cumulated=0;
 uint32_t uint32_PAS=32000;
-
+uint16_t uint16_idle_run_counter= 0;
 q31_t q31_rotorposition_PLL = 0;
 q31_t q31_angle_per_tic = 0;
 
@@ -925,7 +925,7 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 //------------------------------------------------------------------------------------------------------------
 				//enable PWM if power is wanted
 	  if (MS.i_q_setpoint>0&&!READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)){
-
+		  MS.system_state=Running;
 		  uint16_half_rotation_counter=0;
 		  uint16_full_rotation_counter=0;
 		    TIM1->CCR1 = 1023; //set initial PWM values
@@ -951,8 +951,15 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 		  HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
 		  if(MS.Obs_flag)arm_sin_cos_q31(FILTER_DELAY/((MS.Speed)+1), &MS.sin_delay_filter, &MS.cos_delay_filter);
 		  if(MP.com_mode==Hallsensor_Sensorless&&MS.Speed<8000&&!MS.Obs_flag)MS.Obs_flag=1;
-
+		  if(MS.system_state==IdleRun)uint16_idle_run_counter++;
+		  else uint16_idle_run_counter=0;
 		  if(ui8_KV_detect_flag){ui16_KV_detect_counter++;}
+		  //disable PWM after 1 minute idle run.
+		  if(uint16_idle_run_counter>960){
+			  MS.system_state=Stop;
+			  uint16_idle_run_counter=0;
+			  CLEAR_BIT(TIM1->BDTR, TIM_BDTR_MOE);
+		  }
 #if (R_TEMP_PULLUP)
 		  MS.Temperature = T_NTC(adcData[6]); //Thank you Hendrik ;-)
 #else
@@ -1001,7 +1008,7 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 		  //print values for debugging
 
 
-		  sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", adcData[1],MS.i_q_setpoint, MS.Speed, temp4, MS.Obs_flag, int32_temp_current_target , MS.i_q, MS.teta_obs, MS.system_state);
+		  sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", adcData[1],MS.i_q_setpoint, MS.Speed, temp4, MS.Obs_flag, int32_temp_current_target , MS.i_q, uint16_idle_run_counter, MS.system_state);
 		  // sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5]),(uint16_t)(adcData[6])) ;
 		  // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",tic_array[0],tic_array[1],tic_array[2],tic_array[3],tic_array[4],tic_array[5]) ;
 		  i=0;

@@ -242,11 +242,14 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 	if(MS_FOC->system_state){
 		MS_FOC->teta_obs=atan2_LUT(-fl_e_beta_obs,fl_e_alpha_obs)+SPEC_ANGLE;//811271600;//1312351118;//-811271600;//-930576247;//-1431655765;
 	}
-		if(q31_erps_counter<10000)q31_erps_counter++;
+		if(q31_erps_counter<10000){
+				q31_erps_counter++;
+				MS_FOC->system_state = Sensorless;
+			}
 		else {
 			MS_FOC->Speed=10000;
 			MS_FOC->system_state=IdleRun;
-			if(!int16_i_q_target&&MS_FOC->Obs_flag)CLEAR_BIT(TIM1->BDTR, TIM_BDTR_MOE);
+			//if(!int16_i_q_target&&MS_FOC->Obs_flag)CLEAR_BIT(TIM1->BDTR, TIM_BDTR_MOE);
 			if(MP_FOC->com_mode==Hallsensor_Sensorless)MS_FOC->Obs_flag=0;//reset for Hall sensor startup
 		}
 
