@@ -27,10 +27,19 @@
 #define CAL_BAT_V 25
 #define CAL_V 15LL<<8
 #define CAL_I 38LL<<8
-#define INDUCTANCE 12LL
-#define RESISTANCE 220LL
-#define FLUX_LINKAGE 2400LL
+// BionX IGH3
+//#define INDUCTANCE 12LL
+//#define RESISTANCE 220LL
+//#define FLUX_LINKAGE 2400LL
+//#define GAMMA 13LL
+
+// Hoverboard Motor
+#define INDUCTANCE 11LL
+#define RESISTANCE 120LL
+#define FLUX_LINKAGE 2000LL
 #define GAMMA 13LL
+
+
 //#define FAST_LOOP_LOG
 //#define DISABLE_DYNAMIC_ADC
 //#define INDIVIDUAL_MODES
