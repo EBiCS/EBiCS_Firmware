@@ -347,8 +347,8 @@ int main(void)
   MP.pulses_per_revolution = PULSES_PER_REVOLUTION;
   MP.wheel_cirumference = WHEEL_CIRCUMFERENCE;
   MP.speedLimit=SPEEDLIMIT;
-  MP.com_mode=Sensorless_openloop;
-if(MP.com_mode==Sensorless_openloop)MS.Obs_flag=1;
+  MP.com_mode=Sensorless_startkick;
+if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_flag=1;
 
   //init PI structs
   PI_id.gain_i=I_FACTOR_I_D;
@@ -356,7 +356,7 @@ if(MP.com_mode==Sensorless_openloop)MS.Obs_flag=1;
   PI_id.setpoint = 0;
   PI_id.limit_output = _U_MAX;
   PI_id.max_step=5000;
-  PI_id.shift=10;
+  PI_id.shift=6;
   PI_id.limit_i=1800;
 
   PI_iq.gain_i=I_FACTOR_I_Q;
@@ -364,7 +364,7 @@ if(MP.com_mode==Sensorless_openloop)MS.Obs_flag=1;
   PI_iq.setpoint = 0;
   PI_iq.limit_output = _U_MAX;
   PI_iq.max_step=5000;
-  PI_iq.shift=10;
+  PI_iq.shift=6;
   PI_iq.limit_i=_U_MAX;
 
 #ifdef SPEEDTHROTTLE
