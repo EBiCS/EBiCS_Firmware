@@ -75,8 +75,8 @@
 //Speed settings
 #define WHEEL_CIRCUMFERENCE 2200
 #define GEAR_RATIO 11 //11 for BionX IGH3
-#define SPEEDLIMIT 25
-#define PULSES_PER_REVOLUTION 1
+#define SPEEDLIMIT 0
+#define PULSES_PER_REVOLUTION 46  // https://www.ebike-bausatz.eu/4911381/e-bike_motor_ayw_fur_48v_60v_72v_1000w_-2800w_m_steckkranz-_und_scheibenbremsaufnahme_variante_standard_11x6_ca_360-380u_min_bei_48v
 #define SPEEDSOURCE INTERNAL
 #define SPEEDFILTER 1
 #define SPDSHFT 0
