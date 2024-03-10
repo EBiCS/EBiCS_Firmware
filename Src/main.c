@@ -347,7 +347,7 @@ int main(void)
   MP.pulses_per_revolution = PULSES_PER_REVOLUTION;
   MP.wheel_cirumference = WHEEL_CIRCUMFERENCE;
   MP.speedLimit=SPEEDLIMIT;
-  MP.com_mode=Sensorless_startkick;
+  MP.com_mode=Hallsensor;
 if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_flag=1;
 
   //init PI structs
