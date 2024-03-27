@@ -54,23 +54,13 @@
 #include "FOC.h"
 #include "config.h"
 #include "eeprom.h"
+#include "button_processing.h"
 
-
-#if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
-  #include "display_kingmeter.h"
+#if (DISPLAY_TYPE == DISPLAY_TYPE_M365DASHBOARD)
+#include "M365_Dashboard.h"
 #endif
 
-#if (DISPLAY_TYPE == DISPLAY_TYPE_BAFANG)
-  #include "display_bafang.h"
-#endif
 
-#if (DISPLAY_TYPE == DISPLAY_TYPE_KUNTENG)
-  #include "display_kunteng.h"
-#endif
-
-#if (DISPLAY_TYPE == DISPLAY_TYPE_EBiCS)
-  #include "display_ebics.h"
-#endif
 
 
 #include <arm_math.h>
@@ -199,8 +189,8 @@ q31_t Hall_64 = 0;
 q31_t Hall_51 = 0;
 q31_t Hall_45 = 0;
 
-const q31_t tics_lower_limit = WHEEL_CIRCUMFERENCE*5*3600/(6*GEAR_RATIO*SPEEDLIMIT*10); //tics=wheelcirc*timerfrequency/(no. of hallevents per rev*gear-ratio*speedlimit)*3600/1000000
-const q31_t tics_higher_limit = WHEEL_CIRCUMFERENCE*5*3600/(6*GEAR_RATIO*(SPEEDLIMIT+2)*10);
+static q31_t tics_lower_limit = WHEEL_CIRCUMFERENCE*5*3600/(6*GEAR_RATIO*SPEEDLIMIT*10); //tics=wheelcirc*timerfrequency/(no. of hallevents per rev*gear-ratio*speedlimit)*3600/1000000
+static q31_t tics_higher_limit = WHEEL_CIRCUMFERENCE*5*3600/(6*GEAR_RATIO*(SPEEDLIMIT+2)*10);
 uint32_t uint32_tics_filtered=1000000;
 
 uint16_t VirtAddVarTab[NB_OF_VAR] = { 	EEPROM_POS_HALL_ORDER,
@@ -288,6 +278,7 @@ int32_t speed_to_tics (uint8_t speed);
 int8_t tics_to_speed (uint32_t tics);
 int16_t internal_tics_to_speedx100 (uint32_t tics);
 int16_t external_tics_to_speedx100 (uint32_t tics);
+void calculate_tic_limits(void);
 
 
 
@@ -509,18 +500,9 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 
 #endif
 
-//run autodect, whenn brake is pulled an throttle is pulled for 10 at startup
-#ifndef NCTE
 
-  	while ((!HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin))&&(adcData[1]>(THROTTLE_OFFSET+20))){
-
-  				HAL_Delay(200);
-  	   			y++;
-  	   			if(y==35) autodetect();
-  	   			}
-#else
   	ui32_torque_raw_cumulated=THROTTLE_OFFSET<<4;
-#endif
+
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG)
    	printf_("phase current offsets:  %d, %d, %d \n ", ui16_ph1_offset, ui16_ph2_offset, ui16_ph3_offset);
@@ -531,12 +513,6 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 
 #endif
 
-
-   	while(adcData[1]>THROTTLE_OFFSET)
-
-   	  	{
-   	  	//do nothing (For Safety at switching on)
-   	  	}
 
 #if (DISPLAY_TYPE != DISPLAY_TYPE_DEBUG || !AUTODETECT)
    	EE_ReadVariable(EEPROM_POS_HALL_ORDER, &i16_hall_order);
@@ -589,6 +565,10 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
     CLEAR_BIT(TIM1->BDTR, TIM_BDTR_MOE);//Disable PWM
 
 	get_standstill_position();
+#if (DISPLAY_TYPE == DISPLAY_TYPE_M365DASHBOARD)
+		search_DashboardMessage(&MS, &MP, huart1);
+		checkButton(&MP, &MS);
+#endif
 
 
   /* USER CODE END 2 */
@@ -2411,6 +2391,14 @@ q31_t speed_PLL (q31_t ist, q31_t soll, uint8_t speedadapt)
     q31_d_dc=q31_p+q31_d_i;
     return (q31_d_dc);
   }
+
+void calculate_tic_limits(void){
+	tics_lower_limit = WHEEL_CIRCUMFERENCE * 5 * 3600
+			/ (6 * GEAR_RATIO * MP.speed_limit * 10); //tics=wheelcirc*timerfrequency/(no. of hallevents per rev*gear-ratio*speedlimit)*3600/1000000
+	tics_higher_limit = WHEEL_CIRCUMFERENCE * 5 * 3600
+			/ (6 * GEAR_RATIO * (MP.speed_limit + 2) * 10);
+
+}
 
 #if (R_TEMP_PULLUP)
 int16_t T_NTC(uint16_t ADC) // ADC 12 Bit, 10k Pullup, Rückgabewert in °C

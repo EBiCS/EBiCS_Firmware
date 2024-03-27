@@ -45,6 +45,7 @@
 
 /* USER CODE BEGIN Includes */
 #include <arm_math.h>
+#include <stdbool.h>
 
 
 /* USER CODE END Includes */
@@ -86,6 +87,12 @@
 #define PAS_EXTI8_Pin GPIO_PIN_8
 #define PAS_EXTI8_GPIO_Port GPIOB
 #define PAS_EXTI8_EXTI_IRQn EXTI9_5_IRQn
+#define PWR_BTN_Pin GPIO_PIN_14
+#define PWR_BTN_GPIO_Port GPIOC
+#define TPS_ENA_Pin GPIO_PIN_15
+#define TPS_ENA_GPIO_Port GPIOC
+
+
 
 
 //#define NCTE
@@ -98,6 +105,8 @@
 #define FILTER_DELAY 59652323<<4	 //1073741824L	// for angle correction of i_alfa + i_beta
 enum state {Stop, SixStep, Regen, Running, BatteryCurrentLimit, Interpolation, PLL, IdleRun, Sensorless, OpenLoop};
 enum com_mode {Hallsensor, Sensorless_openloop, Sensorless_startkick, Hallsensor_Sensorless};
+enum modes {eco=2,normal=0,sport=4};
+enum errors {none=0, hall=18,lowbattery=24,overcurrent=4,brake=15};
 
 /* ########################## Assert Selection ############################## */
 /**
@@ -114,6 +123,7 @@ enum com_mode {Hallsensor, Sensorless_openloop, Sensorless_startkick, Hallsensor
 int32_t map (int32_t x, int32_t in_min, int32_t in_max, int32_t out_min, int32_t out_max);
 void autodetect();
 void runPIcontrol();
+void calculate_tic_limits(void);
 
 extern uint16_t switchtime[3];
 extern uint32_t ui32_tim1_counter;
@@ -166,6 +176,12 @@ typedef struct
 	q31_t       	sin_delay_filter;
 	q31_t       	cos_delay_filter;
 
+	bool 			light;
+	bool 			beep;
+	bool 			brake_active;
+	uint8_t 		shutdown;
+	int8_t 			mode;
+
 }MotorState_t;
 
 typedef struct
@@ -183,11 +199,13 @@ typedef struct
 	uint16_t       	throttle_max;
 	uint16_t       	gear_ratio;
 	uint8_t       	speedLimit;
+	uint8_t 		speed_limit;
 	uint8_t       	pulses_per_revolution;
 	uint16_t       	phase_current_max;
 	int16_t       	spec_angle;
 	uint8_t       	com_mode;
-
+	int16_t 		regen_current;
+	int16_t 		phase_current_limit;
 
 }MotorParams_t;
 

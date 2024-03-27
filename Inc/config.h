@@ -10,13 +10,8 @@
 #include "stdint.h"
 
 // System constants, don't touch!
-#define DISPLAY_TYPE_EBiCS (1<<5)                  // King-Meter 618U protocol (KM5s, EBS-LCD2, J-LCD, SW-LCD)
-#define DISPLAY_TYPE_KINGMETER_618U (1<<3)                  // King-Meter 618U protocol (KM5s, EBS-LCD2, J-LCD, SW-LCD)
-#define DISPLAY_TYPE_KINGMETER_901U (1<<4)                  // King-Meter 901U protocol (KM5s)
-#define DISPLAY_TYPE_KINGMETER      (DISPLAY_TYPE_KINGMETER_618U|DISPLAY_TYPE_KINGMETER_901U)
-#define DISPLAY_TYPE_BAFANG (1<<2)							// For 'Blaupunkt' Display of Prophete Entdecker
-#define DISPLAY_TYPE_KUNTENG (1<<1)							// For ASCII-Output in Debug mode
-#define DISPLAY_TYPE_DEBUG (1<<0)							// For ASCII-Output in Debug mode);
+#define DISPLAY_TYPE_M365DASHBOARD (1<<1)
+#define DISPLAY_TYPE_DEBUG (1<<0)
 #define EXTERNAL 1
 #define INTERNAL 0
 //----------------------------------------------------------------------
@@ -79,6 +74,10 @@
 #define THROTTLE_OFFSET 690   //only default value, throttle offset is set at startup automatically
 #define THROTTLE_MAX 2850
 #define THROTTLE_OVERRIDE
+#define THROTTLEOFFSET 45
+#define THROTTLEMAX 175
+#define BRAKEOFFSET 50
+#define BRAKEMAX 190
 
 //--------------------------------------------------------------------
 //Speed settings
@@ -98,6 +97,19 @@
 #define PUSHASSIST_CURRENT 300
 #define VOLTAGE_MIN 1320 //33V
 
+// motor current limits for invividual modes in mA, see default settings at https://max.cfw.sh/#
+#define PH_CURRENT_MAX_ECO 16000LL
+#define PH_CURRENT_MAX_NORMAL 28000LL
+#define PH_CURRENT_MAX_SPORT 55000LL
+
+// speed limits for invividual modes in kph
+#define SPEEDLIMIT_ECO 6
+#define SPEEDLIMIT_NORMAL 20
+#define SPEEDLIMIT_SPORT 50
+
+// battery voltage limits in mV
+#define BATTERYVOLTAGE_MIN 33000
+
 //---------------------------------------------------------------------
 //torquesensor settings
 #define TS_COEF 2400
@@ -106,7 +118,7 @@
 
 //---------------------------------------------------------------------
 //Display settings
-#define DISPLAY_TYPE DISPLAY_TYPE_DEBUG
+#define DISPLAY_TYPE DISPLAY_TYPE_M365DASHBOARD
 
 
 //---------------------------------------------------------------------
