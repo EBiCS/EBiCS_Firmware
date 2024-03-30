@@ -104,8 +104,13 @@ void search_DashboardMessage(MotorState_t *MS, MotorParams_t *MP, UART_HandleTyp
 //		}
 //
 //	}
-
-
+	sprintf_(ui8_UART3_tx_buffer, "Hallo Welt\r\n");
+	int i = 0;
+	while (ui8_UART3_tx_buffer[i] != '\0') {
+		i++;
+	}
+	HAL_HalfDuplex_EnableTransmitter(&huart3);
+	HAL_UART_Transmit_DMA(&huart3, (uint8_t*) ui8_UART3_tx_buffer,i);
 
 	ui8_recentpointerposition = sizeof(ui8_UART3_rx_buffer) - (DMA1_Channel3->CNDTR); //Pointer of UART1RX DMA Channel
 		if (ui8_recentpointerposition<ui8_oldpointerposition){

@@ -937,7 +937,7 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 //----------------------------------------------------------------------------------------------------------------------------------------------------------
 	  //slow loop procedere @16Hz, for LEV standard every 4th loop run, send page,
 	  if(ui32_tim3_counter>500){
-			search_DashboardMessage(&MS, &MP, huart1);
+			search_DashboardMessage(&MS, &MP, huart3);
 			//checkButton(&MP, &MS);
 
 
@@ -1547,6 +1547,9 @@ static void MX_DMA_Init(void)
   /* DMA1_Channel5_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Channel5_IRQn, 1, 1);
   HAL_NVIC_EnableIRQ(DMA1_Channel5_IRQn);
+  /* DMA1_Channel3_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel2_IRQn, 2, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel2_IRQn);
   /* DMA1_Channel3_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Channel3_IRQn, 2, 0);
   HAL_NVIC_EnableIRQ(DMA1_Channel3_IRQn);
