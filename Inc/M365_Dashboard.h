@@ -17,6 +17,7 @@ void process_DashboardMessage(MotorState_t *MS, MotorParams_t *MP, uint8_t *mess
 void addCRC(uint8_t * message, uint8_t size);
 int16_t checkCRC(uint8_t * message, uint8_t size);
 
-
-
+extern uint8_t ui8_oldpointerposition;
+extern uint8_t ui8_recentpointerposition;
+extern uint8_t ui8_messagelength;
 #endif /* INC_M365_DASHBOARD_H_ */

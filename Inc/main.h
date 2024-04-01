@@ -129,6 +129,7 @@ extern uint16_t switchtime[3];
 extern uint32_t ui32_tim1_counter;
 extern uint32_t uint32_PAS_counter;
 extern uint8_t throttle_is_set(void);
+extern void UART_IdleItCallback(void);
 
 
 typedef struct

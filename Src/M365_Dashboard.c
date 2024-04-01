@@ -7,6 +7,7 @@
 
 
 #include "main.h"
+#include "FOC.h"
 #include "config.h"
 #include "stm32f1xx_hal.h"
 #include "print.h"
@@ -22,10 +23,10 @@ static uint8_t ui8_dashboardmessage[132];
 static uint8_t enc[128];
 static char buffer[64];
 static uint8_t	ui8_UART3_tx_buffer[96];// = {0x55, 0xAA, 0x08, 0x21, 0x64, 0x00, 0x01, 0xF0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-static uint8_t ui8_oldpointerposition=64;
-static uint8_t ui8_recentpointerposition=0;
+uint8_t ui8_oldpointerposition=132;
+uint8_t ui8_recentpointerposition=0;
 static uint8_t ui8_messagestartpos=255;
-static uint8_t ui8_messagelength=0;
+uint8_t ui8_messagelength=0;
 static uint8_t ui8_state= STATE_LOST;
 static uint32_t ui32_timeoutcounter=0;
 static uint16_t ui16_update_size=0;
@@ -86,76 +87,17 @@ void M365Dashboard_init(void) {
 
 }
 
-void search_DashboardMessage(MotorState_t *MS, MotorParams_t *MP, UART_HandleTypeDef huart1){
+void search_DashboardMessage(MotorState_t *MS, MotorParams_t *MP, UART_HandleTypeDef huart3){
 
-//	if(ui32_timeoutcounter>3200&&MT.ESC_status_2 != 0x0802){
-//
-//
-//		ui32_timeoutcounter=0;
-//		//printf_("DMA Receive timeout! \n");
-//		HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-//		ui8_state=STATE_LOST;
-//	  	CLEAR_BIT(DMA1_Channel5->CCR, DMA_CCR_EN);
-//	  	DMA1_Channel5->CNDTR=sizeof(ui8_rx_buffer);
-//	  	SET_BIT(DMA1_Channel5->CCR, DMA_CCR_EN);
-//
-//		if (HAL_UART_Receive_DMA(&huart1, (uint8_t*) ui8_rx_buffer, sizeof(ui8_rx_buffer)) != HAL_OK) {
-//			Error_Handler();
-//		}
-//
-//	}
-	sprintf_(ui8_UART3_tx_buffer, "Hallo Welt\r\n");
-	int i = 0;
-	while (ui8_UART3_tx_buffer[i] != '\0') {
-		i++;
-	}
-	HAL_HalfDuplex_EnableTransmitter(&huart3);
-	HAL_UART_Transmit_DMA(&huart3, (uint8_t*) ui8_UART3_tx_buffer,i);
+	ui8_recentpointerposition = 132 - (DMA1_Channel3->CNDTR); //Pointer of UART1RX DMA Channel
+	ui8_messagelength=ui8_oldpointerposition-ui8_recentpointerposition;
 
-	ui8_recentpointerposition = sizeof(ui8_UART3_rx_buffer) - (DMA1_Channel3->CNDTR); //Pointer of UART1RX DMA Channel
-		if (ui8_recentpointerposition<ui8_oldpointerposition){
-			ui8_oldpointerposition=ui8_recentpointerposition-1;
-			ui8_state=STATE_LOST;
-		}
-//		while(ui8_oldpointerposition!=ui8_recentpointerposition){
-//
-//			switch (ui8_state) {
-//			case STATE_LOST: { //if no message start is detected yet, search for start pattern 0x55 0xAA
-//				if(ui8_rx_buffer[ui8_oldpointerposition]==0xAA&&ui8_rx_buffer[ui8_oldpointerposition-1]==0x55){
-//					ui8_messagestartpos=ui8_oldpointerposition-1;
-//					if(ui8_messagestartpos<sizeof(ui8_rx_buffer)-24){
-//					ui8_state=STATE_START_DETECTED;
-//					}
-//				}
-//			}
-//				break;
-//
-//			case STATE_START_DETECTED: { //read the lenght of the message
-//				if(ui8_oldpointerposition==ui8_messagestartpos+2){
-//					ui8_messagelength=ui8_rx_buffer[ui8_oldpointerposition]+6;
-//					ui8_state=STATE_LENGTH_DETECTED;
-//				}
-//			}
-//				break;
-//			case STATE_LENGTH_DETECTED: { //read whole message and call processing
-//				if(ui8_oldpointerposition==ui8_messagestartpos+ui8_messagelength-1){
-//					memcpy(ui8_dashboardmessage,ui8_rx_buffer+ui8_messagestartpos,ui8_messagelength);
-//					process_DashboardMessage( MS,  MP, (uint8_t*)&ui8_dashboardmessage,ui8_messagelength,huart1);
-//					ui8_state=STATE_LOST;
-//				  	   CLEAR_BIT(DMA1_Channel5->CCR, DMA_CCR_EN);
-//				  	   DMA1_Channel5->CNDTR=sizeof(ui8_rx_buffer);
-//				  	   SET_BIT(DMA1_Channel5->CCR, DMA_CCR_EN);
-//				  	   ui32_timeoutcounter=0;
-//
-//
-//				}
-//			}
-//				break;
-//			} //end switch
-//
-//			ui8_oldpointerposition=(ui8_oldpointerposition+1)% sizeof(ui8_rx_buffer);
-//		}// end of while
-		ui32_timeoutcounter++;
+
+				memcpy(ui8_dashboardmessage,ui8_UART3_rx_buffer+(ui8_oldpointerposition%132),ui8_messagelength);
+				//process_DashboardMessage( MS,  MP, (uint8_t*)&ui8_dashboardmessage,ui8_messagelength,huart3);
+
+				ui8_recentpointerposition=ui8_oldpointerposition;
+
 }
 
 void process_DashboardMessage(MotorState_t *MS, MotorParams_t *MP, uint8_t *message, uint8_t length, UART_HandleTypeDef huart3 ){
@@ -406,7 +348,7 @@ void process_DashboardMessage(MotorState_t *MS, MotorParams_t *MP, uint8_t *mess
 			ui8_UART3_tx_buffer[startAddress] =0;
 			addCRC((uint8_t*)ui8_UART3_tx_buffer, ui8_UART3_tx_buffer[msglength]+6);
 			HAL_HalfDuplex_EnableTransmitter(&huart3);
-			HAL_UART_Transmit_DMA(&huart3, (uint8_t*)ui8_UART3_tx_buffer, ui8_UART3_tx_buffer[msglength]+6);
+		HAL_UART_Transmit_DMA(&huart3, (uint8_t*)ui8_UART3_tx_buffer, ui8_UART3_tx_buffer[msglength]+6);
 			}
 			break;
 

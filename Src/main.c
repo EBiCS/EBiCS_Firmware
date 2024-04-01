@@ -585,34 +585,13 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	 /* if(PI_flag){
-	  runPIcontrol();
-	  PI_flag=0;
-	  }*/
+
 
 
 	  //display message processing
 	  if(ui8_UART_flag){
-#if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
-	  kingmeter_update();
-#endif
-
-
-#if (DISPLAY_TYPE == DISPLAY_TYPE_BAFANG)
-	  bafang_update();
-#endif
-
-#if (DISPLAY_TYPE == DISPLAY_TYPE_KUNTENG)
-	  check_message(&MS, &MP);
-	  if(MS.assist_level==6)ui8_Push_Assist_flag=1;
-	  else ui8_Push_Assist_flag=0;
-#endif
-
-#if (DISPLAY_TYPE & DISPLAY_TYPE_EBiCS)
-	//  process_ant_page(&MS, &MP);
-#endif
-
-	  ui8_UART_flag=0;
+		  search_DashboardMessage(&MS, &MP, huart3);
+		  ui8_UART_flag=0;
 	  }
 
 
@@ -937,7 +916,7 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 //----------------------------------------------------------------------------------------------------------------------------------------------------------
 	  //slow loop procedere @16Hz, for LEV standard every 4th loop run, send page,
 	  if(ui32_tim3_counter>500){
-			search_DashboardMessage(&MS, &MP, huart3);
+
 			//checkButton(&MP, &MS);
 
 
@@ -1001,7 +980,7 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 		  //print values for debugging
 
 
-		  sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", MS.light,  MS.mode, HAL_GPIO_ReadPin (GPIOA, GPIO_PIN_15),HAL_GPIO_ReadPin (GPIOB, GPIO_PIN_5), int32_temp_current_target , MS.i_q, uint16_idle_run_counter, MS.system_state);
+		  sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", MS.light,  MS.mode, ui8_oldpointerposition, ui8_recentpointerposition, ui8_messagelength , MS.i_q, uint16_idle_run_counter, MS.system_state);
 		  // sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5]),(uint16_t)(adcData[6])) ;
 		  // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",tic_array[0],tic_array[1],tic_array[2],tic_array[3],tic_array[4],tic_array[5]) ;
 		  i=0;
@@ -1517,10 +1496,7 @@ static void MX_USART3_UART_Init(void)
   {
     Error_Handler();
   }
-//  if (HAL_UART_Init(&huart3) != HAL_OK)
-//  {
-//    _Error_Handler(__FILE__, __LINE__);
-//  }
+  __HAL_UART_ENABLE_IT(&huart3, UART_IT_IDLE);
   /* USER CODE BEGIN USART3_Init 2 */
 
   /* USER CODE END USART3_Init 2 */
@@ -1955,12 +1931,17 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 
 }
 
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *UartHandle)
+//void HAL_UART_RxCpltCallback(UART_HandleTypeDef *UartHandle)
+//{
+//	ui8_UART_flag=1;
+//
+//}
+
+void UART_IdleItCallback(void)
 {
 	ui8_UART_flag=1;
 
 }
-
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *UartHandle)
 {
 	ui8_UART_TxCplt_flag=1;
