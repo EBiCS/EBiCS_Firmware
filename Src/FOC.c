@@ -258,7 +258,7 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 			q31_erps_filtered-=q31_erps_filtered>>4;
 			q31_erps_filtered+=q31_erps_counter;
 			if(MS_FOC->Obs_flag)MS_FOC->Speed=q31_erps_filtered>>4;
-			temp4=q31_erps_filtered>>4;
+			//temp4=q31_erps_filtered>>4;
 			q31_erps_counter=0;
 		}
 		q31_angle_old=MS_FOC->teta_obs;

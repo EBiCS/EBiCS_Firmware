@@ -980,7 +980,7 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 		  //print values for debugging
 
 
-		  sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", MS.light,  MS.mode, ui8_oldpointerposition, ui8_recentpointerposition, ui8_messagelength , MS.i_q, uint16_idle_run_counter, MS.system_state);
+		  sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", MS.light,  MS.mode, temp4, temp5, temp6 , MS.i_q, uint16_idle_run_counter, MS.system_state);
 		  // sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5]),(uint16_t)(adcData[6])) ;
 		  // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",tic_array[0],tic_array[1],tic_array[2],tic_array[3],tic_array[4],tic_array[5]) ;
 		  i=0;
@@ -1944,7 +1944,7 @@ void UART_IdleItCallback(void)
 }
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *UartHandle)
 {
-	ui8_UART_TxCplt_flag=1;
+	if(UartHandle==&huart3)HAL_HalfDuplex_EnableReceiver(&huart3);
 }
 
 void HAL_UART_ErrorCallback(UART_HandleTypeDef *UartHandle) {
@@ -2407,7 +2407,7 @@ q31_t speed_PLL (q31_t ist, q31_t soll, uint8_t speedadapt)
     q31_t q31_p;
     static q31_t q31_d_i = 0;
     static q31_t q31_d_dc = 0;
-    temp6 = soll-ist;
+    //temp6 = soll-ist;
   //  temp5 = speedadapt;
     q31_p=(soll - ist)>>(P_FACTOR_PLL-speedadapt);   				//7 for Shengyi middrive, 10 for BionX IGH3
     q31_d_i+=(soll - ist)>>(I_FACTOR_PLL-speedadapt);				//11 for Shengyi middrive, 10 for BionX IGH3
