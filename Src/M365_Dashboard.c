@@ -115,7 +115,7 @@ void process_DashboardMessage(MotorState_t *MS, MotorParams_t *MP, uint8_t *mess
 			ui8_UART3_tx_buffer[command]=message[command];
 			ui8_UART3_tx_buffer[Speed]=MS->Speed;
 			ui8_UART3_tx_buffer[Mode]=MS->mode;
-			ui8_UART3_tx_buffer[SOC]=map(MS->Voltage,BATTERYVOLTAGE_MIN,BATTERYVOLTAGE_MAX,0,96);
+			ui8_UART3_tx_buffer[SOC]=map(MS->Voltage* CAL_BAT_V,BATTERYVOLTAGE_MIN,BATTERYVOLTAGE_MAX,0,96);
 			if(MS->light)ui8_UART3_tx_buffer[Light]=64;
 			else ui8_UART3_tx_buffer[Light]=0;
 			ui8_UART3_tx_buffer[Beep]= MS->beep;

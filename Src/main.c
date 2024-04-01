@@ -333,7 +333,7 @@ int main(void)
 
   //initialize MS struct.
   MS.hall_angle_detect_flag=1;
-  MS.Speed=128000;
+  MS.Speed=0;
   MS.assist_level=127;
   MS.regen_level=7;
 	MS.i_q_setpoint = 0;
@@ -679,7 +679,7 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 	  if(ui32_tim3_counter>500){
 
 			//checkButton(&MP, &MS);
-
+		  MS.Speed=tics_to_speed(uint32_tics_filtered>>3);
 
 		  HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
 		  if(MS.Obs_flag)arm_sin_cos_q31(FILTER_DELAY/((MS.Speed)+1), &MS.sin_delay_filter, &MS.cos_delay_filter);
@@ -699,27 +699,9 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 		  MS.Temperature=25;
 #endif
 		  MS.Voltage=adcData[0];
-#if (SPEEDSOURCE == EXTERNAL)
-		  if(uint32_SPEED_counter>127999){
-			  MS.Speed =128000;
-
-			  uint32_SPEEDx100_cumulated=0;
-
-		  }
-#endif
-
-#ifdef INDIVIDUAL_MODES
-		  // GET recent speedcase for assist profile
-		  if (uint32_tics_filtered>>3 > speed_to_tics(assist_profile[0][1]))ui8_speedcase=0;
-		  else if (uint32_tics_filtered>>3 < speed_to_tics(assist_profile[0][1]) && uint32_tics_filtered>>3 > speed_to_tics(assist_profile[0][2]))ui8_speedcase=1;
-		  else if (uint32_tics_filtered>>3 < speed_to_tics(assist_profile[0][2]) && uint32_tics_filtered>>3 > speed_to_tics(assist_profile[0][3]))ui8_speedcase=2;
-		  else if (uint32_tics_filtered>>3 < speed_to_tics(assist_profile[0][3]) && uint32_tics_filtered>>3 > speed_to_tics(assist_profile[0][4]))ui8_speedcase=3;
-		  else if (uint32_tics_filtered>>3 < speed_to_tics(assist_profile[0][4]))ui8_speedcase=4;
-
-		  ui8_speedfactor = map(uint32_tics_filtered>>3,speed_to_tics(assist_profile[0][ui8_speedcase+1]),speed_to_tics(assist_profile[0][ui8_speedcase]),assist_profile[1][ui8_speedcase+1],assist_profile[1][ui8_speedcase]);
 
 
-#endif
+
 //check if rotor is turning
 		  if(!MS.Obs_flag){
 				if ((uint16_full_rotation_counter > 7999
