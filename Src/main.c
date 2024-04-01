@@ -345,6 +345,8 @@ int main(void)
   MP.pulses_per_revolution = PULSES_PER_REVOLUTION;
   MP.wheel_cirumference = WHEEL_CIRCUMFERENCE;
   MP.speedLimit=SPEEDLIMIT;
+  MP.phase_current_limit=PH_CURRENT_MAX_NORMAL;
+  MP.regen_current=PH_CURRENT_MAX_NORMAL;
   MP.com_mode=Hallsensor;
 if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_flag=1;
 
@@ -595,64 +597,8 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 	  }
 
 
-	  //process regualr ADC
-	  if(ui8_adc_regular_flag){
-		ui32_torque_raw_cumulated -= ui32_torque_raw_cumulated>>4;
-	#ifdef TQONAD1
-		ui32_torque_raw_cumulated += adcData[6]; //get value from AD1 PB1
-	#else
-		ui32_torque_raw_cumulated += adcData[1]; //get value from SP
-	#endif
-		ui32_brake_adc_cumulated -= ui32_brake_adc_cumulated>>4;
-		ui32_brake_adc_cumulated+=adcData[5];//get value for analog brake from AD2 = PB0
-		ui16_brake_adc=ui32_brake_adc_cumulated>>4;
-		ui16_torque = ui32_torque_raw_cumulated>>4;
 
-		ui8_adc_regular_flag=0;
 
-	  }
-
-	  //PAS signal processing
-	  if(ui8_PAS_flag){
-		  if(uint32_PAS_counter>100){ //debounce
-		  uint32_PAS_cumulated -= uint32_PAS_cumulated>>2;
-		  uint32_PAS_cumulated += uint32_PAS_counter;
-		  uint32_PAS = uint32_PAS_cumulated>>2;
-
-		  uint32_PAS_HIGH_accumulated-=uint32_PAS_HIGH_accumulated>>2;
-		  uint32_PAS_HIGH_accumulated+=uint32_PAS_HIGH_counter;
-
-		  uint32_PAS_fraction=(uint32_PAS_HIGH_accumulated>>2)*100/uint32_PAS;
-		  uint32_PAS_HIGH_counter=0;
-		  uint32_PAS_counter =0;
-		  ui8_PAS_flag=0;
-		  //read in and sum up torque-signal within one crank revolution (for sempu sensor 32 PAS pulses/revolution, 2^5=32)
-		  uint32_torque_cumulated -= uint32_torque_cumulated>>5;
-#ifdef NCTE
-		  if(ui16_torque<TORQUE_OFFSET)uint32_torque_cumulated += (TORQUE_OFFSET-ui16_torque);
-#else
-		  if(ui16_torque>TORQUE_OFFSET)uint32_torque_cumulated += (ui16_torque-TORQUE_OFFSET);
-#endif
-		  }
-	  }
-
-	  //SPEED signal processing
-#if (SPEEDSOURCE == INTERNAL)
-			 if(!MS.Obs_flag) MS.Speed = uint32_tics_filtered>>3;
-#else
-
-	  if(ui8_SPEED_flag){
-
-		  if(uint32_SPEED_counter>200){ //debounce
-			  MS.Speed = uint32_SPEED_counter;
-			  //HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-			  uint32_SPEED_counter =0;
-			  ui8_SPEED_flag=0;
-			  uint32_SPEEDx100_cumulated -=uint32_SPEEDx100_cumulated>>SPEEDFILTER;
-			  uint32_SPEEDx100_cumulated +=external_tics_to_speedx100(MS.Speed);
-		  }
-	  }
-#endif
 	  if(ui8_SPEED_control_flag){
 #if (SPEEDSOURCE == INTERNAL)
 		uint32_SPEEDx100_cumulated -=uint32_SPEEDx100_cumulated>>SPEEDFILTER;
@@ -681,195 +627,10 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 
 		//--------------------------------------------------------------------------------------------------------------------------------------------------
 
-			  //current target calculation
-			//highest priority: regen by brake lever
-
-
-#ifdef ADC_BRAKE
-		uint16_mapped_BRAKE = map(ui16_brake_adc, THROTTLE_OFFSET , THROTTLE_MAX, 0, REGEN_CURRENT);
-
-
-		if(uint16_mapped_BRAKE>0) brake_flag=1;
-		else brake_flag=0;
-
-
-		if(brake_flag){
-
-				//if(!HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin)){
-					//if(tics_to_speed(uint32_tics_filtered>>3)>6)int32_current_target=-REGEN_CURRENT; //only apply regen, if motor is turning fast enough
-				if(tics_to_speed(uint32_tics_filtered>>3)>6)int32_temp_current_target=uint16_mapped_BRAKE;
-				else int32_temp_current_target=0;
-
-
-#else
-		if(HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin)) brake_flag=0;
-		else brake_flag=1;
-				if(brake_flag){
-
-						if(tics_to_speed(uint32_tics_filtered>>3)>6){
-							int32_temp_current_target=REGEN_CURRENT; //only apply regen, if motor is turning fast enough
-							}
-						else int32_temp_current_target=0;
-
-#endif
-						HAL_GPIO_WritePin(BRAKE_LIGHT_GPIO_Port, BRAKE_LIGHT_Pin, GPIO_PIN_SET);
-						int32_temp_current_target= -map(MS.Voltage*CAL_BAT_V,BATTERYVOLTAGE_MAX-1000,BATTERYVOLTAGE_MAX,int32_temp_current_target,0);
-				}
-
-				//next priority: undervoltage protection
-				else if(MS.Voltage<VOLTAGE_MIN)int32_temp_current_target=0;
-				//next priority: push assist
-				else if(ui8_Push_Assist_flag)int32_temp_current_target=PUSHASSIST_CURRENT;
-				// last priority normal ride conditiones
-				else {
-					HAL_GPIO_WritePin(BRAKE_LIGHT_GPIO_Port, BRAKE_LIGHT_Pin, GPIO_PIN_RESET);
-
-		#ifdef TS_MODE //torque-sensor mode
-					//calculate current target form torque, cadence and assist level
-					int32_temp_current_target = (TS_COEF*(int16_t)(MS.assist_level)* (uint32_torque_cumulated>>5)/uint32_PAS)>>8; //>>5 aus Mittelung über eine Kurbelumdrehung, >>8 aus KM5S-Protokoll Assistlevel 0..255
-
-					//limit currest target to max value
-					if(int32_temp_current_target>PH_CURRENT_MAX) int32_temp_current_target = PH_CURRENT_MAX;
-					//set target to zero, if pedals are not turning
-					if(uint32_PAS_counter > PAS_TIMEOUT){
-						int32_temp_current_target = 0;
-						if(uint32_torque_cumulated>0)uint32_torque_cumulated--; //ramp down cumulated torque value
-					}
 
 
 
-		#else		// torque-simulation mode with throttle override
-
-		#if (DISPLAY_TYPE == DISPLAY_TYPE_BAFANG)
-			  uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, (PH_CURRENT_MAX*(int32_t)(assist_factor[MS.assist_level]))>>8, 0); // level in range 0...5
-		#endif
-
-		#if (DISPLAY_TYPE == DISPLAY_TYPE_KUNTENG)
-			  uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, (PH_CURRENT_MAX*(int32_t)(MS.assist_level))/5, 0); // level in range 0...5
-		#endif
-
-		#if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_618U)
-			  uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, (PH_CURRENT_MAX*(int32_t)(MS.assist_level-1))>>2, 0); // level in range 1...5
-		#endif
-
-		#if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_901U)
-			  uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, ((PH_CURRENT_MAX*(int32_t)(MS.assist_level)))>>8, 0); // level in range 0...255
-		#endif
-
-		#if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG)
-			 uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, PH_CURRENT_MAX, 0); // Full amps in debug mode
-		#endif
-
-
-
-		#ifdef DIRDET
-			  if (uint32_PAS_counter< PAS_TIMEOUT){
-				  if ((uint32_PAS_fraction < FRAC_LOW ||uint32_PAS_fraction > FRAC_HIGH)){
-					  uint16_mapped_PAS= 0;//pedals are turning backwards, stop motor
-				  }
-			  }
-			  else uint32_PAS_HIGH_accumulated=uint32_PAS_cumulated;
-		#endif //end direction detection
-
-
-		#endif //end if else TQ sensor mode
-
-#ifdef INDIVIDUAL_MODES
-
-			  uint16_mapped_PAS = (uint16_mapped_PAS * ui8_speedfactor)>>8;
-
-#endif
-
-#ifdef THROTTLE_OVERRIDE
-
-
-//#ifdef NCTE
-//			  // read in throttle for throttle override
-//			  uint16_mapped_throttle = map(ui16_throttle, THROTTLE_MAX, THROTTLE_OFFSET,PH_CURRENT_MAX,0);
-//
-//
-//#else //else NTCE
-//			  // read in throttle for throttle override
-//			  uint16_mapped_throttle = map(adcData[1], THROTTLE_OFFSET, THROTTLE_MAX, 0,PH_CURRENT_MAX);
-//
-//#endif //end NTCE
-
-			  uint16_mapped_throttle = map(adcData[1], THROTTLE_OFFSET, THROTTLE_MAX, 0,PH_CURRENT_MAX); //throttle override, no torque override in this version actually
-
-#ifndef TS_MODE //normal PAS Mode
-
-			    if (uint32_PAS_counter < PAS_TIMEOUT) int32_temp_current_target = uint16_mapped_PAS;		//set current target in torque-simulation-mode, if pedals are turning
-				  else  {
-					  int32_temp_current_target= 0;//pedals are not turning, stop motor
-					  uint32_PAS_cumulated=32000;
-					  uint32_PAS=32000;
-				  }
-
-#endif		// end #ifndef TS_MODE
-			    //check for throttle override
-				if(uint16_mapped_throttle>int32_temp_current_target){
-
-#ifdef SPEEDTHROTTLE
-
-
-					uint16_mapped_throttle = uint16_mapped_throttle*SPEEDLIMIT/PH_CURRENT_MAX;//throttle override: calulate speed target from thottle
-
-
-
-
-					  PI_speed.setpoint = uint16_mapped_throttle*100;
-					  PI_speed.recent_value = internal_tics_to_speedx100(uint32_tics_filtered>>3);
-					 if( PI_speed.setpoint)SET_BIT(TIM1->BDTR, TIM_BDTR_MOE);
-					if (internal_tics_to_speedx100(uint32_tics_filtered>>3)<300){//control current slower than 3 km/h
-						PI_speed.limit_i=100;
-						PI_speed.limit_output=100;
-						int32_temp_current_target = PI_control(&PI_speed);
-
-						if(int32_temp_current_target>100)int32_temp_current_target=100;
-						if(int32_temp_current_target*i8_direction*i8_reverse_flag<0){
-							int32_temp_current_target=0;
-						}
-
-					}
-					else{
-
-
-						if(ui8_SPEED_control_flag){//update current target only, if new hall event was detected
-							PI_speed.limit_i=PH_CURRENT_MAX;
-							PI_speed.limit_output=PH_CURRENT_MAX;
-							int32_temp_current_target = PI_control(&PI_speed);
-							ui8_SPEED_control_flag=0;
-							}
-						if(int32_temp_current_target*i8_direction*i8_reverse_flag<0)int32_temp_current_target=0;
-
-						}
-
-
-
-#else // end speedthrottle
-					int32_temp_current_target=uint16_mapped_throttle;
-#endif  //end speedthrottle
-
-				  } //end else of throttle override
-
-#endif //end throttle override
-
-				} //end else for normal riding
-				  //ramp down setpoint at speed limit
-#ifdef LEGALFLAG
-			if(!brake_flag){ //only ramp down if no regen active
-				if(uint32_PAS_counter<PAS_TIMEOUT){
-					int32_temp_current_target=map(uint32_SPEEDx100_cumulated>>SPEEDFILTER, MP.speedLimit*100,(MP.speedLimit+2)*100,int32_temp_current_target,0);
-					}
-				else{ //limit to 6km/h if pedals are not turning
-					int32_temp_current_target=map(uint32_SPEEDx100_cumulated>>SPEEDFILTER, 500,700,int32_temp_current_target,0);
-					}
-				}
-//			else int32_temp_current_target=int32_temp_current_target;
-#else //legalflag
-				MS.i_q_setpoint=int32_temp_current_target;
-#endif //legalflag
-				MS.i_q_setpoint=map(MS.Temperature, 120,130,int32_temp_current_target,0); //ramp down power with temperature to avoid overheating the motor
+				MS.i_q_setpoint=map(MS.Temperature, 120,130,MS.i_q_setpoint_temp,0); //ramp down power with temperature to avoid overheating the motor
 				//auto KV detect
 			  if(ui8_KV_detect_flag){
 				  MS.i_q_setpoint=ui8_KV_detect_flag;
@@ -980,7 +741,7 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 		  //print values for debugging
 
 
-		  sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", MS.light,  MS.mode, temp4, temp5, temp6 , MS.i_q, uint16_idle_run_counter, MS.system_state);
+		  sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", temp4,  temp5, MS.i_q_setpoint, MS.i_q_setpoint_temp, MS.brake_active , MS.i_q, uint16_idle_run_counter, MS.system_state);
 		  // sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5]),(uint16_t)(adcData[6])) ;
 		  // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",tic_array[0],tic_array[1],tic_array[2],tic_array[3],tic_array[4],tic_array[5]) ;
 		  i=0;

@@ -75,9 +75,9 @@
 #define THROTTLE_MAX 2850
 #define THROTTLE_OVERRIDE
 #define THROTTLEOFFSET 45
-#define THROTTLEMAX 175
-#define BRAKEOFFSET 50
-#define BRAKEMAX 190
+#define THROTTLEMAX 200
+#define BRAKEOFFSET 38
+#define BRAKEMAX 205
 
 //--------------------------------------------------------------------
 //Speed settings
@@ -98,9 +98,9 @@
 #define VOLTAGE_MIN 1320 //33V
 
 // motor current limits for invividual modes in mA, see default settings at https://max.cfw.sh/#
-#define PH_CURRENT_MAX_ECO 16000LL
-#define PH_CURRENT_MAX_NORMAL 28000LL
-#define PH_CURRENT_MAX_SPORT 55000LL
+#define PH_CURRENT_MAX_ECO 600LL
+#define PH_CURRENT_MAX_NORMAL 900LL
+#define PH_CURRENT_MAX_SPORT 1200LL
 
 // speed limits for invividual modes in kph
 #define SPEEDLIMIT_ECO 6

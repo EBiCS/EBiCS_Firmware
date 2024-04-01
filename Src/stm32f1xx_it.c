@@ -402,7 +402,8 @@ void USART1_IRQHandler(void)
 void USART3_IRQHandler(void) {
 	/* USER CODE BEGIN USART1_IRQn 0 */
 
-
+	 if (huart3.Instance->SR & UART_FLAG_IDLE)
+		  {
 	    // clear the IDLE interrupt
 	    // see RM0008 27.6.1 Status register (USART_SR)
 
@@ -417,7 +418,9 @@ void USART3_IRQHandler(void) {
 	    //
 	    //HAL_UART_RxCpltCallback(&huart1);
 	    UART_IdleItCallback();
-	    HAL_UART_IRQHandler(&huart3);
+		  }
+
+	 	else HAL_UART_IRQHandler(&huart3);
 
 
 }

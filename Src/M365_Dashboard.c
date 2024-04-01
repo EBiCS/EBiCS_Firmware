@@ -24,8 +24,7 @@ enum { STATE_LOST, STATE_START_DETECTED, STATE_LENGTH_DETECTED };
 UART_HandleTypeDef huart3;
 static uint8_t ui8_UART3_rx_buffer[132];
 static uint8_t ui8_dashboardmessage[132];
-static uint8_t enc[128];
-static char buffer[64];
+
 static uint8_t	ui8_UART3_tx_buffer[96];// = {0x55, 0xAA, 0x08, 0x21, 0x64, 0x00, 0x01, 0xF0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 static uint8_t ui8_oldpointerposition=0;
 static uint8_t ui8_recentpointerposition=0;
@@ -33,9 +32,7 @@ static uint8_t ui8_recentpointerposition=0;
 static uint8_t ui8_messagelength=0;
 //static uint8_t ui8_state= STATE_LOST;
 //static uint32_t ui32_timeoutcounter=0;
-static uint16_t ui16_update_size=0;
-static uint32_t flashstartaddress = 0x08008400;
-static uint32_t updateflagaddress = 0x0800FC00;
+
 //static uint32_t sysinfoaddress = 0x0800F800;
 //static uint32_t proc_ID_address = 0x1FFFF7E8;
 char sys_info[512] = {
@@ -44,8 +41,7 @@ char sys_info[512] = {
 
 char *target;
 char *source;
-static uint8_t ui8_target_offset;
-static uint8_t ui8_source_offset;
+
 
 
 M365_menory_table_t MT;
@@ -98,9 +94,7 @@ void search_DashboardMessage(MotorState_t *MS, MotorParams_t *MP, UART_HandleTyp
 				ui8_messagelength=ui8_recentpointerposition-ui8_oldpointerposition;
 				memcpy(ui8_dashboardmessage,ui8_UART3_rx_buffer+(ui8_oldpointerposition%132),ui8_messagelength);
 				process_DashboardMessage( MS,  MP, (uint8_t*)&ui8_dashboardmessage,ui8_messagelength,huart3);
-				temp4 = ui8_recentpointerposition;
-				temp5 = ui8_oldpointerposition;
-				temp6 = ui8_messagelength;
+
 	}
 	ui8_oldpointerposition=ui8_recentpointerposition;
 }
@@ -111,7 +105,7 @@ void process_DashboardMessage(MotorState_t *MS, MotorParams_t *MP, uint8_t *mess
 	if(!checkCRC(message, length)){
 	//55 AA 06 21 64 00 00 00 00 00 74 FF
 	//55	AA	8	21	64	0	20	0	0	1	0	12	3F	FF
-
+		ui8_UART3_tx_buffer[Speed]=3;
 		switch (message[command]) {
 
 		case 0x64: {
@@ -137,7 +131,9 @@ void process_DashboardMessage(MotorState_t *MS, MotorParams_t *MP, uint8_t *mess
 			break;
 
 		case 0x65: {
-
+			temp4 = message[Brake];
+			temp5 = message[Throttle];
+			temp6 = ui8_messagelength;
 			if(message[Brake]<BRAKEOFFSET>>1)MS->error_state=brake;
 			else if(MS->error_state==brake)MS->error_state=none;
 			if(map(message[Brake],BRAKEOFFSET,BRAKEMAX,0,MP->regen_current)>0){
