@@ -682,6 +682,8 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 		  MS.Speed=tics_to_speed(uint32_tics_filtered>>3);
 
 		  HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+		  if(MS.brake_active)HAL_GPIO_WritePin(BRAKE_LIGHT_GPIO_Port, BRAKE_LIGHT_Pin,SET);
+		  else HAL_GPIO_WritePin(BRAKE_LIGHT_GPIO_Port, BRAKE_LIGHT_Pin,RESET);
 		  if(MS.Obs_flag)arm_sin_cos_q31(FILTER_DELAY/((MS.Speed)+1), &MS.sin_delay_filter, &MS.cos_delay_filter);
 		  if(MP.com_mode==Hallsensor_Sensorless&&MS.Speed<8000&&!MS.Obs_flag)MS.Obs_flag=1;
 		  if(MS.system_state==IdleRun)uint16_idle_run_counter++;
