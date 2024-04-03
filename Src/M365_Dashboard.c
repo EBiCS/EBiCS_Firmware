@@ -105,7 +105,7 @@ void process_DashboardMessage(MotorState_t *MS, MotorParams_t *MP, uint8_t *mess
 	if(!checkCRC(message, length)){
 	//55 AA 06 21 64 00 00 00 00 00 74 FF
 	//55	AA	8	21	64	0	20	0	0	1	0	12	3F	FF
-		ui8_UART3_tx_buffer[Speed]=3;
+
 		switch (message[command]) {
 
 		case 0x64: {
@@ -124,7 +124,10 @@ void process_DashboardMessage(MotorState_t *MS, MotorParams_t *MP, uint8_t *mess
 			addCRC((uint8_t*)ui8_UART3_tx_buffer, ui8_UART3_tx_buffer[msglength]+6);
 			HAL_HalfDuplex_EnableTransmitter(&huart3);
 			HAL_UART_Transmit_DMA(&huart3, (uint8_t*)ui8_UART3_tx_buffer, ui8_UART3_tx_buffer[msglength]+6);
-			if(MS->beep&&ui8_UART3_tx_buffer[Beep])MS->beep = 0;
+			if(MS->beep&&ui8_UART3_tx_buffer[Beep]){
+				MS->beep = 0;
+
+				}
 
 			}
 

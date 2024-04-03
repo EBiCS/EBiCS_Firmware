@@ -588,7 +588,11 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
   while (1)
   {
 
+	    if(ui8_adc_regular_flag){
+	    	checkButton(&MP, &MS);
+	    	ui8_adc_regular_flag=0;
 
+	    }
 
 	  //display message processing
 	  if(ui8_UART_flag){
@@ -632,7 +636,9 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 
 				MS.i_q_setpoint=map(MS.Temperature, 120,130,MS.i_q_setpoint_temp,0); //ramp down power with temperature to avoid overheating the motor
 				//auto KV detect
-			  if(ui8_KV_detect_flag){
+
+
+				if(ui8_KV_detect_flag){
 				  MS.i_q_setpoint=ui8_KV_detect_flag;
 				  if(ui16_KV_detect_counter>32){
 					  ui8_KV_detect_flag++;
@@ -678,11 +684,11 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 	  //slow loop procedere @16Hz, for LEV standard every 4th loop run, send page,
 	  if(ui32_tim3_counter>500){
 
-			//checkButton(&MP, &MS);
+
 		  MS.Speed=tics_to_speed(uint32_tics_filtered>>3);
 
 		  HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-		  HAL_GPIO_WritePin(LIGHT_GPIO_Port, LIGHT_Pin,SET);
+		  //HAL_GPIO_WritePin(LIGHT_GPIO_Port, LIGHT_Pin,SET);
 		  if(MS.brake_active)HAL_GPIO_WritePin(BRAKE_LIGHT_GPIO_Port, BRAKE_LIGHT_Pin,SET);
 		  else HAL_GPIO_WritePin(BRAKE_LIGHT_GPIO_Port, BRAKE_LIGHT_Pin,RESET);
 		  if(MS.Obs_flag)arm_sin_cos_q31(FILTER_DELAY/((MS.Speed)+1), &MS.sin_delay_filter, &MS.cos_delay_filter);
@@ -1694,22 +1700,8 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *UartHandle)
 }
 
 void HAL_UART_ErrorCallback(UART_HandleTypeDef *UartHandle) {
-#if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
-       KingMeter_Init (&KM);
-#endif
 
-#if (DISPLAY_TYPE == DISPLAY_TYPE_BAFANG)
-       Bafang_Init (&BF);
-#endif
-
-#if (DISPLAY_TYPE == DISPLAY_TYPE_KUNTENG)
-       kunteng_init();
-#endif
-
-#if (DISPLAY_TYPE == DISPLAY_TYPE_EBiCS)
-//       ebics_init();
-#endif
-
+	M365Dashboard_init();
 }
 
 
