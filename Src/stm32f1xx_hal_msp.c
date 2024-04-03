@@ -114,7 +114,7 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* hadc)
     PA5     ------> ADC1_IN5
     PA6     ------> ADC1_IN6 
     */
-    GPIO_InitStruct.Pin = Throttle_Pin|Phase_Current1_Pin|Phase_Current_2_Pin|Phase_Current_3_Pin|GPIO_PIN_7; //128 for PA7 = AIN7
+    GPIO_InitStruct.Pin = Phase_Current1_Pin|Phase_Current_2_Pin|Phase_Current_3_Pin|GPIO_PIN_7; //128 for PA7 = AIN7
     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 

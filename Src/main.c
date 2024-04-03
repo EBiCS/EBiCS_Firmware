@@ -682,6 +682,7 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 		  MS.Speed=tics_to_speed(uint32_tics_filtered>>3);
 
 		  HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+		  HAL_GPIO_WritePin(LIGHT_GPIO_Port, LIGHT_Pin,SET);
 		  if(MS.brake_active)HAL_GPIO_WritePin(BRAKE_LIGHT_GPIO_Port, BRAKE_LIGHT_Pin,SET);
 		  else HAL_GPIO_WritePin(BRAKE_LIGHT_GPIO_Port, BRAKE_LIGHT_Pin,RESET);
 		  if(MS.Obs_flag)arm_sin_cos_q31(FILTER_DELAY/((MS.Speed)+1), &MS.sin_delay_filter, &MS.cos_delay_filter);
@@ -902,7 +903,7 @@ if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
 
 /**Configure Regular Channel
 */
-sConfig.Channel = ADC_CHANNEL_3; //Connector SP: throttle input
+sConfig.Channel = ADC_CHANNEL_9; //Connector SP: throttle input wrong channel to make PA3 an output
 sConfig.Rank = ADC_REGULAR_RANK_2;
 sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;//ADC_SAMPLETIME_239CYCLES_5;
 if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
