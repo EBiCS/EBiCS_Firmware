@@ -97,6 +97,17 @@
 
 //#define NCTE
 //#define LEGALFLAG
+#define USE_FIX_POSITIONS 1
+//Put values from the startup message after autodetect here, if you want to use fix positions. 32bit values for the hall angles!
+#define KV 48
+#define HALL_ORDER -1
+#define HALL_45 393705605
+#define HALL_51 1085672575
+#define HALL_13 1801500475
+#define HALL_32 2493467341
+#define HALL_26 3221225706
+#define HALL_64 3960914536
+
 #define BATTERYVOLTAGE_MAX 53000
 #define R_TEMP_PULLUP 0
 #define TORQUE_OFFSET 1580
