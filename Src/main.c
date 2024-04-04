@@ -113,6 +113,7 @@ uint16_t y=0;
 uint8_t brake_flag=0;
 volatile uint8_t ui8_overflow_flag=0;
 uint8_t ui8_slowloop_counter=0;
+uint8_t ui8_bl_pwm_counter=0;
 volatile uint8_t ui8_adc_inj_flag=0;
 volatile uint8_t ui8_adc_regular_flag=0;
 uint8_t ui8_speedcase=0;
@@ -578,7 +579,7 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 
 	get_standstill_position();
 	calculate_tic_limits();
-
+	set_mode(&MP,&MS);
 
 
   /* USER CODE END 2 */
@@ -591,7 +592,12 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 	    if(ui8_adc_regular_flag){
 	    	checkButton(&MP, &MS);
 	    	ui8_adc_regular_flag=0;
-
+	    	if(MS.brake_active)MS.backlight_brigthness=31;
+	    	else if(MS.light)MS.backlight_brigthness=4;
+	    	else MS.backlight_brigthness=0;
+	    	if(ui8_bl_pwm_counter<MS.backlight_brigthness%32)HAL_GPIO_WritePin(BRAKE_LIGHT_GPIO_Port, BRAKE_LIGHT_Pin,SET);
+	    	else HAL_GPIO_WritePin(BRAKE_LIGHT_GPIO_Port, BRAKE_LIGHT_Pin,RESET);
+	    	ui8_bl_pwm_counter++;
 	    }
 
 	  //display message processing
@@ -631,7 +637,7 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 
 		//--------------------------------------------------------------------------------------------------------------------------------------------------
 
-
+				MS.i_q_setpoint_temp = map(uint32_tics_filtered >> 3, tics_higher_limit, tics_lower_limit, 0, MS.i_q_setpoint_temp); //ramp down current at speed limit
 
 
 				MS.i_q_setpoint=map(MS.Temperature, 120,130,MS.i_q_setpoint_temp,0); //ramp down power with temperature to avoid overheating the motor
@@ -689,8 +695,8 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 
 		  HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
 		  //HAL_GPIO_WritePin(LIGHT_GPIO_Port, LIGHT_Pin,SET);
-		  if(MS.brake_active)HAL_GPIO_WritePin(BRAKE_LIGHT_GPIO_Port, BRAKE_LIGHT_Pin,SET);
-		  else HAL_GPIO_WritePin(BRAKE_LIGHT_GPIO_Port, BRAKE_LIGHT_Pin,RESET);
+//		  if(MS.brake_active)HAL_GPIO_WritePin(BRAKE_LIGHT_GPIO_Port, BRAKE_LIGHT_Pin,SET);
+//		  else HAL_GPIO_WritePin(BRAKE_LIGHT_GPIO_Port, BRAKE_LIGHT_Pin,RESET);
 		  if(MS.Obs_flag)arm_sin_cos_q31(FILTER_DELAY/((MS.Speed)+1), &MS.sin_delay_filter, &MS.cos_delay_filter);
 		  if(MP.com_mode==Hallsensor_Sensorless&&MS.Speed<8000&&!MS.Obs_flag)MS.Obs_flag=1;
 		  if(MS.system_state==IdleRun)uint16_idle_run_counter++;

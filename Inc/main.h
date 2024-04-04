@@ -177,7 +177,7 @@ typedef struct
 	int8_t 			Obs_flag;
 	q31_t       	sin_delay_filter;
 	q31_t       	cos_delay_filter;
-
+	uint8_t 		backlight_brigthness;
 	bool 			light;
 	bool 			beep;
 	bool 			brake_active;
