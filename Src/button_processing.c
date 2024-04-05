@@ -96,7 +96,7 @@ void buttonState() {
 void checkButton(MotorParams_t *MP,MotorState_t *MS) {
 	/* Infinite loop */
 	  buttonState();
-	  if(MS->shutdown>85&&(MS->mode>>4)) power_control(DEV_PWR_OFF);
+	  if(MS->shutdown>15&&(MS->mode>>4)) power_control(DEV_PWR_OFF);
 
 			switch( button_event ){
 				  case NO_PRESS : break ;

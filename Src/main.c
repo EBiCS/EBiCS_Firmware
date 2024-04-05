@@ -341,7 +341,7 @@ int main(void)
 	MS.i_d_setpoint = 0;
 	MS.angle_est=SPEED_PLL;
 	MS.Obs_flag=0;
-	MS.mode=4;
+	MS.mode=0;
 
 
   MP.pulses_per_revolution = PULSES_PER_REVOLUTION;
@@ -598,7 +598,7 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 	calculate_tic_limits();
 	set_mode(&MP,&MS);
 	HAL_GPIO_WritePin(TPS_ENA_GPIO_Port, TPS_ENA_Pin,SET); //enable self holding function.
-
+	while(HAL_GPIO_ReadPin( PWR_BTN_GPIO_Port, PWR_BTN_Pin ));
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -616,7 +616,7 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 	    	else HAL_GPIO_WritePin(BRAKE_LIGHT_GPIO_Port, BRAKE_LIGHT_Pin,RESET);
 	    	ui8_bl_pwm_counter++;
 	    }
-	    if (MS.shutdown) MS.shutdown++;
+
 
 	  //display message processing
 	  if(ui8_UART_flag){
@@ -708,7 +708,7 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 	  //slow loop procedere @16Hz, for LEV standard every 4th loop run, send page,
 	  if(ui32_tim3_counter>500){
 
-
+		  if (MS.shutdown) MS.shutdown++;
 		  MS.Speed=tics_to_speed(uint32_tics_filtered>>3);
 
 		  HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
