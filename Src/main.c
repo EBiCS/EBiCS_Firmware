@@ -341,6 +341,7 @@ int main(void)
 	MS.i_d_setpoint = 0;
 	MS.angle_est=SPEED_PLL;
 	MS.Obs_flag=0;
+	MS.mode=4;
 
 
   MP.pulses_per_revolution = PULSES_PER_REVOLUTION;
@@ -596,7 +597,7 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 	get_standstill_position();
 	calculate_tic_limits();
 	set_mode(&MP,&MS);
-
+	HAL_GPIO_WritePin(TPS_ENA_GPIO_Port, TPS_ENA_Pin,SET); //enable self holding function.
 
   /* USER CODE END 2 */
 
@@ -615,6 +616,7 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 	    	else HAL_GPIO_WritePin(BRAKE_LIGHT_GPIO_Port, BRAKE_LIGHT_Pin,RESET);
 	    	ui8_bl_pwm_counter++;
 	    }
+	    if (MS.shutdown) MS.shutdown++;
 
 	  //display message processing
 	  if(ui8_UART_flag){
@@ -754,7 +756,15 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 		  //print values for debugging
 
 
-		  sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n", temp4,  temp5, MS.i_q_setpoint, MS.i_q_setpoint_temp, MS.brake_active , MS.i_q, uint16_idle_run_counter, MS.system_state);
+		  sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n",
+				  HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_5),
+				  HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_8),
+				  HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_11),
+				  HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_11),
+				  HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_12),
+				  HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_15),
+				  HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_3),
+				  HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_4));
 		  // sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5]),(uint16_t)(adcData[6])) ;
 		  // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",tic_array[0],tic_array[1],tic_array[2],tic_array[3],tic_array[4],tic_array[5]) ;
 		  i=0;
@@ -1354,14 +1364,20 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin : Brake_Pin */
   GPIO_InitStruct.Pin = Brake_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(Brake_GPIO_Port, &GPIO_InitStruct);
 
+  /*Configure GPIO pins : Power Enable */
+  GPIO_InitStruct.Pin = TPS_ENA_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(TPS_ENA_GPIO_Port, &GPIO_InitStruct);
+
   /*Configure GPIO pins : Speed_EXTI5_Pin PAS_EXTI8_Pin */
-  GPIO_InitStruct.Pin = Speed_EXTI5_Pin|PAS_EXTI8_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
-  GPIO_InitStruct.Pull = GPIO_PULLUP;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+  GPIO_InitStruct.Pin = PWR_BTN_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(PWR_BTN_GPIO_Port, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
   HAL_NVIC_SetPriority(EXTI9_5_IRQn, 2, 0);//for PAS and Speed interrupt

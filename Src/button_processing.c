@@ -34,17 +34,15 @@ UART_HandleTypeDef huart3;
 void buttonState() {
     //static const uint32_t DEBOUNC = 100 ;
     static uint16_t buttoncounter;
-    if(!HAL_GPIO_ReadPin( PWR_BTN_GPIO_Port, PWR_BTN_Pin ))buttoncounter++;
+    if(HAL_GPIO_ReadPin( PWR_BTN_GPIO_Port, PWR_BTN_Pin ))buttoncounter++;
     else{
-    	if (buttoncounter>4000){
-    		button_event = LONG_PRESS;
-    	}
-    	else if (buttoncounter>500){
-    		button_event = SINGLE_PRESS;
-    	}
+    	if (buttoncounter>8000)button_event = VERY_LONG_PRESS;
+    	else if (buttoncounter>4000)button_event = LONG_PRESS;
+    	else if (buttoncounter>500)button_event = SINGLE_PRESS;
     	else button_event = NO_PRESS ;
     	buttoncounter=0;
     	}
+
     }
 
 
@@ -98,7 +96,7 @@ void buttonState() {
 void checkButton(MotorParams_t *MP,MotorState_t *MS) {
 	/* Infinite loop */
 	  buttonState();
-	  //if(MS->shutdown>85&&(MS->mode>>4)) power_control(DEV_PWR_OFF);
+	  if(MS->shutdown>85&&(MS->mode>>4)) power_control(DEV_PWR_OFF);
 
 			switch( button_event ){
 				  case NO_PRESS : break ;
@@ -109,21 +107,15 @@ void checkButton(MotorParams_t *MP,MotorState_t *MS) {
 					  MS->beep = 1;
 
 				  } break ;
-//				  case VERY_LONG_PRESS :   {
-//					  MS->mode &= ~(1 << 4); //clear "off" (bit 4)
-//					  MS->shutdown=0;
-//					  autodetect();
-//					 // commands_printf("LONG_PRESS");
-//				  } break ;
-//				  case LONG_PRESS :		{
-//					  MS->mode |= (1 << 4); //set "off" (bit 4)
-//
-//					  if(MS->shutdown==0){
-//						  MS->shutdown=1;
-//						  MS->beep = 1;
-//					  }
-//
-//				  } break ;
+				  case VERY_LONG_PRESS :   {
+					  MS->mode |= (1 << 4); //set "off" (bit 4)
+
+					  if(MS->shutdown==0){
+						  MS->shutdown=1;
+						  MS->beep = 1;
+					  }
+
+				  } break ;
 
 				  case SINGLE_PRESS : {
 					 // commands_printf("DOUBLE_PRESS");
@@ -177,17 +169,17 @@ void set_mode(MotorParams_t *MP, MotorState_t *MS){
 
 	switch( MS->mode & 0x07){ //look only on the lowest 3 bits
 		case eco :{
-			MP->phase_current_limit=PH_CURRENT_MAX_ECO/CAL_I;
+			MP->phase_current_limit=PH_CURRENT_MAX_ECO;
 			MP->speed_limit=SPEEDLIMIT_ECO;
 
 			} break ;
 		case normal :{
-			MP->phase_current_limit=PH_CURRENT_MAX_NORMAL/CAL_I;
+			MP->phase_current_limit=PH_CURRENT_MAX_NORMAL;
 			MP->speed_limit=SPEEDLIMIT_NORMAL;
 
 			} break ;
 		case sport :{
-			MP->phase_current_limit=PH_CURRENT_MAX_SPORT/CAL_I;
+			MP->phase_current_limit=PH_CURRENT_MAX_SPORT;
 			MP->speed_limit=SPEEDLIMIT_SPORT;
 
 			} break ;

@@ -87,10 +87,10 @@
 #define PAS_EXTI8_Pin GPIO_PIN_8
 #define PAS_EXTI8_GPIO_Port GPIOB
 #define PAS_EXTI8_EXTI_IRQn EXTI9_5_IRQn
-#define PWR_BTN_Pin GPIO_PIN_10
+#define PWR_BTN_Pin GPIO_PIN_8
 #define PWR_BTN_GPIO_Port GPIOB
-#define TPS_ENA_Pin GPIO_PIN_15
-#define TPS_ENA_GPIO_Port GPIOC
+#define TPS_ENA_Pin GPIO_PIN_5
+#define TPS_ENA_GPIO_Port GPIOB
 
 
 
