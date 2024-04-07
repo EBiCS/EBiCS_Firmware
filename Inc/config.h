@@ -98,9 +98,9 @@
 #define VOLTAGE_MIN 1320 //33V
 
 // motor current limits for invividual modes in mA, see default settings at https://max.cfw.sh/#
-#define PH_CURRENT_MAX_ECO 600LL
-#define PH_CURRENT_MAX_NORMAL 900LL
-#define PH_CURRENT_MAX_SPORT 1200LL
+#define PH_CURRENT_MAX_ECO 600
+#define PH_CURRENT_MAX_NORMAL 900
+#define PH_CURRENT_MAX_SPORT 1200
 
 // speed limits for invividual modes in kph
 #define SPEEDLIMIT_ECO 6
@@ -119,7 +119,7 @@
 //---------------------------------------------------------------------
 //Display settings
 #define DISPLAY_TYPE DISPLAY_TYPE_M365DASHBOARD
-
+#define BATTERY_COMMUNICATION
 
 //---------------------------------------------------------------------
 //Regen settings

@@ -113,6 +113,7 @@ uint16_t y=0;
 uint8_t brake_flag=0;
 volatile uint8_t ui8_overflow_flag=0;
 uint8_t ui8_slowloop_counter=0;
+uint8_t ui8_BC_counter=0;
 uint8_t ui8_bl_pwm_counter=0;
 volatile uint8_t ui8_adc_inj_flag=0;
 volatile uint8_t ui8_adc_regular_flag=0;
@@ -755,7 +756,7 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 #if (!defined(FAST_LOOP_LOG))
 		  //print values for debugging
 
-
+#if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG)
 		  sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n",
 				  HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_5),
 				  HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_8),
@@ -770,10 +771,34 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 		  i=0;
 		  while (buffer[i] != '\0')
 		  {i++;}
+#endif
+
+#ifdef BATTERY_COMMUNICATION
+		  //3A 16 04 00 1A 00 0D 0A
+		  buffer[0]=0x3A;
+		  buffer[1]=0x16;
+		  buffer[2]=0x04;
+		  buffer[3]=0x00;
+		  buffer[4]=0x1A;
+		  buffer[5]=0x00;
+		  buffer[6]=0x0D;
+		  buffer[7]=0x0A;
+		  i=8;
+
+		  if(ui8_BC_counter==1){
+			  buffer[2]=0x05;
+			  buffer[4]=0x1B;
+			  }
+		  if(ui8_BC_counter==2){
+			  buffer[2]=0x02;
+			  buffer[4]=0x18;
+			  }
+		  if(ui8_BC_counter<2){
+			  ui8_BC_counter++;
+			  }
+
+#endif
 		 HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);
-
-
-		  ui8_print_flag=0;
 
 #endif
 
@@ -1236,7 +1261,7 @@ static void MX_USART1_UART_Init(void)
 
   huart1.Instance = USART1;
 
-#if ((DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER) ||DISPLAY_TYPE==DISPLAY_TYPE_KUNTENG||DISPLAY_TYPE==DISPLAY_TYPE_EBiCS)
+#ifdef BATTERY_COMMUNICATION
   huart1.Init.BaudRate = 9600;
 #elif (DISPLAY_TYPE == DISPLAY_TYPE_BAFANG)
   huart1.Init.BaudRate = 1200;
