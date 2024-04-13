@@ -71,11 +71,11 @@
 #define Phase_Current_3_GPIO_Port GPIOA
 #define Temperature_Pin GPIO_PIN_1
 #define Temperature_GPIO_Port GPIOB
-#define LED_Pin GPIO_PIN_2
-#define LED_GPIO_Port GPIOB
-#define LIGHT_Pin GPIO_PIN_3
-#define LIGHT_GPIO_Port GPIOA
-#define BRAKE_LIGHT_Pin GPIO_PIN_9
+#define LED_Pin GPIO_PIN_13
+#define LED_GPIO_Port GPIOC
+#define LIGHT_Pin GPIO_PIN_9
+#define LIGHT_GPIO_Port GPIOB
+#define BRAKE_LIGHT_Pin GPIO_PIN_10
 #define BRAKE_LIGHT_GPIO_Port GPIOB
 #define PAS_Pin GPIO_PIN_8
 #define PAS_GPIO_Port GPIOB
@@ -83,19 +83,17 @@
 #define Brake_GPIO_Port GPIOA
 #define Speed_EXTI5_Pin GPIO_PIN_5
 #define Speed_EXTI5_GPIO_Port GPIOB
-#define Speed_EXTI5_EXTI_IRQn EXTI9_5_IRQn
 #define PAS_EXTI8_Pin GPIO_PIN_8
 #define PAS_EXTI8_GPIO_Port GPIOB
-#define PAS_EXTI8_EXTI_IRQn EXTI9_5_IRQn
-#define PWR_BTN_Pin GPIO_PIN_8
-#define PWR_BTN_GPIO_Port GPIOB
-#define TPS_ENA_Pin GPIO_PIN_5
+#define PWR_BTN_Pin GPIO_PIN_15
+#define PWR_BTN_GPIO_Port GPIOA
+#define TPS_ENA_Pin GPIO_PIN_4
 #define TPS_ENA_GPIO_Port GPIOB
 
 
 
 
-//#define NCTE
+#define NCTE
 //#define LEGALFLAG
 #define USE_FIX_POSITIONS 1
 //Put values from the startup message after autodetect here, if you want to use fix positions. 32bit values for the hall angles!
@@ -140,7 +138,8 @@ extern uint16_t switchtime[3];
 extern uint32_t ui32_tim1_counter;
 extern uint32_t uint32_PAS_counter;
 extern uint8_t throttle_is_set(void);
-extern void UART_IdleItCallback(void);
+extern void UART3_IdleItCallback(void);
+extern void UART1_IdleItCallback(void);
 
 
 typedef struct

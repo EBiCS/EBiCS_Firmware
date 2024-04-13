@@ -20,16 +20,21 @@
 #include "stm32f1xx.h"
 
 enum { STATE_LOST, STATE_START_DETECTED, STATE_LENGTH_DETECTED };
-
+UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart3;
 static uint8_t ui8_UART3_rx_buffer[132];
+static uint8_t ui8_UART1_rx_buffer[132];
 static uint8_t ui8_dashboardmessage[132];
+static uint8_t ui8_controllermessage[132];
 
 static uint8_t	ui8_UART3_tx_buffer[96];// = {0x55, 0xAA, 0x08, 0x21, 0x64, 0x00, 0x01, 0xF0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 static uint8_t ui8_oldpointerposition=0;
 static uint8_t ui8_recentpointerposition=0;
+static uint8_t ui8_oldpointerposition_1=0;
+static uint8_t ui8_recentpointerposition_1=0;
 //static uint8_t ui8_messagestartpos=255;
 static uint8_t ui8_messagelength=0;
+static uint8_t ui8_messagelength_1=0;
 //static uint8_t ui8_state= STATE_LOST;
 //static uint32_t ui32_timeoutcounter=0;
 
@@ -81,7 +86,10 @@ void M365Dashboard_init(void) {
 	MT.total_riding_time[0]=0xFFFF;
 	MT.ESC_status_2= 0x0800;
 
-
+    if (HAL_UART_Receive_DMA(&huart1, (uint8_t *)ui8_UART1_rx_buffer, sizeof(ui8_UART1_rx_buffer)) != HAL_OK)
+     {
+ 	   Error_Handler();
+     }
 
 
 
@@ -99,6 +107,19 @@ void search_DashboardMessage(MotorState_t *MS, MotorParams_t *MP, UART_HandleTyp
 	ui8_oldpointerposition=ui8_recentpointerposition;
 }
 
+void search_ControllerMessage(void){
+
+	ui8_recentpointerposition_1 = 132 - (DMA1_Channel5->CNDTR); //Pointer of UART1RX DMA Channel
+	if(ui8_recentpointerposition_1>ui8_oldpointerposition_1){
+				ui8_messagelength_1=ui8_recentpointerposition_1-ui8_oldpointerposition_1;
+				memcpy(ui8_controllermessage,ui8_UART1_rx_buffer+(ui8_oldpointerposition_1%132),ui8_messagelength_1);
+
+	}
+	ui8_oldpointerposition_1=ui8_recentpointerposition_1;
+	//push through to Dashboard
+	HAL_UART_Transmit_DMA(&huart3, (uint8_t*)ui8_controllermessage, ui8_messagelength_1);
+}
+
 void process_DashboardMessage(MotorState_t *MS, MotorParams_t *MP, uint8_t *message, uint8_t length, UART_HandleTypeDef huart3 ){
 	//while(HAL_UART_GetState(&huart1)!=HAL_UART_STATE_READY){}
 	//HAL_Delay(2); // bad style, but wait for characters coming in, if message is longer than expected
@@ -109,28 +130,10 @@ void process_DashboardMessage(MotorState_t *MS, MotorParams_t *MP, uint8_t *mess
 		switch (message[command]) {
 
 		case 0x64: {
-			ui8_UART3_tx_buffer[5]=0x00;
-			ui8_UART3_tx_buffer[msglength]=0x08;
-			ui8_UART3_tx_buffer[receiver]=0x21;
-			ui8_UART3_tx_buffer[command]=message[command];
-			ui8_UART3_tx_buffer[Speed]=MS->Speed;
-			ui8_UART3_tx_buffer[Mode]=MS->mode;
-			ui8_UART3_tx_buffer[SOC]=map(MS->Voltage* CAL_BAT_V,BATTERYVOLTAGE_MIN,BATTERYVOLTAGE_MAX,0,96);
-			if(MS->light)ui8_UART3_tx_buffer[Light]=64;
-			else ui8_UART3_tx_buffer[Light]=0;
-			ui8_UART3_tx_buffer[Beep]= MS->beep;
-			ui8_UART3_tx_buffer[errorcode]=MS->error_state;
 
-			addCRC((uint8_t*)ui8_UART3_tx_buffer, ui8_UART3_tx_buffer[msglength]+6);
-			HAL_HalfDuplex_EnableTransmitter(&huart3);
-			HAL_UART_Transmit_DMA(&huart3, (uint8_t*)ui8_UART3_tx_buffer, ui8_UART3_tx_buffer[msglength]+6);
-			if(MS->beep&&ui8_UART3_tx_buffer[Beep]){
-				MS->beep = 0;
-
-				}
-
+			//push message through to Controller
+			HAL_UART_Transmit_DMA(&huart1, (uint8_t*)message, length);
 			}
-
 			break;
 
 		case 0x65: {
@@ -156,6 +159,13 @@ void process_DashboardMessage(MotorState_t *MS, MotorParams_t *MP, uint8_t *mess
 				MS->i_q_setpoint_temp = map(message[Throttle],THROTTLEOFFSET,THROTTLEMAX,0,MP->phase_current_limit);
 				MS->brake_active=false;
 				}
+
+			if(MS->i_q_setpoint_temp>-1){
+				message[Throttle]=map(MS->i_q_setpoint,0,MP->phase_current_limit,THROTTLEOFFSET,THROTTLEMAX);
+				addCRC((uint8_t*)message, length);
+			}
+			//push message to Controller
+			HAL_UART_Transmit_DMA(&huart1, (uint8_t*)message, length);
 			}
 			break;
 

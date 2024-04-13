@@ -128,7 +128,8 @@ int16_t ui32_KV = 0;
 
 volatile uint8_t ui8_adc_offset_done_flag=0;
 volatile uint8_t ui8_print_flag=0;
-volatile uint8_t ui8_UART_flag=0;
+volatile uint8_t ui8_UART3_flag=0;
+volatile uint8_t ui8_UART1_flag=0;
 volatile uint8_t ui8_Push_Assist_flag=0;
 volatile uint8_t ui8_UART_TxCplt_flag=1;
 volatile uint8_t ui8_PAS_flag=0;
@@ -214,25 +215,6 @@ enum state SystemState;
 #define sign(x) (((x) >= 0)?(1):(-1))
 
 
-
-//variables for display communication
-#if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
-KINGMETER_t KM;
-#endif
-
-//variables for display communication
-#if (DISPLAY_TYPE == DISPLAY_TYPE_BAFANG)
-BAFANG_t BF;
-#endif
-
-#if (DISPLAY_TYPE & DISPLAY_TYPE_EBiCS)
-uint8_t ui8_main_LEV_Page_counter=0;
-uint8_t ui8_additional_LEV_Page_counter=0;
-uint8_t ui8_LEV_Page_to_send=1;
-#endif
-
-
-
 MotorState_t MS;
 MotorParams_t MP;
 
@@ -261,7 +243,7 @@ static void MX_ADC1_Init(void);
 static void MX_ADC2_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_TIM3_Init(void);
-int16_t T_NTC(uint16_t ADC);
+
 
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
                                 
@@ -370,17 +352,7 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
   PI_iq.shift=6;
   PI_iq.limit_i=_U_MAX;
 
-#ifdef SPEEDTHROTTLE
 
-  PI_speed.gain_i=I_FACTOR_SPEED;
-  PI_speed.gain_p=P_FACTOR_SPEED;
-  PI_speed.setpoint = 0;
-  PI_speed.limit_output = PH_CURRENT_MAX;
-  PI_speed.max_step=50;
-  PI_speed.shift=5;
-  PI_speed.limit_i=PH_CURRENT_MAX;
-
-#endif
 
   //Virtual EEPROM init
   HAL_FLASH_Unlock();
@@ -454,22 +426,7 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
             }
 
 
-#if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
-       KingMeter_Init (&KM);
-#endif
 
-#if (DISPLAY_TYPE == DISPLAY_TYPE_BAFANG)
-       Bafang_Init (&BF);
-#endif
-
-#if (DISPLAY_TYPE == DISPLAY_TYPE_KUNTENG)
-       kunteng_init();
-       check_message(&MS, &MP);
-#endif
-
-#if (DISPLAY_TYPE == DISPLAY_TYPE_EBiCS)
-     //  ebics_init();
-#endif
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_M365DASHBOARD)
 	M365Dashboard_init();
@@ -497,23 +454,11 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
     ui16_ph2_offset=temp2>>5;
     ui16_ph3_offset=temp3>>5;
 
-#ifdef DISABLE_DYNAMIC_ADC // set  injected channel with offsets
-	 ADC1->JSQR=0b00100000000000000000; //ADC1 injected reads phase A JL = 0b00, JSQ4 = 0b00100 (decimal 4 = channel 4)
-	 ADC1->JOFR1 = ui16_ph1_offset;
-	 ADC2->JSQR=0b00101000000000000000; //ADC2 injected reads phase B, JSQ4 = 0b00101, decimal 5
-	 ADC2->JOFR1 = ui16_ph2_offset;
-#endif
+
 
    	ui8_adc_offset_done_flag=1;
 
-#if defined (ADC_BRAKE)
 
-  	while ((adcData[5]>THROTTLE_OFFSET)&&(adcData[1]>(THROTTLE_MAX-THROTTLE_OFFSET))){HAL_Delay(200);
-   	   	   			y++;
-   	   	   			if(y==35) autodetect();
-   	   	   			}
-
-#endif
 
 
   	ui32_torque_raw_cumulated=THROTTLE_OFFSET<<4;
@@ -521,66 +466,9 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 
 
    	printf_("phase current offsets:  %d, %d, %d \n ", ui16_ph1_offset, ui16_ph2_offset, ui16_ph3_offset);
-#if (AUTODETECT == 1)
-   	if(adcData[0]>VOLTAGE_MIN) autodetect();
-   	else printf_("Battery voltage too low!:  %d,\n ",adcData[0]);
-#endif
 
 
 
-#if (!USE_FIX_POSITIONS)
-   	EE_ReadVariable(EEPROM_POS_HALL_ORDER, &i16_hall_order);
-   	   	printf_("Hall_Order: %d \n",i16_hall_order);
-   	   	// set varaiables to value from emulated EEPROM only if valid
-   	   	if(i16_hall_order!=0xFFFF) {
-   	   		int16_t temp;
-
-   	   		EE_ReadVariable(EEPROM_POS_HALL_45, &temp);
-   	   		Hall_45 = temp<<16;
-   	   		printf_("Hall_45: %d \n",	(int16_t) (((Hall_45 >> 23) * 180) >> 8));
-   	   		printf_("Hall_45: %u \n",	Hall_45);
-
-   	   		EE_ReadVariable(EEPROM_POS_HALL_51, &temp);
-   	   		Hall_51 = temp<<16;
-   	   		printf_("Hall_51: %d \n",	(int16_t) (((Hall_51 >> 23) * 180) >> 8));
-   	   		printf_("Hall_51: %u \n",	Hall_51);
-
-   	   		EE_ReadVariable(EEPROM_POS_HALL_13, &temp);
-   	   		Hall_13 = temp<<16;
-   	   		printf_("Hall_13: %d \n",	(int16_t) (((Hall_13 >> 23) * 180) >> 8));
-   	   		printf_("Hall_13: %u \n",	Hall_13);
-
-   	   		EE_ReadVariable(EEPROM_POS_HALL_32, &temp);
-   	   		Hall_32 = temp<<16;
-   	   		printf_("Hall_32: %d \n",	(int16_t) (((Hall_32 >> 23) * 180) >> 8));
-   	   		printf_("Hall_32: %u \n",	Hall_32);
-
-   	   		EE_ReadVariable(EEPROM_POS_HALL_26, &temp);
-   	   		Hall_26 = temp<<16;
-   	   		printf_("Hall_26: %d \n",	(int16_t) (((Hall_26 >> 23) * 180) >> 8));
-   	   		printf_("Hall_26: %u \n",	Hall_26);
-
-   	   		EE_ReadVariable(EEPROM_POS_HALL_64, &temp);
-   	  		Hall_64 = temp<<16;
-   	  		printf_("Hall_64: %d \n",	(int16_t) (((Hall_64 >> 23) * 180) >> 8));
-   	  		printf_("Hall_64: %u \n",	Hall_64);
-
-   	  		EE_ReadVariable(EEPROM_POS_KV, &ui32_KV);
-   	  		if(!ui32_KV)ui32_KV=111;
-   	  		printf_("KV: %d \n",ui32_KV	);
-
-   	   	}
-
-#else
-   	 i16_hall_order = HALL_ORDER;
-   	 ui32_KV = KV;
-   	 Hall_45 = HALL_45;
-   	 Hall_51 = HALL_51;
-     Hall_13 = HALL_13;
-     Hall_32 = HALL_32;
-     Hall_26 = HALL_26;
-     Hall_64 = HALL_64;
-#endif
 
 
 
@@ -598,8 +486,7 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 	get_standstill_position();
 	calculate_tic_limits();
 	set_mode(&MP,&MS);
-	HAL_GPIO_WritePin(TPS_ENA_GPIO_Port, TPS_ENA_Pin,SET); //enable self holding function.
-	while(HAL_GPIO_ReadPin( PWR_BTN_GPIO_Port, PWR_BTN_Pin ));
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -609,23 +496,51 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 
 	    if(ui8_adc_regular_flag){
 	    	checkButton(&MP, &MS);
+	    	ui32_torque_raw_cumulated -= ui32_torque_raw_cumulated>>4;
+#ifdef TQONAD1
+	    	ui32_torque_raw_cumulated += adcData[6]; //get value from AD1 PB1
+#else
+	    	ui32_torque_raw_cumulated += adcData[1]; //get value from SP
+#endif
+	    	ui16_torque = ui32_torque_raw_cumulated>>4;
 	    	ui8_adc_regular_flag=0;
-	    	if(MS.brake_active)MS.backlight_brigthness=31;
-	    	else if(MS.light)MS.backlight_brigthness=4;
-	    	else MS.backlight_brigthness=0;
-	    	if(ui8_bl_pwm_counter<MS.backlight_brigthness%32)HAL_GPIO_WritePin(BRAKE_LIGHT_GPIO_Port, BRAKE_LIGHT_Pin,SET);
-	    	else HAL_GPIO_WritePin(BRAKE_LIGHT_GPIO_Port, BRAKE_LIGHT_Pin,RESET);
-	    	ui8_bl_pwm_counter++;
 	    }
 
 
 	  //display message processing
-	  if(ui8_UART_flag){
+	  if(ui8_UART3_flag){
 		  search_DashboardMessage(&MS, &MP, huart3);
-		  ui8_UART_flag=0;
+		  ui8_UART3_flag=0;
+	  }
+	  // controller message processing
+	  if(ui8_UART1_flag){
+		  search_ControllerMessage();
+		  ui8_UART1_flag=0;
 	  }
 
+	  //PAS signal processing
+	  if(ui8_PAS_flag){
+		  if(uint32_PAS_counter>100){ //debounce
+		  uint32_PAS_cumulated -= uint32_PAS_cumulated>>2;
+		  uint32_PAS_cumulated += uint32_PAS_counter;
+		  uint32_PAS = uint32_PAS_cumulated>>2;
 
+		  uint32_PAS_HIGH_accumulated-=uint32_PAS_HIGH_accumulated>>2;
+		  uint32_PAS_HIGH_accumulated+=uint32_PAS_HIGH_counter;
+
+		  uint32_PAS_fraction=(uint32_PAS_HIGH_accumulated>>2)*100/uint32_PAS;
+		  uint32_PAS_HIGH_counter=0;
+		  uint32_PAS_counter =0;
+		  ui8_PAS_flag=0;
+		  //read in and sum up torque-signal within one crank revolution (for sempu sensor 32 PAS pulses/revolution, 2^5=32)
+		  uint32_torque_cumulated -= uint32_torque_cumulated>>5;
+#ifdef NCTE
+		  if(ui16_torque<TORQUE_OFFSET)uint32_torque_cumulated += (TORQUE_OFFSET-ui16_torque);
+#else
+		  if(ui16_torque>TORQUE_OFFSET)uint32_torque_cumulated += (ui16_torque-TORQUE_OFFSET);
+#endif
+		  }
+	  }
 
 
 	  if(ui8_SPEED_control_flag){
@@ -637,72 +552,38 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 		ui8_SPEED_control_flag=0;
 	  }
 
-#if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG && defined(FAST_LOOP_LOG))
-		if(ui8_debug_state==3 && ui8_UART_TxCplt_flag){
-	        sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n", e_log[k][0], e_log[k][1], e_log[k][2],e_log[k][3],e_log[k][4],e_log[k][5]); //>>24
-			i=0;
-			while (buffer[i] != '\0')
-			{i++;}
-			ui8_UART_TxCplt_flag=0;
-			HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);
-			k++;
-			if (k>299){
-				k=0;
-				ui8_debug_state=0;
-				//Obs_flag=0;
-			}
-		}
-#endif
+
 
 		//--------------------------------------------------------------------------------------------------------------------------------------------------
 
-				MS.i_q_setpoint_temp = map(uint32_tics_filtered >> 3, tics_higher_limit, tics_lower_limit, 0, MS.i_q_setpoint_temp); //ramp down current at speed limit
 
 
+				//calculate current target form torque, cadence and assist level
+				int32_temp_current_target = (TS_COEF*(int16_t)(MS.assist_level)* (uint32_torque_cumulated>>5)/uint32_PAS)>>8; //>>5 aus Mittelung über eine Kurbelumdrehung, >>8 aus KM5S-Protokoll Assistlevel 0..255
+
+				//limit current target to max value
+				if(int32_temp_current_target>PH_CURRENT_MAX) int32_temp_current_target = PH_CURRENT_MAX;
+				//set target to zero, if pedals are not turning
+				if(uint32_PAS_counter > PAS_TIMEOUT){
+					int32_temp_current_target = 0;
+					if(uint32_torque_cumulated>0)uint32_torque_cumulated--; //ramp down cumulated torque value
+				}
+
+				if(MS.i_q_setpoint_temp>0){
+					//Throttle override
+					if(MS.i_q_setpoint_temp<int32_temp_current_target)MS.i_q_setpoint_temp=int32_temp_current_target;
+					//ramp down current at speed limit
+					MS.i_q_setpoint_temp = map(uint32_tics_filtered >> 3, tics_higher_limit, tics_lower_limit, 0, MS.i_q_setpoint_temp); //ramp down current at speed limit
+				}
 				MS.i_q_setpoint=map(MS.Temperature, 120,130,MS.i_q_setpoint_temp,0); //ramp down power with temperature to avoid overheating the motor
 				//auto KV detect
 
 
-				if(ui8_KV_detect_flag){
-				  MS.i_q_setpoint=ui8_KV_detect_flag;
-				  if(ui16_KV_detect_counter>32){
-					  ui8_KV_detect_flag++;
-					  ui16_KV_detect_counter=0;
-					  if(MS.u_abs>1900){
-						  ui8_KV_detect_flag=0;
-					 	  HAL_FLASH_Unlock();
-					      EE_WriteVariable(EEPROM_POS_KV, (int16_t) ui32_KV);
-					      HAL_FLASH_Lock();
-					  }
-				  }
-				  ui32_KV -=ui32_KV>>4;
-				  ui32_KV += ((uint32_SPEEDx100_cumulated*_T))/(MS.Voltage*MS.u_q);
-
-
-			  }//end KV detect
 
 
 
-//------------------------------------------------------------------------------------------------------------
-				//enable PWM if power is wanted
-	  if (MS.i_q_setpoint>0&&!READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)){
-		  MS.system_state=Running;
-		  uint16_half_rotation_counter=0;
-		  uint16_full_rotation_counter=0;
-		    TIM1->CCR1 = 1023; //set initial PWM values
-		    TIM1->CCR2 = 1023;
-		    TIM1->CCR3 = 1023;
-		    SET_BIT(TIM1->BDTR, TIM_BDTR_MOE);
-		    if(SystemState == Stop)speed_PLL(0,0,0);//reset integral part
-		    else {
-		    	PI_iq.integral_part = ((((uint32_SPEEDx100_cumulated*_T))/(MS.Voltage*ui32_KV))<<4)<<PI_iq.shift;
-		    	PI_iq.out=PI_iq.integral_part;
-		    }
-		  __HAL_TIM_SET_COUNTER(&htim2,0); //reset tim2 counter
-		  ui16_timertics=20000; //set interval between two hallevents to a large value
-		  i8_recent_rotor_direction=i8_direction*i8_reverse_flag;
-		  get_standstill_position();
-	  }
+
+
 
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -753,8 +634,7 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 					SystemState = Running;
 		  }
 
-#if (!defined(FAST_LOOP_LOG))
-		  //print values for debugging
+
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG)
 		  sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n",
@@ -773,67 +653,7 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 		  {i++;}
 #endif
 
-#ifdef BATTERY_COMMUNICATION
-		  //3A 16 04 00 1A 00 0D 0A
-		  buffer[0]=0x3A;
-		  buffer[1]=0x16;
-		  buffer[2]=0x04;
-		  buffer[3]=0x00;
-		  buffer[4]=0x1A;
-		  buffer[5]=0x00;
-		  buffer[6]=0x0D;
-		  buffer[7]=0x0A;
-		  i=8;
 
-		  if(ui8_BC_counter==1){
-			  buffer[2]=0x05;
-			  buffer[4]=0x1B;
-			  }
-		  if(ui8_BC_counter==2){
-			  buffer[2]=0x02;
-			  buffer[4]=0x18;
-			  }
-		  if(ui8_BC_counter<2){
-			  ui8_BC_counter++;
-			  }
-
-#endif
-		 HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);
-
-#endif
-
-#if (DISPLAY_TYPE == DISPLAY_TYPE_EBiCS)
-		  ui8_slowloop_counter++;
-		  if(ui8_slowloop_counter>3){
-			  ui8_slowloop_counter = 0;
-
-			  switch (ui8_main_LEV_Page_counter){
-			  case 1: {
-				  ui8_LEV_Page_to_send = 1;
-			  	  }
-			  	  break;
-			  case 2: {
-				  ui8_LEV_Page_to_send = 2;
-			  	  }
-			  	  break;
-			  case 3: {
-				  ui8_LEV_Page_to_send = 3;
-			  	  }
-			  	  break;
-			  case 4: {
-				  //to do, define other pages
-				  ui8_LEV_Page_to_send = 4;
-			  	  }
-			  	  break;
-			  }//end switch
-
-			//  send_ant_page(ui8_LEV_Page_to_send, &MS, &MP);
-
-			  ui8_main_LEV_Page_counter++;
-			  if(ui8_main_LEV_Page_counter>4)ui8_main_LEV_Page_counter=1;
-		  }
-
-#endif
 		  ui32_tim3_counter=0;
 	  }// end of slow loop
 
@@ -966,7 +786,7 @@ if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
 
 /**Configure Regular Channel
 */
-sConfig.Channel = ADC_CHANNEL_9; //Connector SP: throttle input wrong channel to make PA3 an output
+sConfig.Channel = ADC_CHANNEL_3; //Connector SP: throttle input
 sConfig.Rank = ADC_REGULAR_RANK_2;
 sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;//ADC_SAMPLETIME_239CYCLES_5;
 if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
@@ -1260,16 +1080,7 @@ static void MX_USART1_UART_Init(void)
 {
 
   huart1.Instance = USART1;
-
-#ifdef BATTERY_COMMUNICATION
-  huart1.Init.BaudRate = 9600;
-#elif (DISPLAY_TYPE == DISPLAY_TYPE_BAFANG)
-  huart1.Init.BaudRate = 1200;
-#else
-  huart1.Init.BaudRate = 56000;
-#endif
-
-
+  huart1.Init.BaudRate = 115200;
   huart1.Init.WordLength = UART_WORDLENGTH_8B;
   huart1.Init.StopBits = UART_STOPBITS_1;
   huart1.Init.Parity = UART_PARITY_NONE;
@@ -1280,6 +1091,7 @@ static void MX_USART1_UART_Init(void)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
+  __HAL_UART_ENABLE_IT(&huart1, UART_IT_IDLE);
 
 }
 
@@ -1392,17 +1204,17 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(Brake_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : Power Enable */
-  GPIO_InitStruct.Pin = TPS_ENA_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(TPS_ENA_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : Speed_EXTI5_Pin PAS_EXTI8_Pin */
+  /*Configure GPIO pins : Dashboard button pin */
   GPIO_InitStruct.Pin = PWR_BTN_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(PWR_BTN_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : Speed_EXTI5_Pin PAS_EXTI8_Pin */
+  GPIO_InitStruct.Pin = Speed_EXTI5_Pin|PAS_EXTI8_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
   HAL_NVIC_SetPriority(EXTI9_5_IRQn, 2, 0);//for PAS and Speed interrupt
@@ -1752,9 +1564,15 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 //
 //}
 
-void UART_IdleItCallback(void)
+void UART3_IdleItCallback(void)
 {
-	ui8_UART_flag=1;
+	ui8_UART3_flag=1;
+
+}
+
+void UART1_IdleItCallback(void)
+{
+	ui8_UART1_flag=1;
 
 }
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *UartHandle)

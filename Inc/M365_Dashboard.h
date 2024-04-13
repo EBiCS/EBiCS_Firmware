@@ -12,6 +12,7 @@
 void M365Dashboard_init();
 
 void search_DashboardMessage(MotorState_t *MS, MotorParams_t *MP,UART_HandleTypeDef huart1);
+void search_ControllerMessage(void);
 void send_DashboardMessage(uint8_t page, MotorState_t *MS, MotorParams_t *MP);
 void process_DashboardMessage(MotorState_t *MS, MotorParams_t *MP, uint8_t *message, uint8_t length, UART_HandleTypeDef huart1 );
 void addCRC(uint8_t * message, uint8_t size);
