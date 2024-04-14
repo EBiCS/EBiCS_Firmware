@@ -1559,11 +1559,11 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 
 }
 
-//void HAL_UART_RxCpltCallback(UART_HandleTypeDef *UartHandle)
-//{
-//	ui8_UART_flag=1;
-//
-//}
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *UartHandle)
+{
+	ui8_UART1_flag=1;
+
+}
 
 void UART3_IdleItCallback(void)
 {
@@ -1571,11 +1571,7 @@ void UART3_IdleItCallback(void)
 
 }
 
-void UART1_IdleItCallback(void)
-{
-	ui8_UART1_flag=1;
 
-}
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *UartHandle)
 {
 	if(UartHandle==&huart3)HAL_HalfDuplex_EnableReceiver(&huart3);

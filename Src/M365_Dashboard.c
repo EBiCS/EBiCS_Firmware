@@ -23,9 +23,9 @@ enum { STATE_LOST, STATE_START_DETECTED, STATE_LENGTH_DETECTED };
 UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart3;
 static uint8_t ui8_UART3_rx_buffer[132];
-static uint8_t ui8_UART1_rx_buffer[132];
+static uint8_t ui8_UART1_rx_buffer[18];
 static uint8_t ui8_dashboardmessage[132];
-static uint8_t ui8_controllermessage[132];
+static uint8_t ui8_controllermessage[18];
 
 static uint8_t	ui8_UART3_tx_buffer[96];// = {0x55, 0xAA, 0x08, 0x21, 0x64, 0x00, 0x01, 0xF0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 static uint8_t ui8_oldpointerposition=0;
@@ -109,16 +109,19 @@ void search_DashboardMessage(MotorState_t *MS, MotorParams_t *MP, UART_HandleTyp
 
 void search_ControllerMessage(void){
 
-	ui8_recentpointerposition_1 = 132 - (DMA1_Channel5->CNDTR); //Pointer of UART1RX DMA Channel
-	if(ui8_recentpointerposition_1>ui8_oldpointerposition_1){
-				ui8_messagelength_1=ui8_recentpointerposition_1-ui8_oldpointerposition_1;
-				memcpy(ui8_controllermessage,ui8_UART1_rx_buffer+(ui8_oldpointerposition_1%132),ui8_messagelength_1);
+	int start=0;
 
-	}
-	ui8_oldpointerposition_1=ui8_recentpointerposition_1;
+	for(int m=0; m<18; m++){
+		if(ui8_UART1_rx_buffer[m]==0x55&&ui8_UART1_rx_buffer[(m+1)%18]==0xAA)start=m;
+		}
+	int laenge = ui8_UART1_rx_buffer[(start+2)%18]+6;
+	for(int m=0; m<laenge; m++){
+		ui8_dashboardmessage[m]=ui8_UART1_rx_buffer[(start+m)%18];
+			}
+	int command = ui8_dashboardmessage[4];
 	//push through to Dashboard
-	HAL_HalfDuplex_EnableTransmitter(&huart3);
-	HAL_UART_Transmit_DMA(&huart3, (uint8_t*)ui8_controllermessage, ui8_messagelength_1);
+	//HAL_HalfDuplex_EnableTransmitter(&huart3);
+	//HAL_UART_Transmit_DMA(&huart3, (uint8_t*)ui8_controllermessage, laenge);
 }
 
 void process_DashboardMessage(MotorState_t *MS, MotorParams_t *MP, uint8_t *message, uint8_t length, UART_HandleTypeDef huart3 ){
