@@ -193,6 +193,8 @@ typedef struct
 	bool 			brake_active;
 	uint8_t 		shutdown;
 	int8_t 			mode;
+	uint8_t 		dashboardmessage65[32];
+	uint8_t 		dashboardmessage64[32];
 
 }MotorState_t;
 

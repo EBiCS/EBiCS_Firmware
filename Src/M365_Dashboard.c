@@ -117,6 +117,7 @@ void search_ControllerMessage(void){
 	}
 	ui8_oldpointerposition_1=ui8_recentpointerposition_1;
 	//push through to Dashboard
+	HAL_HalfDuplex_EnableTransmitter(&huart3);
 	HAL_UART_Transmit_DMA(&huart3, (uint8_t*)ui8_controllermessage, ui8_messagelength_1);
 }
 
@@ -130,9 +131,9 @@ void process_DashboardMessage(MotorState_t *MS, MotorParams_t *MP, uint8_t *mess
 		switch (message[command]) {
 
 		case 0x64: {
-
+			memcpy(MS->dashboardmessage64,message,length);
 			//push message through to Controller
-			HAL_UART_Transmit_DMA(&huart1, (uint8_t*)message, length);
+			//HAL_UART_Transmit_DMA(&huart1, (uint8_t*)message, length);
 			}
 			break;
 
@@ -164,8 +165,9 @@ void process_DashboardMessage(MotorState_t *MS, MotorParams_t *MP, uint8_t *mess
 				message[Throttle]=map(MS->i_q_setpoint,0,MP->phase_current_limit,THROTTLEOFFSET,THROTTLEMAX);
 				addCRC((uint8_t*)message, length);
 			}
+			memcpy(MS->dashboardmessage65,message,length);
 			//push message to Controller
-			HAL_UART_Transmit_DMA(&huart1, (uint8_t*)message, length);
+			//HAL_UART_Transmit_DMA(&huart1, (uint8_t*)message, length);
 			}
 			break;
 

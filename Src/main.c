@@ -652,8 +652,9 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 		  while (buffer[i] != '\0')
 		  {i++;}
 #endif
-
-
+		  if(!(ui8_UART_Counter%4)) HAL_UART_Transmit_DMA(&huart1, (uint8_t*)MS.dashboardmessage64, 15);
+		  else HAL_UART_Transmit_DMA(&huart1, (uint8_t*)MS.dashboardmessage65, 13);
+		  ui8_UART_Counter++;
 		  ui32_tim3_counter=0;
 	  }// end of slow loop
 
