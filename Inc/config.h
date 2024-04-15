@@ -19,7 +19,7 @@
 #define TRIGGER_OFFSET_ADC 50
 #define TRIGGER_DEFAULT 2020
 #define _T 2028
-#define CAL_BAT_V 25
+#define CAL_BAT_V 32
 #define CAL_V 15LL<<8
 #define CAL_I 38LL<<8
 // BionX IGH3
