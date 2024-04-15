@@ -140,21 +140,26 @@ void process_DashboardMessage(MotorState_t *MS, MotorParams_t *MP, uint8_t *mess
 			if(message[Brake]<BRAKEOFFSET>>1)MS->error_state=brake;
 			else if(MS->error_state==brake)MS->error_state=none;
 			if(map(message[Brake],BRAKEOFFSET,BRAKEMAX,0,MP->regen_current)>0){
-
+				MS->brake_active=true;
 				if(MS->Speed>2){
 					MS->i_q_setpoint_temp =map(message[Brake],BRAKEOFFSET,BRAKEMAX,0,MP->regen_current);
 					// ramp down regen strength at the max voltage to avoid the BMS shutting down the battery.
 					MS->i_q_setpoint_temp =-map(MS->Voltage,BATTERYVOLTAGE_MAX-1000,BATTERYVOLTAGE_MAX,MS->i_q_setpoint_temp,0);
-					MS->brake_active=true;
+
 				}
 				else {
 					MS->i_q_setpoint_temp =0;
-					MS->brake_active=false;
+
 					}
 				}
 			else{
-				MS->i_q_setpoint_temp = map(message[Throttle],THROTTLEOFFSET,THROTTLEMAX,0,MP->phase_current_limit);
+				if(MS->Speed>2||MS->mode==2){
+					MS->i_q_setpoint_temp = map(message[Throttle],THROTTLEOFFSET,THROTTLEMAX,0,MP->phase_current_limit);
+					HAL_GPIO_WritePin(LIGHT_GPIO_Port, LIGHT_Pin,SET);
+				}
+				else MS->i_q_setpoint_temp =0;
 				MS->brake_active=false;
+				if (!MS->light)HAL_GPIO_WritePin(LIGHT_GPIO_Port, LIGHT_Pin,RESET);
 				}
 			}
 			break;
