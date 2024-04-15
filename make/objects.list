@@ -18,6 +18,8 @@
 "Src/display_ebics.o"
 "Src/display_kingmeter.o"
 "Src/display_kunteng.o"
+"Src/M365_Dashboard.o"
+"Src/button_processing.o"
 "Src/eeprom.o"
 "Src/main.o"
 "Src/print.o"
