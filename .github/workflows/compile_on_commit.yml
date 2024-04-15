@@ -50,6 +50,6 @@ jobs:
     - name: 'Upload Artifact'
       uses: actions/upload-artifact@v3
       with:
-        path: ${{ github.workspace }}/output
+        path: ${{ github.workspace }}/build/EBiCS_Firmware.hex
         name: EBiCS_build_${{ github.run_number }}
         retention-days: 10
