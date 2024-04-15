@@ -155,11 +155,11 @@ void process_DashboardMessage(MotorState_t *MS, MotorParams_t *MP, uint8_t *mess
 			else{
 				if(MS->Speed>2||MS->mode==2){
 					MS->i_q_setpoint_temp = map(message[Throttle],THROTTLEOFFSET,THROTTLEMAX,0,MP->phase_current_limit);
-					HAL_GPIO_WritePin(LIGHT_GPIO_Port, LIGHT_Pin,SET);
+					if(MS->i_q_setpoint_temp)HAL_GPIO_WritePin(LIGHT_GPIO_Port, LIGHT_Pin,SET);
 				}
 				else MS->i_q_setpoint_temp =0;
 				MS->brake_active=false;
-				if (!MS->light)HAL_GPIO_WritePin(LIGHT_GPIO_Port, LIGHT_Pin,RESET);
+
 				}
 			}
 			break;

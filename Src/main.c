@@ -726,6 +726,7 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 			  MS.system_state=Stop;
 			  uint16_idle_run_counter=0;
 			  CLEAR_BIT(TIM1->BDTR, TIM_BDTR_MOE);
+
 		  }
 #if (R_TEMP_PULLUP)
 		  MS.Temperature = T_NTC(adcData[6]); //Thank you Hendrik ;-)
@@ -745,6 +746,7 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 						CLEAR_BIT(TIM1->BDTR, TIM_BDTR_MOE); //Disable PWM if motor is not turning
 						uint32_tics_filtered = 1000000;
 						get_standstill_position();
+						if (!MS.light)HAL_GPIO_WritePin(LIGHT_GPIO_Port, LIGHT_Pin,RESET);
 					}
 
 				} else if (ui8_6step_flag)
