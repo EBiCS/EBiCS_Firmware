@@ -8,36 +8,42 @@ Src/FOC.c \
 Src/display_bafang.c \
 Src/display_kingmeter.c \
 Src/display_kunteng.c \
+Src/M365_Dashboard.c \
+Src/button_processing.c \
 Src/eeprom.c \
 Src/main.c \
 Src/print.c \
 Src/stm32f1xx_hal_msp.c \
 Src/stm32f1xx_it.c \
-Src/system_stm32f1xx_Bootloader.c 
+Src/system_stm32f1xx.c 
 
 OBJS += \
 build/FOC.o \
 build/display_bafang.o \
 build/display_kingmeter.o \
 build/display_kunteng.o \
+Src/M365_Dashboard.o \
+Src/button_processing.o \
 build/eeprom.o \
 build/main.o \
 build/print.o \
 build/stm32f1xx_hal_msp.o \
 build/stm32f1xx_it.o \
-build/system_stm32f1xx_Bootloader.o 
+build/system_stm32f1xx.o 
 
 C_DEPS += \
 build/FOC.d \
 build/display_bafang.d \
 build/display_kingmeter.d \
 build/display_kunteng.d \
+Src/M365_Dashboard.d \
+Src/button_processing.d \
 build/eeprom.d \
 build/main.d \
 build/print.d \
 build/stm32f1xx_hal_msp.d \
 build/stm32f1xx_it.d \
-build/system_stm32f1xx_Bootloader.d 
+build/system_stm32f1xx.d 
 
 INC_PATH = Inc
 DRIVERS_PATH = Drivers/STM32F1xx_HAL_Driver/Inc
