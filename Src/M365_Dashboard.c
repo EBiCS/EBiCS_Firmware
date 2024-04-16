@@ -141,10 +141,10 @@ void process_DashboardMessage(MotorState_t *MS, MotorParams_t *MP, uint8_t *mess
 			else if(MS->error_state==brake)MS->error_state=none;
 			if(map(message[Brake],BRAKEOFFSET,BRAKEMAX,0,MP->regen_current)>0){
 				MS->brake_active=true;
-				if(MS->Speed>2){
+				if(1){//(MS->Speed>2){
 					MS->i_q_setpoint_temp =map(message[Brake],BRAKEOFFSET,BRAKEMAX,0,MP->regen_current);
 					// ramp down regen strength at the max voltage to avoid the BMS shutting down the battery.
-					MS->i_q_setpoint_temp =-map(MS->Voltage,BATTERYVOLTAGE_MAX-1000,BATTERYVOLTAGE_MAX,MS->i_q_setpoint_temp,0);
+					MS->i_q_setpoint_temp =-map(MS->Voltage*CAL_BAT_V,BATTERYVOLTAGE_MAX-1000,BATTERYVOLTAGE_MAX,MS->i_q_setpoint_temp,0);
 
 				}
 				else {
