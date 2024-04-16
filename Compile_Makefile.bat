@@ -7,4 +7,6 @@ PATH = %PATH%;%eclipsepath%\plugins\fr.ac6.mcu.externaltools.arm-none.win32_1.17
 
 make all
 
+pause
+
 
