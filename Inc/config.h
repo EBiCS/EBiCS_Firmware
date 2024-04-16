@@ -19,7 +19,7 @@
 #define TRIGGER_OFFSET_ADC 50
 #define TRIGGER_DEFAULT 2020
 #define _T 2028
-#define CAL_BAT_V 32
+#define CAL_BAT_V 25
 #define CAL_V 15LL<<8
 #define CAL_I 38LL<<8
 // BionX IGH3
@@ -98,7 +98,7 @@
 #define VOLTAGE_MIN 1320 //33V
 
 // motor current limits for invividual modes in mA, see default settings at https://max.cfw.sh/#
-#define PH_CURRENT_MAX_ECO 300
+#define PH_CURRENT_MAX_ECO 150
 #define PH_CURRENT_MAX_NORMAL 900
 #define PH_CURRENT_MAX_SPORT 1200
 
@@ -108,6 +108,7 @@
 #define SPEEDLIMIT_SPORT 50
 
 // battery voltage limits in mV
+#define BATTERYVOLTAGE_MAX 41500
 #define BATTERYVOLTAGE_MIN 33000
 
 //---------------------------------------------------------------------
