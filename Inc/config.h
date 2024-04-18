@@ -98,7 +98,7 @@
 #define VOLTAGE_MIN 1320 //33V
 
 // motor current limits for invividual modes in mA, see default settings at https://max.cfw.sh/#
-#define PH_CURRENT_MAX_ECO 150
+#define PH_CURRENT_MAX_ECO 300
 #define PH_CURRENT_MAX_NORMAL 900
 #define PH_CURRENT_MAX_SPORT 1200
 

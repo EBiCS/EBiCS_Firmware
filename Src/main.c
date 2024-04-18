@@ -655,8 +655,7 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 #endif
 
 		//--------------------------------------------------------------------------------------------------------------------------------------------------
-
-				MS.i_q_setpoint_temp = map(uint32_tics_filtered >> 3, tics_higher_limit, tics_lower_limit, 0, MS.i_q_setpoint_temp); //ramp down current at speed limit
+		if(!MS.brake_active)MS.i_q_setpoint_temp = map(uint32_tics_filtered >> 3, tics_higher_limit, tics_lower_limit, 0, MS.i_q_setpoint_temp); //ramp down current at speed limit
 
 
 				MS.i_q_setpoint=map(MS.Temperature, 120,130,MS.i_q_setpoint_temp,0); //ramp down power with temperature to avoid overheating the motor
