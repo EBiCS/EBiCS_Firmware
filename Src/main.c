@@ -351,6 +351,7 @@ int main(void)
   MP.phase_current_limit=PH_CURRENT_MAX_NORMAL;
   MP.regen_current=PH_CURRENT_MAX_NORMAL;
   MP.com_mode=Hallsensor;
+  MP.spec_angle=1;
 if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_flag=1;
 
   //init PI structs
@@ -799,7 +800,7 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 			  }
 
 #endif
-		 HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);
+		// HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);
 
 #endif
 
@@ -1263,7 +1264,7 @@ static void MX_USART1_UART_Init(void)
   huart1.Instance = USART1;
 
 #ifdef BATTERY_COMMUNICATION
-  huart1.Init.BaudRate = 9600;
+  huart1.Init.BaudRate = 115200;
 #elif (DISPLAY_TYPE == DISPLAY_TYPE_BAFANG)
   huart1.Init.BaudRate = 1200;
 #else
@@ -1761,6 +1762,7 @@ void UART_IdleItCallback(void)
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *UartHandle)
 {
 	if(UartHandle==&huart3)HAL_HalfDuplex_EnableReceiver(&huart3);
+	if(UartHandle==&huart1)MP.spec_angle=1;
 }
 
 void HAL_UART_ErrorCallback(UART_HandleTypeDef *UartHandle) {

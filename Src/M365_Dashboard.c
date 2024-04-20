@@ -22,15 +22,17 @@
 enum { STATE_LOST, STATE_START_DETECTED, STATE_LENGTH_DETECTED };
 
 UART_HandleTypeDef huart3;
+UART_HandleTypeDef huart1;
 static uint8_t ui8_UART3_rx_buffer[132];
 static uint8_t ui8_dashboardmessage[132];
 
 static uint8_t	ui8_UART3_tx_buffer[96];// = {0x55, 0xAA, 0x08, 0x21, 0x64, 0x00, 0x01, 0xF0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 static uint8_t ui8_oldpointerposition=0;
 static uint8_t ui8_recentpointerposition=0;
-//static uint8_t ui8_messagestartpos=255;
+
+static uint8_t ui8_messagestartpos=0;
 static uint8_t ui8_messagelength=0;
-//static uint8_t ui8_state= STATE_LOST;
+static uint8_t ui8_state= 0;
 //static uint32_t ui32_timeoutcounter=0;
 
 //static uint32_t sysinfoaddress = 0x0800F800;
@@ -90,19 +92,64 @@ void M365Dashboard_init(void) {
 void search_DashboardMessage(MotorState_t *MS, MotorParams_t *MP, UART_HandleTypeDef huart3){
 
 	ui8_recentpointerposition = 132 - (DMA1_Channel3->CNDTR); //Pointer of UART1RX DMA Channel
-	if(ui8_recentpointerposition>ui8_oldpointerposition){
-				ui8_messagelength=ui8_recentpointerposition-ui8_oldpointerposition;
-				memcpy(ui8_dashboardmessage,ui8_UART3_rx_buffer+(ui8_oldpointerposition%132),ui8_messagelength);
-				process_DashboardMessage( MS,  MP, (uint8_t*)&ui8_dashboardmessage,ui8_messagelength,huart3);
+//	if(ui8_recentpointerposition>ui8_oldpointerposition){
+//		ui8_messagelength=ui8_recentpointerposition-ui8_oldpointerposition;
+//		memcpy(ui8_dashboardmessage,ui8_UART3_rx_buffer+(ui8_oldpointerposition%132),ui8_messagelength);
+//	}
+//	else{
+//		ui8_messagelength=132-ui8_oldpointerposition+ui8_recentpointerposition;
+//		memcpy(ui8_dashboardmessage,ui8_UART3_rx_buffer+(ui8_oldpointerposition),132-ui8_oldpointerposition);
+//		memcpy(ui8_dashboardmessage+(132-ui8_oldpointerposition),ui8_UART3_rx_buffer,ui8_recentpointerposition);
+//	}
 
-	}
-	ui8_oldpointerposition=ui8_recentpointerposition;
+
+
+	int i=ui8_recentpointerposition;
+				while(ui8_UART3_rx_buffer[i]!=0x55){
+					if(i>0)i--;
+					else if(!i)i=132;
+					}
+				if(ui8_UART3_rx_buffer[(i+1)%132]==0xAA){
+
+					if(i+ui8_UART3_rx_buffer[(i+2)%132]+5<ui8_recentpointerposition){
+						ui8_messagelength=ui8_UART3_rx_buffer[(i+2)%132]+6;
+						for(int j=0; j<ui8_messagelength; j++){
+							ui8_dashboardmessage[j]=ui8_UART3_rx_buffer[(i+j)%132];
+
+						}
+						if(!checkCRC(ui8_dashboardmessage, ui8_messagelength)){
+							process_DashboardMessage( MS,  MP, (uint8_t*)&ui8_dashboardmessage,ui8_messagelength,huart3);
+						}
+					}
+					else {
+						ui8_state= 1;
+						ui8_messagelength=0;
+					}
+
+				}
+				else {
+					ui8_state= 2;
+					ui8_messagelength=0;
+				}
+
+				//while(!MP->spec_angle);//Wait for UART1 Tx completed
+				ui8_dashboardmessage[ui8_messagelength]=ui8_state;
+				ui8_dashboardmessage[ui8_messagelength+1]=0x0D;
+				ui8_dashboardmessage[ui8_messagelength+2]=0x0A;
+
+				HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&ui8_dashboardmessage, ui8_messagelength+3);
+				MP->spec_angle=0;
+
+				ui8_oldpointerposition=ui8_recentpointerposition;
+
+
+
 }
 
 void process_DashboardMessage(MotorState_t *MS, MotorParams_t *MP, uint8_t *message, uint8_t length, UART_HandleTypeDef huart3 ){
 	//while(HAL_UART_GetState(&huart1)!=HAL_UART_STATE_READY){}
 	//HAL_Delay(2); // bad style, but wait for characters coming in, if message is longer than expected
-	if(!checkCRC(message, length)){
+	//if(!checkCRC(message, length)){
 	//55 AA 06 21 64 00 00 00 00 00 74 FF
 	//55	AA	8	21	64	0	20	0	0	1	0	12	3F	FF
 
@@ -172,7 +219,7 @@ void process_DashboardMessage(MotorState_t *MS, MotorParams_t *MP, uint8_t *mess
 		}//end switch
 
 
-	}
+
 
 }
 
