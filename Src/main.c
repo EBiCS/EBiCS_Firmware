@@ -800,7 +800,7 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 			  }
 
 #endif
-		// HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);
+		 HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);
 
 #endif
 

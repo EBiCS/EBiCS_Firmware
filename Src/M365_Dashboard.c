@@ -132,15 +132,15 @@ void search_DashboardMessage(MotorState_t *MS, MotorParams_t *MP, UART_HandleTyp
 					ui8_messagelength=0;
 				}
 
-				//while(!MP->spec_angle);//Wait for UART1 Tx completed
-				ui8_dashboardmessage[ui8_messagelength]=ui8_state;
-				ui8_dashboardmessage[ui8_messagelength+1]=0x0D;
-				ui8_dashboardmessage[ui8_messagelength+2]=0x0A;
-
-				HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&ui8_dashboardmessage, ui8_messagelength+3);
-				MP->spec_angle=0;
-
-				ui8_oldpointerposition=ui8_recentpointerposition;
+//				//while(!MP->spec_angle);//Wait for UART1 Tx completed
+//				ui8_dashboardmessage[ui8_messagelength]=ui8_state;
+//				ui8_dashboardmessage[ui8_messagelength+1]=0x0D;
+//				ui8_dashboardmessage[ui8_messagelength+2]=0x0A;
+//
+//				HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&ui8_dashboardmessage, ui8_messagelength+3);
+//				MP->spec_angle=0;
+//
+//				ui8_oldpointerposition=ui8_recentpointerposition;
 
 
 
