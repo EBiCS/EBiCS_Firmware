@@ -1559,12 +1559,16 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 
 }
 
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *UartHandle)
+//void HAL_UART_RxCpltCallback(UART_HandleTypeDef *UartHandle)
+//{
+//	ui8_UART1_flag=1;
+//
+//}
+void UART1_IdleItCallback(void)
 {
 	ui8_UART1_flag=1;
 
 }
-
 void UART3_IdleItCallback(void)
 {
 	ui8_UART3_flag=1;

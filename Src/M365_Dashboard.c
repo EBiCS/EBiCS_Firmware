@@ -23,9 +23,9 @@ enum { STATE_LOST, STATE_START_DETECTED, STATE_LENGTH_DETECTED };
 UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart3;
 static uint8_t ui8_UART3_rx_buffer[132];
-static uint8_t ui8_UART1_rx_buffer[18];
+static uint8_t ui8_UART1_rx_buffer[132];
 static uint8_t ui8_dashboardmessage[132];
-static uint8_t ui8_controllermessage[18];
+static uint8_t ui8_controllermessage[132];
 
 static uint8_t	ui8_UART3_tx_buffer[96];// = {0x55, 0xAA, 0x08, 0x21, 0x64, 0x00, 0x01, 0xF0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 static uint8_t ui8_oldpointerposition=0;
@@ -35,7 +35,7 @@ static uint8_t ui8_recentpointerposition_1=0;
 //static uint8_t ui8_messagestartpos=255;
 static uint8_t ui8_messagelength=0;
 static uint8_t ui8_messagelength_1=0;
-//static uint8_t ui8_state= STATE_LOST;
+static uint8_t ui8_state= STATE_LOST;
 //static uint32_t ui32_timeoutcounter=0;
 
 //static uint32_t sysinfoaddress = 0x0800F800;
@@ -97,7 +97,7 @@ void M365Dashboard_init(void) {
 
 void search_DashboardMessage(MotorState_t *MS, MotorParams_t *MP, UART_HandleTypeDef huart3){
 
-	ui8_recentpointerposition = 132 - (DMA1_Channel3->CNDTR); //Pointer of UART1RX DMA Channel
+	ui8_recentpointerposition = 132 - (DMA1_Channel3->CNDTR); //Pointer of UART3RX DMA Channel
 	if(ui8_recentpointerposition>ui8_oldpointerposition){
 				ui8_messagelength=ui8_recentpointerposition-ui8_oldpointerposition;
 				memcpy(ui8_dashboardmessage,ui8_UART3_rx_buffer+(ui8_oldpointerposition%132),ui8_messagelength);
@@ -108,20 +108,43 @@ void search_DashboardMessage(MotorState_t *MS, MotorParams_t *MP, UART_HandleTyp
 }
 
 void search_ControllerMessage(void){
+	ui8_recentpointerposition = 132 - (DMA1_Channel5->CNDTR); //Pointer of UART1RX DMA Channel
+	int i=ui8_recentpointerposition;
+					while(ui8_UART1_rx_buffer[i]!=0x08){
+						if(i>0)i--;
+						else if(!i)i=132;
+						}
+					if(ui8_UART1_rx_buffer[(i+1)%132]==0x21){
+						ui8_messagelength_1=ui8_UART1_rx_buffer[i]+6;
 
-	int start=0;
+							for(int j=0; j<ui8_messagelength_1; j++){
+								ui8_controllermessage[j]=ui8_UART1_rx_buffer[(i-2+j)%132];
 
-	for(int m=0; m<18; m++){
-		if(ui8_UART1_rx_buffer[m]==0x55&&ui8_UART1_rx_buffer[(m+1)%18]==0xAA)start=m;
-		}
-	int laenge = ui8_UART1_rx_buffer[(start+2)%18]+6;
-	for(int m=0; m<laenge; m++){
-		ui8_dashboardmessage[m]=ui8_UART1_rx_buffer[(start+m)%18];
-			}
-	int command = ui8_dashboardmessage[4];
-	//push through to Dashboard
-	//HAL_HalfDuplex_EnableTransmitter(&huart3);
-	//HAL_UART_Transmit_DMA(&huart3, (uint8_t*)ui8_controllermessage, laenge);
+							}
+							if(!checkCRC(ui8_controllermessage, ui8_messagelength_1)){
+								if(ui8_controllermessage[3]==0x21){
+									//push through to Dashboard
+									HAL_HalfDuplex_EnableTransmitter(&huart3);
+									HAL_UART_Transmit_DMA(&huart3, (uint8_t*)ui8_controllermessage, ui8_messagelength_1);
+								}
+
+							}
+
+						else {
+							ui8_state= 1;
+							ui8_messagelength=0;
+						}
+
+					}
+					else {
+						ui8_state= 2;
+						ui8_messagelength=0;
+					}
+
+
+
+
+
 }
 
 void process_DashboardMessage(MotorState_t *MS, MotorParams_t *MP, uint8_t *message, uint8_t length, UART_HandleTypeDef huart3 ){
@@ -141,33 +164,33 @@ void process_DashboardMessage(MotorState_t *MS, MotorParams_t *MP, uint8_t *mess
 			break;
 
 		case 0x65: {
-			temp4 = message[Brake];
-			temp5 = message[Throttle];
-			temp6 = ui8_messagelength;
-			if(message[Brake]<BRAKEOFFSET>>1)MS->error_state=brake;
-			else if(MS->error_state==brake)MS->error_state=none;
-			if(map(message[Brake],BRAKEOFFSET,BRAKEMAX,0,MP->regen_current)>0){
-
-				if(MS->Speed>2){
-					MS->i_q_setpoint_temp =map(message[Brake],BRAKEOFFSET,BRAKEMAX,0,MP->regen_current);
-					// ramp down regen strength at the max voltage to avoid the BMS shutting down the battery.
-					MS->i_q_setpoint_temp =-map(MS->Voltage,BATTERYVOLTAGE_MAX-1000,BATTERYVOLTAGE_MAX,MS->i_q_setpoint_temp,0);
-					MS->brake_active=true;
-				}
-				else {
-					MS->i_q_setpoint_temp =0;
-					MS->brake_active=false;
-					}
-				}
-			else{
-				MS->i_q_setpoint_temp = map(message[Throttle],THROTTLEOFFSET,THROTTLEMAX,0,MP->phase_current_limit);
-				MS->brake_active=false;
-				}
-
-			if(MS->i_q_setpoint_temp>-1){
-				message[Throttle]=map(MS->i_q_setpoint,0,MP->phase_current_limit,THROTTLEOFFSET,THROTTLEMAX);
-				addCRC((uint8_t*)message, length);
-			}
+//			temp4 = message[Brake];
+//			temp5 = message[Throttle];
+//			temp6 = ui8_messagelength;
+//			if(message[Brake]<BRAKEOFFSET>>1)MS->error_state=brake;
+//			else if(MS->error_state==brake)MS->error_state=none;
+//			if(map(message[Brake],BRAKEOFFSET,BRAKEMAX,0,MP->regen_current)>0){
+//
+//				if(MS->Speed>2){
+//					MS->i_q_setpoint_temp =map(message[Brake],BRAKEOFFSET,BRAKEMAX,0,MP->regen_current);
+//					// ramp down regen strength at the max voltage to avoid the BMS shutting down the battery.
+//					MS->i_q_setpoint_temp =-map(MS->Voltage,BATTERYVOLTAGE_MAX-1000,BATTERYVOLTAGE_MAX,MS->i_q_setpoint_temp,0);
+//					MS->brake_active=true;
+//				}
+//				else {
+//					MS->i_q_setpoint_temp =0;
+//					MS->brake_active=false;
+//					}
+//				}
+//			else{
+//				MS->i_q_setpoint_temp = map(message[Throttle],THROTTLEOFFSET,THROTTLEMAX,0,MP->phase_current_limit);
+//				MS->brake_active=false;
+//				}
+//
+//			if(MS->i_q_setpoint_temp>-1){
+//				message[Throttle]=map(MS->i_q_setpoint,0,MP->phase_current_limit,THROTTLEOFFSET,THROTTLEMAX);
+//				addCRC((uint8_t*)message, length);
+//			}
 			memcpy(MS->dashboardmessage65,message,length);
 			//push message to Controller
 			//HAL_UART_Transmit_DMA(&huart1, (uint8_t*)message, length);
