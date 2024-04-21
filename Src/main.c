@@ -514,7 +514,7 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 	  }
 	  // controller message processing
 	  if(ui8_UART1_flag){
-		  search_ControllerMessage();
+		  search_ControllerMessage(&MS);
 		  ui8_UART1_flag=0;
 	  }
 
@@ -1208,7 +1208,7 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pins : Dashboard button pin */
   GPIO_InitStruct.Pin = PWR_BTN_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(PWR_BTN_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : Speed_EXTI5_Pin PAS_EXTI8_Pin */

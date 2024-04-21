@@ -85,8 +85,8 @@
 #define Speed_EXTI5_GPIO_Port GPIOB
 #define PAS_EXTI8_Pin GPIO_PIN_8
 #define PAS_EXTI8_GPIO_Port GPIOB
-#define PWR_BTN_Pin GPIO_PIN_15
-#define PWR_BTN_GPIO_Port GPIOA
+#define PWR_BTN_Pin GPIO_PIN_3
+#define PWR_BTN_GPIO_Port GPIOB
 #define TPS_ENA_Pin GPIO_PIN_4
 #define TPS_ENA_GPIO_Port GPIOB
 
@@ -195,6 +195,7 @@ typedef struct
 	int8_t 			mode;
 	uint8_t 		dashboardmessage65[32];
 	uint8_t 		dashboardmessage64[32];
+	uint8_t 		controllermessage64[32];
 
 }MotorState_t;
 

@@ -27,14 +27,13 @@
 #include "stm32f1xx_hal.h"
 
 volatile uint32_t main_loop_counter;
-static uint8_t power_button_state = 0;
 eButtonEvent button_event = NO_PRESS ;
 UART_HandleTypeDef huart3;
 
 void buttonState() {
     //static const uint32_t DEBOUNC = 100 ;
     static uint16_t buttoncounter;
-    if(HAL_GPIO_ReadPin( PWR_BTN_GPIO_Port, PWR_BTN_Pin ))buttoncounter++;
+    if(!HAL_GPIO_ReadPin(PWR_BTN_GPIO_Port, PWR_BTN_Pin))buttoncounter++;
     else{
     	if (buttoncounter>8000)button_event = VERY_LONG_PRESS;
     	else if (buttoncounter>4000)button_event = LONG_PRESS;
@@ -151,9 +150,9 @@ void power_control(uint8_t pwr)
 		//stop_motors();
 
 
-		while(HAL_GPIO_ReadPin(PWR_BTN_GPIO_Port, PWR_BTN_Pin));
-		HAL_GPIO_WritePin(TPS_ENA_GPIO_Port, TPS_ENA_Pin, GPIO_PIN_RESET);
-		while(1);
+//		while(HAL_GPIO_ReadPin(PWR_BTN_GPIO_Port, PWR_BTN_Pin));
+//		HAL_GPIO_WritePin(TPS_ENA_GPIO_Port, TPS_ENA_Pin, GPIO_PIN_RESET);
+//		while(1);
 	} else if(pwr == DEV_PWR_RESTART) {
 
 		//motors_free(0, NULL);
