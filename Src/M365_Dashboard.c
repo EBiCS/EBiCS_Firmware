@@ -118,7 +118,7 @@ void search_ControllerMessage(MotorState_t *MS){
 						ui8_messagelength_1=ui8_UART1_rx_buffer[i]+6;
 
 							for(int j=0; j<ui8_messagelength_1; j++){
-								ui8_controllermessage[j]=ui8_UART1_rx_buffer[(i-2+j)%132];
+								ui8_controllermessage[j%132]=ui8_UART1_rx_buffer[(i-2+j)%132];
 
 							}
 							if(!checkCRC(ui8_controllermessage, ui8_messagelength_1)){
