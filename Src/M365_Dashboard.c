@@ -12,6 +12,7 @@
 #include "stm32f1xx_hal.h"
 #include "print.h"
 #include "M365_Dashboard.h"
+#include "button_processing.h"
 #include "M365_memory_table.h"
 #include "decr_and_flash.h"
 #include "stm32f1xx_hal_flash.h"
@@ -114,7 +115,7 @@ void search_DashboardMessage(MotorState_t *MS, MotorParams_t *MP, UART_HandleTyp
 					if(i+ui8_UART3_rx_buffer[(i+2)%132]+5<ui8_recentpointerposition){
 						ui8_messagelength=ui8_UART3_rx_buffer[(i+2)%132]+6;
 						for(int j=0; j<ui8_messagelength; j++){
-							ui8_dashboardmessage[j]=ui8_UART3_rx_buffer[(i+j)%132];
+							ui8_dashboardmessage[j%132]=ui8_UART3_rx_buffer[(i+j)%132];
 
 						}
 						if(!checkCRC(ui8_dashboardmessage, ui8_messagelength)){
@@ -181,9 +182,18 @@ void process_DashboardMessage(MotorState_t *MS, MotorParams_t *MP, uint8_t *mess
 			break;
 
 		case 0x65: {
+			if((message[5]>>1)!=MS->mode){
+				MS->mode=message[5]>>1;
+				set_mode(MP,MS);
 
-			MS->mode=message[5]>>1;
-			MS->light=message[5]&1;
+			}
+			if((message[5]&1)!=MS->light){
+				MS->light=message[5]&1;
+				  if (MS->light)HAL_GPIO_WritePin(LIGHT_GPIO_Port, LIGHT_Pin,SET);
+				  else HAL_GPIO_WritePin(LIGHT_GPIO_Port, LIGHT_Pin,RESET);
+
+			}
+
 			if(message[Brake]<BRAKEOFFSET>>1)MS->error_state=brake;
 			else if(MS->error_state==brake)MS->error_state=none;
 			if(map(message[Brake],BRAKEOFFSET,BRAKEMAX,0,MP->regen_current)>0){
