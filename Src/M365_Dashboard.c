@@ -160,33 +160,12 @@ void process_DashboardMessage(MotorState_t *MS, MotorParams_t *MP, uint8_t *mess
 			break;
 
 		case 0x65: {
-//			temp4 = message[Brake];
-//			temp5 = message[Throttle];
-//			temp6 = ui8_messagelength;
-//			if(message[Brake]<BRAKEOFFSET>>1)MS->error_state=brake;
-//			else if(MS->error_state==brake)MS->error_state=none;
-//			if(map(message[Brake],BRAKEOFFSET,BRAKEMAX,0,MP->regen_current)>0){
-//
-//				if(MS->Speed>2){
-//					MS->i_q_setpoint_temp =map(message[Brake],BRAKEOFFSET,BRAKEMAX,0,MP->regen_current);
-//					// ramp down regen strength at the max voltage to avoid the BMS shutting down the battery.
-//					MS->i_q_setpoint_temp =-map(MS->Voltage,BATTERYVOLTAGE_MAX-1000,BATTERYVOLTAGE_MAX,MS->i_q_setpoint_temp,0);
-//					MS->brake_active=true;
-//				}
-//				else {
-//					MS->i_q_setpoint_temp =0;
-//					MS->brake_active=false;
-//					}
-//				}
-//			else{
-//				MS->i_q_setpoint_temp = map(message[Throttle],THROTTLEOFFSET,THROTTLEMAX,0,MP->phase_current_limit);
-//				MS->brake_active=false;
-//				}
-//
-//			if(MS->i_q_setpoint_temp>-1){
-//				message[Throttle]=map(MS->i_q_setpoint,0,MP->phase_current_limit,THROTTLEOFFSET,THROTTLEMAX);
-//				addCRC((uint8_t*)message, length);
-//			}
+			temp4 = message[Brake];
+			temp5 = message[Throttle];
+			temp6 = ui8_messagelength;
+
+			MS->i_q_setpoint_temp = message[Throttle];
+			message[Throttle]=MS->i_q_setpoint;
 			message[5]=0;
 			message[5]=(MS->mode<<1)+MS->light;
 			addCRC((uint8_t*)message, length);

@@ -559,23 +559,21 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 
 
 				//calculate current target form torque, cadence and assist level
-				int32_temp_current_target = (TS_COEF*(int16_t)(MS.assist_level)* (uint32_torque_cumulated>>5)/uint32_PAS)>>8; //>>5 aus Mittelung über eine Kurbelumdrehung, >>8 aus KM5S-Protokoll Assistlevel 0..255
+				int32_temp_current_target = ((TS_COEF*(int16_t)(MS.assist_level)* (uint32_torque_cumulated>>5)/uint32_PAS)>>8)+THROTTLEOFFSET; //>>5 aus Mittelung über eine Kurbelumdrehung, >>8 aus KM5S-Protokoll Assistlevel 0..255
 
 				//limit current target to max value
-				if(int32_temp_current_target>PH_CURRENT_MAX) int32_temp_current_target = PH_CURRENT_MAX;
+				if(int32_temp_current_target>THROTTLEMAX) int32_temp_current_target = THROTTLEMAX;
 				//set target to zero, if pedals are not turning
 				if(uint32_PAS_counter > PAS_TIMEOUT){
 					int32_temp_current_target = 0;
 					if(uint32_torque_cumulated>0)uint32_torque_cumulated--; //ramp down cumulated torque value
 				}
-
-				if(MS.i_q_setpoint_temp>0){
-					//Throttle override
-					if(MS.i_q_setpoint_temp<int32_temp_current_target)MS.i_q_setpoint_temp=int32_temp_current_target;
-					//ramp down current at speed limit
-					MS.i_q_setpoint_temp = map(uint32_tics_filtered >> 3, tics_higher_limit, tics_lower_limit, 0, MS.i_q_setpoint_temp); //ramp down current at speed limit
+				//value from dashboard throttle
+				if(MS.i_q_setpoint_temp>THROTTLEOFFSET){
+					if(MS.i_q_setpoint_temp>int32_temp_current_target)int32_temp_current_target=MS.i_q_setpoint_temp;
 				}
-				MS.i_q_setpoint=map(MS.Temperature, 120,130,MS.i_q_setpoint_temp,0); //ramp down power with temperature to avoid overheating the motor
+
+				MS.i_q_setpoint=map(MS.Temperature, 120,130,int32_temp_current_target,0); //ramp down power with temperature to avoid overheating the motor
 				//auto KV detect
 
 

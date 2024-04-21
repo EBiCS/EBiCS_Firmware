@@ -70,10 +70,11 @@
 #define RAMP_END 1200
 
 //---------------------------------------------------------------------
-//Throttle settings
+//Throttle settings analogue
 #define THROTTLE_OFFSET 690   //only default value, throttle offset is set at startup automatically
 #define THROTTLE_MAX 2850
 #define THROTTLE_OVERRIDE
+//Throttle settings digital from dashboard
 #define THROTTLEOFFSET 45
 #define THROTTLEMAX 200
 #define BRAKEOFFSET 38
