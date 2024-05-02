@@ -44,9 +44,9 @@
 #define CAL_I 38LL<<8					// ADC * 37,5 mA/Digit. Strom kommt in mA *2^-8 im Observer an. Siehe Post Nr. 99 im Thread (für 12 FET)
 
 //Constants for Motor model of observer
-#define INDUCTANCE	9LL		//6BionX,war nach Messung 13 (mit einfachem LCR-Tester)		//H = V*s/A Induktivität in µH/100 Shengyi hat 200µHenry Induktivität 2^16*0,0002 -->>>16 in Observer um auf Henry zukommen
-#define RESISTANCE 220LL		//220 BionX,Für ShengyiMM 80	//Ohm = V/A Widerstand in Shengi ist 117mOhm -->2^9*0,117 >>9 in Observer um auf Ohm zu kommen.
-#define FLUX_LINKAGE 2400LL			//2400 BionX,Für ShengyiMM 1800| V*s/rad von Hand angepasst
+#define INDUCTANCE	11LL		//9 Hoverboard,6 BionX,war nach Messung 13 (mit einfachem LCR-Tester)		//H = V*s/A Induktivität in µH/100 Shengyi hat 200µHenry Induktivität 2^16*0,0002 -->>>16 in Observer um auf Henry zukommen
+#define RESISTANCE 120LL		//220 BionX,Für ShengyiMM 80	//Ohm = V/A Widerstand in Shengi ist 117mOhm -->2^9*0,117 >>9 in Observer um auf Ohm zu kommen.
+#define FLUX_LINKAGE 2000LL			//2400 BionX,Für ShengyiMM 1800| V*s/rad von Hand angepasst
 #define GAMMA 13LL					//Für ShengyiMM 10| per trial and error
 
 
