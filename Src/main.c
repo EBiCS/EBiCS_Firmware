@@ -565,7 +565,7 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 				if(int32_temp_current_target>THROTTLEMAX) int32_temp_current_target = THROTTLEMAX;
 				//set target to zero, if pedals are not turning
 				if(uint32_PAS_counter > PAS_TIMEOUT){
-					int32_temp_current_target = 0;
+					int32_temp_current_target =THROTTLEOFFSET;
 					if(uint32_torque_cumulated>0)uint32_torque_cumulated--; //ramp down cumulated torque value
 				}
 				//value from dashboard throttle
@@ -636,10 +636,10 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG)
 		  sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n",
-				  HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_5),
-				  HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_8),
-				  HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_11),
-				  HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_11),
+				  ui16_torque,
+				  uint32_torque_cumulated>>5,
+				  uint32_PAS,
+				  MS.i_q_setpoint,
 				  HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_12),
 				  HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_15),
 				  HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_3),
@@ -649,10 +649,12 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 		  i=0;
 		  while (buffer[i] != '\0')
 		  {i++;}
-#endif
+		  HAL_UART_Transmit_DMA(&huart1, (uint8_t*)buffer, i);
+#else
 		  if(!(ui8_UART_Counter%4)) HAL_UART_Transmit_DMA(&huart1, (uint8_t*)MS.dashboardmessage64, 15);
 		  else HAL_UART_Transmit_DMA(&huart1, (uint8_t*)MS.dashboardmessage65, 13);
 		  ui8_UART_Counter++;
+#endif
 		  ui32_tim3_counter=0;
 	  }// end of slow loop
 
