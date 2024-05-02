@@ -75,7 +75,7 @@
 //Speed settings
 #define WHEEL_CIRCUMFERENCE 2200
 #define GEAR_RATIO 11 //11 for BionX IGH3
-#define SPEEDLIMIT 25
+#define SPEEDLIMIT 40
 #define PULSES_PER_REVOLUTION 1
 #define SPEEDSOURCE INTERNAL
 #define SPEEDFILTER 1
@@ -87,7 +87,7 @@
 #define BATTERYCURRENT_MAX 14000
 #define REVERSE 1 //1 for normal direction, -1 for reverse
 #define PUSHASSIST_CURRENT 300
-#define VOLTAGE_MIN 1320 //33V
+#define VOLTAGE_MIN 880 //22V
 
 //---------------------------------------------------------------------
 //torquesensor settings
