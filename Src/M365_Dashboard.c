@@ -216,14 +216,14 @@ void process_DashboardMessage(MotorState_t *MS, MotorParams_t *MP, uint8_t *mess
 				}
 				else MS->i_q_setpoint_temp =0;
 				MS->brake_active=false;
-
+				MS->UART_timeout=0;
 				}
 			}
 			break;
 
 
 		default: {
-		//	MS->i_q_setpoint = 0; // stop motor for safety reason
+			MS->i_q_setpoint = 0; // stop motor for safety reason
 			}
 			break;
 		}//end switch

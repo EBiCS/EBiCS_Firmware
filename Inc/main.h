@@ -194,6 +194,7 @@ typedef struct
 	bool 			brake_active;
 	uint8_t 		shutdown;
 	int8_t 			mode;
+	uint16_t		UART_timeout;
 
 }MotorState_t;
 

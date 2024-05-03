@@ -129,6 +129,7 @@ int16_t ui32_KV = 0;
 volatile uint8_t ui8_adc_offset_done_flag=0;
 volatile uint8_t ui8_print_flag=0;
 volatile uint8_t ui8_UART_flag=0;
+
 volatile uint8_t ui8_Push_Assist_flag=0;
 volatile uint8_t ui8_UART_TxCplt_flag=1;
 volatile uint8_t ui8_PAS_flag=0;
@@ -343,6 +344,7 @@ int main(void)
 	MS.angle_est=SPEED_PLL;
 	MS.Obs_flag=0;
 	MS.mode=0;
+	MS.UART_timeout=0;
 
 
   MP.pulses_per_revolution = PULSES_PER_REVOLUTION;
@@ -617,6 +619,7 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 	    	if(ui8_bl_pwm_counter<MS.backlight_brigthness%32)HAL_GPIO_WritePin(BRAKE_LIGHT_GPIO_Port, BRAKE_LIGHT_Pin,SET);
 	    	else HAL_GPIO_WritePin(BRAKE_LIGHT_GPIO_Port, BRAKE_LIGHT_Pin,RESET);
 	    	ui8_bl_pwm_counter++;
+	    	if(MS.UART_timeout<16000)MS.UART_timeout++;
 	    }
 
 
@@ -658,9 +661,10 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 		//--------------------------------------------------------------------------------------------------------------------------------------------------
 		if(!MS.brake_active)MS.i_q_setpoint_temp = map(uint32_tics_filtered >> 3, tics_higher_limit, tics_lower_limit, 0, MS.i_q_setpoint_temp); //ramp down current at speed limit
 
+		if(MS.UART_timeout<4000)MS.i_q_setpoint=map(MS.Temperature, 120,130,MS.i_q_setpoint_temp,0); //ramp down power with temperature to avoid overheating the motor
+		else MS.i_q_setpoint=0; //cut power, if Bluetooth connection to bike is lost.
 
-				MS.i_q_setpoint=map(MS.Temperature, 120,130,MS.i_q_setpoint_temp,0); //ramp down power with temperature to avoid overheating the motor
-				//auto KV detect
+		//auto KV detect
 
 
 				if(ui8_KV_detect_flag){
