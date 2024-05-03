@@ -1268,7 +1268,7 @@ static void MX_USART1_UART_Init(void)
   huart1.Instance = USART1;
 
 #ifdef BATTERY_COMMUNICATION
-  huart1.Init.BaudRate = 115200;
+  huart1.Init.BaudRate = 9600;
 #elif (DISPLAY_TYPE == DISPLAY_TYPE_BAFANG)
   huart1.Init.BaudRate = 1200;
 #else
