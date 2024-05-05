@@ -56,9 +56,8 @@
 #include "eeprom.h"
 #include "button_processing.h"
 
-#if (DISPLAY_TYPE == DISPLAY_TYPE_M365DASHBOARD)
 #include "M365_Dashboard.h"
-#endif
+
 
 
 
@@ -762,22 +761,9 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 #if (!defined(FAST_LOOP_LOG))
 		  //print values for debugging
 
-#if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG)
-		  sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n",
-				  HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_5),
-				  HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_8),
-				  HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_11),
-				  HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_11),
-				  HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_12),
-				  HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_15),
-				  HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_3),
-				  HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_4));
-		  // sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5]),(uint16_t)(adcData[6])) ;
-		  // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",tic_array[0],tic_array[1],tic_array[2],tic_array[3],tic_array[4],tic_array[5]) ;
-		  i=0;
-		  while (buffer[i] != '\0')
-		  {i++;}
-#endif
+
+
+
 
 #ifdef BATTERY_COMMUNICATION
 		  //3A 16 04 00 1A 00 0D 0A
@@ -803,6 +789,21 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 			  ui8_BC_counter++;
 			  }
 
+#else
+		  sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n",
+				  MS.i_q_setpoint,
+				  MS.i_q,
+				  MS.Battery_Current,
+				  MS.Speed,
+				  HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_12),
+				  HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_15),
+				  HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_3),
+				  HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_4));
+		  // sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5]),(uint16_t)(adcData[6])) ;
+		  // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",tic_array[0],tic_array[1],tic_array[2],tic_array[3],tic_array[4],tic_array[5]) ;
+		  i=0;
+		  while (buffer[i] != '\0')
+		  {i++;}
 #endif
 		 HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);
 

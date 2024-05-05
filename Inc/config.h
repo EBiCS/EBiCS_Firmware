@@ -120,7 +120,7 @@
 //---------------------------------------------------------------------
 //Display settings
 #define DISPLAY_TYPE DISPLAY_TYPE_M365DASHBOARD
-#define BATTERY_COMMUNICATION
+//#define BATTERY_COMMUNICATION
 
 //---------------------------------------------------------------------
 //Regen settings
