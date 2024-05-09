@@ -111,6 +111,7 @@ uint16_t j=0;
 uint16_t k=0;
 uint16_t y=0;
 uint8_t brake_flag=0;
+uint8_t ui8_cruise_control_flag=0;
 volatile uint8_t ui8_overflow_flag=0;
 uint8_t ui8_slowloop_counter=0;
 uint8_t ui8_BC_counter=0;
@@ -262,7 +263,7 @@ static void MX_ADC2_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_TIM3_Init(void);
 int16_t T_NTC(uint16_t ADC);
-
+q31_t PI_speedcontrol (PI_control_t* PI_c);
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
                                 
 
@@ -347,10 +348,11 @@ int main(void)
 
   MP.pulses_per_revolution = PULSES_PER_REVOLUTION;
   MP.wheel_cirumference = WHEEL_CIRCUMFERENCE;
-  MP.speedLimit=SPEEDLIMIT;
+  MP.powermodulation=0;
   MP.phase_current_limit=PH_CURRENT_MAX_NORMAL;
   MP.regen_current=PH_CURRENT_MAX_NORMAL;
   MP.com_mode=Hallsensor;
+  MP.spec_angle=59652323; //5 deg.
 if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_flag=1;
 
   //init PI structs
@@ -359,7 +361,7 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
   PI_id.setpoint = 0;
   PI_id.limit_output = _U_MAX;
   PI_id.max_step=5000;
-  PI_id.shift=6;
+  PI_id.shift=8;
   PI_id.limit_i=1800;
 
   PI_iq.gain_i=I_FACTOR_I_Q;
@@ -367,20 +369,20 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
   PI_iq.setpoint = 0;
   PI_iq.limit_output = _U_MAX;
   PI_iq.max_step=5000;
-  PI_iq.shift=6;
+  PI_iq.shift=8;
   PI_iq.limit_i=_U_MAX;
 
-#ifdef SPEEDTHROTTLE
+
 
   PI_speed.gain_i=I_FACTOR_SPEED;
   PI_speed.gain_p=P_FACTOR_SPEED;
   PI_speed.setpoint = 0;
-  PI_speed.limit_output = PH_CURRENT_MAX;
-  PI_speed.max_step=50;
-  PI_speed.shift=5;
-  PI_speed.limit_i=PH_CURRENT_MAX;
+  PI_speed.limit_output =MP.phase_current_limit;;
+  PI_speed.max_step=1000;
+  PI_speed.shift=9;
+  PI_speed.limit_i=MP.phase_current_limit;
 
-#endif
+
 
   //Virtual EEPROM init
   HAL_FLASH_Unlock();
@@ -616,6 +618,9 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 	    	if(ui8_bl_pwm_counter<MS.backlight_brigthness%32)HAL_GPIO_WritePin(BRAKE_LIGHT_GPIO_Port, BRAKE_LIGHT_Pin,SET);
 	    	else HAL_GPIO_WritePin(BRAKE_LIGHT_GPIO_Port, BRAKE_LIGHT_Pin,RESET);
 	    	ui8_bl_pwm_counter++;
+//			if((uint32_tics_filtered >> 3)> tics_lower_limit&&MP.powermodulation<(MS.i_q_setpoint_temp<<4))MP.powermodulation++;
+//			if((uint32_tics_filtered >> 3)< tics_lower_limit&&MP.powermodulation>0)MP.powermodulation--;
+
 	    }
 
 
@@ -634,7 +639,7 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 		uint32_SPEEDx100_cumulated +=internal_tics_to_speedx100(uint32_tics_filtered>>3);
 #endif
 		ui16_erps=500000/((uint32_tics_filtered>>3)*6);
-		ui8_SPEED_control_flag=0;
+		if(!ui8_cruise_control_flag)ui8_SPEED_control_flag=0;
 	  }
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG && defined(FAST_LOOP_LOG))
@@ -655,10 +660,32 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 #endif
 
 		//--------------------------------------------------------------------------------------------------------------------------------------------------
-		if(!MS.brake_active)MS.i_q_setpoint_temp = map(uint32_tics_filtered >> 3, tics_higher_limit, tics_lower_limit, 0, MS.i_q_setpoint_temp); //ramp down current at speed limit
+		if(!MS.brake_active){
+			PI_speed.setpoint = (MP.speed_limit+2)*100;
+			PI_speed.recent_value = uint32_SPEEDx100_cumulated>>SPEEDFILTER;
+			if(!ui8_cruise_control_flag)MS.i_q_setpoint=MS.i_q_setpoint_temp;
+			if(uint32_SPEEDx100_cumulated>>SPEEDFILTER > MP.speed_limit*100){
+				ui8_cruise_control_flag=1;
+				if(ui8_SPEED_control_flag){
+					  PI_speed.limit_output =MP.phase_current_limit;
+					  PI_speed.limit_i=MP.phase_current_limit;
+					MS.i_q_setpoint=PI_speedcontrol(&PI_speed);
+					ui8_SPEED_control_flag=0;
+
+				}
+			}
+			else {
+				ui8_cruise_control_flag=0;
+
+			}
+			if(MS.i_q_setpoint>MS.i_q_setpoint_temp)MS.i_q_setpoint=MS.i_q_setpoint_temp;
+		}
+
+		//	MS.i_q_setpoint = map(uint32_tics_filtered >> 3, tics_higher_limit, tics_lower_limit,0, MS.i_q_setpoint_temp); //ramp down current at speed limit
 
 
-				MS.i_q_setpoint=map(MS.Temperature, 120,130,MS.i_q_setpoint_temp,0); //ramp down power with temperature to avoid overheating the motor
+
+				MS.i_q_setpoint=map(MS.Temperature, 120,130,MS.i_q_setpoint,0); //ramp down power with temperature to avoid overheating the motor
 				//auto KV detect
 
 
@@ -707,6 +734,8 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 //----------------------------------------------------------------------------------------------------------------------------------------------------------
 	  //slow loop procedere @16Hz, for LEV standard every 4th loop run, send page,
 	  if(ui32_tim3_counter>500){
+
+
 
 		  if (MS.shutdown) MS.shutdown++;
 		  MS.Speed=tics_to_speed(uint32_tics_filtered>>3);
@@ -757,22 +786,7 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 #if (!defined(FAST_LOOP_LOG))
 		  //print values for debugging
 
-#if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG)
-		  sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n",
-				  HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_5),
-				  HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_8),
-				  HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_11),
-				  HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_11),
-				  HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_12),
-				  HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_15),
-				  HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_3),
-				  HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_4));
-		  // sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5]),(uint16_t)(adcData[6])) ;
-		  // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",tic_array[0],tic_array[1],tic_array[2],tic_array[3],tic_array[4],tic_array[5]) ;
-		  i=0;
-		  while (buffer[i] != '\0')
-		  {i++;}
-#endif
+
 
 #ifdef BATTERY_COMMUNICATION
 		  //3A 16 04 00 1A 00 0D 0A
@@ -798,6 +812,21 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 			  ui8_BC_counter++;
 			  }
 
+#else
+		  sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d\r\n",
+				  MS.i_q,
+				  MS.i_q_setpoint,
+				  MS.i_q_setpoint_temp,
+				  PI_speed.setpoint,
+				  PI_speed.recent_value,
+				  temp4,
+				  tics_lower_limit,
+				  MP.phase_current_max );
+		  // sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5]),(uint16_t)(adcData[6])) ;
+		  // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",tic_array[0],tic_array[1],tic_array[2],tic_array[3],tic_array[4],tic_array[5]) ;
+		  i=0;
+		  while (buffer[i] != '\0')
+		  {i++;}
 #endif
 		 HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);
 
@@ -1637,71 +1666,74 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef* htim)
 			//6 cases for forward direction
 		//6 cases for forward direction
 		case 64:
-			q31_rotorposition_hall = Hall_64;
+			q31_rotorposition_hall = Hall_64+MP.spec_angle;
 
 			i8_recent_rotor_direction = -i16_hall_order;
 			uint16_full_rotation_counter = 0;
 			break;
 		case 45:
-			q31_rotorposition_hall = Hall_45;
+			q31_rotorposition_hall = Hall_45+MP.spec_angle;
 
 			i8_recent_rotor_direction = -i16_hall_order;
 			break;
 		case 51:
-			q31_rotorposition_hall = Hall_51;
+			q31_rotorposition_hall = Hall_51+MP.spec_angle;
 
 			i8_recent_rotor_direction = -i16_hall_order;
 			break;
 		case 13:
-			q31_rotorposition_hall = Hall_13;
+			q31_rotorposition_hall = Hall_13+MP.spec_angle;
 
 			i8_recent_rotor_direction = -i16_hall_order;
 			uint16_half_rotation_counter = 0;
 			break;
 		case 32:
-			q31_rotorposition_hall = Hall_32;
+			q31_rotorposition_hall = Hall_32+MP.spec_angle;
 
 			i8_recent_rotor_direction = -i16_hall_order;
 			break;
 		case 26:
-			q31_rotorposition_hall = Hall_26;
+			q31_rotorposition_hall = Hall_26+MP.spec_angle;
 
 			i8_recent_rotor_direction = -i16_hall_order;
 			break;
 
 			//6 cases for reverse direction
 		case 46:
-			q31_rotorposition_hall = Hall_64;
+			q31_rotorposition_hall = Hall_64-MP.spec_angle;
 
 			i8_recent_rotor_direction = i16_hall_order;
 			break;
 		case 62:
-			q31_rotorposition_hall = Hall_26;
+			q31_rotorposition_hall = Hall_26-MP.spec_angle;
 
 			i8_recent_rotor_direction = i16_hall_order;
 			break;
 		case 23:
-			q31_rotorposition_hall = Hall_32;
+			q31_rotorposition_hall = Hall_32-MP.spec_angle;
 
 			i8_recent_rotor_direction = i16_hall_order;
 			uint16_half_rotation_counter = 0;
 			break;
 		case 31:
-			q31_rotorposition_hall = Hall_13;
+			q31_rotorposition_hall = Hall_13-MP.spec_angle;
 
 			i8_recent_rotor_direction = i16_hall_order;
 			break;
 		case 15:
-			q31_rotorposition_hall = Hall_51;
+			q31_rotorposition_hall = Hall_51-MP.spec_angle;
 
 			i8_recent_rotor_direction = i16_hall_order;
 			break;
 		case 54:
-			q31_rotorposition_hall = Hall_45;
+			q31_rotorposition_hall = Hall_45-MP.spec_angle;
 
 			i8_recent_rotor_direction = i16_hall_order;
 			uint16_full_rotation_counter = 0;
 			break;
+
+		//default:
+			//temp4++;
 
 		} // end case
 
@@ -2259,6 +2291,31 @@ int16_t T_NTC(uint16_t ADC) // ADC 12 Bit, 10k Pullup, Rückgabewert in °C
 
 }
 #endif
+
+q31_t PI_speedcontrol (PI_control_t* PI_c)
+{
+
+  q31_t q31_p; //proportional part
+  q31_p = ((PI_c->setpoint - PI_c->recent_value)*PI_c->gain_p);
+  PI_c->integral_part += ((PI_c->setpoint - PI_c->recent_value)*PI_c->gain_i);
+
+
+  if (PI_c->integral_part > PI_c->limit_i << PI_c->shift) PI_c->integral_part = PI_c->limit_i << PI_c->shift;
+  if (PI_c->integral_part < 0) PI_c->integral_part = 0;
+  if(!READ_BIT(TIM1->BDTR, TIM_BDTR_MOE))PI_c->integral_part = 0 ; //reset integral part if PWM is disabled
+
+    //avoid too big steps in one loop run
+  if (q31_p+PI_c->integral_part > PI_c->out+PI_c->max_step) PI_c->out+=PI_c->max_step;
+  else if  (q31_p+PI_c->integral_part < PI_c->out-PI_c->max_step)PI_c->out-=PI_c->max_step;
+  else PI_c->out=(q31_p+PI_c->integral_part);
+
+
+  if (PI_c->out>PI_c->limit_output << PI_c->shift) PI_c->out = PI_c->limit_output<< PI_c->shift;
+  if (PI_c->out<4) PI_c->out = 4; // allow no negative voltage.
+  if(!READ_BIT(TIM1->BDTR, TIM_BDTR_MOE))PI_c->out = 0 ; //reset output if PWM is disabled
+
+  return (PI_c->out>>PI_c->shift);
+}
 
 /* USER CODE END 4 */
 

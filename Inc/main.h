@@ -112,7 +112,7 @@
 #define R_TEMP_PULLUP 0
 #define TORQUE_OFFSET 1580
 #define TORQUE_MAX 850
-#define SPEC_ANGLE -1550960412L //-1312351118L		//Shengyi Heckmotor aus Fischer ETH1606 per trial and error
+#define SPEC_ANGLE -1550960412L // for sensorless delay compensation -1312351118L		//Shengyi Heckmotor aus Fischer ETH1606 per trial and error
 #define FILTER_DELAY 59652323<<4	 //1073741824L	// for angle correction of i_alfa + i_beta
 enum state {Stop, SixStep, Regen, Running, BatteryCurrentLimit, Interpolation, PLL, IdleRun, Sensorless, OpenLoop};
 enum com_mode {Hallsensor, Sensorless_openloop, Sensorless_startkick, Hallsensor_Sensorless};
@@ -211,11 +211,11 @@ typedef struct
 	uint16_t       	throttle_offset;
 	uint16_t       	throttle_max;
 	uint16_t       	gear_ratio;
-	uint8_t       	speedLimit;
+	uint16_t       	powermodulation;
 	uint8_t 		speed_limit;
 	uint8_t       	pulses_per_revolution;
 	uint16_t       	phase_current_max;
-	int16_t       	spec_angle;
+	q31_t       	spec_angle;
 	uint8_t       	com_mode;
 	int16_t 		regen_current;
 	int16_t 		phase_current_limit;

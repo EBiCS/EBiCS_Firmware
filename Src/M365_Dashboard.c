@@ -134,9 +134,9 @@ void process_DashboardMessage(MotorState_t *MS, MotorParams_t *MP, uint8_t *mess
 			break;
 
 		case 0x65: {
-			temp4 = message[Brake];
-			temp5 = message[Throttle];
-			temp6 = ui8_messagelength;
+//			temp4 = message[Brake];
+//			temp5 = message[Throttle];
+//			temp6 = ui8_messagelength;
 			if(message[Brake]<BRAKEOFFSET>>1)MS->error_state=brake;
 			else if(MS->error_state==brake)MS->error_state=none;
 			if(map(message[Brake],BRAKEOFFSET,BRAKEMAX,0,MP->regen_current)>0){

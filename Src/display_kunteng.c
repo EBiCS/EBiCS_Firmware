@@ -185,7 +185,7 @@ void check_message(MotorState_t* MS_D, MotorParams_t* MP_D)
      lcd_configuration_variables.ui8_power_assist_control_mode = ui8_rx_buffer [4] & 8;
      lcd_configuration_variables.ui8_controller_max_current = (ui8_rx_buffer [7] & 15);
      MS_D->assist_level = lcd_configuration_variables.ui8_assist_level;
-     MP_D->speedLimit = lcd_configuration_variables.ui8_max_speed;
+     MP_D->speed_limit = lcd_configuration_variables.ui8_max_speed;
 
 		lcd_configuration_variables.ui8_p1 = ui8_rx_buffer[3];
 		lcd_configuration_variables.ui8_p2 = ui8_rx_buffer[4] & 0x07;
