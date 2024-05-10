@@ -76,15 +76,14 @@
 
 //---------------------------------------------------------------------
 //Throttle settings
-#define THROTTLE_OFFSET 690   //only default value, throttle offset is set at startup automatically
+#define THROTTLE_OFFSET 1800   //default value: 690 or 1850 for Bidirektional THROTTLE grip - Wheelchair puller branch has 1770                              
 #define THROTTLE_MAX 2850
 #define THROTTLE_OVERRIDE
 
-//--------------------------------------------------------------------
 //Speed settings
 #define WHEEL_CIRCUMFERENCE 2200
-#define GEAR_RATIO 80 //11 for BionX IGH3
-#define SPEEDLIMIT 25
+#define GEAR_RATIO 46 //11 for BionX IGH3 46 Magnete für AYW für 48V 1000W Standard 11x6 ca. 360-380U/min
+#define SPEEDLIMIT 45
 #define PULSES_PER_REVOLUTION 1
 #define SPEEDSOURCE INTERNAL
 #define SPEEDFILTER 1
@@ -107,7 +106,6 @@
 //---------------------------------------------------------------------
 //Display settings
 #define DISPLAY_TYPE DISPLAY_TYPE_DEBUG
-
 
 //---------------------------------------------------------------------
 //Regen settings
