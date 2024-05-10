@@ -661,10 +661,10 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 
 		//--------------------------------------------------------------------------------------------------------------------------------------------------
 		if(!MS.brake_active){
-			PI_speed.setpoint = (MP.speed_limit+2)*100;
+			PI_speed.setpoint = (MP.speed_limit)*100;
 			PI_speed.recent_value = uint32_SPEEDx100_cumulated>>SPEEDFILTER;
 			if(!ui8_cruise_control_flag)MS.i_q_setpoint=MS.i_q_setpoint_temp;
-			if(uint32_SPEEDx100_cumulated>>SPEEDFILTER > MP.speed_limit*100){
+			if(uint32_SPEEDx100_cumulated>>SPEEDFILTER > (MP.speed_limit-2)*100){
 				ui8_cruise_control_flag=1;
 				if(ui8_SPEED_control_flag){
 					  PI_speed.limit_output =MP.phase_current_limit;
@@ -680,7 +680,7 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 			}
 			if(MS.i_q_setpoint>MS.i_q_setpoint_temp)MS.i_q_setpoint=MS.i_q_setpoint_temp;
 		}
-
+		else MS.i_q_setpoint=MS.i_q_setpoint_temp;
 		//	MS.i_q_setpoint = map(uint32_tics_filtered >> 3, tics_higher_limit, tics_lower_limit,0, MS.i_q_setpoint_temp); //ramp down current at speed limit
 
 
