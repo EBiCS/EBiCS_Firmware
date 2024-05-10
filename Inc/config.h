@@ -76,7 +76,7 @@
 
 //---------------------------------------------------------------------
 //Throttle settings
-#define THROTTLE_OFFSET 1800   //default value: 690 or 1850 for Bidirektional THROTTLE grip - Wheelchair puller branch has 1770                              
+#define THROTTLE_OFFSET 1770   //default value: 690 or 1850 for Bidirektional THROTTLE grip - Wheelchair puller branch has 1770                              
 #define THROTTLE_MAX 2850
 #define THROTTLE_OVERRIDE
 
