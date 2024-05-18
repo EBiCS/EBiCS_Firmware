@@ -824,8 +824,8 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 //			  uint16_mapped_throttle = map(adcData[1], THROTTLE_OFFSET, THROTTLE_MAX, 0,PH_CURRENT_MAX);
 //
 //#endif //end NTCE
-
-			  uint16_mapped_throttle = map(adcData[1], THROTTLE_OFFSET, THROTTLE_MAX, 0,PH_CURRENT_MAX); //throttle override, no torque override in this version actually
+//					org.: =    map(adcData[1], => [6] Gasgrip pluged *instead of  torque sensor see line 1011
+ 			  uint16_mapped_throttle = map(adcData[6], THROTTLE_OFFSET, THROTTLE_MAX, 0,PH_CURRENT_MAX); //throttle override, no torque override in this version actually
 
 #ifndef TS_MODE //normal PAS Mode
 
@@ -1007,7 +1007,7 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 #if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG && !defined(FAST_LOOP_LOG))
 		  //print values for debugging
 
-
+		  // 					            org.:    adcData[1] change for debugging Gasgrip to the output see line 828
 		  sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", adcData[6],MS.i_q_setpoint, MS.Speed, temp4, MS.Obs_flag, int32_temp_current_target , MS.i_q, uint16_idle_run_counter, MS.system_state);
 		  // sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5]),(uint16_t)(adcData[6])) ;
 		  // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",tic_array[0],tic_array[1],tic_array[2],tic_array[3],tic_array[4],tic_array[5]) ;
