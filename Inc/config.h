@@ -115,6 +115,11 @@
 //#define ADC_BRAKE
 
 //---------------------------------------------------------------------
-#define AUTODETECT 0
+#define AUTODETECT 1  //  org. 0  
+//Das Autodetect muß du auf jeden Fall einmal starten (mit Rad in der Luft), 
+// sonst kann es gar nicht gehen.
+// Am sichersten geht das, wenn man das Display auf Debug stellt und Autodetect auf 1.
+// Dann wird die Routine bei jedem Einschalten ausgeführt. Wenn sie einmal gelaufen ist, 
+// kannst du Autodetect wieder auf 0 stellen und das Display zurück auf KM5S ? evtl. nicht beim Grace TODO
 
 #endif /* CONFIG_H_ */
