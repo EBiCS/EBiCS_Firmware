@@ -77,7 +77,7 @@
 //---------------------------------------------------------------------
 //Throttle settings
 #define THROTTLE_OFFSET 1600   //default value: 690 or 1850 for Bidirektional THROTTLE grip - Wheelchair puller branch has 1770   #volker                           
-#define THROTTLE_MAX 2630      // org. 2850
+#define THROTTLE_MAX 2850  // 2630 zu steil     // org. 2850
 #define THROTTLE_OVERRIDE
 
 //Speed settings
@@ -92,7 +92,7 @@
 //---------------------------------------------------------------------
 //power settings
 #define PH_CURRENT_MAX 1200
-#define BATTERYCURRENT_MAX 14000
+#define BATTERYCURRENT_MAX 20000  // org. 14 000 volker
 #define REVERSE 1 //1 for normal direction, -1 for reverse
 #define PUSHASSIST_CURRENT 300
 #define VOLTAGE_MIN 1320 //33V
