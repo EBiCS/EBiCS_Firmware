@@ -115,7 +115,7 @@
 //#define ADC_BRAKE
 
 //---------------------------------------------------------------------
-#define AUTODETECT 1  //  org. 0  
+#define AUTODETECT 0  //  org. 0  
 //Das Autodetect muß du auf jeden Fall einmal starten (mit Rad in der Luft), 
 // sonst kann es gar nicht gehen.
 // Am sichersten geht das, wenn man das Display auf Debug stellt und Autodetect auf 1.
