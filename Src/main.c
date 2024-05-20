@@ -2178,7 +2178,7 @@ void autodetect() {
 	MS.hall_angle_detect_flag = 0; //set uq to contstant value in FOC.c for open loop control
 	q31_rotorposition_absolute = 1 << 31;
 	i16_hall_order = 1;//reset hall order
-	MS.i_d_setpoint= 300; //set MS.id to appr. 2000mA // org. 200 => 300 for stronger motor
+	MS.i_d_setpoint= 250; //set MS.id to appr. 2000mA // org. 200 => 300 for stronger motor volker
 	MS.i_q_setpoint= 0;
 //	uint8_t zerocrossing = 0;
 //	q31_t diffangle = 0;
