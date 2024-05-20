@@ -105,8 +105,8 @@
 
 //---------------------------------------------------------------------
 //Display settings
-#define DISPLAY_TYPE DISPLAY_TYPE_DEBUG
-
+#define DISPLAY_TYPE DISPLAY_TYPE_EBiCS  //DISPLAY_TYPE_DEBUG  // volker
+   
 //---------------------------------------------------------------------
 //Regen settings
 
