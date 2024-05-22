@@ -100,8 +100,8 @@
 
 // motor current limits for invividual modes in mA, see default settings at https://max.cfw.sh/#
 #define PH_CURRENT_MAX_ECO 300
-#define PH_CURRENT_MAX_NORMAL 900
-#define PH_CURRENT_MAX_SPORT 1200
+#define PH_CURRENT_MAX_NORMAL 660
+#define PH_CURRENT_MAX_SPORT 790
 
 // speed limits for invividual modes in kph
 #define SPEEDLIMIT_ECO 7
