@@ -750,12 +750,12 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 		  else uint16_idle_run_counter=0;
 		  if(ui8_KV_detect_flag){ui16_KV_detect_counter++;}
 		  //disable PWM after 1 minute idle run.
-		  if(uint16_idle_run_counter>960){
-			  MS.system_state=Stop;
-			  uint16_idle_run_counter=0;
-			  CLEAR_BIT(TIM1->BDTR, TIM_BDTR_MOE);
-
-		  }
+//		  if(uint16_idle_run_counter>960){
+//			  MS.system_state=Stop;
+//			  uint16_idle_run_counter=0;
+//			  CLEAR_BIT(TIM1->BDTR, TIM_BDTR_MOE);
+//
+//		  }
 #if (R_TEMP_PULLUP)
 		  MS.Temperature = T_NTC(adcData[6]); //Thank you Hendrik ;-)
 #else
