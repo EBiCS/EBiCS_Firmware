@@ -89,7 +89,7 @@
 
 
 //#define NCTE
-//#define LEGALFLAG
+#define LEGALFLAG
 #define BATTERYVOLTAGE_MAX 53000
 #define R_TEMP_PULLUP 0
 #define TORQUE_OFFSET 1580
