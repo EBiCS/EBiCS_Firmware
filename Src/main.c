@@ -892,8 +892,8 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 				if(uint32_PAS_counter<PAS_TIMEOUT){
 					int32_temp_current_target=map(uint32_SPEEDx100_cumulated>>SPEEDFILTER, MP.speedLimit*100,(MP.speedLimit+2)*100,int32_temp_current_target,0);
 					}
-				else{ //limit to 6km/h if pedals are not turning
-					int32_temp_current_target=map(uint32_SPEEDx100_cumulated>>SPEEDFILTER, 500,700,int32_temp_current_target,0);
+				else{ //limit to 20km/h if pedals are not turning volker                        500,700
+					int32_temp_current_target=map(uint32_SPEEDx100_cumulated>>SPEEDFILTER, 2000,2200,int32_temp_current_target,0);
 					}
 				}
 //			else int32_temp_current_target=int32_temp_current_target;
