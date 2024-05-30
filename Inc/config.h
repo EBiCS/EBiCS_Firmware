@@ -77,12 +77,12 @@
 //---------------------------------------------------------------------
 //Throttle settings
 #define THROTTLE_OFFSET 1600   //default value: 690 or 1850 for Bidirektional THROTTLE grip - Wheelchair puller branch has 1770   #volker                           
-#define THROTTLE_MAX 2000  // 2630 zu steil     // org. 2850
+#define THROTTLE_MAX 4000  // 2630 zu steil (debug)    // org. 2850
 #define THROTTLE_OVERRIDE
 
 //Speed settings
 #define WHEEL_CIRCUMFERENCE 2200
-#define GEAR_RATIO 46 //11 for BionX IGH3 46 Magnete für AYW für 48V 1000W Standard 11x6 ca. 360-380U/min
+#define GEAR_RATIO 23 //11 for BionX IGH3 46 Magnete für AYW für 48V 1000W Standard 11x6 ca. 360-380U/min
 #define SPEEDLIMIT 25
 #define PULSES_PER_REVOLUTION 1
 #define SPEEDSOURCE INTERNAL
@@ -92,7 +92,7 @@
 //---------------------------------------------------------------------
 //power settings
 #define PH_CURRENT_MAX 1200
-#define BATTERYCURRENT_MAX 20000  // org. 14 000 volker
+#define BATTERYCURRENT_MAX 25000  // org. 14 000 volker
 #define REVERSE 1 //1 for normal direction, -1 for reverse
 #define PUSHASSIST_CURRENT 300
 #define VOLTAGE_MIN 1320 //33V
@@ -105,7 +105,7 @@
 
 //---------------------------------------------------------------------
 //Display settings
-#define DISPLAY_TYPE DISPLAY_TYPE_KINGMETER_901U  // DISPLAY_TYPE_KINGMETER_618U  //DISPLAY_TYPE_DEBUG  // volker
+#define DISPLAY_TYPE DISPLAY_TYPE_KINGMETER // DISPLAY_TYPE_KINGMETER_901U  // DISPLAY_TYPE_KINGMETER_618U  //DISPLAY_TYPE_DEBUG  // volker
    
 //---------------------------------------------------------------------
 //Regen settings
