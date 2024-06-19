@@ -568,35 +568,42 @@ int main(void)
    	   		Hall_45 = temp<<16;
    	   		printf_("Hall_45: %d \n",	(int16_t) (((Hall_45 >> 23) * 180) >> 8));
    	   		printf_("Hall_45: %u \n",	Hall_45);
+			HAL_IWDG_Refresh(&hiwdg);
 
    	   		EE_ReadVariable(EEPROM_POS_HALL_51, &temp);
    	   		Hall_51 = temp<<16;
    	   		printf_("Hall_51: %d \n",	(int16_t) (((Hall_51 >> 23) * 180) >> 8));
    	   		printf_("Hall_51: %u \n",	Hall_51);
+			HAL_IWDG_Refresh(&hiwdg);
 
    	   		EE_ReadVariable(EEPROM_POS_HALL_13, &temp);
    	   		Hall_13 = temp<<16;
    	   		printf_("Hall_13: %d \n",	(int16_t) (((Hall_13 >> 23) * 180) >> 8));
    	   		printf_("Hall_13: %u \n",	Hall_13);
+			HAL_IWDG_Refresh(&hiwdg);
 
    	   		EE_ReadVariable(EEPROM_POS_HALL_32, &temp);
    	   		Hall_32 = temp<<16;
    	   		printf_("Hall_32: %d \n",	(int16_t) (((Hall_32 >> 23) * 180) >> 8));
    	   		printf_("Hall_32: %u \n",	Hall_32);
+			HAL_IWDG_Refresh(&hiwdg);
 
    	   		EE_ReadVariable(EEPROM_POS_HALL_26, &temp);
    	   		Hall_26 = temp<<16;
    	   		printf_("Hall_26: %d \n",	(int16_t) (((Hall_26 >> 23) * 180) >> 8));
    	   		printf_("Hall_26: %u \n",	Hall_26);
+			HAL_IWDG_Refresh(&hiwdg);
 
    	   		EE_ReadVariable(EEPROM_POS_HALL_64, &temp);
    	  		Hall_64 = temp<<16;
    	  		printf_("Hall_64: %d \n",	(int16_t) (((Hall_64 >> 23) * 180) >> 8));
    	  		printf_("Hall_64: %u \n",	Hall_64);
+			HAL_IWDG_Refresh(&hiwdg);
 
    	  		EE_ReadVariable(EEPROM_POS_KV, &ui32_KV);
    	  		if(!ui32_KV)ui32_KV=111;
    	  		printf_("KV: %d \n",ui32_KV	);
+			HAL_IWDG_Refresh(&hiwdg);
 
    	   	}
 
