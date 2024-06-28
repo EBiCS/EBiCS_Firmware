@@ -67,7 +67,7 @@ void Bafang_Init (BAFANG_t* BF_ctx)
     }
 
     //Start UART with DMA
-    if (HAL_UART_Receive_DMA(&huart1, (uint8_t *)BF_ctx->ByteReceived, 1) != HAL_OK)
+    if (HAL_UART_Receive_DMA(&huart1, (uint8_t *)BF_ctx->RxBuff, BF_MAX_RXBUFF) != HAL_OK)
      {
  	   Error_Handler();
      }
@@ -82,51 +82,51 @@ void Bafang_Init (BAFANG_t* BF_ctx)
  ***************************************************************************************************/
 void Bafang_Service(BAFANG_t* BF_ctx, uint8_t  rx)
 {
+    static uint8_t  last_pointer_position;
+    static uint8_t  recent_pointer_position;
+    static uint8_t  Rx_message_length;
+    static uint8_t  BF_Message[32];
+
+//    //wait for gap
+//	if(BF_ctx->RxState == RXSTATE_WAITGAP){
+//
+//    if(BF_ctx->ByteReceived[0]==BF_CMD_STARTREQUEST || BF_ctx->ByteReceived[0]==BF_CMD_STARTINFO) //waiting for start code
+//    {
+//
+//
+//        BF_ctx->RxState++; ///go to next state
+//        BF_ctx->LastRx = ui32_tim1_counter;
+//        BF_ctx->RxCnt=0;
+//    }
+//    }
+
+    recent_pointer_position = 64-DMA1_Channel5->CNDTR;
+
+    if(recent_pointer_position>last_pointer_position){
+    	Rx_message_length=recent_pointer_position-last_pointer_position;
+    	//printf_("groesser %d, %d, %d \n ",recent_pointer_position,last_pointer_position, Rx_message_length);
+    	//HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
+    	memcpy(BF_Message,BF_ctx->RxBuff+last_pointer_position,Rx_message_length);
+    	//HAL_UART_Transmit(&huart3, (uint8_t *)&BF_Message, Rx_message_length,50);
+	}
+    else {
+    	Rx_message_length=recent_pointer_position+64-last_pointer_position;
+     	memcpy(BF_Message,BF_ctx->RxBuff+last_pointer_position,64-last_pointer_position);
+        memcpy(BF_Message+64-last_pointer_position,BF_ctx->RxBuff,recent_pointer_position);
+      //  HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
 
 
-    //wait for gap
-	if(BF_ctx->RxState == RXSTATE_WAITGAP){
-
-    if(BF_ctx->ByteReceived[0]==BF_CMD_STARTREQUEST || BF_ctx->ByteReceived[0]==BF_CMD_STARTINFO) //waiting for start code
-    {
-
-
-        BF_ctx->RxState++; ///go to next state
-        BF_ctx->LastRx = ui32_tim1_counter;
-        BF_ctx->RxCnt=0;
     }
-    }
+    last_pointer_position=recent_pointer_position;
+   // HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&BF_Message, Rx_message_length);
     
-    // Search for Start Code
-    if(BF_ctx->RxState == RXSTATE_STARTCODE) //waiting for start code
-    {
 
-          BF_ctx->LastRx = ui32_tim1_counter;
-          BF_ctx->RxBuff[0]=BF_ctx->ByteReceived[0];
-          if(BF_ctx->RxBuff[0]==BF_CMD_STARTREQUEST) //valid request startcode detected
-          {
-              BF_ctx->RxCnt = 1;
-              BF_ctx->RxState = RXSTATE_REQUEST;
-          }
-          else if(BF_ctx->RxBuff[0]==BF_CMD_STARTINFO) //valid info startcode detected
-          {
-              BF_ctx->RxCnt = 1;
-              BF_ctx->RxState = RXSTATE_INFO;
-          }
-          else
-          {
-              BF_ctx->RxState = RXSTATE_WAITGAP;
-          }
 
-    }
-    
-    else if(BF_ctx->RxState == RXSTATE_REQUEST) //we are waiting for request code
-    {
+          if(BF_Message[0]==BF_CMD_STARTREQUEST) //we received a request
+          	  {
 
-            BF_ctx->RxBuff[BF_ctx->RxCnt] = BF_ctx->ByteReceived[0];
-            BF_ctx->RxCnt++;            
-            BF_ctx->LastRx = ui32_tim1_counter;
-            switch (BF_ctx->RxBuff[1]) // analyze and send correct answer
+
+            switch (BF_Message[1]) // analyze and send correct answer
             {
               case BF_CMD_GETSPEED:
 
@@ -164,61 +164,24 @@ void Bafang_Service(BAFANG_t* BF_ctx, uint8_t  rx)
             		  TxBuff[0]=48;
             		  TxBuff[1]=48;
             	  }
-              HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuff, 2);
+             HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuff, 2);
               break;
             }
-          BF_ctx->RxState = RXSTATE_WAITGAP;  //reset state machine
+
 
             
     }
     
-    else if(BF_ctx->RxState == RXSTATE_INFO) //we are waiting for info code
+     else if(BF_Message[0]==BF_CMD_STARTINFO) //we received an info
     {
 
-        BF_ctx->RxBuff[BF_ctx->RxCnt] = BF_ctx->ByteReceived[0];
-        BF_ctx->RxCnt++;            
-        BF_ctx->LastRx = ui32_tim1_counter;
-        switch (BF_ctx->RxBuff[1])   //analyze info code and set correct bytes to receive
-        {
-          case BF_CMD_LEVEL:
-          BF_ctx->InfoLength=4;  //level message has length of 4 bytes
-          BF_ctx->RxState++;
-          break;
-          
-          case BF_CMD_LIGHT:
-          BF_ctx->InfoLength=3;  //light message has length of 3 bytes
-          BF_ctx->RxState++;
-          break;
-          
-          case BF_CMD_WHEELDIAM: //wheeldiameter message has length of 5 bytes
-          BF_ctx->InfoLength=5;
-          BF_ctx->RxState++;
-          break;
-          
-          default:
-          BF_ctx->RxState=RXSTATE_WAITGAP; //not a valid message -> reset state machine
-          break;
-        }
-
-    }
-    
-    else if (BF_ctx->RxState == RXSTATE_INFOMESSAGE ) //we are waiting for info message
-    {
-    	if(BF_ctx->RxCnt<BF_ctx->InfoLength){
-    		BF_ctx->RxBuff[BF_ctx->RxCnt] = BF_ctx->ByteReceived[0];
-    		BF_ctx->RxCnt++;
-    		BF_ctx->LastRx = ui32_tim1_counter;
-    	}
-      
-    if (BF_ctx->RxCnt==BF_ctx->InfoLength) //info message complete --> analyze
-      {
         switch (BF_ctx->RxBuff[1])
         {
           case BF_CMD_LEVEL:
-          if (BF_ctx->RxBuff[3]==BF_ctx->RxBuff[0]+BF_ctx->RxBuff[1]+BF_ctx->RxBuff[2]) //checksum is correct, set poti_stat
+          if (BF_Message[3]==BF_Message[0]+BF_Message[1]+BF_Message[2]) //checksum is correct, set poti_stat
           {
             BF_ctx->Rx.PushAssist=0;
-            switch(BF_ctx->RxBuff[2])
+            switch(BF_Message[2])
             {
               case BF_LEVEL0:
               BF_ctx->Rx.AssistLevel=0;
@@ -261,17 +224,17 @@ void Bafang_Service(BAFANG_t* BF_ctx, uint8_t  rx)
           break;
           
           case BF_CMD_LIGHT:
-          BF_ctx->Rx.Headlight=(BF_ctx->RxBuff[2]==BF_LIGHTON);
+          BF_ctx->Rx.Headlight=(BF_Message[2]==BF_LIGHTON);
           break;
           
           case BF_CMD_WHEELDIAM:
-          BF_ctx->Rx.Wheeldiameter=BF_ctx->RxBuff[2]*256+BF_ctx->RxBuff[3];
+          BF_ctx->Rx.Wheeldiameter=BF_Message[2]*256+BF_Message[3];
           break;
         }     
        BF_ctx->RxState = RXSTATE_STARTCODE; 
       }
     } // end if RXSTATE_INFOMESSAGE
-}
+
 
 
 
