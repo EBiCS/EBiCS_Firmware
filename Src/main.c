@@ -2046,16 +2046,16 @@ void kingmeter_update(void)
 
 
 #if (SPEEDSOURCE  == EXTERNAL)
-    	KM.Tx.Wheeltime_ms = ((MS.Speed>>3)*PULSES_PER_REVOLUTION); //>>3 because of 8 kHz counter frequency, so 8 tics per ms
+    	KM.Tx.Speed = ((MS.Speed>>3)*PULSES_PER_REVOLUTION); //>>3 because of 8 kHz counter frequency, so 8 tics per ms
 #else
         if(__HAL_TIM_GET_COUNTER(&htim2) < 12000)
         {
-    	KM.Tx.Wheeltime_ms = (MS.Speed*GEAR_RATIO*6)>>9; //>>9 because of 500kHZ timer2 frequency, 512 tics per ms should be OK *6 because of 6 hall interrupts per electric revolution.
+    	KM.Tx.Speed = (MS.Speed*GEAR_RATIO*6)>>9; //>>9 because of 500kHZ timer2 frequency, 512 tics per ms should be OK *6 because of 6 hall interrupts per electric revolution.
 
     }
     else
     {
-        KM.Tx.Wheeltime_ms = 64000;
+        KM.Tx.Speed = 64000;
     }
 
 #endif
@@ -2111,12 +2111,12 @@ void bafang_update(void)
 {
     /* Prepare Tx parameters */
 
-	if(MS.Voltage*CAL_BAT_V>BATTERY_LEVEL_5)battery_percent_fromcapacity=75;
-	else if(MS.Voltage*CAL_BAT_V>BATTERY_LEVEL_4)battery_percent_fromcapacity=50;
-	else if(MS.Voltage*CAL_BAT_V>BATTERY_LEVEL_3)battery_percent_fromcapacity=30;
-	else if(MS.Voltage*CAL_BAT_V>BATTERY_LEVEL_2)battery_percent_fromcapacity=10;
-	else if(MS.Voltage*CAL_BAT_V>BATTERY_LEVEL_1)battery_percent_fromcapacity=5;
-	else battery_percent_fromcapacity=0;
+	if(MS.Voltage*CAL_BAT_V>BATTERY_LEVEL_5)battery_percent_fromcapacity=95;
+	else if(MS.Voltage*CAL_BAT_V>BATTERY_LEVEL_4)battery_percent_fromcapacity=80;
+	else if(MS.Voltage*CAL_BAT_V>BATTERY_LEVEL_3)battery_percent_fromcapacity=50;
+	else if(MS.Voltage*CAL_BAT_V>BATTERY_LEVEL_2)battery_percent_fromcapacity=30;
+	else if(MS.Voltage*CAL_BAT_V>BATTERY_LEVEL_1)battery_percent_fromcapacity=20;
+	else battery_percent_fromcapacity=5;
 
 
     	BF.Tx.Battery = battery_percent_fromcapacity;
@@ -2125,14 +2125,14 @@ void bafang_update(void)
     if(__HAL_TIM_GET_COUNTER(&htim2) < 12000)
     {
 #if (SPEEDSOURCE == EXTERNAL)    // Adapt wheeltime to match displayed speedo value according config.h setting
-        BF.Tx.Wheeltime_ms = WHEEL_CIRCUMFERENCE*216/(MS.Speed*PULSES_PER_REVOLUTION); // Geschwindigkeit ist Weg pro Zeit Radumfang durch Dauer einer Radumdrehung --> Umfang * 8000*3600/(n*1000000) * Skalierung Bafang Display 200/26,6
+        BF.Tx.Speed = (external_tics_to_speedx100(MS.Speed)*20)>>8;// Geschwindigkeit ist Weg pro Zeit Radumfang durch Dauer einer Radumdrehung --> Umfang * 8000*3600/(n*1000000) * Skalierung Bafang Display 200/26,6
 #else
-        BF.Tx.Wheeltime_ms = internal_tics_to_speedx100(MS.Speed); //missing factor has to be found
+        BF.Tx.Speed =(internal_tics_to_speedx100(MS.Speed)*20)>>8; //factor is *20/256, found empiric
 #endif
         }
     else
     {
-        BF.Tx.Wheeltime_ms = 0; //64000;
+        BF.Tx.Speed = 0;
     }
 
 

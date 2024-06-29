@@ -132,8 +132,8 @@ void Bafang_Service(BAFANG_t* BF_ctx, uint8_t  rx)
 
               spd_tmp=BF_ctx->Rx.Wheeldiameter;
 
-              TxBuff[0]=(BF_ctx->Tx.Wheeltime_ms>>8);
-              TxBuff[1]=(BF_ctx->Tx.Wheeltime_ms&0xff);
+              TxBuff[0]=(BF_ctx->Tx.Speed>>8);
+              TxBuff[1]=(BF_ctx->Tx.Speed&0xff);
               TxBuff[2]=TxBuff[0]+TxBuff[1]+32;
               HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuff, 3);
               break;
@@ -175,7 +175,7 @@ void Bafang_Service(BAFANG_t* BF_ctx, uint8_t  rx)
      else if(BF_Message[0]==BF_CMD_STARTINFO) //we received an info
     {
 
-        switch (BF_ctx->RxBuff[1])
+        switch (BF_Message[1])
         {
           case BF_CMD_LEVEL:
           if (BF_Message[3]==BF_Message[0]+BF_Message[1]+BF_Message[2]) //checksum is correct, set poti_stat

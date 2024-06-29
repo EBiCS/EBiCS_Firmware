@@ -75,7 +75,7 @@ typedef struct
 {
     // Parameters to be send to display in operation mode:
     uint8_t  Battery;                   //
-    uint16_t Wheeltime_ms;              // Unit:1ms
+    uint16_t Speed;              // Unit:1ms
     uint8_t  Error;                     //
     uint16_t Power;               // Unit: 0.1W?!
 
