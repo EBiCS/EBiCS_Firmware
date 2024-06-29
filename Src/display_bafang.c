@@ -129,9 +129,6 @@ void Bafang_Service(BAFANG_t* BF_ctx, uint8_t  rx)
             switch (BF_Message[1]) // analyze and send correct answer
             {
               case BF_CMD_GETSPEED:
-
-              spd_tmp=BF_ctx->Rx.Wheeldiameter;
-
               TxBuff[0]=(BF_ctx->Tx.Speed>>8);
               TxBuff[1]=(BF_ctx->Tx.Speed&0xff);
               TxBuff[2]=TxBuff[0]+TxBuff[1]+32;
@@ -139,9 +136,9 @@ void Bafang_Service(BAFANG_t* BF_ctx, uint8_t  rx)
               break;
               
               case BF_CMD_GETERROR:
-              TxBuff[0]=0;
+              TxBuff[0]=6;
               TxBuff[1]=0;
-              HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuff, 2);
+              HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuff, 1);
               break;
               
               case BF_CMD_GETBAT:
