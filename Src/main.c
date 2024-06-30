@@ -2046,16 +2046,16 @@ void kingmeter_update(void)
 
 
 #if (SPEEDSOURCE  == EXTERNAL)
-    	KM.Tx.Speed = ((MS.Speed>>3)*PULSES_PER_REVOLUTION); //>>3 because of 8 kHz counter frequency, so 8 tics per ms
+    	KM.Tx.Wheeltime_ms = ((MS.Speed>>3)*PULSES_PER_REVOLUTION); //>>3 because of 8 kHz counter frequency, so 8 tics per ms
 #else
         if(__HAL_TIM_GET_COUNTER(&htim2) < 12000)
         {
-    	KM.Tx.Speed = (MS.Speed*GEAR_RATIO*6)>>9; //>>9 because of 500kHZ timer2 frequency, 512 tics per ms should be OK *6 because of 6 hall interrupts per electric revolution.
+    	KM.Tx.Wheeltime_ms = (MS.Speed*GEAR_RATIO*6)>>9; //>>9 because of 500kHZ timer2 frequency, 512 tics per ms should be OK *6 because of 6 hall interrupts per electric revolution.
 
     }
     else
     {
-        KM.Tx.Speed = 64000;
+        KM.Tx.Wheeltime_ms = 64000;
     }
 
 #endif
