@@ -2122,19 +2122,23 @@ void bafang_update(void)
     	BF.Tx.Battery = battery_percent_fromcapacity;
 
 
-    if(__HAL_TIM_GET_COUNTER(&htim2) < 12000)
-    {
+
 #if (SPEEDSOURCE == EXTERNAL)    // Adapt wheeltime to match displayed speedo value according config.h setting
-        BF.Tx.Speed = (external_tics_to_speedx100(MS.Speed)*20)>>8;// Geschwindigkeit ist Weg pro Zeit Radumfang durch Dauer einer Radumdrehung --> Umfang * 8000*3600/(n*1000000) * Skalierung Bafang Display 200/26,6
+
+    	if(uint32_SPEED_counter<16000) BF.Tx.Speed = (external_tics_to_speedx100(MS.Speed)*20)>>8;// Geschwindigkeit ist Weg pro Zeit Radumfang durch Dauer einer Radumdrehung --> Umfang * 8000*3600/(n*1000000) * Skalierung Bafang Display 200/26,6
+    	else BF.Tx.Speed = 0;
+
 #else
+      if(__HAL_TIM_GET_COUNTER(&htim2) < 12000)
+        {
         BF.Tx.Speed =(internal_tics_to_speedx100(MS.Speed)*20)>>8; //factor is *20/256, found empiric
-#endif
+
         }
     else
     {
         BF.Tx.Speed = 0;
     }
-
+#endif
 
        BF.Tx.Power = (MS.Battery_Current/500)&0xFF; // Unit: 1 digit --> 0.5 A, MS.Battery_Current is in mA
 
