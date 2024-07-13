@@ -90,8 +90,8 @@ TIM_HandleTypeDef htim3;
 UART_HandleTypeDef huart1;
 DMA_HandleTypeDef hdma_usart1_tx;
 DMA_HandleTypeDef hdma_usart1_rx;
-DMA_HandleTypeDef hdma_usart3_rx;
-UART_HandleTypeDef huart3;
+DMA_HandleTypeDef hdma_usart2_rx;
+UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
@@ -259,7 +259,7 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_DMA_Init(void);
 static void MX_USART1_UART_Init(void);
-static void MX_USART3_UART_Init(void);
+static void MX_USART2_UART_Init(void);
 static void MX_TIM1_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_ADC2_Init(void);
@@ -333,7 +333,7 @@ int main(void)
   MX_GPIO_Init();
   MX_DMA_Init();
   MX_USART1_UART_Init();
-  MX_USART3_UART_Init();
+  MX_USART2_UART_Init();
 
   //initialize MS struct.
   MS.hall_angle_detect_flag=1;
@@ -514,7 +514,7 @@ int main(void)
 //run autodect, whenn brake is pulled an throttle is pulled for 10 at startup
 #ifndef NCTE
 
-  	while ((!HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin))&&(adcData[1]>(THROTTLE_OFFSET+20))){
+  	while ((!HAL_GPIO_ReadPin(S1_S2_Brake_GPIO_Port, S1_S2_Brake_Pin))&&(adcData[1]>(THROTTLE_OFFSET+20))){
 
   				HAL_Delay(200);
   	   			y++;
@@ -740,7 +740,7 @@ int main(void)
 
 
 #else
-		if(HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin)) brake_flag=0;
+		if(HAL_GPIO_ReadPin(S1_S2_Brake_GPIO_Port, S1_S2_Brake_Pin)) brake_flag=0;
 		else brake_flag=1;
 				if(brake_flag){
 
@@ -1384,31 +1384,23 @@ static void MX_USART1_UART_Init(void)
 
 }
 
-static void MX_USART3_UART_Init(void)
+static void MX_USART2_UART_Init(void)
 {
 
-  /* USER CODE BEGIN USART3_Init 0 */
 
-  /* USER CODE END USART3_Init 0 */
-
-  /* USER CODE BEGIN USART3_Init 1 */
-
-  /* USER CODE END USART3_Init 1 */
-  huart3.Instance = USART3;
-  huart3.Init.BaudRate = 9600;
-  huart3.Init.WordLength = UART_WORDLENGTH_8B;
-  huart3.Init.StopBits = UART_STOPBITS_1;
-  huart3.Init.Parity = UART_PARITY_NONE;
-  huart3.Init.Mode = UART_MODE_TX_RX;
-  huart3.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-  huart3.Init.OverSampling = UART_OVERSAMPLING_16;
-  if (HAL_HalfDuplex_Init(&huart3) != HAL_OK)
+  huart2.Instance = USART2;
+  huart2.Init.BaudRate = 9600;
+  huart2.Init.WordLength = UART_WORDLENGTH_8B;
+  huart2.Init.StopBits = UART_STOPBITS_1;
+  huart2.Init.Parity = UART_PARITY_NONE;
+  huart2.Init.Mode = UART_MODE_TX_RX;
+  huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart2.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart2) != HAL_OK)
   {
-    Error_Handler();
+    _Error_Handler(__FILE__, __LINE__);
   }
-  /* USER CODE BEGIN USART3_Init 2 */
 
-  /* USER CODE END USART3_Init 2 */
 
 }
 
@@ -1454,15 +1446,26 @@ static void MX_GPIO_Init(void)
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
+  __HAL_RCC_GPIOC_CLK_ENABLE();
+  __HAL_RCC_GPIOD_CLK_ENABLE();
 
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : Hall_1_Pin Hall_2_Pin Hall_3_Pin */
-  GPIO_InitStruct.Pin = Hall_1_Pin|Hall_2_Pin|Hall_3_Pin;
+  /**TIM2 GPIO Configuration
+  PB10     ------> TIM2_CH3
+  PA15     ------> TIM2_CH1
+  PB3     ------> TIM2_CH2
+  */
+  GPIO_InitStruct.Pin = Hall_C_Pin|Hall_B_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  GPIO_InitStruct.Pin = Hall_A_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(Hall_A_GPIO_Port, &GPIO_InitStruct);
+
+  __HAL_AFIO_REMAP_TIM2_ENABLE();
 
   /*Configure GPIO pin : LED_Pin */
   GPIO_InitStruct.Pin = LED_Pin;
@@ -1483,19 +1486,27 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(BRAKE_LIGHT_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : Brake_Pin */
-  GPIO_InitStruct.Pin = Brake_Pin;
+  /*Configure GPIO pin : S1_S2_Brake_Pin */
+  GPIO_InitStruct.Pin = S1_S2_Brake_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
-  HAL_GPIO_Init(Brake_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(S1_S2_Brake_GPIO_Port, &GPIO_InitStruct);
 
-
-  /*Configure GPIO pins : Speed_EXTI5_Pin PAS_EXTI8_Pin */
-  GPIO_InitStruct.Pin = Speed_EXTI5_Pin|PAS_EXTI8_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
-  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  /**TIM1 GPIO Configuration
+  PB12     ------> TIM1_BKIN
+  */
+  GPIO_InitStruct.Pin = GPIO_PIN_12;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
+
+  /*Configure GPIO pins : B_Speed_Pin _1_1_PAS_Pin */
+  GPIO_InitStruct.Pin = B_Speed_Pin|_1_1_PAS_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+  __HAL_AFIO_REMAP_PD01_ENABLE();
 
   /* EXTI interrupt init*/
 
@@ -1518,7 +1529,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		if(ui32_tim3_counter<32000)ui32_tim3_counter++;
 		if (uint32_PAS_counter < PAS_TIMEOUT+1){
 			  uint32_PAS_counter++;
-			  if(HAL_GPIO_ReadPin(PAS_GPIO_Port, PAS_Pin))uint32_PAS_HIGH_counter++;
+			  if(HAL_GPIO_ReadPin(_1_1_PAS_GPIO_Port, _1_1_PAS_Pin))uint32_PAS_HIGH_counter++;
 		}
 		if (uint32_SPEED_counter<128000)uint32_SPEED_counter++;					//counter for external Speedsensor
 		if(uint16_full_rotation_counter<8000)uint16_full_rotation_counter++;	//full rotation counter for motor standstill detection
@@ -1802,13 +1813,13 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
 
 	//PAS processing
-	if(GPIO_Pin == PAS_EXTI8_Pin)
+	if(GPIO_Pin == _1_1_PAS_Pin)
 	{
 		ui8_PAS_flag = 1;
 	}
 
 	//Speed processing
-	if(GPIO_Pin == Speed_EXTI5_Pin)
+	if(GPIO_Pin == B_Speed_Pin)
 	{
 
 			ui8_SPEED_flag = 1; //with debounce

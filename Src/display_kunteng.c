@@ -90,7 +90,7 @@ void display_update(MotorState_t* MS_U)
 
    // prepare moving indication info
   ui8_moving_indication = 0;
-if (!HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin)) { ui8_moving_indication |= (1 << 5); }
+if (!HAL_GPIO_ReadPin(S1_S2_Brake_GPIO_Port, S1_S2_Brake_Pin)) { ui8_moving_indication |= (1 << 5); }
   //if (ebike_app_cruise_control_is_set ()) { ui8_moving_indication |= (1 << 3); }
   if (throttle_is_set ()) { ui8_moving_indication |= (1 << 1); }
   //if (pas_is_set ()) { ui8_moving_indication |= (1 << 4); }

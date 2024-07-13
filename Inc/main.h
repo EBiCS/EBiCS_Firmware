@@ -51,17 +51,16 @@
 
 /* Private define ------------------------------------------------------------*/
 
-#define Hall_1_Pin GPIO_PIN_0
-#define Hall_1_GPIO_Port GPIOA
-#define Hall_1_EXTI_IRQn EXTI0_IRQn
-#define Hall_2_Pin GPIO_PIN_1
-#define Hall_2_GPIO_Port GPIOA
-#define Hall_2_EXTI_IRQn EXTI1_IRQn
-#define Hall_3_Pin GPIO_PIN_2
-#define Hall_3_GPIO_Port GPIOA
-#define Hall_3_EXTI_IRQn EXTI2_IRQn
-#define Throttle_Pin GPIO_PIN_3
-#define Throttle_GPIO_Port GPIOA
+#define Hall_C_Pin GPIO_PIN_10
+#define Hall_C_GPIO_Port GPIOB
+#define Hall_A_Pin GPIO_PIN_15
+#define Hall_A_GPIO_Port GPIOA
+#define Hall_B_Pin GPIO_PIN_3
+#define Hall_B_GPIO_Port GPIOB
+#define TS_Throttle_Pin GPIO_PIN_0
+#define TS_Throttle_GPIO_Port GPIOA
+#define AD1_Pin GPIO_PIN_4
+#define AD1_GPIO_Port GPIOA
 #define Phase_Current1_Pin GPIO_PIN_4
 #define Phase_Current1_GPIO_Port GPIOA
 #define Phase_Current_2_Pin GPIO_PIN_5
@@ -76,16 +75,12 @@
 #define LIGHT_GPIO_Port GPIOB
 #define BRAKE_LIGHT_Pin GPIO_PIN_10
 #define BRAKE_LIGHT_GPIO_Port GPIOB
-#define PAS_Pin GPIO_PIN_8
-#define PAS_GPIO_Port GPIOB
-#define Brake_Pin GPIO_PIN_11
-#define Brake_GPIO_Port GPIOA
-#define Speed_EXTI5_Pin GPIO_PIN_5
-#define Speed_EXTI5_GPIO_Port GPIOB
-#define Speed_EXTI5_EXTI_IRQn EXTI9_5_IRQn
-#define PAS_EXTI8_Pin GPIO_PIN_8
-#define PAS_EXTI8_GPIO_Port GPIOB
-#define PAS_EXTI8_EXTI_IRQn EXTI9_5_IRQn
+#define S1_S2_Brake_Pin GPIO_PIN_15
+#define S1_S2_Brake_GPIO_Port GPIOC
+#define B_Speed_Pin GPIO_PIN_0
+#define B_Speed_GPIO_Port GPIOD
+#define _1_1_PAS_Pin GPIO_PIN_1
+#define _1_1_PAS_GPIO_Port GPIOD
 
 //#define NCTE
 //#define LEGALFLAG
