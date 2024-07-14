@@ -496,9 +496,9 @@ int main(void)
     ui16_ph3_offset=temp3>>5;
 
 #ifdef DISABLE_DYNAMIC_ADC // set  injected channel with offsets
-	 ADC1->JSQR=0b00100000000000000000; //ADC1 injected reads phase A JL = 0b00, JSQ4 = 0b00100 (decimal 4 = channel 4)
+	 ADC1->JSQR=0b00111000000000000000; //ADC1 injected reads phase A JL = 0b00, JSQ4 = 0b00100 (decimal 4 = channel 4)
 	 ADC1->JOFR1 = ui16_ph1_offset;
-	 ADC2->JSQR=0b00101000000000000000; //ADC2 injected reads phase B, JSQ4 = 0b00101, decimal 5
+	 ADC2->JSQR=0b01000000000000000000; //ADC2 injected reads phase B, JSQ4 = 0b00101, decimal 5
 	 ADC2->JOFR1 = ui16_ph2_offset;
 #endif
 
@@ -881,15 +881,15 @@ int main(void)
 		//  sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n", hubdata.HS_Overtemperature, hubdata.HS_Pedalposition, hubdata.HS_Pedals_turning, hubdata.HS_Torque, hubdata.HS_Wheel_turning, hubdata.HS_Wheeltime );
 
 		 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n",
-				 adcData[1],
-				 adcData[0],
-				 ui8_hall_state,
-				 ui8_hall_case,
-				 HAL_GPIO_ReadPin(S1_S2_Brake_GPIO_Port, S1_S2_Brake_Pin),
-				 HAL_GPIO_ReadPin(B_Speed_GPIO_Port, B_Speed_Pin),
-				 MS.i_q,
-				 MS.i_q_setpoint,
-				 SystemState);
+				 MS.u_d,
+				 MS.u_q,
+				 adcData[2],
+				 adcData[3],
+				 adcData[4],
+				 adcData[5],
+				 adcData[6],
+				 i16_ph1_current,
+				 i16_ph2_current);
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5]),(uint16_t)(adcData[6])) ;
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",tic_array[0],tic_array[1],tic_array[2],tic_array[3],tic_array[4],tic_array[5]) ;
 		  i=0;
@@ -1039,7 +1039,7 @@ static void MX_ADC1_Init(void)
 
     /**Configure Injected Channel 
     */
-  sConfigInjected.InjectedChannel = ADC_CHANNEL_4;
+  sConfigInjected.InjectedChannel = ADC_CHANNEL_7;
   sConfigInjected.InjectedRank = ADC_INJECTED_RANK_1;
   sConfigInjected.InjectedNbrOfConversion = 1;
   sConfigInjected.InjectedSamplingTime = ADC_SAMPLETIME_1CYCLE_5;
@@ -1055,7 +1055,7 @@ static void MX_ADC1_Init(void)
 
   /**Configure Regular Channel
   */
-sConfig.Channel = ADC_CHANNEL_7; //battery voltage function on JYT not known yet
+sConfig.Channel = ADC_CHANNEL_1; //battery voltage
 sConfig.Rank = ADC_REGULAR_RANK_1;
 sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;//ADC_SAMPLETIME_239CYCLES_5;
 if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
@@ -1075,7 +1075,7 @@ _Error_Handler(__FILE__, __LINE__);
 }
 /**Configure Regular Channel
 */
-sConfig.Channel = ADC_CHANNEL_4; //Phase current 1 function on JYT not known yet
+sConfig.Channel = ADC_CHANNEL_7; //Phase current 1 function on JYT not known yet
 sConfig.Rank = ADC_REGULAR_RANK_3;
 sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;//ADC_SAMPLETIME_239CYCLES_5;
 if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
@@ -1084,7 +1084,7 @@ _Error_Handler(__FILE__, __LINE__);
 }
 /**Configure Regular Channel
 */
-sConfig.Channel = ADC_CHANNEL_5; //Phase current 2 function on JYT not known yet
+sConfig.Channel = ADC_CHANNEL_8; //Phase current 2 function on JYT not known yet
 sConfig.Rank = ADC_REGULAR_RANK_4;
 sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;//ADC_SAMPLETIME_239CYCLES_5;
 if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
@@ -1093,7 +1093,7 @@ _Error_Handler(__FILE__, __LINE__);
 }
 /**Configure Regular Channel
 */
-sConfig.Channel = ADC_CHANNEL_6; //Phase current 3 function on JYT not known yet
+sConfig.Channel = ADC_CHANNEL_9; //Phase current 3 function on JYT not known yet
 sConfig.Rank = ADC_REGULAR_RANK_5;
 sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;//ADC_SAMPLETIME_239CYCLES_5;
 if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
@@ -1103,7 +1103,7 @@ _Error_Handler(__FILE__, __LINE__);
 
 /**Configure Regular Channel
 */
-sConfig.Channel = ADC_CHANNEL_8;
+sConfig.Channel = ADC_CHANNEL_4;//PA4 AD1 tbc.
 sConfig.Rank = ADC_REGULAR_RANK_6; // function on JYT not known yet
 sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;//ADC_SAMPLETIME_239CYCLES_5;
 if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
@@ -1113,7 +1113,7 @@ _Error_Handler(__FILE__, __LINE__);
 
 /**Configure Regular Channel
 */
-sConfig.Channel = ADC_CHANNEL_4; // connector AD1, not connected on JYT
+sConfig.Channel = ADC_CHANNEL_5; // PA5, Battery Current tbc
 sConfig.Rank = ADC_REGULAR_RANK_7;
 sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;//ADC_SAMPLETIME_239CYCLES_5;
 if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
@@ -1145,7 +1145,7 @@ static void MX_ADC2_Init(void)
 
     /**Configure Injected Channel 
     */
-  sConfigInjected.InjectedChannel = ADC_CHANNEL_5;
+  sConfigInjected.InjectedChannel = ADC_CHANNEL_8;
   sConfigInjected.InjectedRank = ADC_INJECTED_RANK_1;
   sConfigInjected.InjectedNbrOfConversion = 1;
   sConfigInjected.InjectedSamplingTime = ADC_SAMPLETIME_1CYCLE_5;
@@ -1205,11 +1205,11 @@ static void MX_TIM1_Init(void)
 
   sConfigOC.OCMode = TIM_OCMODE_PWM1;
   sConfigOC.Pulse = 1;
-  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_LOW;
   sConfigOC.OCNPolarity = TIM_OCNPOLARITY_LOW;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
   sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
-  sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_SET;
+  sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_RESET;
   if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
@@ -1424,9 +1424,9 @@ static void MX_DMA_Init(void)
   /* DMA1_Channel5_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Channel5_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Channel5_IRQn);
-  /* DMA1_Channel3_IRQn interrupt configuration */
+  /* DMA1_Channel6_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Channel6_IRQn, 0, 0); //UART2Rx
-  HAL_NVIC_EnableIRQ(DMA1_Channel3_IRQn);
+  HAL_NVIC_EnableIRQ(DMA1_Channel6_IRQn);
 
 }
 
@@ -1474,11 +1474,11 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(LIGHT_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : BRAKE_LIGHT_Pin */
-  GPIO_InitStruct.Pin = BRAKE_LIGHT_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(BRAKE_LIGHT_GPIO_Port, &GPIO_InitStruct);
+//  /*Configure GPIO pin : BRAKE_LIGHT_Pin */
+//  GPIO_InitStruct.Pin = BRAKE_LIGHT_Pin;
+//  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+//  GPIO_InitStruct.Pull = GPIO_NOPULL;
+//  HAL_GPIO_Init(BRAKE_LIGHT_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : S1_S2_Brake_Pin */
   GPIO_InitStruct.Pin = S1_S2_Brake_Pin;
@@ -1673,9 +1673,9 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 	//temp5=__HAL_TIM_GET_COUNTER(&htim1);
 	//set PWM
 
-	TIM1->CCR1 =  (uint16_t) switchtime[0];
-	TIM1->CCR2 =  (uint16_t) switchtime[1];
-	TIM1->CCR3 =  (uint16_t) switchtime[2];
+	TIM1->CCR1 = 1023;// (uint16_t) switchtime[0];
+	TIM1->CCR2 = 1023;// (uint16_t) switchtime[1];
+	TIM1->CCR3 = 1023;// (uint16_t) switchtime[2];
 	//__enable_irq();
 
 
@@ -2051,9 +2051,9 @@ static void set_inj_channel(char state){
 	{
 	case 1: //Phase C at high dutycycles, read current from phase A + B
 		 {
-			 ADC1->JSQR=0b00100000000000000000; //ADC1 injected reads phase A JL = 0b00, JSQ4 = 0b00100 (decimal 4 = channel 4)
+			 ADC1->JSQR=0b00111000000000000000; //ADC1 injected reads phase A JL = 0b00, JSQ4 = 0b00100 (decimal 4 = channel 4), 7 for JYT
 			 ADC1->JOFR1 = ui16_ph1_offset;
-			 ADC2->JSQR=0b00101000000000000000; //ADC2 injected reads phase B, JSQ4 = 0b00101, decimal 5
+			 ADC2->JSQR=0b01000000000000000000; //ADC2 injected reads phase B, JSQ4 = 0b00101, decimal 5, 8 for JYT
 			 ADC2->JOFR1 = ui16_ph2_offset;
 
 
@@ -2061,9 +2061,9 @@ static void set_inj_channel(char state){
 			break;
 	case 2: //Phase A at high dutycycles, read current from phase C + B
 			 {
-				 ADC1->JSQR=0b00110000000000000000; //ADC1 injected reads phase C, JSQ4 = 0b00110, decimal 6
+				 ADC1->JSQR=0b01001000000000000000; //ADC1 injected reads phase C, JSQ4 = 0b00110, decimal 6, 9 for JYT
 				 ADC1->JOFR1 = ui16_ph3_offset;
-				 ADC2->JSQR=0b00101000000000000000; //ADC2 injected reads phase B, JSQ4 = 0b00101, decimal 5
+				 ADC2->JSQR=0b01000000000000000000; //ADC2 injected reads phase B, JSQ4 = 0b00101, decimal 5, 8 for JYT
 				 ADC2->JOFR1 = ui16_ph2_offset;
 
 
@@ -2072,9 +2072,9 @@ static void set_inj_channel(char state){
 
 	case 3: //Phase B at high dutycycles, read current from phase A + C
 			 {
-				 ADC1->JSQR=0b00100000000000000000; //ADC1 injected reads phase A JL = 0b00, JSQ4 = 0b00100 (decimal 4 = channel 4)
+				 ADC1->JSQR=0b00111000000000000000; //ADC1 injected reads phase A JL = 0b00, JSQ4 = 0b00100 (decimal 4 = channel 4), 7 for JYT
 				 ADC1->JOFR1 = ui16_ph1_offset;
-				 ADC2->JSQR=0b00110000000000000000; //ADC2 injected reads phase C, JSQ4 = 0b00110, decimal 6
+				 ADC2->JSQR=0b01001000000000000000; //ADC2 injected reads phase C, JSQ4 = 0b00110, decimal 6, 9 for JYT
 				 ADC2->JOFR1 = ui16_ph3_offset;
 
 

@@ -62,9 +62,9 @@ void Hubsensor_Service (Hubsensor_t* HS_data){
 	else {
 
 		HS_data->HS_UARTFail = 1;
-	       CLEAR_BIT(DMA1_Channel3->CCR, DMA_CCR_EN);
-		   DMA1_Channel3->CNDTR=16;
-		   SET_BIT(DMA1_Channel3->CCR, DMA_CCR_EN);
+	       CLEAR_BIT(DMA1_Channel6->CCR, DMA_CCR_EN);
+		   DMA1_Channel6->CNDTR=16;
+		   SET_BIT(DMA1_Channel6->CCR, DMA_CCR_EN);
 
 	}
 }

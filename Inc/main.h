@@ -61,11 +61,11 @@
 #define TS_Throttle_GPIO_Port GPIOA
 #define AD1_Pin GPIO_PIN_4
 #define AD1_GPIO_Port GPIOA
-#define Phase_Current1_Pin GPIO_PIN_4
+#define Phase_Current1_Pin GPIO_PIN_5
 #define Phase_Current1_GPIO_Port GPIOA
-#define Phase_Current_2_Pin GPIO_PIN_5
+#define Phase_Current_2_Pin GPIO_PIN_6
 #define Phase_Current_2_GPIO_Port GPIOA
-#define Phase_Current_3_Pin GPIO_PIN_6
+#define Phase_Current_3_Pin GPIO_PIN_7
 #define Phase_Current_3_GPIO_Port GPIOA
 #define Temperature_Pin GPIO_PIN_1
 #define Temperature_GPIO_Port GPIOB
@@ -73,8 +73,8 @@
 #define LED_GPIO_Port GPIOB
 #define LIGHT_Pin GPIO_PIN_9
 #define LIGHT_GPIO_Port GPIOB
-#define BRAKE_LIGHT_Pin GPIO_PIN_10
-#define BRAKE_LIGHT_GPIO_Port GPIOB
+//#define BRAKE_LIGHT_Pin GPIO_PIN_10
+//#define BRAKE_LIGHT_GPIO_Port GPIOB
 #define S1_S2_Brake_Pin GPIO_PIN_15
 #define S1_S2_Brake_GPIO_Port GPIOC
 #define B_Speed_Pin GPIO_PIN_0
