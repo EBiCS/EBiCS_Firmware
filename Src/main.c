@@ -1425,7 +1425,7 @@ static void MX_DMA_Init(void)
   HAL_NVIC_SetPriority(DMA1_Channel5_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Channel5_IRQn);
   /* DMA1_Channel3_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA1_Channel3_IRQn, 0, 0);
+  HAL_NVIC_SetPriority(DMA1_Channel6_IRQn, 0, 0); //UART2Rx
   HAL_NVIC_EnableIRQ(DMA1_Channel3_IRQn);
 
 }
