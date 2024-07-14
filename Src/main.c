@@ -834,18 +834,6 @@ int main(void)
 	  if(ui32_tim3_counter>500){
 
 
-		if(HAL_GPIO_ReadPin(LED_GPIO_Port, LED_Pin)){
-
-      	//HAL_GPIO_WritePin(LIGHT_GPIO_Port, LIGHT_Pin, GPIO_PIN_RESET);
-      	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
-      	//HAL_GPIO_WritePin(BRAKE_LIGHT_GPIO_Port, BRAKE_LIGHT_Pin, GPIO_PIN_RESET);
-		}
-		else{
-	      	//HAL_GPIO_WritePin(LIGHT_GPIO_Port, LIGHT_Pin, GPIO_PIN_SET);
-	      	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
-	      	//HAL_GPIO_WritePin(BRAKE_LIGHT_GPIO_Port, BRAKE_LIGHT_Pin, GPIO_PIN_SET);
-		}
-
 
 		  if(ui8_KV_detect_flag){ui16_KV_detect_counter++;}
 #if (R_TEMP_PULLUP)
@@ -892,7 +880,16 @@ int main(void)
 
 		//  sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n", hubdata.HS_Overtemperature, hubdata.HS_Pedalposition, hubdata.HS_Pedals_turning, hubdata.HS_Torque, hubdata.HS_Wheel_turning, hubdata.HS_Wheeltime );
 
-		 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", adcData[1], hubdata.HS_Temperature ,hubdata.HS_UARTFail, hubdata.HS_Torque, hubdata.HS_Wheeltime, hubdata.HS_Pedalposition, MS.i_q, MS.i_q_setpoint, SystemState);
+		 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n",
+				 adcData[1],
+				 adcData[0],
+				 ui8_hall_state,
+				 ui8_hall_case,
+				 HAL_GPIO_ReadPin(S1_S2_Brake_GPIO_Port, S1_S2_Brake_Pin),
+				 HAL_GPIO_ReadPin(B_Speed_GPIO_Port, B_Speed_Pin),
+				 MS.i_q,
+				 MS.i_q_setpoint,
+				 SystemState);
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5]),(uint16_t)(adcData[6])) ;
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",tic_array[0],tic_array[1],tic_array[2],tic_array[3],tic_array[4],tic_array[5]) ;
 		  i=0;
@@ -1058,7 +1055,7 @@ static void MX_ADC1_Init(void)
 
   /**Configure Regular Channel
   */
-sConfig.Channel = ADC_CHANNEL_7; //battery voltage
+sConfig.Channel = ADC_CHANNEL_7; //battery voltage function on JYT not known yet
 sConfig.Rank = ADC_REGULAR_RANK_1;
 sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;//ADC_SAMPLETIME_239CYCLES_5;
 if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
@@ -1069,7 +1066,7 @@ if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
 
 /**Configure Regular Channel
 */
-sConfig.Channel = ADC_CHANNEL_3; //Connector SP: throttle input
+sConfig.Channel = ADC_CHANNEL_0; //Connector TS: throttle input
 sConfig.Rank = ADC_REGULAR_RANK_2;
 sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;//ADC_SAMPLETIME_239CYCLES_5;
 if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
@@ -1078,7 +1075,7 @@ _Error_Handler(__FILE__, __LINE__);
 }
 /**Configure Regular Channel
 */
-sConfig.Channel = ADC_CHANNEL_4; //Phase current 1
+sConfig.Channel = ADC_CHANNEL_4; //Phase current 1 function on JYT not known yet
 sConfig.Rank = ADC_REGULAR_RANK_3;
 sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;//ADC_SAMPLETIME_239CYCLES_5;
 if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
@@ -1087,7 +1084,7 @@ _Error_Handler(__FILE__, __LINE__);
 }
 /**Configure Regular Channel
 */
-sConfig.Channel = ADC_CHANNEL_5; //Phase current 2
+sConfig.Channel = ADC_CHANNEL_5; //Phase current 2 function on JYT not known yet
 sConfig.Rank = ADC_REGULAR_RANK_4;
 sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;//ADC_SAMPLETIME_239CYCLES_5;
 if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
@@ -1096,7 +1093,7 @@ _Error_Handler(__FILE__, __LINE__);
 }
 /**Configure Regular Channel
 */
-sConfig.Channel = ADC_CHANNEL_6; //Phase current 3
+sConfig.Channel = ADC_CHANNEL_6; //Phase current 3 function on JYT not known yet
 sConfig.Rank = ADC_REGULAR_RANK_5;
 sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;//ADC_SAMPLETIME_239CYCLES_5;
 if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
@@ -1107,7 +1104,7 @@ _Error_Handler(__FILE__, __LINE__);
 /**Configure Regular Channel
 */
 sConfig.Channel = ADC_CHANNEL_8;
-sConfig.Rank = ADC_REGULAR_RANK_6; // connector AD2
+sConfig.Rank = ADC_REGULAR_RANK_6; // function on JYT not known yet
 sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;//ADC_SAMPLETIME_239CYCLES_5;
 if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
 {
@@ -1116,7 +1113,7 @@ _Error_Handler(__FILE__, __LINE__);
 
 /**Configure Regular Channel
 */
-sConfig.Channel = ADC_CHANNEL_9; // connector AD1, temperature or torque input for Controller from PhoebeLiu @ aliexpress
+sConfig.Channel = ADC_CHANNEL_4; // connector AD1, not connected on JYT
 sConfig.Rank = ADC_REGULAR_RANK_7;
 sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;//ADC_SAMPLETIME_239CYCLES_5;
 if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
@@ -1469,12 +1466,7 @@ static void MX_GPIO_Init(void)
 
   __HAL_AFIO_REMAP_TIM2_ENABLE();
 
-  /*Configure GPIO pin : LED_Pin */
-  GPIO_InitStruct.Pin = LED_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(LED_GPIO_Port, &GPIO_InitStruct);
+//Light pins not identified yet on JYT
 
   /*Configure GPIO pin : LIGHT_Pin */
   GPIO_InitStruct.Pin = LIGHT_Pin;
@@ -1702,7 +1694,7 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef* htim)
 
 	//Hall sensor event processing
 
-		ui8_hall_state = GPIOA->IDR & 0b111; //Mask input register with Hall 1 - 3 bits
+		ui8_hall_state = (((GPIOA->IDR)>>15)&1) | ((((GPIOB->IDR)>>3)&1)<<1) | ((((GPIOB->IDR)>>10)&1)<<2); //HallA PA15, HallB PB3, HallC PB10
 
 
 		ui8_hall_case=ui8_hall_state_old*10+ui8_hall_state;
