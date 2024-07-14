@@ -479,9 +479,9 @@ int main(void)
 
 
 
-    CLEAR_BIT(TIM1->BDTR, TIM_BDTR_MOE);//Disable PWM
-
-    HAL_Delay(200); //wait for stable conditions
+    //CLEAR_BIT(TIM1->BDTR, TIM_BDTR_MOE);//Disable PWM
+    SET_BIT(TIM1->BDTR, TIM_BDTR_MOE);
+    HAL_Delay(1000); //wait for stable conditions
 
     for(i=0;i<32;i++){
     	while(!ui8_adc_regular_flag){}
@@ -491,9 +491,9 @@ int main(void)
     	ui8_adc_regular_flag=0;
 
     }
-    ui16_ph1_offset=temp1>>5;
-    ui16_ph2_offset=temp2>>5;
-    ui16_ph3_offset=temp3>>5;
+    ui16_ph1_offset=2064;//temp1>>5;
+    ui16_ph2_offset=2043;//temp2>>5;
+    ui16_ph3_offset=2061;//temp3>>5;
 
 #ifdef DISABLE_DYNAMIC_ADC // set  injected channel with offsets
 	 ADC1->JSQR=0b00111000000000000000; //ADC1 injected reads phase A JL = 0b00, JSQ4 = 0b00100 (decimal 4 = channel 4)
@@ -501,7 +501,7 @@ int main(void)
 	 ADC2->JSQR=0b01000000000000000000; //ADC2 injected reads phase B, JSQ4 = 0b00101, decimal 5
 	 ADC2->JOFR1 = ui16_ph2_offset;
 #endif
-
+	 CLEAR_BIT(TIM1->BDTR, TIM_BDTR_MOE);//Disable PWM
    	ui8_adc_offset_done_flag=1;
 
 #if defined (ADC_BRAKE)
@@ -881,8 +881,8 @@ int main(void)
 		//  sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n", hubdata.HS_Overtemperature, hubdata.HS_Pedalposition, hubdata.HS_Pedals_turning, hubdata.HS_Torque, hubdata.HS_Wheel_turning, hubdata.HS_Wheeltime );
 
 		 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n",
-				 MS.u_d,
-				 MS.u_q,
+				 ui16_ph1_offset,
+				 ui16_ph2_offset,
 				 adcData[2],
 				 adcData[3],
 				 adcData[4],
@@ -1673,9 +1673,9 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 	//temp5=__HAL_TIM_GET_COUNTER(&htim1);
 	//set PWM
 
-	TIM1->CCR1 = 1023;// (uint16_t) switchtime[0];
+	TIM1->CCR1 = 1053;// (uint16_t) switchtime[0];
 	TIM1->CCR2 = 1023;// (uint16_t) switchtime[1];
-	TIM1->CCR3 = 1023;// (uint16_t) switchtime[2];
+	TIM1->CCR3 = 993;// (uint16_t) switchtime[2];
 	//__enable_irq();
 
 
