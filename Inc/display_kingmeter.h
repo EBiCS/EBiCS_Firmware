@@ -27,7 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "config.h"
 #include "stdint.h"
 
-#if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
+#if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER|| DISPLAY_TYPE & DISPLAY_TYPE_DEBUG)
 
 // Definitions
 #define KM_MAX_WHEELTIME 0x0DAC          // Maximum Wheeltime reported to the display (e.g. when wheel is stopped)
@@ -113,8 +113,8 @@ typedef struct
     uint8_t  Throttle;                  // KM_THROTTLE_OFF / KM_THROTTLE_ON
     uint8_t  CruiseControl;             // KM_CRUISE_OFF / KM_CRUISE_ON
     uint8_t  OverSpeed;                 // KM_OVERSPEED_OFF / KM_OVERSPEED_ON
-    uint16_t SPEEDMAX_Limit_x10;        // Unit: 0.1km/h
-    uint16_t CUR_Limit_x10;             // Unit: 0.1A
+    uint16_t SPEEDMAX_Limit;        	// Unit: km/h
+    uint16_t CUR_Limit_mA;              // Unit: mA
 
 }RX_PARAM_t;
 
@@ -123,6 +123,7 @@ typedef struct
 #define KM_ERROR_NONE           0x00
 #define KM_ERROR_COMM           0x30
 #define KM_ERROR_OVHT			0x25
+#define KM_ERROR_IOVHT			0x26
 
 typedef struct
 {
@@ -140,8 +141,8 @@ typedef struct
 #endif
 
 
-#if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_901U)
- #define KM_MAX_RXBUFF 30
+#if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_901U|| DISPLAY_TYPE & DISPLAY_TYPE_DEBUG)
+ #define KM_MAX_RXBUFF 64
  #define KM5S_NM_RXBUFF 15 // KM5S RX-Buffer length for normal mode
  #define KM_MAX_TXBUFF 13
 #endif
@@ -149,7 +150,7 @@ typedef struct
 typedef struct
 {
     uint8_t         RxState;
-    uint32_t        LastRx;
+    int8_t          DirectSetpoint;
 
     uint8_t         RxBuff[KM_MAX_RXBUFF];
     uint8_t         RxCnt;

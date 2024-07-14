@@ -57,7 +57,7 @@
 #include "hubsensor.h"
 
 
-#if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
+#if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER || DISPLAY_TYPE & DISPLAY_TYPE_DEBUG)
   #include "display_kingmeter.h"
 #endif
 
@@ -137,7 +137,8 @@ int16_t ui32_KV = 0;
 
 volatile uint8_t ui8_adc_offset_done_flag=0;
 volatile uint8_t ui8_print_flag=0;
-volatile uint8_t ui8_UART_flag=0;
+volatile uint8_t ui8_UART1_flag=0;
+volatile uint8_t ui8_UART2_flag=0;
 volatile uint8_t ui8_Push_Assist_flag=0;
 volatile uint8_t ui8_UART_TxCplt_flag=1;
 volatile uint8_t ui8_PAS_flag=0;
@@ -220,7 +221,7 @@ enum state SystemState;
 
 
 //variables for display communication
-#if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
+#if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER || DISPLAY_TYPE & DISPLAY_TYPE_DEBUG)
 KINGMETER_t KM;
 #endif
 
@@ -265,6 +266,7 @@ static void MX_ADC1_Init(void);
 static void MX_ADC2_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_TIM3_Init(void);
+
 int16_t T_NTC(uint16_t ADC);
 
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
@@ -272,7 +274,7 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
-#if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
+#if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER || DISPLAY_TYPE & DISPLAY_TYPE_DEBUG)
 void kingmeter_update(void);
 #endif
 
@@ -453,7 +455,7 @@ int main(void)
             }
 
 
-#if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
+#if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER || DISPLAY_TYPE & DISPLAY_TYPE_DEBUG)
        KingMeter_Init (&KM);
 #endif
 
@@ -605,9 +607,9 @@ int main(void)
 	  PI_flag=0;
 	  }*/
 	  //display message processing
-	  if(ui8_UART_flag==1){
-#if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
-	  kingmeter_update();
+	  if(ui8_UART1_flag){
+#if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER || DISPLAY_TYPE & DISPLAY_TYPE_DEBUG)
+		  KingMeter_Service(&KM);
 #endif
 
 
@@ -625,13 +627,13 @@ int main(void)
 	//  process_ant_page(&MS, &MP);
 #endif
 
-	  ui8_UART_flag=0;
+	  ui8_UART1_flag=0;
 	  }
 
-	  if(ui8_UART_flag==3){
+	  if(ui8_UART2_flag){
 
 		  Hubsensor_Service(&hubdata);
-		  ui8_UART_flag=0;
+		  ui8_UART2_flag=0;
 	  }
 
 
@@ -1381,7 +1383,7 @@ static void MX_USART1_UART_Init(void)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
-
+  __HAL_UART_ENABLE_IT(&huart1, UART_IT_IDLE);
 }
 
 static void MX_USART2_UART_Init(void)
@@ -1400,7 +1402,7 @@ static void MX_USART2_UART_Init(void)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
-
+  __HAL_UART_ENABLE_IT(&huart2, UART_IT_IDLE);
 
 }
 
@@ -1511,8 +1513,11 @@ static void MX_GPIO_Init(void)
   /* EXTI interrupt init*/
 
 
-  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 2, 0);
-  HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
+  HAL_NVIC_SetPriority(EXTI1_IRQn, 2, 0);
+  HAL_NVIC_EnableIRQ(EXTI1_IRQn);
+
+  HAL_NVIC_SetPriority(EXTI0_IRQn, 2, 0);
+  HAL_NVIC_EnableIRQ(EXTI0_IRQn);
 
 }
 
@@ -1828,11 +1833,23 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 
 }
 
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *UartHandle)
-{
-	if(UartHandle == &huart1) ui8_UART_flag=1;
+//void HAL_UART_RxCpltCallback(UART_HandleTypeDef *UartHandle)
+//{
+//	if(UartHandle == &huart1) ui8_UART_flag=1;
+//
+//	else ui8_UART_flag=3;
+//
+//}
 
-	else ui8_UART_flag=3;
+void UART1_IdleItCallback(void)
+{
+	ui8_UART1_flag=1;
+
+}
+
+void UART2_IdleItCallback(void)
+{
+	ui8_UART2_flag=1;
 
 }
 
@@ -1862,7 +1879,7 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *UartHandle) {
 
 
 
-#if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
+#if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER || DISPLAY_TYPE & DISPLAY_TYPE_DEBUG)
 void kingmeter_update(void)
 {
     /* Prepare Tx parameters */
@@ -1891,14 +1908,17 @@ void kingmeter_update(void)
     }
 
 #endif
-    if(MS.Temperature<130) KM.Tx.Error = KM_ERROR_NONE;
-    else KM.Tx.Error = KM_ERROR_OVHT;
+    if(MS.Temperature>130) KM.Tx.Error = KM_ERROR_OVHT;
+    else KM.Tx.Error = KM_ERROR_NONE;
+
 
     KM.Tx.Current_x10 = (uint16_t) (MS.Battery_Current/100); //MS.Battery_Current is in mA
 
 
     /* Receive Rx parameters/settings and send Tx parameters */
-    KingMeter_Service(&KM);
+#if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_618U)
+	  KingMeter_Service(&KM);
+#endif
 
 
     /* Apply Rx parameters */
@@ -1908,12 +1928,12 @@ void kingmeter_update(void)
     if(KM.Rx.Headlight == KM_HEADLIGHT_OFF)
         {
         	HAL_GPIO_WritePin(LIGHT_GPIO_Port, LIGHT_Pin, GPIO_PIN_RESET);
-        	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
+
         }
         else // KM_HEADLIGHT_ON, KM_HEADLIGHT_LOW, KM_HEADLIGHT_HIGH
         {
         	HAL_GPIO_WritePin(LIGHT_GPIO_Port, LIGHT_Pin, GPIO_PIN_SET);
-        	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
+
         }
 
 
@@ -1925,12 +1945,15 @@ void kingmeter_update(void)
     {
     	ui8_Push_Assist_flag=0;
     }
+//    MP.speedLimit=KM.Rx.SPEEDMAX_Limit;
+//    MP.battery_current_max = KM.Rx.CUR_Limit_mA;
 
 
 
 }
 
 #endif
+
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_BAFANG)
 void bafang_update(void)
