@@ -84,13 +84,13 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 	//Control iq
 
 	PI_flag=1;
-//	if (MS_FOC->KV_detect_flag) {
-//   	        MS_FOC->u_q=MS_FOC->KV_detect_flag;
-//	        MS_FOC->u_d=0;
-//	}
-//	else runPIcontrol();
+	if (!MS_FOC->hall_angle_detect_flag) {
+   	        MS_FOC->u_d=100;
+	        MS_FOC->u_q=0;
+	}
+	else runPIcontrol();
 
-	runPIcontrol();
+//	runPIcontrol();
 
 	//inverse Park transformation
 	arm_inv_park_q31(MS_FOC->u_d, MS_FOC->u_q, &q31_u_alpha, &q31_u_beta, -sinevalue, cosinevalue);
@@ -167,7 +167,7 @@ void svpwm(q31_t q31_u_alpha, q31_t q31_u_beta)	{
 	q31_t Y = (q31_U_alpha+q31_U_beta)>>1;
 	q31_t Z = (q31_U_beta-q31_U_alpha)>>1;
 
-	//Sector 1 & 4
+//	//Sector 1 & 4
 	if ((Y>=0 && Z<0 && X>0)||(Y < 0 && Z>=0 && X<=0)){
 		switchtime[0] = ((_T+X-Z)>>12) + (_T>>1); //right shift 11 for dividing by peroid (=2^11), right shift 1 for dividing by 2
 		switchtime[1] = switchtime[0] + (Z>>11);
@@ -190,6 +190,11 @@ void svpwm(q31_t q31_u_alpha, q31_t q31_u_beta)	{
 		switchtime[1] = switchtime[2] + (X>>11);
 		//temp4=3;
 	}
+
+//			switchtime[0] = 950;
+//			switchtime[1] = 1050;
+//			switchtime[2] = 1000;
+
 
 
 }

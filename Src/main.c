@@ -492,8 +492,8 @@ int main(void)
 
     }
     ui16_ph1_offset=2064;//temp1>>5;
-    ui16_ph2_offset=2043;//temp2>>5;
-    ui16_ph3_offset=2061;//temp3>>5;
+    ui16_ph2_offset=2040;//temp2>>5;
+    ui16_ph3_offset=2063;//temp3>>5;
 
 #ifdef DISABLE_DYNAMIC_ADC // set  injected channel with offsets
 	 ADC1->JSQR=0b00111000000000000000; //ADC1 injected reads phase A JL = 0b00, JSQ4 = 0b00100 (decimal 4 = channel 4)
@@ -866,9 +866,9 @@ int main(void)
 		  if((uint16_full_rotation_counter>7999||uint16_half_rotation_counter>7999)){
 			  SystemState = Stop;
 			  if(READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)){
-			  CLEAR_BIT(TIM1->BDTR, TIM_BDTR_MOE); //Disable PWM if motor is not turning
-			  uint32_tics_filtered=1000000;
-			  get_standstill_position();
+					CLEAR_BIT(TIM1->BDTR, TIM_BDTR_MOE); //Disable PWM if motor is not turning
+					uint32_tics_filtered = 1000000;
+					get_standstill_position();
 			  }
 
 		  }
@@ -881,15 +881,15 @@ int main(void)
 		//  sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n", hubdata.HS_Overtemperature, hubdata.HS_Pedalposition, hubdata.HS_Pedals_turning, hubdata.HS_Torque, hubdata.HS_Wheel_turning, hubdata.HS_Wheeltime );
 
 		 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n",
-				 ui16_ph1_offset,
-				 ui16_ph2_offset,
-				 adcData[2],
-				 adcData[3],
-				 adcData[4],
-				 adcData[5],
-				 adcData[6],
+				 (ADC1->JSQR)>>15,
+				 (ADC2->JSQR)>>15,
+				 q31_rotorposition_absolute,
+				 (int16_t)temp1,
+				 (int16_t)temp2,
+				 MS.char_dyn_adc_state,
 				 i16_ph1_current,
-				 i16_ph2_current);
+				 i16_ph2_current,
+				 -i16_ph1_current-i16_ph2_current);
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5]),(uint16_t)(adcData[6])) ;
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",tic_array[0],tic_array[1],tic_array[2],tic_array[3],tic_array[4],tic_array[5]) ;
 		  i=0;
@@ -1084,7 +1084,7 @@ _Error_Handler(__FILE__, __LINE__);
 }
 /**Configure Regular Channel
 */
-sConfig.Channel = ADC_CHANNEL_8; //Phase current 2 function on JYT not known yet
+sConfig.Channel = ADC_CHANNEL_9; //Phase current 2 function on JYT not known yet
 sConfig.Rank = ADC_REGULAR_RANK_4;
 sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;//ADC_SAMPLETIME_239CYCLES_5;
 if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
@@ -1093,7 +1093,7 @@ _Error_Handler(__FILE__, __LINE__);
 }
 /**Configure Regular Channel
 */
-sConfig.Channel = ADC_CHANNEL_9; //Phase current 3 function on JYT not known yet
+sConfig.Channel = ADC_CHANNEL_8; //Phase current 3 function on JYT not known yet
 sConfig.Rank = ADC_REGULAR_RANK_5;
 sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;//ADC_SAMPLETIME_239CYCLES_5;
 if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
@@ -1673,9 +1673,9 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 	//temp5=__HAL_TIM_GET_COUNTER(&htim1);
 	//set PWM
 
-	TIM1->CCR1 = 1053;// (uint16_t) switchtime[0];
-	TIM1->CCR2 = 1023;// (uint16_t) switchtime[1];
-	TIM1->CCR3 = 993;// (uint16_t) switchtime[2];
+	TIM1->CCR1 = (uint16_t) switchtime[0];
+	TIM1->CCR2 = (uint16_t) switchtime[1];
+	TIM1->CCR3 = (uint16_t) switchtime[2];
 	//__enable_irq();
 
 
@@ -2049,11 +2049,15 @@ void dyn_adc_state(q31_t angle){
 static void set_inj_channel(char state){
 	switch (state)
 	{
+	//0b00111000000000000000 Channel 7 for PhaseCurrent1
+	//0b01001000000000000000 Channel 9 for PhaseCurrent2
+	//0b01000000000000000000 Channel 8 for PhaseCurrent3
+
 	case 1: //Phase C at high dutycycles, read current from phase A + B
 		 {
 			 ADC1->JSQR=0b00111000000000000000; //ADC1 injected reads phase A JL = 0b00, JSQ4 = 0b00100 (decimal 4 = channel 4), 7 for JYT
 			 ADC1->JOFR1 = ui16_ph1_offset;
-			 ADC2->JSQR=0b01000000000000000000; //ADC2 injected reads phase B, JSQ4 = 0b00101, decimal 5, 8 for JYT
+			 ADC2->JSQR=0b01000000000000000000; //ADC2 injected reads phase B, JSQ4 = 0b00101, decimal 5, 9 for JYT
 			 ADC2->JOFR1 = ui16_ph2_offset;
 
 
@@ -2061,9 +2065,9 @@ static void set_inj_channel(char state){
 			break;
 	case 2: //Phase A at high dutycycles, read current from phase C + B
 			 {
-				 ADC1->JSQR=0b01001000000000000000; //ADC1 injected reads phase C, JSQ4 = 0b00110, decimal 6, 9 for JYT
+				 ADC1->JSQR=0b01001000000000000000; //ADC1 injected reads phase C, JSQ4 = 0b00110, decimal 6, 8 for JYT
 				 ADC1->JOFR1 = ui16_ph3_offset;
-				 ADC2->JSQR=0b01000000000000000000; //ADC2 injected reads phase B, JSQ4 = 0b00101, decimal 5, 8 for JYT
+				 ADC2->JSQR=0b01000000000000000000; //ADC2 injected reads phase B, JSQ4 = 0b00101, decimal 5, 9 for JYT
 				 ADC2->JOFR1 = ui16_ph2_offset;
 
 
@@ -2074,7 +2078,7 @@ static void set_inj_channel(char state){
 			 {
 				 ADC1->JSQR=0b00111000000000000000; //ADC1 injected reads phase A JL = 0b00, JSQ4 = 0b00100 (decimal 4 = channel 4), 7 for JYT
 				 ADC1->JOFR1 = ui16_ph1_offset;
-				 ADC2->JSQR=0b01001000000000000000; //ADC2 injected reads phase C, JSQ4 = 0b00110, decimal 6, 9 for JYT
+				 ADC2->JSQR=0b01001000000000000000; //ADC2 injected reads phase C, JSQ4 = 0b00110, decimal 6, 8 for JYT
 				 ADC2->JOFR1 = ui16_ph3_offset;
 
 
@@ -2098,7 +2102,7 @@ void autodetect() {
 	MS.hall_angle_detect_flag = 0; //set uq to contstant value in FOC.c for open loop control
 	q31_rotorposition_absolute = 1 << 31;
 	i16_hall_order = 1;//reset hall order
-	MS.i_d_setpoint= 300; //set MS.id to appr. 2000mA
+	MS.i_d_setpoint= 50; //set MS.id to appr. 2000mA
 	MS.i_q_setpoint= 0;
 //	uint8_t zerocrossing = 0;
 //	q31_t diffangle = 0;
@@ -2106,7 +2110,11 @@ void autodetect() {
 	for (i = 0; i < 1080; i++) {
 		q31_rotorposition_absolute += 11930465; //drive motor in open loop with steps of 1 deg
 		HAL_Delay(5);
-		//printf_("%d, %d, %d, %d\n", temp3>>16,temp4>>16,temp5,temp6);
+		printf_("%d, %d, %d, %d\n",
+				 switchtime[0],
+				 switchtime[1],
+				 i16_ph1_current,
+				 i16_ph2_current);
 
 		if (ui8_hall_state_old != ui8_hall_state) {
 			printf_("angle: %d, hallstate:  %d, hallcase %d \n",
@@ -2199,7 +2207,7 @@ void autodetect() {
 
 
     HAL_Delay(5);
-    ui8_KV_detect_flag = 30;
+    ui8_KV_detect_flag = 0;
 
 
 }

@@ -55,12 +55,12 @@
 //#define TS_MODE
 //#define TQONAD1
 #define DISPLAY_TYPE DISPLAY_TYPE_DEBUG
-#define REVERSE -1
+#define REVERSE 1
 #define PUSHASSIST_CURRENT 30
 #define VOLTAGE_MIN 300
 #define REGEN_CURRENT 200
 //#define FAST_LOOP_LOG
-//#define DISABLE_DYNAMIC_ADC
+#define DISABLE_DYNAMIC_ADC
 //#define INDIVIDUAL_MODES
 //#define SPEEDTHROTTLE
 #define THROTTLE_OVERRIDE
@@ -69,7 +69,7 @@
 
 #define P_FACTOR_PLL 10
 #define I_FACTOR_PLL 10
-#define AUTODETECT 0
+#define AUTODETECT 1
 #define SPEED_PLL 0 //1 for using PLL, 0 for angle extrapolation
 
 #define EXTERNAL 1
