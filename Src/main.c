@@ -496,8 +496,8 @@ int main(void)
     ui16_ph3_offset=2063;//temp3>>5;
 
 #ifdef DISABLE_DYNAMIC_ADC // set  injected channel with offsets
-	 ADC1->JSQR=0b00111000000000000000; //ADC1 injected reads phase A JL = 0b00, JSQ4 = 0b00100 (decimal 4 = channel 4)
-	 ADC1->JOFR1 = ui16_ph1_offset;
+	 ADC1->JSQR=0b01001000000000000000; //ADC1 injected reads phase A JL = 0b00, JSQ4 = 0b00100 (decimal 4 = channel 4)
+	 ADC1->JOFR1 = ui16_ph3_offset;
 	 ADC2->JSQR=0b01000000000000000000; //ADC2 injected reads phase B, JSQ4 = 0b00101, decimal 5
 	 ADC2->JOFR1 = ui16_ph2_offset;
 #endif
@@ -883,9 +883,9 @@ int main(void)
 		 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n",
 				 (ADC1->JSQR)>>15,
 				 (ADC2->JSQR)>>15,
-				 q31_rotorposition_absolute,
-				 (int16_t)temp1,
-				 (int16_t)temp2,
+				 (int16_t) (((q31_rotorposition_absolute >> 23) * 180) >> 8),
+				 MS.system_state,
+				 ui16_timertics,
 				 MS.char_dyn_adc_state,
 				 i16_ph1_current,
 				 i16_ph2_current,
@@ -1634,7 +1634,7 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 				MS.system_state=PLL;
 			}
 		else{
-			q31_rotorposition_absolute = q31_rotorposition_hall
+			q31_rotorposition_absolute = q31_rotorposition_hall+deg_30*6
 					+ (q31_t) (i8_recent_rotor_direction
 							* ((10923 * ui16_tim2_recent) / ui16_timertics)
 							<< 16); //interpolate angle between two hallevents by scaling timer2 tics, 10923<<16 is 715827883 = 60deg
@@ -1643,7 +1643,7 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 		} else {
 			ui8_overflow_flag = 1;
 			if(MS.KV_detect_flag)q31_rotorposition_absolute = q31_rotorposition_hall;
-			else q31_rotorposition_absolute = q31_rotorposition_hall+i8_direction*deg_30;//offset of 30 degree to get the middle of the sector
+			else q31_rotorposition_absolute = q31_rotorposition_hall+i8_direction*deg_30*6;//offset of 30 degree to get the middle of the sector
 			MS.system_state=SixStep;
 				//	}
 

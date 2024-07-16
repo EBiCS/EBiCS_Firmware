@@ -69,14 +69,14 @@
 
 #define P_FACTOR_PLL 10
 #define I_FACTOR_PLL 10
-#define AUTODETECT 1
+#define AUTODETECT 0
 #define SPEED_PLL 0 //1 for using PLL, 0 for angle extrapolation
 
 #define EXTERNAL 1
 #define INTERNAL 0
 #define SPEEDSOURCE INTERNAL
 #define SPEEDFILTER 1
-#define SIXSTEPTHRESHOLD 20000
+#define SIXSTEPTHRESHOLD 15000
 
 #define SPDSHFT 0
 //#define ADC_BRAKE
