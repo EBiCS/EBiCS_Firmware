@@ -85,7 +85,7 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 
 	PI_flag=1;
 	if (!MS_FOC->hall_angle_detect_flag) {
-   	        MS_FOC->u_d=100;
+   	        MS_FOC->u_d=400;
 	        MS_FOC->u_q=0;
 	}
 	else runPIcontrol();

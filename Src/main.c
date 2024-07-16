@@ -491,9 +491,9 @@ int main(void)
     	ui8_adc_regular_flag=0;
 
     }
-    ui16_ph1_offset=2064;//temp1>>5;
+    ui16_ph1_offset=2063;//temp1>>5;
     ui16_ph2_offset=2040;//temp2>>5;
-    ui16_ph3_offset=2063;//temp3>>5;
+    ui16_ph3_offset=2064;//temp3>>5;
 
 #ifdef DISABLE_DYNAMIC_ADC // set  injected channel with offsets
 	 ADC1->JSQR=0b01001000000000000000; //ADC1 injected reads phase A JL = 0b00, JSQ4 = 0b00100 (decimal 4 = channel 4)
@@ -1039,7 +1039,7 @@ static void MX_ADC1_Init(void)
 
     /**Configure Injected Channel 
     */
-  sConfigInjected.InjectedChannel = ADC_CHANNEL_7;
+  sConfigInjected.InjectedChannel = ADC_CHANNEL_9;
   sConfigInjected.InjectedRank = ADC_INJECTED_RANK_1;
   sConfigInjected.InjectedNbrOfConversion = 1;
   sConfigInjected.InjectedSamplingTime = ADC_SAMPLETIME_1CYCLE_5;
@@ -1075,7 +1075,7 @@ _Error_Handler(__FILE__, __LINE__);
 }
 /**Configure Regular Channel
 */
-sConfig.Channel = ADC_CHANNEL_7; //Phase current 1 function on JYT not known yet
+sConfig.Channel = ADC_CHANNEL_9; //Phase current 1 function on JYT not known yet
 sConfig.Rank = ADC_REGULAR_RANK_3;
 sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;//ADC_SAMPLETIME_239CYCLES_5;
 if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
@@ -1084,7 +1084,7 @@ _Error_Handler(__FILE__, __LINE__);
 }
 /**Configure Regular Channel
 */
-sConfig.Channel = ADC_CHANNEL_9; //Phase current 2 function on JYT not known yet
+sConfig.Channel = ADC_CHANNEL_8; //Phase current 2 function on JYT not known yet
 sConfig.Rank = ADC_REGULAR_RANK_4;
 sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;//ADC_SAMPLETIME_239CYCLES_5;
 if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
@@ -1093,7 +1093,7 @@ _Error_Handler(__FILE__, __LINE__);
 }
 /**Configure Regular Channel
 */
-sConfig.Channel = ADC_CHANNEL_8; //Phase current 3 function on JYT not known yet
+sConfig.Channel = ADC_CHANNEL_7; //Phase current 3 function on JYT not known yet
 sConfig.Rank = ADC_REGULAR_RANK_5;
 sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;//ADC_SAMPLETIME_239CYCLES_5;
 if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
@@ -2049,15 +2049,15 @@ void dyn_adc_state(q31_t angle){
 static void set_inj_channel(char state){
 	switch (state)
 	{
-	//0b00111000000000000000 Channel 7 for PhaseCurrent1
-	//0b01001000000000000000 Channel 9 for PhaseCurrent2
-	//0b01000000000000000000 Channel 8 for PhaseCurrent3
+	//0b00111000000000000000 Channel 7 for PhaseCurrent3
+	//0b01000000000000000000 Channel 8 for PhaseCurrent2
+	//0b01001000000000000000 Channel 9 for PhaseCurrent1
 
 	case 1: //Phase C at high dutycycles, read current from phase A + B
 		 {
-			 ADC1->JSQR=0b00111000000000000000; //ADC1 injected reads phase A JL = 0b00, JSQ4 = 0b00100 (decimal 4 = channel 4), 7 for JYT
+			 ADC1->JSQR=0b01001000000000000000; //ADC1 injected reads phase A JL = 0b00, JSQ4 = 0b00100 (decimal 4 = channel 4), 9 for JYT
 			 ADC1->JOFR1 = ui16_ph1_offset;
-			 ADC2->JSQR=0b01000000000000000000; //ADC2 injected reads phase B, JSQ4 = 0b00101, decimal 5, 9 for JYT
+			 ADC2->JSQR=0b01000000000000000000; //ADC2 injected reads phase B, JSQ4 = 0b00101, decimal 5, 8 for JYT
 			 ADC2->JOFR1 = ui16_ph2_offset;
 
 
@@ -2065,9 +2065,9 @@ static void set_inj_channel(char state){
 			break;
 	case 2: //Phase A at high dutycycles, read current from phase C + B
 			 {
-				 ADC1->JSQR=0b01001000000000000000; //ADC1 injected reads phase C, JSQ4 = 0b00110, decimal 6, 8 for JYT
+				 ADC1->JSQR=0b00111000000000000000; //ADC1 injected reads phase C, JSQ4 = 0b00110, decimal 6, 7 for JYT
 				 ADC1->JOFR1 = ui16_ph3_offset;
-				 ADC2->JSQR=0b01000000000000000000; //ADC2 injected reads phase B, JSQ4 = 0b00101, decimal 5, 9 for JYT
+				 ADC2->JSQR=0b01000000000000000000; //ADC2 injected reads phase B, JSQ4 = 0b00101, decimal 5, 8 for JYT
 				 ADC2->JOFR1 = ui16_ph2_offset;
 
 
@@ -2076,9 +2076,9 @@ static void set_inj_channel(char state){
 
 	case 3: //Phase B at high dutycycles, read current from phase A + C
 			 {
-				 ADC1->JSQR=0b00111000000000000000; //ADC1 injected reads phase A JL = 0b00, JSQ4 = 0b00100 (decimal 4 = channel 4), 7 for JYT
+				 ADC1->JSQR=0b01001000000000000000; //ADC1 injected reads phase A JL = 0b00, JSQ4 = 0b00100 (decimal 4 = channel 4), 9 for JYT
 				 ADC1->JOFR1 = ui16_ph1_offset;
-				 ADC2->JSQR=0b01001000000000000000; //ADC2 injected reads phase C, JSQ4 = 0b00110, decimal 6, 8 for JYT
+				 ADC2->JSQR=0b00111000000000000000; //ADC2 injected reads phase C, JSQ4 = 0b00110, decimal 6, 7 for JYT
 				 ADC2->JOFR1 = ui16_ph3_offset;
 
 
