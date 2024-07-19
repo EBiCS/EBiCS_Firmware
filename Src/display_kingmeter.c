@@ -35,7 +35,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define RXSTATE_DONE        3
 
 UART_HandleTypeDef huart1;
-UART_HandleTypeDef huart3;
+UART_HandleTypeDef huart2;
 
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_618U)
