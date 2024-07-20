@@ -1388,7 +1388,7 @@ static void MX_USART2_UART_Init(void)
 
 
   huart2.Instance = USART2;
-  huart2.Init.BaudRate = 56000;
+  huart2.Init.BaudRate = 9600;
   huart2.Init.WordLength = UART_WORDLENGTH_8B;
   huart2.Init.StopBits = UART_STOPBITS_1;
   huart2.Init.Parity = UART_PARITY_NONE;
@@ -1399,7 +1399,7 @@ static void MX_USART2_UART_Init(void)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
-  __HAL_UART_ENABLE_IT(&huart2, UART_IT_IDLE);
+ // __HAL_UART_ENABLE_IT(&huart2, UART_IT_IDLE);
 
 }
 
@@ -1825,13 +1825,11 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 
 }
 
-//void HAL_UART_RxCpltCallback(UART_HandleTypeDef *UartHandle)
-//{
-//	if(UartHandle == &huart1) ui8_UART_flag=1;
-//
-//	else ui8_UART_flag=3;
-//
-//}
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *UartHandle)
+{
+	if(UartHandle == &huart2) ui8_UART2_flag=1;
+
+}
 
 void UART1_IdleItCallback(void)
 {
@@ -1839,11 +1837,11 @@ void UART1_IdleItCallback(void)
 
 }
 
-void UART2_IdleItCallback(void)
-{
-	ui8_UART2_flag=1;
-
-}
+//void UART2_IdleItCallback(void)
+//{
+//	ui8_UART2_flag=1;
+//
+//}
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *UartHandle)
 {
