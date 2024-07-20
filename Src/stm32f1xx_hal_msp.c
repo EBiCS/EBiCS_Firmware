@@ -486,6 +486,13 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart)
     __HAL_LINKDMA(huart,hdmarx,hdma_usart2_rx);
 
   /* USER CODE BEGIN USART3_MspInit 1 */
+    /* USART1 interrupt Init */
+    HAL_NVIC_SetPriority(USART2_IRQn, 2, 0);
+    HAL_NVIC_EnableIRQ(USART2_IRQn);
+  /* USER CODE BEGIN USART1_MspInit 1 */
+
+    HAL_NVIC_SetPriority(DMA1_Channel6_IRQn, 2, 1);
+    HAL_NVIC_EnableIRQ(DMA1_Channel6_IRQn);
 
   /* USER CODE END USART3_MspInit 1 */
   }

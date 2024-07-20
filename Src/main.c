@@ -895,7 +895,7 @@ int main(void)
 		  i=0;
 		  while (buffer[i] != '\0')
 		  {i++;}
-		  HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);
+		  //HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);
 
 
 		  ui8_print_flag=0;
@@ -1388,7 +1388,7 @@ static void MX_USART2_UART_Init(void)
 
 
   huart2.Instance = USART2;
-  huart2.Init.BaudRate = 9600;
+  huart2.Init.BaudRate = 56000;
   huart2.Init.WordLength = UART_WORDLENGTH_8B;
   huart2.Init.StopBits = UART_STOPBITS_1;
   huart2.Init.Parity = UART_PARITY_NONE;

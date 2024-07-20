@@ -12,6 +12,7 @@
 
 
 uint8_t UART2_RxBuff[64]; //Hub sends blocks of 8 bytes, one complete message must be within 16 bytes.
+UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
 
 uint8_t torque_offset = 145;
@@ -28,8 +29,7 @@ void Hubsensor_Init (Hubsensor_t* HS_data){
 
 void Hubsensor_Service (Hubsensor_t* HS_data){
 	// still don't know if there is any temperature information in the Byte stream :-(
-	uint8_t i;
-    static uint8_t  last_pointer_position;
+	static uint8_t  last_pointer_position;
     static uint8_t  recent_pointer_position;
     static uint8_t  Rx_message_length;
     static uint8_t  Hub_Message[8];
@@ -38,7 +38,7 @@ void Hubsensor_Service (Hubsensor_t* HS_data){
 //		i--;
 //	}
 
-    recent_pointer_position = 64-DMA1_Channel5->CNDTR;
+    recent_pointer_position = 64-DMA1_Channel6->CNDTR;
 
     if(recent_pointer_position>last_pointer_position){
     	Rx_message_length=recent_pointer_position-last_pointer_position;
@@ -55,8 +55,10 @@ void Hubsensor_Service (Hubsensor_t* HS_data){
 
 
     }
+
+   // printf_("groesser %d, %d, %d \n ",recent_pointer_position,last_pointer_position, Rx_message_length);
     last_pointer_position=recent_pointer_position;
-    HAL_UART_Transmit(&huart2, (uint8_t *)&Hub_Message, Rx_message_length,50);
+    HAL_UART_Transmit(&huart1, (uint8_t *)&Hub_Message, Rx_message_length,50);
 
 
 	if ((Hub_Message[0]+Hub_Message[1]+Hub_Message[2]+Hub_Message[3]+Hub_Message[4]+Hub_Message[5])%256 == Hub_Message[6]+1){
