@@ -33,32 +33,35 @@ void Hubsensor_Init (Hubsensor_t* HS_data){
 void Hubsensor_Service (Hubsensor_t* HS_data){
 	// still don't know if there is any temperature information in the Byte stream :-(
 	uint8_t i;
+	uint8_t checksum=0;
 	i=0;
 	while (i<8&& UART2_RxBuff[i]!=0xFF){ //assuming 0xFF is the EndOfMessage Byte and the first byte has no information in the upper 3 bits.
 		i++;
 	}
 	memcpy(HubMessage,UART2_RxBuff+i,8);
-	HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&HubMessage, 8);
-	temp5=UART2_RxBuff[i-7];
-	temp6=i;
+	//HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&HubMessage, 8);
+	for (i = 0; i < 7; i++) {checksum+=HubMessage[i];}
 	//printf_("%d\n",DMA1_Channel6->CNDTR);
-	//printf_("%d , %d, %d  %d\n ", i, UART2_RxBuff[i-7],(UART2_RxBuff[i-7]+UART2_RxBuff[i-6]+UART2_RxBuff[i-5]+UART2_RxBuff[i-4]+UART2_RxBuff[i-3])%256,UART2_RxBuff[i-2]+1);
-	if (i>7&&(UART2_RxBuff[i-7]+UART2_RxBuff[i-6]+UART2_RxBuff[i-5]+UART2_RxBuff[i-4]+UART2_RxBuff[i-3])%256 == UART2_RxBuff[i-2]+1){
+	//printf_("%d , %d,\n ",checksum,HubMessage[7] );
+	if (checksum==HubMessage[7]){
 		HS_data->HS_UARTFail = 0;
-		HS_data->HS_Pedalposition = UART2_RxBuff[i-5]&127;
-		HS_data->HS_Pedals_turning = UART2_RxBuff[i-5]>>7;
+		HS_data->HS_Temperature = HubMessage[1]-30; //Byte 2: 0~210 represents -30°C~180°C, for example: 30—0°C
+		HS_data->HS_Pedalposition = HubMessage[3]&127;
+		HS_data->HS_Pedals_turning = HubMessage[3]>>7;
 		//filter torque value
+		torque_recent =(((HubMessage[4]>>6)<<8)+HubMessage[2])-torque_offset;
 		torque_cumulated-=torque_cumulated>>4;
-		if(torque_offset<(UART2_RxBuff[i-7]<<8)+UART2_RxBuff[i-6]&&((UART2_RxBuff[i-7]<<8)+UART2_RxBuff[i-6])<torque_max){ //only cumulate torque, if value is in plausible range
-			torque_cumulated+=((UART2_RxBuff[i-7]<<8)+UART2_RxBuff[i-6])-torque_offset;
+		if(torque_recent>0&&torque_recent<torque_max-torque_offset){ //only cumulate torque, if value is in plausible range
+			torque_cumulated+=torque_recent;
 			}
 		else{
 			if(torque_cumulated>0)torque_cumulated--;
 			}
 		HS_data->HS_Torque = torque_cumulated>>4;
-		HS_data->HS_Wheel_turning = UART2_RxBuff[i-4]>>7;
-		if(((UART2_RxBuff[i-4]&127)<<8)+UART2_RxBuff[i-3]<4501){ //safety reason, filter non plausible values
-			HS_data->HS_Wheeltime = ((UART2_RxBuff[i-4]&127)<<8)+UART2_RxBuff[i-3];
+		HS_data->HS_Wheel_turning = (HubMessage[4]>>5)&1;
+		if(((HubMessage[4]&31)<<8)+(HubMessage[5])<4501){ //safety reason, filter non plausible values
+			HS_data->HS_Wheeltime = ((HubMessage[4]&31)<<8)+(HubMessage[5]);
+
 		}
 		//printf_("%d, %d, %d, %d, %d, %d, %d\r\n",i, HS_data->HS_Overtemperature, HS_data->HS_Pedalposition, HS_data->HS_Pedals_turning, HS_data->HS_Torque, HS_data->HS_Wheel_turning, HS_data->HS_Wheeltime );
 		//printf_("%d\n",DMA1_Channel6->CNDTR);

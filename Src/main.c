@@ -881,11 +881,11 @@ int main(void)
 		//  sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n", hubdata.HS_Overtemperature, hubdata.HS_Pedalposition, hubdata.HS_Pedals_turning, hubdata.HS_Torque, hubdata.HS_Wheel_turning, hubdata.HS_Wheeltime );
 
 		 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n",
-				 (ADC1->JSQR)>>15,
-				 (ADC2->JSQR)>>15,
-				 (int16_t) (((q31_rotorposition_absolute >> 23) * 180) >> 8),
-				 MS.system_state,
-				 ui16_timertics,
+				 hubdata.HS_Torque,
+				 hubdata.HS_Pedalposition,
+				 hubdata.HS_Temperature,
+				 hubdata.HS_Wheel_turning,
+				 hubdata.HS_Wheeltime,
 				 MS.char_dyn_adc_state,
 				 i16_ph1_current,
 				 i16_ph2_current,
@@ -895,7 +895,7 @@ int main(void)
 		  i=0;
 		  while (buffer[i] != '\0')
 		  {i++;}
-		  //HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);
+		  HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&buffer, i);
 
 
 		  ui8_print_flag=0;
