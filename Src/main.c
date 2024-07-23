@@ -163,6 +163,7 @@ int16_t i16_hall_order=1;
 uint16_t ui16_erps=0;
 
 uint32_t uint32_torque_cumulated=0;
+int32_t uint32_battery_current_cumulated=0;
 uint32_t uint32_PAS_cumulated=32000;
 uint16_t uint16_mapped_throttle=0;
 uint16_t uint16_mapped_PAS=0;
@@ -650,6 +651,9 @@ int main(void)
 		ui16_brake_adc=ui32_brake_adc_cumulated>>4;
 		ui16_throttle = ui32_throttle_cumulated>>4;
 
+
+		uint32_battery_current_cumulated-=uint32_battery_current_cumulated>>4;
+		uint32_battery_current_cumulated+=adcData[6]-BATTERYCURRENT_OFFSET;
 		ui8_adc_regular_flag=0;
 
 	  }
@@ -881,15 +885,15 @@ int main(void)
 		//  sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n", hubdata.HS_Overtemperature, hubdata.HS_Pedalposition, hubdata.HS_Pedals_turning, hubdata.HS_Torque, hubdata.HS_Wheel_turning, hubdata.HS_Wheeltime );
 
 		 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n",
-				 hubdata.HS_Torque,
-				 hubdata.HS_Pedalposition,
-				 hubdata.HS_Temperature,
-				 hubdata.HS_Wheel_turning,
 				 hubdata.HS_Wheeltime,
 				 MS.char_dyn_adc_state,
-				 i16_ph1_current,
-				 i16_ph2_current,
-				 -i16_ph1_current-i16_ph2_current);
+				 hubdata.HS_Torque,
+				 hubdata.HS_Pedalposition,
+				 MS.i_d,
+				 MS.i_q,
+				 (uint32_battery_current_cumulated>>4)*28,
+				 MS.Battery_Current,
+				 MS.u_abs);
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5]),(uint16_t)(adcData[6])) ;
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",tic_array[0],tic_array[1],tic_array[2],tic_array[3],tic_array[4],tic_array[5]) ;
 		  i=0;
@@ -1113,7 +1117,7 @@ _Error_Handler(__FILE__, __LINE__);
 
 /**Configure Regular Channel
 */
-sConfig.Channel = ADC_CHANNEL_5; // PA5, Battery Current tbc
+sConfig.Channel = ADC_CHANNEL_6; // PA5, Battery Current tbc
 sConfig.Rank = ADC_REGULAR_RANK_7;
 sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;//ADC_SAMPLETIME_239CYCLES_5;
 if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
@@ -1864,7 +1868,7 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *UartHandle) {
 #if (DISPLAY_TYPE == DISPLAY_TYPE_EBiCS)
 //       ebics_init();
 #endif
-
+       if(UartHandle == &huart2) Hubsensor_Init (&hubdata);
 }
 
 

@@ -14,7 +14,7 @@
 #define BYTES7
 //#define BYTES8
 
-uint8_t UART2_RxBuff[16];//Hub sends blocks of 8 bytes, one complete message must be within 16 bytes.
+//Hub sends blocks of 8 bytes, one complete message must be within 16 bytes.
 uint8_t HubMessage[8];
 char buffer[64];
 UART_HandleTypeDef huart1;
@@ -27,7 +27,7 @@ uint16_t torque_recent;
 
 
 #ifdef BYTES8
-
+uint8_t UART2_RxBuff[16];
 void Hubsensor_Init (Hubsensor_t* HS_data){
     if (HAL_UART_Receive_DMA(&huart2, (uint8_t *)UART2_RxBuff,16) != HAL_OK)
      {
@@ -84,7 +84,7 @@ void Hubsensor_Service (Hubsensor_t* HS_data){
 #endif
 
 #ifdef BYTES7
-
+uint8_t UART2_RxBuff[14];
 void Hubsensor_Init (Hubsensor_t* HS_data){
     if (HAL_UART_Receive_DMA(&huart2, (uint8_t *)UART2_RxBuff,14) != HAL_OK)
      {
