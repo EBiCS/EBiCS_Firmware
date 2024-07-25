@@ -110,14 +110,14 @@ void Hubsensor_Service (Hubsensor_t* HS_data){
 		HS_data->HS_Pedalposition = HubMessage[3]&127;
 		HS_data->HS_Pedals_turning = HubMessage[3]>>7;
 		//filter torque value
-		torque_cumulated-=torque_cumulated>>4;
+		torque_cumulated-=torque_cumulated>>6;
 		if(torque_offset<(HubMessage[1]<<8)+HubMessage[2]&&((HubMessage[1]<<8)+HubMessage[2])<torque_max){ //only cumulate torque, if value is in plausible range
 			torque_cumulated+=((HubMessage[1]<<8)+HubMessage[2])-torque_offset;
 			}
 		else{
 			if(torque_cumulated>0)torque_cumulated--;
 			}
-		HS_data->HS_Torque = torque_cumulated>>4;
+		HS_data->HS_Torque = torque_cumulated>>6;
 		HS_data->HS_Wheel_turning = HubMessage[4]>>7;
 		if(((HubMessage[4]&127)<<8)+HubMessage[5]<4501){ //safety reason, filter non plausible values
 			HS_data->HS_Wheeltime = ((HubMessage[4]&127)<<8)+HubMessage[5];
