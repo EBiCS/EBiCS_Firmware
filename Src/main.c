@@ -341,7 +341,7 @@ int main(void)
   //initialize MS struct.
   MS.hall_angle_detect_flag=1;
   MS.Speed=128000;
-  MS.assist_level=3;
+  MS.assist_level=127;
   MS.regen_level=7;
 	MS.i_q_setpoint = 0;
 	MS.i_d_setpoint = 0;
@@ -766,7 +766,7 @@ int main(void)
 				// last priority normal ride conditiones
 				else {
 
-					int32_temp_current_target = (hubdata.HS_Torque*MS.assist_level);
+					int32_temp_current_target = (TS_COEF*hubdata.HS_Torque*MS.assist_level)>>8;
 					if(int32_temp_current_target>PH_CURRENT_MAX)int32_temp_current_target=PH_CURRENT_MAX;
 					if(hubdata.HS_Pedalposition!=pedalposition_old){
 						pedalposition_old=hubdata.HS_Pedalposition;
@@ -886,11 +886,11 @@ int main(void)
 
 		 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n",
 				 hubdata.HS_Wheeltime,
-				 MS.char_dyn_adc_state,
 				 hubdata.HS_Torque,
 				 hubdata.HS_Pedalposition,
+				 MS.i_q_setpoint,
+				 -MS.i_q,
 				 MS.i_d,
-				 MS.i_q,
 				 (uint32_battery_current_cumulated>>4)*28,
 				 MS.Battery_Current,
 				 MS.u_abs);
