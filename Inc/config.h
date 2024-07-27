@@ -21,7 +21,7 @@
 #define _T 2028
 #define CAL_BAT_V 256
 #define CAL_V 25
-#define CAL_I 45LL<<8
+#define CAL_I 30LL<<8
 #define INDUCTANCE 6LL
 #define RESISTANCE 40LL
 #define FLUX_LINKAGE 1200LL

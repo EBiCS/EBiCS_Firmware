@@ -891,7 +891,8 @@ int main(void)
 				 MS.i_q_setpoint,
 				 -MS.i_q,
 				 MS.i_d,
-				 (uint32_battery_current_cumulated>>4)*28,
+				// (uint32_battery_current_cumulated>>4)*28,
+				 (q31_t_Battery_Current_accumulated>>8)*i8_direction*i8_reverse_flag,
 				 MS.Battery_Current,
 				 MS.u_abs);
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5]),(uint16_t)(adcData[6])) ;
@@ -2267,7 +2268,10 @@ void runPIcontrol(){
 		  q31_t_Battery_Current_accumulated -= q31_t_Battery_Current_accumulated>>8;
 		  q31_t_Battery_Current_accumulated += ((MS.i_q*MS.u_abs)>>11)*(uint16_t)(CAL_I>>8);
 
-		  MS.Battery_Current = (q31_t_Battery_Current_accumulated>>8)*i8_direction*i8_reverse_flag; //Battery current in mA
+		  //MS.Battery_Current = (q31_t_Battery_Current_accumulated>>8)*i8_direction*i8_reverse_flag; //Battery current in mA
+
+		  MS.Battery_Current = (uint32_battery_current_cumulated>>4)*28; //Battery current in mA
+
 		  //Check battery current limit
 		  if(MS.Battery_Current>BATTERYCURRENT_MAX) ui8_BC_limit_flag=1;
 		  if(MS.Battery_Current<-REGEN_CURRENT_MAX) ui8_BC_limit_flag=1;
