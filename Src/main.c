@@ -55,6 +55,7 @@
 #include "config.h"
 #include "eeprom.h"
 #include "hubsensor.h"
+#include "stdbool.h"
 
 
 #if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER || DISPLAY_TYPE & DISPLAY_TYPE_DEBUG)
@@ -153,6 +154,10 @@ uint32_t uint32_PAS_fraction= 100;
 uint32_t uint32_SPEED_counter=32000;
 uint32_t uint32_SPEEDx100_cumulated=0;
 uint32_t uint32_PAS=32000;
+bool PASPinState=false;
+bool PASPinState_old=false;
+bool SpeedPinState=false;
+bool SpeedPinState_old=false;
 
 q31_t q31_rotorposition_PLL = 0;
 q31_t q31_angle_per_tic = 0;
@@ -659,6 +664,11 @@ int main(void)
 	  }
 
 	  //PAS signal processing
+	  //detecting falling edge by polling, as EXTI doesn't work on PD0 and PD1
+	  PASPinState=HAL_GPIO_ReadPin(_1_1_PAS_GPIO_Port, _1_1_PAS_Pin);
+	  if(!PASPinState&&PASPinState_old&&uint32_PAS_counter>100)ui8_PAS_flag =1;
+	  PASPinState_old=PASPinState;
+
 	  if(ui8_PAS_flag){
 		  if(uint32_PAS_counter>100){ //debounce
 		  uint32_PAS_cumulated -= uint32_PAS_cumulated>>2;
@@ -765,7 +775,7 @@ int main(void)
 				else if(ui8_Push_Assist_flag)int32_temp_current_target=PUSHASSIST_CURRENT;
 				// last priority normal ride conditiones
 				else {
-
+#if (RIDEMODE == RIDEMODE_KCLAMBER_KASSETTE_SENSOR)
 					int32_temp_current_target = (TS_COEF*hubdata.HS_Torque*MS.assist_level)>>8;
 					if(int32_temp_current_target>PH_CURRENT_MAX)int32_temp_current_target=PH_CURRENT_MAX;
 					if(hubdata.HS_Pedalposition!=pedalposition_old){
@@ -773,10 +783,45 @@ int main(void)
 						uint32_PAS_counter=0;
 					}
 					if(uint32_PAS_counter>PAS_TIMEOUT)int32_temp_current_target=0;
+#endif //end RIDEMODE_KCLAMBER_KASSETTE_SENSOR
+#if (RIDEMODE == RIDEMODE_PAS)
 
+#if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_901U)
+				uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, ((PH_CURRENT_MAX*(int32_t)(MS.assist_level)))>>8, 0); // level in range 0...255
+				if(uint32_PAS_counter>PAS_TIMEOUT)int32_temp_current_target=0;
+				else int32_temp_current_target = uint16_mapped_PAS;
+#endif
+#if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG)
+				uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, PH_CURRENT_MAX, 0); // Full amps in debug mode
+				if(uint32_PAS_counter>PAS_TIMEOUT)int32_temp_current_target=0;
+				else int32_temp_current_target = uint16_mapped_PAS;
+#endif
+
+#ifdef DIRDET
+				if (uint32_PAS_counter< PAS_TIMEOUT){
+					if ((uint32_PAS_fraction < FRAC_LOW ||uint32_PAS_fraction > FRAC_HIGH)){
+						uint16_mapped_PAS= 0;//pedals are turning backwards, stop motor
+					}
+				}
+				else uint32_PAS_HIGH_accumulated=uint32_PAS_cumulated;
+#endif //end direction detection
+#endif //end RIDEMODE_PAS
+#if (RIDEMODE == RIDEMODE_BB_TORQUESENSOR)
+				//calculate current target form torque, cadence and assist level
+				int32_temp_current_target = (TS_COEF*(int32_t)(MS.assist_level)* (uint32_torque_cumulated>>5)/uint32_PAS)>>8; //>>5 aus Mittelung über eine Kurbelumdrehung, >>8 aus KM5S-Protokoll Assistlevel 0..255
+
+				//limit current target to max value
+				if(int32_temp_current_target>PH_CURRENT_MAX) int32_temp_current_target = PH_CURRENT_MAX;
+				//set target to zero, if pedals are not turning
+				if(uint32_PAS_counter > PAS_TIMEOUT){
+					int32_temp_current_target = 0;
+					if(uint32_torque_cumulated>0)uint32_torque_cumulated--; //ramp down cumulated torque value
+				}
+#endif // end RIDEMODE_BB_TORQUESENSOR
 					uint16_mapped_throttle = map(ui16_throttle, THROTTLE_OFFSET, THROTTLE_MAX, 0,PH_CURRENT_MAX);
 					if(uint16_mapped_throttle>int32_temp_current_target)int32_temp_current_target=uint16_mapped_throttle;
-				} //end else for normal riding
+				}
+
 				  //ramp down setpoint at speed limit
 #ifdef LEGALFLAG
 			if(!brake_flag){ //only ramp down if no regen active
@@ -885,16 +930,17 @@ int main(void)
 		//  sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n", hubdata.HS_Overtemperature, hubdata.HS_Pedalposition, hubdata.HS_Pedals_turning, hubdata.HS_Torque, hubdata.HS_Wheel_turning, hubdata.HS_Wheeltime );
 
 		 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n",
-				 hubdata.HS_Wheeltime,
-				 hubdata.HS_Torque,
-				 hubdata.HS_Pedalposition,
+				 uint32_PAS,
+				 uint32_torque_cumulated,
+				 ui16_throttle,
 				 MS.i_q_setpoint,
-				 -MS.i_q,
-				 MS.i_d,
+				 uint16_mapped_PAS,
+				 int32_temp_current_target,
 				// (uint32_battery_current_cumulated>>4)*28,
-				 (q31_t_Battery_Current_accumulated>>8)*i8_direction*i8_reverse_flag,
+				// (q31_t_Battery_Current_accumulated>>8)*i8_direction*i8_reverse_flag,
+				 uint32_PAS_counter,
 				 MS.Battery_Current,
-				 MS.u_abs);
+				 HAL_GPIO_ReadPin (_1_1_PAS_GPIO_Port, _1_1_PAS_Pin));
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5]),(uint16_t)(adcData[6])) ;
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",tic_array[0],tic_array[1],tic_array[2],tic_array[3],tic_array[4],tic_array[5]) ;
 		  i=0;
@@ -1502,19 +1548,21 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pins : B_Speed_Pin _1_1_PAS_Pin */
   GPIO_InitStruct.Pin = B_Speed_Pin|_1_1_PAS_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
   __HAL_AFIO_REMAP_PD01_ENABLE();
 
-  /* EXTI interrupt init*/
+  /* EXTI interrupt init
 
-
-  HAL_NVIC_SetPriority(EXTI1_IRQn, 2, 0);
-  HAL_NVIC_EnableIRQ(EXTI1_IRQn);
-
-  HAL_NVIC_SetPriority(EXTI0_IRQn, 2, 0);
-  HAL_NVIC_EnableIRQ(EXTI0_IRQn);
+  Note: The external interrupt/event function is not remapped. PD0 and PD1 cannot be used for
+  external interrupt/event generation on 36-, 48- and 64-pin packages.
+  */
+//  HAL_NVIC_SetPriority(EXTI1_IRQn, 2, 0);
+//  HAL_NVIC_EnableIRQ(EXTI1_IRQn);
+//
+//  HAL_NVIC_SetPriority(EXTI0_IRQn, 2, 0);
+//  HAL_NVIC_EnableIRQ(EXTI0_IRQn);
 
 }
 
@@ -1811,24 +1859,24 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef* htim)
 
 }
 
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-{
-
-	//PAS processing
-	if(GPIO_Pin == _1_1_PAS_Pin)
-	{
-		ui8_PAS_flag = 1;
-	}
-
-	//Speed processing
-	if(GPIO_Pin == B_Speed_Pin)
-	{
-
-			ui8_SPEED_flag = 1; //with debounce
-
-	}
-
-}
+//void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+//{
+//
+//	//PAS processing
+//	if(GPIO_Pin == _1_1_PAS_Pin)
+//	{
+//		ui8_PAS_flag = 1;
+//	}
+//
+//	//Speed processing
+//	if(GPIO_Pin == B_Speed_Pin)
+//	{
+//
+//			ui8_SPEED_flag = 1; //with debounce
+//
+//	}
+//
+//}
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *UartHandle)
 {
