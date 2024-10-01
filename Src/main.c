@@ -696,13 +696,9 @@ int main(void)
 			  MS.Speed = uint32_tics_filtered>>3;
 #else
 	  //SPEED signal processing
-			  temp4++;
+
 		SpeedPinState=HAL_GPIO_ReadPin(B_Speed_GPIO_Port, B_Speed_Pin);
-		if(!SpeedPinState&&SpeedPinState_old&&uint32_SPEED_counter>100){
-			ui8_SPEED_flag =1;
-			temp5=temp4;
-			temp4=0;
-		}
+		if(!SpeedPinState&&SpeedPinState_old&&uint32_SPEED_counter>100)ui8_SPEED_flag =1;
 		SpeedPinState_old=SpeedPinState;
 
 	  if(ui8_SPEED_flag){
@@ -819,7 +815,7 @@ int main(void)
 #if (RIDEMODE == RIDEMODE_BB_TORQUESENSOR)
 				//calculate current target form torque, cadence and assist level
 				int32_temp_current_target = (TS_COEF*(int32_t)(MS.assist_level)* (uint32_torque_cumulated>>5)/uint32_PAS)>>8; //>>5 aus Mittelung über eine Kurbelumdrehung, >>8 aus KM5S-Protokoll Assistlevel 0..255
-
+				temp5=int32_temp_current_target;
 				//limit current target to max value
 				if(int32_temp_current_target>PH_CURRENT_MAX) int32_temp_current_target = PH_CURRENT_MAX;
 				//set target to zero, if pedals are not turning
@@ -828,8 +824,11 @@ int main(void)
 					if(uint32_torque_cumulated>0)uint32_torque_cumulated--; //ramp down cumulated torque value
 				}
 #endif // end RIDEMODE_BB_TORQUESENSOR
+
+#ifdef THROTTLE_OVERRIDE
 					uint16_mapped_throttle = map(ui16_throttle, THROTTLE_OFFSET, THROTTLE_MAX, 0,PH_CURRENT_MAX);
 					if(uint16_mapped_throttle>int32_temp_current_target)int32_temp_current_target=uint16_mapped_throttle;
+#endif
 				}
 
 				  //ramp down setpoint at speed limit
@@ -940,7 +939,7 @@ int main(void)
 		//  sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n", hubdata.HS_Overtemperature, hubdata.HS_Pedalposition, hubdata.HS_Pedals_turning, hubdata.HS_Torque, hubdata.HS_Wheel_turning, hubdata.HS_Wheeltime );
 
 		 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n",
-				 temp5,
+				 uint32_PAS,
 				 uint32_torque_cumulated,
 				 ui16_throttle,
 				 MS.i_q_setpoint,
@@ -950,7 +949,7 @@ int main(void)
 				// (q31_t_Battery_Current_accumulated>>8)*i8_direction*i8_reverse_flag,
 				 uint32_SPEEDx100_cumulated>>SPEEDFILTER,
 				 MS.Battery_Current,
-				 HAL_GPIO_ReadPin (_1_1_PAS_GPIO_Port, _1_1_PAS_Pin));
+				 temp5);
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5]),(uint16_t)(adcData[6])) ;
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",tic_array[0],tic_array[1],tic_array[2],tic_array[3],tic_array[4],tic_array[5]) ;
 		  i=0;

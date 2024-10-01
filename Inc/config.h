@@ -69,14 +69,14 @@
 //#define DIRDET
 #define FRAC_HIGH 30
 #define FRAC_LOW 15
-#define TS_COEF 12
-#define RIDEMODE RIDEMODE_PAS
+#define TS_COEF 1200
+#define RIDEMODE RIDEMODE_BB_TORQUESENSOR
 //#define TQONAD1
 
 //------------------------------Throttle settings
 #define THROTTLE_OFFSET 900
 #define THROTTLE_MAX 2600
-#define THROTTLE_OVERRIDE
+//#define THROTTLE_OVERRIDE
 
 //-------------------------------Speed settings
 #define WHEEL_CIRCUMFERENCE 2200
