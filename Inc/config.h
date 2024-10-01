@@ -69,7 +69,7 @@
 //#define DIRDET
 #define FRAC_HIGH 30
 #define FRAC_LOW 15
-#define TS_COEF 1200
+#define TS_COEF 1200 			//12 for Kclamber Sensor
 #define RIDEMODE RIDEMODE_BB_TORQUESENSOR
 //#define TQONAD1
 
