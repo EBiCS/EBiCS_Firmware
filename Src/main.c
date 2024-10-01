@@ -683,6 +683,7 @@ int main(void)
 		  uint32_PAS_HIGH_counter=0;
 		  uint32_PAS_counter =0;
 		  ui8_PAS_flag=0;
+		  MS.Cadence=8000*60/(NUMBER_OF_PAS_MAGNETS*uint32_PAS);
 		  //read in and sum up torque-signal within one crank revolution (for sempu sensor 32 PAS pulses/revolution, 2^5=32)
 		  uint32_torque_cumulated -= uint32_torque_cumulated>>5;
 #ifdef NCTE
@@ -949,7 +950,7 @@ int main(void)
 				// (q31_t_Battery_Current_accumulated>>8)*i8_direction*i8_reverse_flag,
 				 uint32_SPEEDx100_cumulated>>SPEEDFILTER,
 				 MS.Battery_Current,
-				 temp5);
+				 MS.Cadence);
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5]),(uint16_t)(adcData[6])) ;
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",tic_array[0],tic_array[1],tic_array[2],tic_array[3],tic_array[4],tic_array[5]) ;
 		  i=0;

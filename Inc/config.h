@@ -1,6 +1,5 @@
 /*
- * config.h
- *
+ * config.h *
  *  Automatically created by Lishui Parameter Configurator
  *  Author: stancecoke
  */
@@ -63,7 +62,7 @@
 #define SPDSHFT 0
 
 //------------------------------ Ride mode setting
-
+#define NUMBER_OF_PAS_MAGNETS 12
 #define PAS_TIMEOUT 8000
 #define RAMP_END 1600
 //#define DIRDET
