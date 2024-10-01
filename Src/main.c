@@ -665,6 +665,7 @@ int main(void)
 
 	  //PAS signal processing
 	  //detecting falling edge by polling, as EXTI doesn't work on PD0 and PD1
+
 	  PASPinState=HAL_GPIO_ReadPin(_1_1_PAS_GPIO_Port, _1_1_PAS_Pin);
 	  if(!PASPinState&&PASPinState_old&&uint32_PAS_counter>100)ui8_PAS_flag =1;
 	  PASPinState_old=PASPinState;
@@ -695,6 +696,15 @@ int main(void)
 			  MS.Speed = uint32_tics_filtered>>3;
 #else
 	  //SPEED signal processing
+			  temp4++;
+		SpeedPinState=HAL_GPIO_ReadPin(B_Speed_GPIO_Port, B_Speed_Pin);
+		if(!SpeedPinState&&SpeedPinState_old&&uint32_SPEED_counter>100){
+			ui8_SPEED_flag =1;
+			temp5=temp4;
+			temp4=0;
+		}
+		SpeedPinState_old=SpeedPinState;
+
 	  if(ui8_SPEED_flag){
 
 		  if(uint32_SPEED_counter>200){ //debounce
@@ -930,7 +940,7 @@ int main(void)
 		//  sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n", hubdata.HS_Overtemperature, hubdata.HS_Pedalposition, hubdata.HS_Pedals_turning, hubdata.HS_Torque, hubdata.HS_Wheel_turning, hubdata.HS_Wheeltime );
 
 		 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n",
-				 uint32_PAS,
+				 temp5,
 				 uint32_torque_cumulated,
 				 ui16_throttle,
 				 MS.i_q_setpoint,
@@ -938,7 +948,7 @@ int main(void)
 				 int32_temp_current_target,
 				// (uint32_battery_current_cumulated>>4)*28,
 				// (q31_t_Battery_Current_accumulated>>8)*i8_direction*i8_reverse_flag,
-				 uint32_PAS_counter,
+				 uint32_SPEEDx100_cumulated>>SPEEDFILTER,
 				 MS.Battery_Current,
 				 HAL_GPIO_ReadPin (_1_1_PAS_GPIO_Port, _1_1_PAS_Pin));
 		 // sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5]),(uint16_t)(adcData[6])) ;
