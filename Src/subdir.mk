@@ -14,7 +14,7 @@ Src/print.c \
 Src/hubsensor.c \
 Src/stm32f1xx_hal_msp.c \
 Src/stm32f1xx_it.c \
-Src/system_stm32f1xx_Bootloader.c 
+Src/system_stm32f1xx.c 
 
 OBJS += \
 build/FOC.o \
@@ -27,7 +27,7 @@ build/print.o \
 build/hubsensor.o \
 build/stm32f1xx_hal_msp.o \
 build/stm32f1xx_it.o \
-build/system_stm32f1xx_Bootloader.o 
+build/system_stm32f1xx.o 
 
 C_DEPS += \
 build/FOC.d \
@@ -40,7 +40,7 @@ build/print.d \
 build/hubsensor.d \
 build/stm32f1xx_hal_msp.d \
 build/stm32f1xx_it.d \
-build/system_stm32f1xx_Bootloader.d 
+build/system_stm32f1xx.d 
 
 INC_PATH = Inc
 DRIVERS_PATH = Drivers/STM32F1xx_HAL_Driver/Inc
