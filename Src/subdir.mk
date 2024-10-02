@@ -11,6 +11,7 @@ Src/display_kunteng.c \
 Src/eeprom.c \
 Src/main.c \
 Src/print.c \
+Src/hubsensor.c \
 Src/stm32f1xx_hal_msp.c \
 Src/stm32f1xx_it.c \
 Src/system_stm32f1xx_Bootloader.c 
@@ -23,6 +24,7 @@ build/display_kunteng.o \
 build/eeprom.o \
 build/main.o \
 build/print.o \
+build/hubsensor.o \
 build/stm32f1xx_hal_msp.o \
 build/stm32f1xx_it.o \
 build/system_stm32f1xx_Bootloader.o 
@@ -35,6 +37,7 @@ build/display_kunteng.d \
 build/eeprom.d \
 build/main.d \
 build/print.d \
+build/hubsensor.d \
 build/stm32f1xx_hal_msp.d \
 build/stm32f1xx_it.d \
 build/system_stm32f1xx_Bootloader.d 
