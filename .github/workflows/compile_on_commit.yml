@@ -2,7 +2,7 @@ name: C/C++ CI
 
 on:
   push:
-    branches: [ m365_improvements ]
+    branches: [ JYT_Yose ]
   pull_request:
     branches: [ master ]
 
@@ -51,8 +51,8 @@ jobs:
     - run: java -cp java make/hexToLsh.java
     
     - name: 'Upload Artifact'
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
-        path: ${{ github.workspace }}/output
+        path: ${{ github.workspace }}/build/EBiCS_Firmware.hex
         name: EBiCS_build_${{ github.run_number }}
-        retention-days: 5
+        retention-days: 10
