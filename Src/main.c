@@ -73,6 +73,9 @@
 #include "display_ebics.h"
 #endif
 
+#if (DISPLAY_TYPE == DISPLAY_TYPE_NO2)
+#include "display_No_2.h"
+#endif
 
 #include <arm_math.h>
 /* USER CODE END Includes */
@@ -237,7 +240,10 @@ uint8_t ui8_additional_LEV_Page_counter=0;
 uint8_t ui8_LEV_Page_to_send=1;
 #endif
 
-
+//variables for display communication
+#if (DISPLAY_TYPE == DISPLAY_TYPE_NO2)
+No2_t No2;
+#endif
 
 MotorState_t MS;
 MotorParams_t MP;
@@ -457,7 +463,6 @@ int main(void)
 
 #if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER || DISPLAY_TYPE & DISPLAY_TYPE_DEBUG)
 	KingMeter_Init (&KM);
-
 #endif
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_BAFANG)
@@ -473,7 +478,9 @@ int main(void)
 	//  ebics_init();
 #endif
 
-
+#if (DISPLAY_TYPE == DISPLAY_TYPE_NO2)
+	No2_Init(&No2);
+#endif
 	TIM1->CCR1 = 1023; //set initial PWM values
 	TIM1->CCR2 = 1023;
 	TIM1->CCR3 = 1023;
@@ -672,6 +679,9 @@ int main(void)
 			//  process_ant_page(&MS, &MP);
 #endif
 
+#if (DISPLAY_TYPE == DISPLAY_TYPE_NO2)
+			No2_Service(&No2);
+#endif
 			ui8_UART_flag=0;
 		}
 
@@ -2011,6 +2021,9 @@ int main(void)
 		//       ebics_init();
 #endif
 
+#if (DISPLAY_TYPE == DISPLAY_TYPE_NO2)
+	No2_Init(&No2);
+#endif
 	}
 
 	void get_internal_temp_offset(void){
@@ -2024,9 +2037,6 @@ int main(void)
 		EE_WriteVariable(EEPROM_INT_TEMP_V25,temp>>5);
 		HAL_FLASH_Lock();
 	}
-
-
-
 
 
 #if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER || DISPLAY_TYPE & DISPLAY_TYPE_DEBUG)
