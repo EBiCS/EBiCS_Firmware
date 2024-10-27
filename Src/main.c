@@ -2037,7 +2037,61 @@ int main(void)
 		EE_WriteVariable(EEPROM_INT_TEMP_V25,temp>>5);
 		HAL_FLASH_Lock();
 	}
+#if (DISPLAY_TYPE == DISPLAY_TYPE_NO2)
+	void No2_update(void)
+	{
+		/* Prepare Tx parameters */
 
+#if (SPEEDSOURCE  == EXTERNAL)
+		No2.Tx.Wheeltime_ms = ((MS.Speed>>3)*PULSES_PER_REVOLUTION); //>>3 because of 8 kHz counter frequency, so 8 tics per ms
+#else
+		if(__HAL_TIM_GET_COUNTER(&htim2) < 12000)
+		{
+			No2.Tx.Wheeltime_ms = (MS.Speed*GEAR_RATIO*6)>>9; //>>9 because of 500kHZ timer2 frequency, 512 tics per ms should be OK *6 because of 6 hall interrupts per electric revolution.
+
+		}
+		else
+		{
+			No2.Tx.Wheeltime_ms = 64000;
+		}
+
+#endif
+		if(MS.Temperature>130) No2.Tx.Error = 7;  //motor failure
+		else if(MS.int_Temperature>80)No2.Tx.Error = 9; //controller failure
+		else No2.Tx.Error = 0; //no failure
+
+
+		No2.Tx.Current_x10 = (uint16_t) (MS.Battery_Current/100); //MS.Battery_Current is in mA
+
+
+		/* Apply Rx parameters */
+
+		MS.assist_level = No2.Rx.AssistLevel;
+
+		if(!No2.Rx.Headlight)
+		{
+			HAL_GPIO_WritePin(LIGHT_GPIO_Port, LIGHT_Pin, GPIO_PIN_RESET);
+
+		}
+		else // KM_HEADLIGHT_ON, KM_HEADLIGHT_LOW, KM_HEADLIGHT_HIGH
+		{
+			HAL_GPIO_WritePin(LIGHT_GPIO_Port, LIGHT_Pin, GPIO_PIN_SET);
+
+		}
+
+
+		if(No2.Rx.PushAssist)
+		{
+			ui8_Push_Assist_flag=1;
+		}
+		else
+		{
+			ui8_Push_Assist_flag=0;
+		}
+
+	}
+
+#endif
 
 #if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER || DISPLAY_TYPE & DISPLAY_TYPE_DEBUG)
 	void kingmeter_update(void)

@@ -35,14 +35,16 @@ typedef struct
     // Parameters received from display in operation mode:
     uint8_t  AssistLevel;               // Byte 4, Level in Display
     uint8_t  NumberOfPasMagnets;        // Byte 18, same Number as in display setting
-    uint8_t  Headlight;                 // KM_HEADLIGHT_OFF / KM_HEADLIGHT_ON / KM_HEADLIGHT_LOW / KM_HEADLIGHT_HIGH
-    uint8_t  Battery;                   // KM_BATTERY_NORMAL / KM_BATTERY_LOW
-    uint8_t  PushAssist;                // KM_PUSHASSIST_OFF / KM_PUSHASSIST_ON
-    uint8_t  PowerAssist;               // KM_POWERASSIST_OFF / KM_POWERASSIST_ON
+    uint8_t  Headlight;                 // Byte 5, Bit 5
+    uint16_t WheelSizeInch_x10;         // HiByte 14, LowByte 15
+    uint8_t  PushAssist;                // Byte 5, Bit 2
+    uint8_t  ZeroStart;                 // Byte 5, Bit 6
     uint8_t  Throttle_mode;             // Byte 3, numbers not read out yet
+    uint8_t  Start_delay_PAS;           // Byte 9, same Number as in display setting
     uint8_t  CruiseControl;             // KM_CRUISE_OFF / KM_CRUISE_ON
-    uint8_t  OverSpeed;                 // KM_OVERSPEED_OFF / KM_OVERSPEED_ON
-    uint16_t SPEEDMAX_Limit;        	// Unit: km/h
+    uint8_t  GearRatio;                 // Byte 6, same Number as in display setting
+    uint8_t  BoostPower;                // Byte 10, same Number as in display setting
+    uint16_t SPEEDMAX_Limit;        	// Byte 15, same Number as in display setting
     uint16_t Voltage_min_x10;           // HiByte 14, LowByte 15
     uint8_t  CUR_Limit_A;               // Byte 13, same Number as in display setting
 
@@ -73,8 +75,6 @@ typedef struct
 
     uint8_t         RxBuff[KM_MAX_RXBUFF];
     uint8_t         RxCnt;
-
-    RX_SETTINGS_t   Settings;
     RX_PARAM_t      Rx;
     TX_PARAM_t      Tx;
 
