@@ -99,7 +99,11 @@ void No2_Service(No2_t* No2_ctx)
 
     if(No2_Message[19]==calculate_checksum(No2_Message, 20)){
     	//to do
-
+    	No2_ctx->Rx.AssistLevel = No2_Message[4];
+    	No2_ctx->Rx.NumberOfPasMagnets = No2_Message[18];
+    	No2_ctx->Rx.CUR_Limit_A = No2_Message[13];
+    	No2_ctx->Rx.Voltage_min_x10 = (No2_Message[14]<<8)+No2_Message[15];
+    	No2_ctx->Rx.Throttle_mode = No2_Message[3];
     	TxBuffer[13]=calculate_checksum(TxBuffer, 14);
     	HAL_UART_Transmit(&huart1, (uint8_t *)&TxBuffer,14,50);
     }

@@ -32,32 +32,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 typedef struct
 {
-    // Parameters received from display in setting mode:
-    uint16_t WheelSize_mm;              // Unit: 1mm
-    uint8_t  PAS_RUN_Direction;         // KM_PASDIR_FORWARD / KM_PASDIR_BACKWARD
-    uint8_t  PAS_SCN_Tolerance;         // Number of PAS signals to start the motor
-    uint8_t  PAS_N_Ratio;               // 0..255 PAS ratio
-    uint8_t  HND_HL_ThrParam;           // KM_HND_HL_NO / KM_HND_HL_YES
-    uint8_t  HND_HF_ThrParam;           // KM_HND_HF_NO / KM_HND_HF_YES
-    uint8_t  SYS_SSP_SlowStart;         // 1..4 Level of soft ramping at start
-    uint8_t  SPS_SpdMagnets;            // Number of magnets of speedsensor
-    uint16_t VOL_1_UnderVolt_x10;       // Unit: 0.1V
-
-}RX_SETTINGS_t;
-
-typedef struct
-{
     // Parameters received from display in operation mode:
-    uint8_t  AssistLevel;               // 0..255 Power Assist Level
+    uint8_t  AssistLevel;               // Byte 4, Level in Display
+    uint8_t  NumberOfPasMagnets;        // Byte 18, same Number as in display setting
     uint8_t  Headlight;                 // KM_HEADLIGHT_OFF / KM_HEADLIGHT_ON / KM_HEADLIGHT_LOW / KM_HEADLIGHT_HIGH
     uint8_t  Battery;                   // KM_BATTERY_NORMAL / KM_BATTERY_LOW
     uint8_t  PushAssist;                // KM_PUSHASSIST_OFF / KM_PUSHASSIST_ON
     uint8_t  PowerAssist;               // KM_POWERASSIST_OFF / KM_POWERASSIST_ON
-    uint8_t  Throttle;                  // KM_THROTTLE_OFF / KM_THROTTLE_ON
+    uint8_t  Throttle_mode;             // Byte 3, numbers not read out yet
     uint8_t  CruiseControl;             // KM_CRUISE_OFF / KM_CRUISE_ON
     uint8_t  OverSpeed;                 // KM_OVERSPEED_OFF / KM_OVERSPEED_ON
     uint16_t SPEEDMAX_Limit;        	// Unit: km/h
-    uint16_t CUR_Limit_mA;              // Unit: mA
+    uint16_t Voltage_min_x10;           // HiByte 14, LowByte 15
+    uint8_t  CUR_Limit_A;               // Byte 13, same Number as in display setting
 
 }RX_PARAM_t;
 

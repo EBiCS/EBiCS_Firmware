@@ -8,6 +8,7 @@ Src/FOC.c \
 Src/display_bafang.c \
 Src/display_kingmeter.c \
 Src/display_kunteng.c \
+build/display_No_2.c \
 Src/eeprom.c \
 Src/main.c \
 Src/print.c \
@@ -20,6 +21,7 @@ build/FOC.o \
 build/display_bafang.o \
 build/display_kingmeter.o \
 build/display_kunteng.o \
+build/display_No_2.o \
 build/eeprom.o \
 build/main.o \
 build/print.o \
