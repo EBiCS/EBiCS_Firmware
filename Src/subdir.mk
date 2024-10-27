@@ -32,6 +32,7 @@ build/FOC.d \
 build/display_bafang.d \
 build/display_kingmeter.d \
 build/display_kunteng.d \
+build/display_No_2.d \
 build/eeprom.d \
 build/main.d \
 build/print.d \
