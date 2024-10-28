@@ -99,7 +99,7 @@ void No2_Service(No2_t* No2_ctx)
 
     if(No2_Message[19]==calculate_checksum(No2_Message, 20)){
     	//to do
-    	No2_ctx->Rx.AssistLevel = No2_Message[4];
+    	No2_ctx->Rx.AssistLevel = No2_Message[4]<<4; // value is in range 0 ... 15, leftshift 4 for range 0 ... 255
     	No2_ctx->Rx.NumberOfPasMagnets = No2_Message[18];
     	No2_ctx->Rx.CUR_Limit_A = No2_Message[13];
     	No2_ctx->Rx.Voltage_min_x10 = (No2_Message[14]<<8)+No2_Message[15];
@@ -116,6 +116,10 @@ void No2_Service(No2_t* No2_ctx)
     	No2_update(); //get/set parameters in main.c
 
     	//to do: apply speed and power data to TxBuffer
+    	TxBuffer[6]=highByte(No2_ctx->Tx.Current_x10);
+    	TxBuffer[7]=lowByte(No2_ctx->Tx.Current_x10);
+    	TxBuffer[8]=highByte(No2_ctx->Tx.Wheeltime_ms);
+    	TxBuffer[9]=lowByte(No2_ctx->Tx.Wheeltime_ms);
 
     	TxBuffer[13]=calculate_checksum(TxBuffer, 14);
     	HAL_UART_Transmit(&huart1, (uint8_t *)&TxBuffer,14,50);
