@@ -115,7 +115,10 @@ void No2_Service(No2_t* No2_ctx)
 
     	No2_update(); //get/set parameters in main.c
 
-    	//to do: apply speed and power data to TxBuffer
+
+    	TxBuffer[3]=No2_ctx->Tx.Error;
+    	TxBuffer[4]=No2_ctx->Tx.BrakeActive<<5;//0b00100000;
+
     	TxBuffer[6]=highByte(No2_ctx->Tx.Current_x10);
     	TxBuffer[7]=lowByte(No2_ctx->Tx.Current_x10);
     	TxBuffer[8]=highByte(No2_ctx->Tx.Wheeltime_ms);

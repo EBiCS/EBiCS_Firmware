@@ -843,7 +843,7 @@ int main(void)
 				uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, (PH_CURRENT_MAX*(int32_t)(MS.assist_level-1))>>2, 0); // level in range 1...5
 #endif
 
-#if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_901U)
+#if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_901U||DISPLAY_TYPE == DISPLAY_TYPE_NO2)
 				uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, ((PH_CURRENT_MAX*(int32_t)(MS.assist_level)))>>8, 0); // level in range 0...255
 #endif
 
@@ -935,7 +935,7 @@ int main(void)
 
 
 
-#else // end speedthrottle
+#else // else speedthrottle
 					int32_temp_current_target=uint16_mapped_throttle;
 #endif  //end speedthrottle
 
@@ -2062,7 +2062,7 @@ int main(void)
 
 
 		No2.Tx.Current_x10 = (uint16_t) (MS.Battery_Current/100); //MS.Battery_Current is in mA
-
+		No2.Tx.BrakeActive=brake_flag;
 
 		/* Apply Rx parameters */
 

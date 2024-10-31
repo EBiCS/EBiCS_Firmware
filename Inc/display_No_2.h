@@ -61,6 +61,7 @@ typedef struct
     uint16_t Wheeltime_ms;              // Unit:1ms
     uint8_t  Error;                     // KM_ERROR_NONE, ..
     uint16_t Current_x10;               // Unit: 0.1A
+    uint8_t BrakeActive;               // Unit: 0.1A
 
 }TX_PARAM_t;
 
