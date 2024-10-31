@@ -109,7 +109,7 @@ void No2_Service(No2_t* No2_ctx)
     	No2_ctx->Rx.BoostPower = No2_Message[10];
     	No2_ctx->Rx.ZeroStart = (No2_Message[5]>>6)&0x01;
     	No2_ctx->Rx.Headlight = (No2_Message[5]>>5)&0x01;
-    	No2_ctx->Rx.PushAssist = (No2_Message[5]>>2)&0x01;
+    	No2_ctx->Rx.PushAssist = (No2_Message[5]>>1)&0x01;
     	No2_ctx->Rx.SPEEDMAX_Limit = No2_Message[12];
     	No2_ctx->Rx.GearRatio = No2_Message[6];
 
