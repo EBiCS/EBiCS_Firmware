@@ -26,9 +26,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "stm32f1xx_hal.h"
 #include "print.h"
 
-#if (DISPLAY_TYPE_NO2)
+
 
 UART_HandleTypeDef huart1;
+#if (DISPLAY_TYPE == DISPLAY_TYPE_NO2)
 
 void No2_Service(No2_t* No2_ctx);
 int calculate_checksum(unsigned char* frame_buf, uint8_t length);
@@ -118,7 +119,8 @@ void No2_Service(No2_t* No2_ctx)
 
     	TxBuffer[3]=No2_ctx->Tx.Error;
     	TxBuffer[4]=No2_ctx->Tx.BrakeActive<<5;//0b00100000;
-
+    	//No2_ctx->Tx.Wheeltime_ms=1000;
+    	//No2_ctx->Tx.Current_x10=8000;
     	TxBuffer[6]=highByte(No2_ctx->Tx.Current_x10);
     	TxBuffer[7]=lowByte(No2_ctx->Tx.Current_x10);
     	TxBuffer[8]=highByte(No2_ctx->Tx.Wheeltime_ms);
@@ -140,7 +142,7 @@ void No2_Service(No2_t* No2_ctx)
 
 
 
-#endif
+
 
 uint8_t lowByte(uint16_t word){
 	return word & 0xFF;
@@ -161,3 +163,4 @@ int calculate_checksum(unsigned char* frame_buf, uint8_t length) {
   }
   return(xor);
 }
+#endif
