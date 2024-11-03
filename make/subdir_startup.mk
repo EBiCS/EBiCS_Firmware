@@ -4,14 +4,14 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 S_SRCS += \
-../startup/startup_stm32f103x6.s 
+../Startup/startup_stm32f103x6.s
 
 OBJS += \
-./startup/startup_stm32f103x6.o 
+./Startup/startup_stm32f103x6.o
 
 
 # Each subdirectory must supply rules for building sources it contributes
-startup/%.o: ../startup/%.s
+Startup/%.o: ../Startup/%.s
 	@echo 'Building file: $<'
 	@echo 'Invoking: MCU GCC Assembler'
 	@echo $(PWD)
