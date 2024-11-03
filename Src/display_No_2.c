@@ -101,7 +101,7 @@ void No2_Service(No2_t* No2_ctx)
     if(No2_Message[19]==calculate_checksum(No2_Message, 20)){
     	//to do
     	No2_ctx->Rx.AssistLevel = No2_Message[4]<<4; // value is in range 0 ... 15, leftshift 4 for range 0 ... 255
-    	No2_ctx->Rx.NumberOfPasMagnets = No2_Message[18];
+    	No2_ctx->Rx.NumberOfPasMagnets = No2_Message[18]&0x0F;
     	No2_ctx->Rx.CUR_Limit_A = No2_Message[13];
     	No2_ctx->Rx.Voltage_min_x10 = (No2_Message[14]<<8)+No2_Message[15];
     	No2_ctx->Rx.WheelSizeInch_x10 = (No2_Message[7]<<8)+No2_Message[8];
@@ -111,6 +111,7 @@ void No2_Service(No2_t* No2_ctx)
     	No2_ctx->Rx.ZeroStart = (No2_Message[5]>>6)&0x01;
     	No2_ctx->Rx.Headlight = (No2_Message[5]>>5)&0x01;
     	No2_ctx->Rx.PushAssist = (No2_Message[5]>>1)&0x01;
+    	No2_ctx->Rx.CruiseControl = (No2_Message[18]>>6)&0x01;
     	No2_ctx->Rx.SPEEDMAX_Limit = No2_Message[12];
     	No2_ctx->Rx.GearRatio = No2_Message[6];
 
