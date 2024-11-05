@@ -131,15 +131,7 @@ void No2_Service(No2_t* No2_ctx)
     	HAL_UART_Transmit(&huart1, (uint8_t *)&TxBuffer,14,50);
     }
 
-
-
-
-
-
-
-
-
-    }
+ }
 
 
 
