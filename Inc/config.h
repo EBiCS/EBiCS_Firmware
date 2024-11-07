@@ -74,7 +74,7 @@
 
 //--------------------------------------------------------------------
 //Speed settings
-#define WHEEL_CIRCUMFERENCE 1025//1940 //507er Reifen
+#define WHEEL_CIRCUMFERENCE 970 //1940 //507er Reifen
 #define GEAR_RATIO 20 //11 for BionX IGH3 // wird nicht verwendet
 #define SPEEDLIMIT 27
 #define PULSES_PER_REVOLUTION 1
