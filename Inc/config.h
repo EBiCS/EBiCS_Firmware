@@ -70,7 +70,7 @@
 //Throttle settings
 #define THROTTLE_OFFSET 1250   //only default value, throttle offset is set at startup automatically
 #define THROTTLE_MAX 2950
-#define THROTTLE_OVERRIDE
+//#define THROTTLE_OVERRIDE
 
 //--------------------------------------------------------------------
 //Speed settings
@@ -98,7 +98,7 @@
 
 //---------------------------------------------------------------------
 //Display settings
-#define DISPLAY_TYPE DISPLAY_TYPE_KUNTENG
+#define DISPLAY_TYPE DISPLAY_TYPE_DEBUG
 
 //---------------------------------------------------------------------
 //Regen settings
@@ -108,6 +108,6 @@
 //#define ADC_BRAKE
 
 //---------------------------------------------------------------------
-#define AUTODETECT 0
+#define AUTODETECT 1
 
 #endif /* CONFIG_H_ */
