@@ -458,7 +458,8 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
     			            		{
 
     			                KM_ctx->Settings.PAS_RUN_Direction   = (KM_Message[4] & 0x80) >> 7; // KM_PASDIR_FORWARD / KM_PASDIR_BACKWARD
-    			                KM_ctx->Settings.ExecAutodetect   	 = (KM_Message[6]>>7)&0x01; 	// Execute Autodetect (with EN06 protocol)
+    			                KM_ctx->Settings.ExecAutodetect   	 = (KM_Message[6]>>7)&0x01; 	// Execute Autodetect (with P18 of EN06 protocol)
+    			                KM_ctx->Settings.Reverse   	 		 = (KM_Message[6]>>6)&0x01; 	// set spinning direction (with P19 of EN06 protocol)
     			                KM_ctx->Settings.PAS_SCN_Tolerance   =  KM_Message[5];              // 2..9
     			                KM_ctx->Settings.PAS_N_Ratio         =  KM_Message[6];              // 0..255
     			                KM_ctx->Settings.HND_HL_ThrParam     = (KM_Message[7] & 0x80) >> 7; // KM_HND_HL_NO / KM_HND_HL_YES

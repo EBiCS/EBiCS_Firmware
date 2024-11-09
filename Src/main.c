@@ -2160,6 +2160,7 @@ int main(void)
 		{
 			ui8_Push_Assist_flag=0;
 		}
+		i8_direction = KM.Settings.Reverse;
 		//    MP.speedLimit=KM.Rx.SPEEDMAX_Limit;
 		//    MP.battery_current_max = KM.Rx.CUR_Limit_mA;
 
