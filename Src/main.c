@@ -506,7 +506,7 @@ int main(void)
 	ui16_ph1_offset=temp1>>5;
 	ui16_ph2_offset=temp2>>5;
 	ui16_ph3_offset=temp3>>5;
-	ui16_throttle_offset=(temp4>>5)+11; //mehr Spielraum für Sensordrift #sr
+	ui16_throttle_offset=(temp4>>5)+5;
 
 #ifdef DISABLE_DYNAMIC_ADC // set  injected channel with offsets
 	ADC1->JSQR=0b00100000000000000000; //ADC1 injected reads phase A JL = 0b00, JSQ4 = 0b00100 (decimal 4 = channel 4)
