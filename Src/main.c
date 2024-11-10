@@ -2000,7 +2000,8 @@ void kingmeter_update(void)
     {
     	ui8_Push_Assist_flag=0;
     }
-    i8_direction = KM.Settings.Reverse;
+    if( KM.Settings.Reverse)i8_direction = -1;
+    else i8_direction = 1;
 //    MP.speedLimit=KM.Rx.SPEEDMAX_Limit;
 //    MP.battery_current_max = KM.Rx.CUR_Limit_mA;
 
@@ -2174,11 +2175,11 @@ void autodetect() {
 	for (i = 0; i < 1080; i++) {
 		q31_rotorposition_absolute += 11930465; //drive motor in open loop with steps of 1 deg
 		HAL_Delay(5);
-		printf_("%d, %d, %d, %d\n",
-				 switchtime[0],
-				 switchtime[1],
-				 i16_ph1_current,
-				 i16_ph2_current);
+//		printf_("%d, %d, %d, %d\n",
+//				 switchtime[0],
+//				 switchtime[1],
+//				 i16_ph1_current,
+//				 i16_ph2_current);
 
 		if (ui8_hall_state_old != ui8_hall_state) {
 			printf_("angle: %d, hallstate:  %d, hallcase %d \n",

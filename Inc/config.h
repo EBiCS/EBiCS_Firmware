@@ -69,13 +69,13 @@
 #define FRAC_HIGH 30
 #define FRAC_LOW 15
 #define TS_COEF 1200 			//12 for Kclamber Sensor
-#define RIDEMODE RIDEMODE_BB_TORQUESENSOR
+#define RIDEMODE RIDEMODE_PAS
 //#define TQONAD1
 
 //------------------------------Throttle settings
 #define THROTTLE_OFFSET 900
 #define THROTTLE_MAX 2600
-//#define THROTTLE_OVERRIDE
+#define THROTTLE_OVERRIDE
 
 //-------------------------------Speed settings
 #define WHEEL_CIRCUMFERENCE 2200
@@ -84,7 +84,7 @@
 #define PULSES_PER_REVOLUTION 1
 #define REVERSE -1
 #define SPEEDFILTER 1
-#define SPEEDSOURCE EXTERNAL
+#define SPEEDSOURCE INTERNAL
 
 
 
@@ -96,7 +96,7 @@
 #define REGEN_CURRENT 0
 #define REGEN_CURRENT_MAX 10000
 #define PUSHASSIST_CURRENT 30
-#define VOLTAGE_MIN 1
+#define VOLTAGE_MIN 1200
 
 //----------------------------- Display setting
 
