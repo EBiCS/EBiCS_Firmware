@@ -1,5 +1,3 @@
-Caution, the Bafang Display protocol is recently not running in the master branch!
-
 This project has now reached a certain maturity, use is always at your own risk. The authors do not accept any liability for damage to property or personal injury!  
 The Master-branch supports sensored motors and Bafang-, Kunteng- and Kingmeter-Displays and debugging.
 
