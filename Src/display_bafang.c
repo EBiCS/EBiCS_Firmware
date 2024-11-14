@@ -35,7 +35,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define RXSTATE_INFOMESSAGE 4 //info code received, waiting for info message
 #define RXSTATE_DONE        5 //command received
 
-UART_HandleTypeDef huart1;
+extern UART_HandleTypeDef huart1;
 
 // Local function prototypes
 //static void BAFANG_Service(BAFANG_t* BF_ctx, uint8_t  rx);

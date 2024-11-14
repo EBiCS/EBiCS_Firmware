@@ -28,14 +28,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 
-UART_HandleTypeDef huart1;
+extern UART_HandleTypeDef huart1;
 #if (DISPLAY_TYPE == DISPLAY_TYPE_NO2)
 
 void No2_Service(No2_t* No2_ctx);
 int calculate_checksum(unsigned char* frame_buf, uint8_t length);
 
-uint8_t  lowByte(uint16_t word);
-uint8_t  highByte(uint16_t word);
+static uint8_t  lowByte(uint16_t word);
+static uint8_t  highByte(uint16_t word);
 
 uint8_t pas_tolerance  = 0;
 uint8_t wheel_magnets = 1;
