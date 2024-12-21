@@ -244,11 +244,11 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 	}
 		if(q31_erps_counter<10000){
 				q31_erps_counter++;
-				MS_FOC->system_state = Sensorless;
+				//MS_FOC->system_state = Sensorless;
 			}
 		else {
 			MS_FOC->Speed=10000;
-			MS_FOC->system_state=IdleRun;
+			//MS_FOC->system_state=IdleRun;
 			//if(!int16_i_q_target&&MS_FOC->Obs_flag)CLEAR_BIT(TIM1->BDTR, TIM_BDTR_MOE);
 			if(MP_FOC->com_mode==Hallsensor_Sensorless)MS_FOC->Obs_flag=0;//reset for Hall sensor startup
 		}

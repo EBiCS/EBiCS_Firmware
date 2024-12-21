@@ -166,6 +166,7 @@ uint16_t uint16_half_rotation_counter=0;
 uint16_t uint16_full_rotation_counter=0;
 int32_t int32_temp_current_target=0;
 q31_t q31_PLL_error=0;
+uint8_t ui_8_PLL_counter=0;
 q31_t q31_t_Battery_Current_accumulated=0;
 
 q31_t q31_rotorposition_absolute;
@@ -356,7 +357,7 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
   PI_id.setpoint = 0;
   PI_id.limit_output = _U_MAX;
   PI_id.max_step=5000;
-  PI_id.shift=6;
+  PI_id.shift=10;
   PI_id.limit_i=1800;
 
   PI_iq.gain_i=I_FACTOR_I_Q;
@@ -364,7 +365,7 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
   PI_iq.setpoint = 0;
   PI_iq.limit_output = _U_MAX;
   PI_iq.max_step=5000;
-  PI_iq.shift=6;
+  PI_iq.shift=10;
   PI_iq.limit_i=_U_MAX;
 
 #ifdef SPEEDTHROTTLE
@@ -1000,15 +1001,24 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 
 				} else if (ui8_6step_flag)
 					SystemState = SixStep;
-				else
-					SystemState = Running;
+				//else
+					//SystemState = Running;
 		  }
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG && !defined(FAST_LOOP_LOG))
 		  //print values for debugging
 
 
-		  sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n", adcData[1],MS.i_q_setpoint, MS.Speed, temp4, MS.Obs_flag, int32_temp_current_target , MS.i_q, uint16_idle_run_counter, MS.system_state);
+		  sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %u, %d\r\n",
+				  adcData[1],
+				  MS.i_q_setpoint,
+				  MS.Speed,
+				  ui_8_PLL_counter,
+				  MS.Obs_flag,
+				  int32_temp_current_target ,
+				  MS.i_q,
+				  q31_angle_per_tic>>12,
+				  MS.system_state);
 		  // sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5]),(uint16_t)(adcData[6])) ;
 		  // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",tic_array[0],tic_array[1],tic_array[2],tic_array[3],tic_array[4],tic_array[5]) ;
 		  i=0;
@@ -1710,7 +1720,7 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 				}
 				if (ui16_tim2_recent < ui16_timertics + (ui16_timertics >> 2)
 						&& !ui8_overflow_flag && !ui8_6step_flag) { //prevent angle running away at standstill
-					if (MS.angle_est && iabs(q31_PLL_error) < deg_30) {
+					if (MS.angle_est && ui_8_PLL_counter>11) {
 						q31_rotorposition_absolute = q31_rotorposition_PLL;
 						MS.system_state = PLL;
 					} else {
@@ -1885,6 +1895,10 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef* htim)
 
 		if(MS.angle_est){
 			q31_PLL_error=q31_rotorposition_PLL-q31_rotorposition_hall;
+			if(iabs(q31_PLL_error) < deg_30){
+				if(ui_8_PLL_counter<12)ui_8_PLL_counter++;
+			}
+			else ui_8_PLL_counter=0;
 			q31_angle_per_tic = speed_PLL(q31_rotorposition_PLL,q31_rotorposition_hall,0);
 		}
 
