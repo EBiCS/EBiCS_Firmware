@@ -357,7 +357,7 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
   PI_id.setpoint = 0;
   PI_id.limit_output = _U_MAX;
   PI_id.max_step=5000;
-  PI_id.shift=10;
+  PI_id.shift=9;
   PI_id.limit_i=1800;
 
   PI_iq.gain_i=I_FACTOR_I_Q;
@@ -365,7 +365,7 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
   PI_iq.setpoint = 0;
   PI_iq.limit_output = _U_MAX;
   PI_iq.max_step=5000;
-  PI_iq.shift=10;
+  PI_iq.shift=9;
   PI_iq.limit_i=_U_MAX;
 
 #ifdef SPEEDTHROTTLE
@@ -1014,7 +1014,7 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 				  MS.i_q_setpoint,
 				  MS.Speed,
 				  ui_8_PLL_counter,
-				  MS.Obs_flag,
+				  MS.Battery_Current,
 				  int32_temp_current_target ,
 				  MS.i_q,
 				  q31_angle_per_tic>>12,
