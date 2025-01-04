@@ -10,7 +10,7 @@
 #include "stm32f1xx_hal.h"
 #include "eeprom.h"
 
-uint8_t ui8_tx_buffer[12];
+static uint8_t ui8_tx_buffer[12];
 uint8_t ui8_j;
 uint8_t ui8_crc;
 uint8_t ui8_last_XOR;
@@ -18,7 +18,7 @@ uint16_t ui16_wheel_period_ms =4500;
 uint32_t ui32_battery_volts= 36;
 uint8_t ui8_battery_soc = 12;
 uint8_t ui16_error;
-uint8_t ui8_rx_buffer[13];
+static uint8_t ui8_rx_buffer[13];
 uint8_t ui8_rx_initial_buffer[13];
 uint8_t ui8_rx_buffer_counter = 0;
 uint8_t ui8_byte_received;
@@ -30,7 +30,7 @@ uint8_t ui8_gear_ratio = GEAR_RATIO;
 
 volatile struc_lcd_configuration_variables lcd_configuration_variables;
 
-UART_HandleTypeDef huart1;
+extern UART_HandleTypeDef huart1;
 void check_recent(void);
 
 void kunteng_init()
