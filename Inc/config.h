@@ -87,8 +87,8 @@
 #define BATTERYCURRENT_MAX 14000
 #define REVERSE 1 //1 for normal direction, -1 for reverse
 #define PUSHASSIST_CURRENT 300
-#define VOLTAGE_MIN 1320 //33V
-
+#define VOLTAGE_MIN 500
+#define VOLTAGE_MAX 1600
 //---------------------------------------------------------------------
 //torquesensor settings
 #define TS_COEF 2400
