@@ -96,8 +96,8 @@
 // #define TQONAD1
 
 //---------------------------------------------------------------------
-// Display settings
-#define DISPLAY_TYPE DISPLAY_TYPE_KINGMETER_901U
+//Display settings
+#define DISPLAY_TYPE DISPLAY_TYPE_KINGMETER 
 
 //---------------------------------------------------------------------
 // Regen settings
