@@ -107,6 +107,6 @@
 //#define ADC_BRAKE
 
 //---------------------------------------------------------------------
-#define AUTODETECT 1
+#define AUTODETECT 0
 
 #endif /* CONFIG_H_ */
