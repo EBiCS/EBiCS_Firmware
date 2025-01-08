@@ -2140,6 +2140,13 @@ int main(void)
 
 		MS.assist_level = KM.Rx.AssistLevel;
 
+
+		/* Add custom catch of the assistLevel
+		Everytime assist level is 0, we alternate the speed to the legal value OR custom value. */
+		if (KM.Rx.AssistLevel == 0) { 
+			MP.speedLimit = MP.speedLimit == SPEEDLIMIT ? SPEEDLIMIT_LEGAL : SPEEDLIMIT
+		}
+
 		if(KM.Rx.Headlight == KM_HEADLIGHT_OFF)
 		{
 			HAL_GPIO_WritePin(LIGHT_GPIO_Port, LIGHT_Pin, GPIO_PIN_RESET);

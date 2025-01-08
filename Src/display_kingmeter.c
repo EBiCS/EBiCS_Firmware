@@ -133,6 +133,7 @@ uint8_t wheel_magnets = 1;
 uint8_t vcutoff = 30;
 //uint16_t wheel_circumference = 2200;
 uint8_t spd_max1 = 25;
+uint8_t spd_max2 = 40;
 uint8_t ui8_RxLength=1;
 
 
@@ -187,7 +188,7 @@ void KingMeter_Init (KINGMETER_t* KM_ctx)
     KM_ctx->Rx.Throttle                     = KM_THROTTLE_ON;
     KM_ctx->Rx.CruiseControl                = KM_CRUISE_OFF;
     KM_ctx->Rx.OverSpeed                    = KM_OVERSPEED_NO;
-    KM_ctx->Rx.SPEEDMAX_Limit           = (uint16_t) (spd_max1 * 10);
+    KM_ctx->Rx.SPEEDMAX_Limit           	= (uint16_t) (spd_max1 * 10);
     KM_ctx->Rx.CUR_Limit_mA                = 150;
 
     // Parameters to be send to display in operation mode:
@@ -362,7 +363,6 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
     static uint8_t  last_pointer_position;
     static uint8_t  recent_pointer_position;
 
-
     uint16_t CheckSum;
 
     static uint8_t  TxCnt;
@@ -416,6 +416,7 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
     			                KM_ctx->Rx.Throttle           = (KM_Message[5] & 0x04) >> 2;    // KM_THROTTLE_OFF / KM_THROTTLE_ON
     			                KM_ctx->Rx.CruiseControl      = (KM_Message[5] & 0x02) >> 1;    // KM_CRUISE_OFF / KM_CRUISE_ON
     			                KM_ctx->Rx.OverSpeed          = (KM_Message[5] & 0x01);         // KM_OVERSPEED_NO / KM_OVERSPEED_YES
+
 
    			            		}
     			            	else {// printf_("Checksum fail! \n ");
