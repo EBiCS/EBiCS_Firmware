@@ -157,6 +157,7 @@ int16_t throttle_stat;								//throttle value, not linked to ADC-Value yet
 int16_t poti_stat;									//scaled assist level
 q31_t startup_counter=0;
 int16_t tim1cc4=1948;									//cc4 value of timer 1 for injected ADC timing
+volatile uint8_t ui8_Push_Assist_flag=0;
 
 MotorState_t MS;
 #if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
@@ -188,6 +189,8 @@ void kingmeter_update(void);
 #endif
 static void dyn_adc_state(q31_t angle);
 static void set_inj_channel(char state);
+void UART_IdleItCallback(void);
+
 int32_t map (int32_t x, int32_t in_min, int32_t in_max, int32_t out_min, int32_t out_max);
 
 
@@ -423,7 +426,7 @@ int main(void) {
 	  //display message processing
 	  if(ui8_UART_flag){
 #if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
-	  kingmeter_update();
+		  KingMeter_Service(&KM);
 #endif
 	  ui8_UART_flag=0;
 	  }
@@ -448,15 +451,15 @@ int main(void) {
 	  }
 
 	  //throttle and PAS current target setting
-
+if(ui8_Push_Assist_flag)uint16_current_target=(MS.assist_level*PUSHASSIST_CURRENT)>>8; //does not work for BAFANG and Kunteng protocol actually
+		// last priority normal ride conditiones
+		else {
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_618U)
 	  uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, (PH_CURRENT_MAX*(int32_t)(KM.Rx.AssistLevel-1))>>2, 0); // level in range 1...5
 #endif
 
-#if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_FISCHER_1822)
-	  uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, (PH_CURRENT_MAX*(int32_t)(KM.Rx.AssistLevel))>>8, 0); // level in range 0...255
-#endif
+
 #ifdef TS_MODE //torque-sensor mode
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_901U||DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_FISCHER_1822)
@@ -487,6 +490,7 @@ int main(void) {
 #endif
 
 	  uint16_current_target = map(MS.Speed, 25 , 45, 0, uint16_current_target);
+		}//end current target calculation
 	  //enable PWM output, if power is wanted
 	  if (uint16_current_target>0&&!READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)) {
 
@@ -930,6 +934,7 @@ static void MX_USART1_UART_Init(void)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
+  __HAL_UART_ENABLE_IT(&huart1, UART_IT_IDLE);
 
 }
 
@@ -1260,6 +1265,12 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *UartHandle)
 {
+	//ui8_UART_flag=1;
+
+}
+
+void UART_IdleItCallback(void)
+{
 	ui8_UART_flag=1;
 
 }
@@ -1272,76 +1283,78 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *UartHandle)
 #if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
 void kingmeter_update(void)
 {
-    /* Prepare Tx parameters */
+	/* Prepare Tx parameters */
 
-    if(battery_percent_fromcapacity > 10)
-    {
-        KM.Tx.Battery = KM_BATTERY_NORMAL;
-    }
-    else
-    {
-        KM.Tx.Battery = KM_BATTERY_LOW;
-    }
-
-    if(__HAL_TIM_GET_COUNTER(&htim2) < 12000)
-    {
-        // Adapt wheeltime to match displayed speedo value according config.h setting
-        KM.Tx.Wheeltime_ms = (uint32_SPEED>>4); //16 kHz counter frequency, so 16 tics per ms
-    }
-    else
-    {
-        KM.Tx.Wheeltime_ms = 64000;
-    }
+			if(battery_percent_fromcapacity > 10)
+			{
+				KM.Tx.Battery = KM_BATTERY_NORMAL;
+			}
+			else
+			{
+				KM.Tx.Battery = KM_BATTERY_LOW;
+			}
 
 
-    //KM.Tx.Wheeltime_ms = 25;
+	#if (SPEEDSOURCE  == EXTERNAL)
+			KM.Tx.Wheeltime_ms = ((MS.Speed>>3)*PULSES_PER_REVOLUTION); //>>3 because of 8 kHz counter frequency, so 8 tics per ms
+	#else
+			if(__HAL_TIM_GET_COUNTER(&htim2) < 12000)
+			{
+				KM.Tx.Wheeltime_ms = (MS.Speed*GEAR_RATIO*6)>>9; //>>9 because of 500kHZ timer2 frequency, 512 tics per ms should be OK *6 because of 6 hall interrupts per electric revolution.
 
-    KM.Tx.Error = KM_ERROR_NONE;
+			}
+			else
+			{
+				KM.Tx.Wheeltime_ms = 64000;
+			}
 
-    KM.Tx.Current_x10 = (uint16_t) (MS.Battery_Current/100);
-
-
-    /* Receive Rx parameters/settings and send Tx parameters */
-    KingMeter_Service(&KM);
-
-
-    /* Apply Rx parameters */
-
-
-    if(KM.Rx.Headlight == KM_HEADLIGHT_OFF)
-    {
-    	HAL_GPIO_WritePin(LIGHT_GPIO_Port, LIGHT_Pin, GPIO_PIN_RESET);
-    	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
-    }
-    else // KM_HEADLIGHT_ON, KM_HEADLIGHT_LOW, KM_HEADLIGHT_HIGH
-    {
-    	HAL_GPIO_WritePin(LIGHT_GPIO_Port, LIGHT_Pin, GPIO_PIN_SET);
-    	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
-    }
+	#endif
+			if(MS.Temperature>130) KM.Tx.Error = KM_ERROR_OVHT;
+			else if(MS.int_Temperature>80)KM.Tx.Error = KM_ERROR_IOVHT;
+			else KM.Tx.Error = KM_ERROR_NONE;
 
 
-    if(KM.Rx.PushAssist == KM_PUSHASSIST_ON)
-    {
-
-    }
-    else
-    {
-        throttle_stat = 0;
-        poti_stat     = map(KM.Rx.AssistLevel, 0, 255, 0,1023);
-    }
+			KM.Tx.Current_x10 = (uint16_t) (MS.Battery_Current/100); //MS.Battery_Current is in mA
 
 
-    /* Shutdown in case we received no message in the last 3s */
-/*
-    if((millis() - KM.LastRx) > 3000)
-    {
-        poti_stat     = 0;
-        throttle_stat = 0;
-        #if HARDWARE_REV >=2
-        save_shutdown();
-        #endif
-    }*/
-}
+			/* Receive Rx parameters/settings and send Tx parameters */
+	#if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_618U)
+			KingMeter_Service(&KM);
+	#endif
+
+
+			/* Apply Rx parameters */
+
+			MS.assist_level = KM.Rx.AssistLevel;
+
+			if(KM.Rx.Headlight == KM_HEADLIGHT_OFF)
+			{
+				HAL_GPIO_WritePin(LIGHT_GPIO_Port, LIGHT_Pin, GPIO_PIN_RESET);
+
+			}
+			else // KM_HEADLIGHT_ON, KM_HEADLIGHT_LOW, KM_HEADLIGHT_HIGH
+			{
+				HAL_GPIO_WritePin(LIGHT_GPIO_Port, LIGHT_Pin, GPIO_PIN_SET);
+
+			}
+
+
+			if(KM.Rx.PushAssist == KM_PUSHASSIST_ON)
+			{
+				ui8_Push_Assist_flag=1;
+			}
+			else
+			{
+				ui8_Push_Assist_flag=0;
+			}
+	//	    if( KM.Settings.Reverse)i8_direction = -1;
+	//	    else i8_direction = 1;
+			//    MP.speedLimit=KM.Rx.SPEEDMAX_Limit;
+			//    MP.battery_current_max = KM.Rx.CUR_Limit_mA;
+
+
+
+		}
 #endif //end of kingmeter update
 
 int32_t map (int32_t x, int32_t in_min, int32_t in_max, int32_t out_min, int32_t out_max)
