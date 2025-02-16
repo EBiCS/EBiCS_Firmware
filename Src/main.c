@@ -379,7 +379,7 @@ int main(void) {
 	  if(PI_flag){
 
 		  if(!MS.Motor_state&&uint16_current_target>0){
-			 // MS.u_q =  PI_control_i_q(MS.i_q, 160);
+			  MS.u_q =  PI_control_i_q(MS.i_q, 160);
 			  uint16_current_target/=(21-startup_counter);
 			  	startup_counter++;
 			  	if (startup_counter>20){
@@ -1295,20 +1295,15 @@ void kingmeter_update(void)
 			}
 
 
-	#if (SPEEDSOURCE  == EXTERNAL)
-			KM.Tx.Wheeltime_ms = ((MS.Speed>>3)*PULSES_PER_REVOLUTION); //>>3 because of 8 kHz counter frequency, so 8 tics per ms
-	#else
-			if(__HAL_TIM_GET_COUNTER(&htim2) < 12000)
-			{
-				KM.Tx.Wheeltime_ms = (MS.Speed*GEAR_RATIO*6)>>9; //>>9 because of 500kHZ timer2 frequency, 512 tics per ms should be OK *6 because of 6 hall interrupts per electric revolution.
-
-			}
-			else
-			{
-				KM.Tx.Wheeltime_ms = 64000;
-			}
-
-	#endif
+		    if(__HAL_TIM_GET_COUNTER(&htim2) < 12000)
+		    {
+		        // Adapt wheeltime to match displayed speedo value according config.h setting
+		        KM.Tx.Wheeltime_ms = (uint32_SPEED>>4); //16 kHz counter frequency, so 16 tics per ms
+		    }
+		    else
+		    {
+		        KM.Tx.Wheeltime_ms = 64000;
+		    }
 			if(MS.Temperature>130) KM.Tx.Error = KM_ERROR_OVHT;
 			else if(MS.int_Temperature>80)KM.Tx.Error = KM_ERROR_IOVHT;
 			else KM.Tx.Error = KM_ERROR_NONE;
