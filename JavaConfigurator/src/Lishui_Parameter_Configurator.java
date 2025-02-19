@@ -334,7 +334,7 @@ public void AddListItem(File newFile) {
                                                         + "#define DISPLAY_TYPE_DEBUG (1<<0)							// For ASCII-Output in Debug mode);\r\n"
                                                         + "#define EXTERNAL 1\r\n"
                                                         + "#define INTERNAL 0\r\n"
-                                        
+														+ "#define LEGALFLAG \r\n"
                                         
                                         );
                                         
