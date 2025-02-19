@@ -334,7 +334,7 @@ public void AddListItem(File newFile) {
                                                         + "#define DISPLAY_TYPE_DEBUG (1<<0)							// For ASCII-Output in Debug mode);\r\n"
                                                         + "#define EXTERNAL 1\r\n"
                                                         + "#define INTERNAL 0\r\n"
-														+ "#define LEGALFLAG \r\n"
+                                        
                                         
                                         );
                                         
@@ -1289,7 +1289,7 @@ public void AddListItem(File newFile) {
 
         TF_CAL_BAT_V.setText("256");
 
-        TF_CAL_V.setText("15LL<<8");
+        TF_CAL_V.setText("25");
 
         jLabel8.setText("FOC Voltage");
 
@@ -1443,13 +1443,13 @@ public void AddListItem(File newFile) {
                                             .addGroup(TAB2Layout.createSequentialGroup()
                                                 .addGroup(TAB2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                                     .addGroup(TAB2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                                        .addComponent(Label_Param3, javax.swing.GroupLayout.DEFAULT_SIZE, 93, Short.MAX_VALUE)
+                                                        .addComponent(Label_Param3, javax.swing.GroupLayout.PREFERRED_SIZE, 93, Short.MAX_VALUE)
                                                         .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                                                     .addComponent(jLabel5))
                                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                                                 .addGroup(TAB2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                                                     .addComponent(TF_TRIGGER_OFFSET)
-                                                    .addComponent(TF_TRIGGER_DEFAULT, javax.swing.GroupLayout.DEFAULT_SIZE, 47, Short.MAX_VALUE)
+                                                    .addComponent(TF_TRIGGER_DEFAULT)
                                                     .addComponent(TF_TIMER_PERIOD)))
                                             .addComponent(RB_LINEARREGEN))
                                         .addGap(25, 25, 25)
@@ -1548,7 +1548,7 @@ public void AddListItem(File newFile) {
                         .addGap(18, 18, 18)
                         .addGroup(TAB2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(TF_SPEEDFILTER)
-                            .addComponent(TF_SIXSTEPTHRESHOLD, javax.swing.GroupLayout.DEFAULT_SIZE, 50, Short.MAX_VALUE))))
+                            .addComponent(TF_SIXSTEPTHRESHOLD))))
                 .addGap(205, 205, 205))
         );
         TAB2Layout.setVerticalGroup(
