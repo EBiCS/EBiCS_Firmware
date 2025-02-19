@@ -47,6 +47,7 @@
 #define TS_COEF 60000
 #define PAS_TIMEOUT 8000
 #define RAMP_END 1600
+#define PAS_IMP_PER_TURN 32
 #define FRAC_HIGH 30
 #define FRAC_LOW 15
 #define THROTTLE_OFFSET 750
