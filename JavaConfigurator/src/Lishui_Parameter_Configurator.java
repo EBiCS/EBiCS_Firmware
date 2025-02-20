@@ -381,23 +381,23 @@ public void AddListItem(File newFile) {
 				        iWriter.println(TF_GAMMA.getText());
 					pWriter.println(text_to_save);
                                                
-                                        text_to_save = "#define BATTERY_LEVEL_1 " + TF_BATTERY_LEVEL_1.getText();
+                                        text_to_save = "#define BATTERY_LEVEL_1 " + (long)((Double.parseDouble(TF_BATTERY_LEVEL_1.getText()) * 10.0));
 				        iWriter.println(TF_BATTERY_LEVEL_1.getText());
 					pWriter.println(text_to_save);                                        
                                                
-                                        text_to_save = "#define BATTERY_LEVEL_2 " + TF_BATTERY_LEVEL_2.getText();
+                                        text_to_save = "#define BATTERY_LEVEL_2 " + (long)((Double.parseDouble(TF_BATTERY_LEVEL_2.getText()) * 10.0));
 				        iWriter.println(TF_BATTERY_LEVEL_2.getText());
 					pWriter.println(text_to_save); 
                                                
-                                        text_to_save = "#define BATTERY_LEVEL_3 " + TF_BATTERY_LEVEL_3.getText();
+                                        text_to_save = "#define BATTERY_LEVEL_3 " + (long)((Double.parseDouble(TF_BATTERY_LEVEL_3.getText()) * 10.0));
 				        iWriter.println(TF_BATTERY_LEVEL_3.getText());
 					pWriter.println(text_to_save); 
                                                
-                                        text_to_save = "#define BATTERY_LEVEL_4 " + TF_BATTERY_LEVEL_4.getText();
+                                        text_to_save = "#define BATTERY_LEVEL_4 " + (long)((Double.parseDouble(TF_BATTERY_LEVEL_4.getText()) * 10.0));
 				        iWriter.println(TF_BATTERY_LEVEL_4.getText());
 					pWriter.println(text_to_save); 
                                                
-                                        text_to_save = "#define BATTERY_LEVEL_5 " + TF_BATTERY_LEVEL_5.getText();
+                                        text_to_save = "#define BATTERY_LEVEL_5 " + (long)((Double.parseDouble(TF_BATTERY_LEVEL_5.getText()) * 10.0));
 				        iWriter.println(TF_BATTERY_LEVEL_5.getText());
 					pWriter.println(text_to_save); 
                                                
@@ -497,7 +497,7 @@ public void AddListItem(File newFile) {
 				        iWriter.println(TF_PULSES_PER_REVOLUTION.getText());
 					pWriter.println(text_to_save);
                                                
-                                        text_to_save = "#define PH_CURRENT_MAX " + TF_PH_CURRENT_MAX.getText();
+                                        text_to_save = "#define PH_CURRENT_MAX " + (long)((Double.parseDouble(TF_PH_CURRENT_MAX.getText()) / Double.parseDouble(TF_CAL_I.getText().split("[^0-9]+")[0])));
 				        iWriter.println(TF_PH_CURRENT_MAX.getText());
 					pWriter.println(text_to_save);
 
@@ -505,7 +505,7 @@ public void AddListItem(File newFile) {
 				        iWriter.println(TF_BATTERY_CURRENT_MAX.getText());
 					pWriter.println(text_to_save);
                                         
-                                        text_to_save = "#define REGEN_CURRENT " + TF_REGEN_CURRENT.getText();
+                                        text_to_save = "#define REGEN_CURRENT " + (long)((Double.parseDouble(TF_REGEN_CURRENT.getText()) / Double.parseDouble(TF_CAL_I.getText().split("[^0-9]+")[0])));
 				        iWriter.println(TF_REGEN_CURRENT.getText());
 					pWriter.println(text_to_save);
 
@@ -513,11 +513,11 @@ public void AddListItem(File newFile) {
 				        iWriter.println(TF_REGEN_CURRENT_MAX.getText());
 					pWriter.println(text_to_save);                                        
 
-                                        text_to_save = "#define VOLTAGE_MIN " + TF_Voltage_MIN.getText();
+                                        text_to_save = "#define VOLTAGE_MIN " + (long)(Double.parseDouble(TF_Voltage_MIN.getText()) / Double.parseDouble(TF_CAL_V.getText()));
 				        iWriter.println(TF_Voltage_MIN.getText());
 					pWriter.println(text_to_save);
                                         
-                                        text_to_save = "#define VOLTAGE_MAX " + TF_Voltage_MAX.getText();
+                                        text_to_save = "#define VOLTAGE_MAX " + (long)(Double.parseDouble(TF_Voltage_MAX.getText()) / Double.parseDouble(TF_CAL_V.getText()));
 				        iWriter.println(TF_Voltage_MAX.getText());
 					pWriter.println(text_to_save);                                        
                                         
@@ -919,15 +919,15 @@ public void AddListItem(File newFile) {
         jLabel34.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         jLabel34.setText("Bike and Motor settings");
 
-        jLabel35.setText("Wheel circumference");
+        jLabel35.setText("Wheel circumference (mm)");
 
         jLabel36.setText("Gear Ratio");
 
-        jLabel37.setText("Speed Limit");
+        jLabel37.setText("Speed Limit (km/h)");
 
         jLabel38.setText("Pulses per revolution");
 
-        jLabel39.setText("Motorcurrent max");
+        jLabel39.setText("Motorcurrent max (mA)");
 
         jLabel40.setText("Motor specific angle");
 
@@ -939,7 +939,7 @@ public void AddListItem(File newFile) {
 
         TF_PULSES_PER_REVOLUTION.setText("1");
 
-        TF_PH_CURRENT_MAX.setText("300");
+        TF_PH_CURRENT_MAX.setText("11400");
 
         TF_SPEC_ANGLE.setText("-715827882LL");
 
@@ -970,13 +970,15 @@ public void AddListItem(File newFile) {
 
         RB_TQ_ON_AD1.setText("Torque Signal on AD1");
 
-        jLabel47.setText("Voltage min");
+        jLabel47.setText("Voltage min (mV)");
+        jLabel47.setToolTipText("");
 
-        TF_Voltage_MIN.setText("300");
+        TF_Voltage_MIN.setText("7800");
+        TF_Voltage_MIN.setToolTipText("");
 
-        jLabel48.setText("Regencurrent");
+        jLabel48.setText("Regencurrent (mA)");
 
-        TF_REGEN_CURRENT.setText("300");
+        TF_REGEN_CURRENT.setText("11400");
 
         jLabel49.setText("Push Assist");
 
@@ -994,15 +996,15 @@ public void AddListItem(File newFile) {
             }
         });
 
-        jLabel50.setText("Batterycurrent max");
+        jLabel50.setText("Batterycurrent max (mA)");
 
-        jLabel51.setText("Regencurrent max");
+        jLabel51.setText("Regencurrent max (mA)");
 
         TF_REGEN_CURRENT_MAX.setText("10000");
 
-        jLabel52.setText("Voltage max");
+        jLabel52.setText("Voltage max (mV)");
 
-        TF_Voltage_MAX.setText("2000");
+        TF_Voltage_MAX.setText("50000");
 
         RB_THR_OVERRIDE.setText("Throttle Override ");
 
@@ -1041,7 +1043,7 @@ public void AddListItem(File newFile) {
                                     .addComponent(RB_EBICS)
                                     .addComponent(Label_Parameter1)
                                     .addComponent(RB_DEBUG))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 34, Short.MAX_VALUE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 25, Short.MAX_VALUE)
                                 .addGroup(TAB1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                                     .addComponent(jLabel28)
                                     .addGroup(TAB1Layout.createSequentialGroup()
@@ -1068,16 +1070,15 @@ public void AddListItem(File newFile) {
                                                     .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                                     .addComponent(TF_FRAC_HIGH, javax.swing.GroupLayout.PREFERRED_SIZE, 49, javax.swing.GroupLayout.PREFERRED_SIZE))
                                                 .addComponent(RB_DIRDET))
-                                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, TAB1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                                .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, TAB1Layout.createSequentialGroup()
-                                                    .addComponent(jLabel47)
-                                                    .addGap(57, 57, 57)
-                                                    .addComponent(TF_Voltage_MIN, javax.swing.GroupLayout.PREFERRED_SIZE, 49, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                                .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, TAB1Layout.createSequentialGroup()
-                                                    .addComponent(jLabel52)
-                                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                                    .addComponent(TF_Voltage_MAX, javax.swing.GroupLayout.PREFERRED_SIZE, 49, javax.swing.GroupLayout.PREFERRED_SIZE))))))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 34, Short.MAX_VALUE)
+                                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, TAB1Layout.createSequentialGroup()
+                                                .addGroup(TAB1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                                    .addComponent(jLabel52, javax.swing.GroupLayout.PREFERRED_SIZE, 103, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                    .addComponent(jLabel47, javax.swing.GroupLayout.PREFERRED_SIZE, 103, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                                .addGap(18, 18, 18)
+                                                .addGroup(TAB1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                                    .addComponent(TF_Voltage_MIN, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 49, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                    .addComponent(TF_Voltage_MAX, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 49, javax.swing.GroupLayout.PREFERRED_SIZE))))))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 25, Short.MAX_VALUE)
                                 .addGroup(TAB1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(jLabel31)
                                     .addComponent(jLabel44)
@@ -1112,28 +1113,28 @@ public void AddListItem(File newFile) {
                         .addGroup(TAB1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel34)
                             .addGroup(TAB1Layout.createSequentialGroup()
-                                .addGroup(TAB1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addGroup(TAB1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                                     .addComponent(jLabel36)
                                     .addComponent(jLabel35)
                                     .addComponent(jLabel37)
                                     .addComponent(jLabel38)
                                     .addComponent(jLabel40)
-                                    .addComponent(jLabel39)
-                                    .addComponent(jLabel50)
-                                    .addComponent(jLabel48)
-                                    .addComponent(jLabel51))
-                                .addGap(6, 6, 6)
+                                    .addComponent(jLabel50, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(jLabel39, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(jLabel48, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(jLabel51, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                .addGap(18, 18, 18)
                                 .addGroup(TAB1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(TF_REGEN_CURRENT_MAX, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(TF_REGEN_CURRENT, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(TF_WHEEL_CIRC, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
                                     .addComponent(TF_GEAR_RATIO, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(TF_WHEEL_CIRC, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
                                     .addComponent(TF_SPEED_LIMIT, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
                                     .addComponent(TF_PULSES_PER_REVOLUTION, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
                                     .addComponent(TF_SPEC_ANGLE, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
                                     .addComponent(TF_PH_CURRENT_MAX, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(TF_BATTERY_CURRENT_MAX, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE))))))
-                .addGap(73, 73, 73))
+                                    .addComponent(TF_BATTERY_CURRENT_MAX, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(TF_REGEN_CURRENT, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(TF_REGEN_CURRENT_MAX, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE))))))
+                .addGap(46, 46, 46))
         );
         TAB1Layout.setVerticalGroup(
             TAB1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -1178,14 +1179,14 @@ public void AddListItem(File newFile) {
                             .addComponent(jLabel35)
                             .addComponent(TF_WHEEL_CIRC))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(TAB1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(TAB1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(jLabel36)
                             .addComponent(TF_GEAR_RATIO))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addGroup(TAB1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(TF_SPEED_LIMIT, javax.swing.GroupLayout.DEFAULT_SIZE, 23, Short.MAX_VALUE)
-                            .addComponent(jLabel37))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED, 18, Short.MAX_VALUE)
+                        .addGroup(TAB1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jLabel37)
+                            .addComponent(TF_SPEED_LIMIT, javax.swing.GroupLayout.DEFAULT_SIZE, 23, Short.MAX_VALUE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 13, Short.MAX_VALUE)
                         .addGroup(TAB1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(jLabel38)
                             .addComponent(TF_PULSES_PER_REVOLUTION))
@@ -1278,6 +1279,7 @@ public void AddListItem(File newFile) {
         );
 
         RB_JLCD.getAccessibleContext().setAccessibleName("RB_J-LCD");
+        jLabel47.getAccessibleContext().setAccessibleDescription("");
 
         jTabbedPane1.addTab("Basic Settings", TAB1);
 
@@ -1331,7 +1333,7 @@ public void AddListItem(File newFile) {
 
         TF_GAMMA.setText("9LL");
 
-        jLabel15.setText("Battery settings");
+        jLabel15.setText("Battery settings (mV)");
 
         jLabel16.setText("Bar 1");
 
@@ -1341,17 +1343,17 @@ public void AddListItem(File newFile) {
 
         jLabel19.setText("Bar 4");
 
-        TF_BATTERY_LEVEL_1.setText("323000");
+        TF_BATTERY_LEVEL_1.setText("32300");
 
-        TF_BATTERY_LEVEL_2.setText("329000");
+        TF_BATTERY_LEVEL_2.setText("32900");
 
         jLabel20.setText("Bar 5");
 
-        TF_BATTERY_LEVEL_3.setText("344000");
+        TF_BATTERY_LEVEL_3.setText("34400");
 
-        TF_BATTERY_LEVEL_4.setText("368000");
+        TF_BATTERY_LEVEL_4.setText("36800");
 
-        TF_BATTERY_LEVEL_5.setText("380000");
+        TF_BATTERY_LEVEL_5.setText("38000");
 
         jLabel22.setText("PI control settings");
 
@@ -1674,7 +1676,7 @@ public void AddListItem(File newFile) {
                         .addGroup(TAB2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(TF_CAL_I, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jLabel9))))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 39, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 52, Short.MAX_VALUE)
                 .addGroup(TAB2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(TAB2Layout.createSequentialGroup()
                         .addGroup(TAB2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -1784,7 +1786,7 @@ public void AddListItem(File newFile) {
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 47, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                .addContainerGap(279, Short.MAX_VALUE))
+                .addContainerGap(266, Short.MAX_VALUE))
         );
 
         jTabbedPane1.getAccessibleContext().setAccessibleName("MotorConfiguration");
