@@ -26,27 +26,41 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // Includes
 #include "config.h"
+#include "main.h"
 
-#if (DISPLAY_TYPE == DISPLAY_TYPE_BAFANG)
+#if (DISPLAY_TYPE & DISPLAY_TYPE_BAFANG)
 
 
 
 // Definitions
-#define BF_CMD_STARTREQUEST 17
-#define BF_CMD_STARTINFO 22
-#define BF_CMD_LEVEL 11
-#define BF_CMD_LIGHT 26
-#define BF_CMD_WHEELDIAM 31
-#define BF_CMD_GETSPEED 32
-#define BF_CMD_GETERROR 8
-#define BF_CMD_GETBAT 17
-#define BF_CMD_GETPOWER 10
-#define BF_CMD_GET2 49
+#define BF_CMD_STARTREQUEST     0x11
+#define BF_CMD_STARTINFO        0x16
+
+// read commands
+#define BF_CMD_GETSTATUS        0x08
+#define BF_CMD_GETPOWER         0x0A
+#define BF_CMD_LEVEL            0x0B
+#define BF_CMD_GETBAT           0x11
+#define BF_CMD_LIGHT            0x1A
+#define BF_CMD_GETSPEED         0x20
+#define BF_CMD_UNKNOWN          0x20
+#define BF_CMD_GETRANGE         0x22    
+#define BF_CMD_GETCAL           0x24    
+#define BF_CMD_UNKNOWN2         0x25
+#define BF_CMD_GET2             0x31
+// write commands
+#define BF_CMD_WHEELDIAM        0x1F
+
+// status codes
+#define BF_STATUS_NORMAL               0x01
+#define BF_STATUS_BRAKING              0x03
+#define BF_STATUS_CONTROLLER_OVERTEMP  0x10
+#define BF_STATUS_MOTOR_OVERTEMP       0x11
 
 #define BF_LIGHTON 241
 
 #define BF_MAX_RXBUFF 64
-#define BF_MAX_TXBUFF 3
+#define BF_MAX_TXBUFF 4
 
 #define BF_LEVEL0 0
 #define BF_LEVEL1 11 //1
@@ -61,6 +75,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define BF_PUSHASSIST 6
 
 #define BF_DISPLAYTIMEOUT 160
+
+#define DEBUG 1
 
 typedef struct
 {
@@ -101,6 +117,11 @@ typedef struct
     RX_PARAM_t      Rx;
     TX_PARAM_t		Tx;
 
+#ifdef DEBUG
+    uint8_t last_command;
+    uint8_t last_commands[16];
+#endif
+
 }BAFANG_t;
 
 
@@ -111,7 +132,7 @@ typedef struct
 void Bafang_Init (BAFANG_t* BF_ctx);
 
 
-void Bafang_Service(BAFANG_t* BF_ctx, uint8_t  rx);
+void Bafang_Service(BAFANG_t* BF_ctx, uint8_t  rx, MotorState_t *MS);
 
 
 

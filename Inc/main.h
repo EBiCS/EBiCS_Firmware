@@ -103,6 +103,10 @@
 #define HALL_26 4092133376
 #define HALL_64 3209232384
 
+#define CONTROLLER_TEMPERATURE_THRESHOLD 70
+#define CONTROLLER_TEMPERATURE_MAX       80
+#define MOTOR_TEMPERATURE_THRESHOLD 100
+#define MOTOR_TEMPERATURE_MAX       130
 
 /* ########################## Assert Selection ############################## */
 /**
