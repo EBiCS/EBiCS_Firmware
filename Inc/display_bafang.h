@@ -76,7 +76,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define BF_DISPLAYTIMEOUT 160
 
-#define DEBUG 1
 
 typedef struct
 {
