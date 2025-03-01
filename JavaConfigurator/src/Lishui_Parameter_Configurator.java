@@ -315,7 +315,7 @@ public void AddListItem(File newFile) {
                                         experimentalSettingsFilesModel.add(0, new FileContainer(newFile)); //hier wird nur die neue Datei in die Liste geschrieben...
 
 					iWriter = new PrintWriter(new BufferedWriter(new FileWriter(newFile)));
-					pWriter = new PrintWriter(new BufferedWriter(new FileWriter("inc/config.h")));
+					pWriter = new PrintWriter(new BufferedWriter(new FileWriter("Inc/config.h")));
 					pWriter.println("/*\r\n"
 							+ " * config.h\r\n"
 							+ " *\r\n"
