@@ -157,7 +157,8 @@ public void loadSettings(File f) throws IOException {
                 RB_KM5S.setSelected(Boolean.parseBoolean(in.readLine()));
                 RB_EBICS.setSelected(Boolean.parseBoolean(in.readLine()));
                 RB_KUNTENG.setSelected(Boolean.parseBoolean(in.readLine()));
-                RB_BAFANG.setSelected(Boolean.parseBoolean(in.readLine()));
+                RB_BAFANG_LCD.setSelected(Boolean.parseBoolean(in.readLine()));
+                RB_BAFANG_TFT.setSelected(Boolean.parseBoolean(in.readLine()));
                 RB_DEBUG.setSelected(Boolean.parseBoolean(in.readLine()));
                 RB_DISABLE_DYN_ADC.setSelected(Boolean.parseBoolean(in.readLine()));
                 RB_FAST_LOOP_LOG.setSelected(Boolean.parseBoolean(in.readLine()));
@@ -567,11 +568,17 @@ public void AddListItem(File newFile) {
 					}
 					iWriter.println(RB_KUNTENG.isSelected());                                        
 
-                                        if (RB_BAFANG.isSelected()) {
-						text_to_save = "#define DISPLAY_TYPE DISPLAY_TYPE_BAFANG //Bafang Displays, including 'Blaupunkt' ";
+                                        if (RB_BAFANG_LCD.isSelected()) {
+						text_to_save = "#define DISPLAY_TYPE DISPLAY_TYPE_BAFANG_LCD //Bafang Displays, including 'Blaupunkt' ";
 						pWriter.println(text_to_save);
 					}
-					iWriter.println(RB_BAFANG.isSelected());
+					iWriter.println(RB_BAFANG_LCD.isSelected());
+                    
+                                        if (RB_BAFANG_TFT.isSelected()) {
+						text_to_save = "#define DISPLAY_TYPE DISPLAY_TYPE_BAFANG_850_860";
+						pWriter.println(text_to_save);
+					}
+					iWriter.println(RB_BAFANG_TFT.isSelected());
                                         
                                         if (RB_DEBUG.isSelected()) {
 						text_to_save = "#define DISPLAY_TYPE DISPLAY_TYPE_DEBUG //ASCII Printout for debugging";
@@ -724,7 +731,8 @@ public void AddListItem(File newFile) {
         Label_Parameter1 = new javax.swing.JLabel();
         RB_JLCD = new javax.swing.JRadioButton();
         RB_KM5S = new javax.swing.JRadioButton();
-        RB_BAFANG = new javax.swing.JRadioButton();
+        RB_BAFANG_LCD = new javax.swing.JRadioButton();
+        RB_BAFANG_TFT = new javax.swing.JRadioButton();
         RB_KUNTENG = new javax.swing.JRadioButton();
         RB_DEBUG = new javax.swing.JRadioButton();
         RB_TORQUESENSOR = new javax.swing.JRadioButton();
@@ -878,8 +886,11 @@ public void AddListItem(File newFile) {
         BG_DISPLAYS.add(RB_KM5S);
         RB_KM5S.setText("KM5S");
 
-        BG_DISPLAYS.add(RB_BAFANG);
-        RB_BAFANG.setText("Bafang");
+        BG_DISPLAYS.add(RB_BAFANG_LCD);
+        RB_BAFANG_LCD.setText("Bafang LCD");
+
+        BG_DISPLAYS.add(RB_BAFANG_TFT);
+        RB_BAFANG_TFT.setText("Bafang TFT");
 
         BG_DISPLAYS.add(RB_KUNTENG);
         RB_KUNTENG.setText("Kunteng");
@@ -1039,7 +1050,8 @@ public void AddListItem(File newFile) {
                                     .addComponent(RB_JLCD)
                                     .addComponent(RB_KM5S)
                                     .addComponent(RB_KUNTENG)
-                                    .addComponent(RB_BAFANG)
+                                    .addComponent(RB_BAFANG_LCD)
+                                    .addComponent(RB_BAFANG_TFT)
                                     .addComponent(RB_EBICS)
                                     .addComponent(Label_Parameter1)
                                     .addComponent(RB_DEBUG))
@@ -1166,7 +1178,9 @@ public void AddListItem(File newFile) {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(RB_KM5S)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(RB_BAFANG)
+                        .addComponent(RB_BAFANG_LCD)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(RB_BAFANG_TFT)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(RB_KUNTENG)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -1868,7 +1882,8 @@ public void AddListItem(File newFile) {
     private javax.swing.JLabel Label_Param3;
     private javax.swing.JLabel Label_Parameter1;
     private javax.swing.JRadioButton RB_AUTODETECT;
-    private javax.swing.JRadioButton RB_BAFANG;
+    private javax.swing.JRadioButton RB_BAFANG_LCD;
+    private javax.swing.JRadioButton RB_BAFANG_TFT;
     private javax.swing.JRadioButton RB_DEBUG;
     private javax.swing.JRadioButton RB_DIRDET;
     private javax.swing.JRadioButton RB_DISABLE_DYN_ADC;
