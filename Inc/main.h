@@ -103,6 +103,10 @@
 #define HALL_26 3292790784
 #define HALL_64 3972792320
 
+#define CONTROLLER_TEMPERATURE_THRESHOLD 70
+#define CONTROLLER_TEMPERATURE_MAX       80
+#define MOTOR_TEMPERATURE_THRESHOLD 100
+#define MOTOR_TEMPERATURE_MAX       130
 
 /* ########################## Assert Selection ############################## */
 /**
@@ -126,6 +130,7 @@ extern uint16_t switchtime[3];
 extern uint32_t ui32_tim1_counter;
 extern uint32_t uint32_PAS_counter;
 extern uint8_t throttle_is_set(void);
+extern uint8_t brake_is_set(void);
 extern void UART_IdleItCallback(void);
 extern void get_internal_temp_offset(void);
 
