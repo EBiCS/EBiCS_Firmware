@@ -25,7 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "main.h"
 #include "stm32f1xx_hal.h"
 
-#if (DISPLAY_TYPE == DISPLAY_TYPE_BAFANG)
+#if (DISPLAY_TYPE & DISPLAY_TYPE_BAFANG)
 
 // Definitions
 #define RXSTATE_WAITGAP     0 //waiting for gap between messages to reset rx buffer
@@ -42,8 +42,6 @@ extern UART_HandleTypeDef huart1;
 
 uint8_t TxBuff[BF_MAX_TXBUFF];
 uint16_t spd_tmp;
-
-
 
 /* Public functions (Prototypes declared by display_bafang.h) */
 
@@ -71,7 +69,9 @@ void Bafang_Init (BAFANG_t* BF_ctx)
      {
  	   Error_Handler();
      }
-
+#ifdef DEBUG
+    for (int i = 0; i < 16; i++) BF_ctx->last_commands[i] = 0x00;
+#endif
 }
 
 
@@ -80,12 +80,13 @@ void Bafang_Init (BAFANG_t* BF_ctx)
  * Bafang_Service() - Communicates data from and to the display
  *
  ***************************************************************************************************/
-void Bafang_Service(BAFANG_t* BF_ctx, uint8_t  rx)
+void Bafang_Service(BAFANG_t* BF_ctx, uint8_t  rx, MotorState_t *MS)
 {
     static uint8_t  last_pointer_position;
     static uint8_t  recent_pointer_position;
     static uint8_t  Rx_message_length;
     static uint8_t  BF_Message[32];
+    static uint16_t batval = {0};
 
 //    //wait for gap
 //	if(BF_ctx->RxState == RXSTATE_WAITGAP){
@@ -121,6 +122,7 @@ void Bafang_Service(BAFANG_t* BF_ctx, uint8_t  rx)
    // HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&BF_Message, Rx_message_length);
     
 
+          uint8_t status = BF_STATUS_NORMAL;
 
           if(BF_Message[0]==BF_CMD_STARTREQUEST) //we received a request
           	  {
@@ -129,41 +131,71 @@ void Bafang_Service(BAFANG_t* BF_ctx, uint8_t  rx)
             switch (BF_Message[1]) // analyze and send correct answer
             {
               case BF_CMD_GETSPEED:
-              TxBuff[0]=(BF_ctx->Tx.Speed>>8);
-              TxBuff[1]=(BF_ctx->Tx.Speed&0xff);
-              TxBuff[2]=TxBuff[0]+TxBuff[1]+32;
-              HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuff, 3);
+                TxBuff[0]=(BF_ctx->Tx.Speed>>8);
+                TxBuff[1]=(BF_ctx->Tx.Speed&0xff);
+                TxBuff[2]=TxBuff[0]+TxBuff[1]+32;
+                HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuff, 3);
               break;
-              
-              case BF_CMD_GETERROR:
-              TxBuff[0]=6;
-              TxBuff[1]=0;
-              HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuff, 1);
+
+              case BF_CMD_GETSTATUS:
+
+                if (MS->Temperature > MOTOR_TEMPERATURE_THRESHOLD) {
+                    status = BF_STATUS_MOTOR_OVERTEMP;
+                } else if (MS->int_Temperature > CONTROLLER_TEMPERATURE_THRESHOLD) {
+                    status = BF_STATUS_CONTROLLER_OVERTEMP;
+                } else if (brake_is_set()) {
+                    status = BF_STATUS_BRAKING;
+                }
+                TxBuff[0]=status;
+                HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuff, 1);
               break;
-              
+
               case BF_CMD_GETBAT:
-              TxBuff[0]=BF_ctx->Tx.Battery;
-              TxBuff[1]=BF_ctx->Tx.Battery;
-              HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuff, 2);
+                TxBuff[0]=BF_ctx->Tx.Battery;
+                TxBuff[1]=BF_ctx->Tx.Battery;
+                HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuff, 2);
               break;
-              
+
               case BF_CMD_GETPOWER:
-              TxBuff[0]=BF_ctx->Tx.Power;
-              TxBuff[1]=BF_ctx->Tx.Power;
-              HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuff, 2);
-              break;
-              
+                TxBuff[0]=BF_ctx->Tx.Power & 0xFF;
+                TxBuff[1]=BF_ctx->Tx.Power & 0xFF;
+                HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuff, 2);
+                break;
+
               case BF_CMD_GET2:
-            	  if (BF_ctx->Tx.Power>30000){
-            		  TxBuff[0]=49;
-            		  TxBuff[1]=49;}
-            	  else{
-            		  TxBuff[0]=48;
-            		  TxBuff[1]=48;
-            	  }
-             HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuff, 2);
-              break;
+                if (BF_ctx->Tx.Power>1){ // moving indicator
+                    TxBuff[0]='1'; //0x31
+                    TxBuff[1]='1';
+                }else{ // stationary indicator
+                    TxBuff[0]='0'; //0x30
+                    TxBuff[1]='0';
+                }
+                HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuff, 2);
+                break;
+              case BF_CMD_GETRANGE:
+                // range is in whole KM, display motor temperature
+                TxBuff[0] = (uint8_t)((MS->Temperature & 0xFF00) >> 8);
+                TxBuff[1] = (uint8_t)(MS->Temperature & 0xFF);
+                TxBuff[2] = (uint8_t)(((MS->Temperature & 0xFF00) >> 8) + (MS->Temperature & 0xFF));
+                HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuff, 3);
+                break;
+              case BF_CMD_GETCAL:
+                // calories in whole cal
+                batval = ((uint32_t)(MS->Voltage*CAL_BAT_V)/100) & 0x0000FFFF;
+                TxBuff[0] = (uint8_t) ((uint16_t) batval >> 8); 
+                TxBuff[1] = (uint8_t) batval;
+                TxBuff[2] = (uint8_t) ((batval >> 8) + (batval & 0x00FF));
+                HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuff, 3);
+                break;
+#ifdef DEBUG
+              default:
+                BF_ctx->last_commands[BF_ctx->last_command] = BF_Message[1];
+                BF_ctx->last_command++;
+                BF_ctx->last_command = BF_ctx->last_command % 16;
+                break;
+#endif
             }
+
 
 
             
@@ -227,6 +259,13 @@ void Bafang_Service(BAFANG_t* BF_ctx, uint8_t  rx)
           case BF_CMD_WHEELDIAM:
           BF_ctx->Rx.Wheeldiameter=BF_Message[2]*256+BF_Message[3];
           break;
+#ifdef DEBUG
+          default:
+            BF_ctx->last_commands[BF_ctx->last_command] = BF_Message[1];
+            BF_ctx->last_command++;
+            BF_ctx->last_command = BF_ctx->last_command % 16;
+            break;
+#endif
         }     
        BF_ctx->RxState = RXSTATE_STARTCODE; 
       }

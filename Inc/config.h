@@ -12,11 +12,13 @@
 // System constants, don't touch!
 #define DISPLAY_TYPE_DEBUG (1<<0)							// For ASCII-Output in Debug mode);
 #define DISPLAY_TYPE_KUNTENG (1<<1)							// For Kunteng display
-#define DISPLAY_TYPE_BAFANG (1<<2)							// For 'Blaupunkt' Display of Prophete Entdecker
-#define DISPLAY_TYPE_KINGMETER_618U (1<<3)                  // King-Meter 618U protocol ( J-LCD)
-#define DISPLAY_TYPE_KINGMETER_901U (1<<4)                  // King-Meter 901U protocol (KM5s)
-#define DISPLAY_TYPE_EBiCS (1<<5)                  			// Protocol using the ANT+ LEV logic
-#define DISPLAY_TYPE_NO2 (1<<6)								// For China Protokoll "No_2" S866 display for example
+#define DISPLAY_TYPE_BAFANG_LCD (1<<2)						// For 'Blaupunkt' Display of Prophete Entdecker
+#define DISPLAY_TYPE_BAFANG_850_860 (1<<3)					// Bafang 850/860. Can do 9k6 baud, also compatible with 1200 baud detection at startup
+#define DISPLAY_TYPE_KINGMETER_618U (1<<4)                  // King-Meter 618U protocol ( J-LCD)
+#define DISPLAY_TYPE_KINGMETER_901U (1<<5)                  // King-Meter 901U protocol (KM5s)
+#define DISPLAY_TYPE_EBiCS (1<<6)                  			// Protocol using the ANT+ LEV logic
+#define DISPLAY_TYPE_NO2 (1<<7)								// For China Protokoll "No_2" S866 display for example
+#define DISPLAY_TYPE_BAFANG         (DISPLAY_TYPE_BAFANG_LCD|DISPLAY_TYPE_BAFANG_850_860)
 #define DISPLAY_TYPE_KINGMETER      (DISPLAY_TYPE_KINGMETER_618U|DISPLAY_TYPE_KINGMETER_901U)
 #define EXTERNAL 1
 #define INTERNAL 0
