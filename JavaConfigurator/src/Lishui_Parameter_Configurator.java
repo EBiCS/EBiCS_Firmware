@@ -189,7 +189,11 @@ public void AddListItem(File newFile) {
         initComponents();
         BufferedImage image;
         try {
-            image = ImageIO.read (new File ("src/ImageFiles/stancecoke.png"));
+            try {
+                image = ImageIO.read (new File ("Src/ImageFiles/stancecoke.png"));
+            } catch (javax.imageio.IIOException ex) {
+                image = ImageIO.read (new File ("src/ImageFiles/stancecoke.png"));
+            }
             ImageIcon icon = new ImageIcon(image);
             jLabel43.setIcon(icon);
         } catch (IOException ex) {
@@ -327,13 +331,16 @@ public void AddListItem(File newFile) {
 							+ "#ifndef CONFIG_H_\r\n"
 							+ "#define CONFIG_H_\r\n"
                                                         + "#include \"stdint.h\"\r\n"
-                                                        + "#define DISPLAY_TYPE_EBiCS (1<<5)  \r\n"
-                                                        + "#define DISPLAY_TYPE_KINGMETER_618U (1<<4)                  // King-Meter 618U protocol (KM5s, EBS-LCD2, J-LCD, SW-LCD)\r\n"
-                                                        + "#define DISPLAY_TYPE_KINGMETER_901U (1<<8)                  // King-Meter 901U protocol (KM5s)\r\n"
-                                                        + "#define DISPLAY_TYPE_KINGMETER      (DISPLAY_TYPE_KINGMETER_618U|DISPLAY_TYPE_KINGMETER_901U)\r\n"
-                                                        + "#define DISPLAY_TYPE_BAFANG (1<<2)							// For 'Blaupunkt' Display of Prophete Entdecker\r\n"
-                                                        + "#define DISPLAY_TYPE_KUNTENG (1<<1)							// For ASCII-Output in Debug mode\r\n"
-                                                        + "#define DISPLAY_TYPE_DEBUG (1<<0)							// For ASCII-Output in Debug mode);\r\n"
+														+ "#define DIEPLSY_TYPE_DEBUG (1<<0)							// For ASCII-Output in Debug mode);\r\n"
+														+ "#define DIEPLSY_TYPE_KUNTENG (1<<1)							// For Kunteng display\r\n"
+														+ "#define DIEPLSY_TYPE_BAFANG_LCD (1<<2)						// For 'Blaupunkt' Display of Prophete Entdecker\r\n"
+														+ "#define DIEPLSY_TYPE_BAFANG_850_860 (1<<3)					// Bafang 850/860. Can do 9k6 baud, also compatible with 1200 baud detection at startup\r\n"
+														+ "#define DIEPLSY_TYPE_KINGMETER_618U (1<<4)                  // King-Meter 618U protocol ( J-LCD)\r\n"
+														+ "#define DIEPLSY_TYPE_KINGMETER_901U (1<<5)                  // King-Meter 901U protocol (KM5s)\r\n"
+														+ "#define DIEPLSY_TYPE_EBiCS (1<<6)                  			// Protocol using the ANT+ LEV logic\r\n"
+														+ "#define DIEPLSY_TYPE_NO2 (1<<7)								// For China Protokoll \"No_2\" S866 display for example\r\n"
+														+ "#define DIEPLSY_TYPE_BAFANG         (DISPLAY_TYPE_BAFANG_LCD|DISPLAY_TYPE_BAFANG_850_860)\r\n"
+														+ "#define DIEPLSY_TYPE_KINGMETER      (DISPLAY_TYPE_KINGMETER_618U|DISPLAY_TYPE_KINGMETER_901U)\r\n"
                                                         + "#define EXTERNAL 1\r\n"
                                                         + "#define INTERNAL 0\r\n"
                                                         + "#define LEGALFLAG \r\n"

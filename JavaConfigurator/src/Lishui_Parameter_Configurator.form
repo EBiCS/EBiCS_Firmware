@@ -135,7 +135,8 @@
                                           <Component id="RB_JLCD" alignment="0" min="-2" max="-2" attributes="0"/>
                                           <Component id="RB_KM5S" alignment="0" min="-2" max="-2" attributes="0"/>
                                           <Component id="RB_KUNTENG" alignment="0" min="-2" max="-2" attributes="0"/>
-                                          <Component id="RB_BAFANG" alignment="0" min="-2" max="-2" attributes="0"/>
+                                          <Component id="RB_BAFANG_LCD" alignment="0" min="-2" max="-2" attributes="0"/>
+                                          <Component id="RB_BAFANG_TFT" alignment="0" min="-2" max="-2" attributes="0"/>
                                           <Component id="RB_EBICS" alignment="0" min="-2" max="-2" attributes="0"/>
                                           <Component id="Label_Parameter1" alignment="0" min="-2" max="-2" attributes="0"/>
                                           <Component id="RB_DEBUG" alignment="0" min="-2" max="-2" attributes="0"/>
@@ -300,7 +301,9 @@
                               <EmptySpace max="-2" attributes="0"/>
                               <Component id="RB_KM5S" min="-2" max="-2" attributes="0"/>
                               <EmptySpace max="-2" attributes="0"/>
-                              <Component id="RB_BAFANG" min="-2" max="-2" attributes="0"/>
+                              <Component id="RB_BAFANG_LCD" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace max="-2" attributes="0"/>
+                              <Component id="RB_BAFANG_TFT" min="-2" max="-2" attributes="0"/>
                               <EmptySpace max="-2" attributes="0"/>
                               <Component id="RB_KUNTENG" min="-2" max="-2" attributes="0"/>
                               <EmptySpace max="-2" attributes="0"/>
@@ -483,12 +486,20 @@
                 <Property name="text" type="java.lang.String" value="KM5S"/>
               </Properties>
             </Component>
-            <Component class="javax.swing.JRadioButton" name="RB_BAFANG">
+            <Component class="javax.swing.JRadioButton" name="RB_BAFANG_LCD">
               <Properties>
                 <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
                   <ComponentRef name="BG_DISPLAYS"/>
                 </Property>
-                <Property name="text" type="java.lang.String" value="Bafang"/>
+                <Property name="text" type="java.lang.String" value="Bafang LCD"/>
+              </Properties>
+            </Component>
+            <Component class="javax.swing.JRadioButton" name="RB_BAFANG_TFT">
+              <Properties>
+                <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
+                  <ComponentRef name="BG_DISPLAYS"/>
+                </Property>
+                <Property name="text" type="java.lang.String" value="Bafang TFT"/>
               </Properties>
             </Component>
             <Component class="javax.swing.JRadioButton" name="RB_KUNTENG">

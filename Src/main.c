@@ -2317,6 +2317,10 @@ int main(void)
 
 
 	}
+
+    uint8_t brake_is_set(void) {
+        return !HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin) || (uint16_mapped_BRAKE > 0);
+    }
 	uint8_t throttle_is_set(void){
 		if(uint16_mapped_throttle > 0)
 		{
