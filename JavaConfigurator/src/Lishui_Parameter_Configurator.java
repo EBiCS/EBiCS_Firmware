@@ -159,6 +159,7 @@ public void loadSettings(File f) throws IOException {
                 RB_KUNTENG.setSelected(Boolean.parseBoolean(in.readLine()));
                 RB_BAFANG_LCD.setSelected(Boolean.parseBoolean(in.readLine()));
                 RB_BAFANG_TFT.setSelected(Boolean.parseBoolean(in.readLine()));
+                RB_NO2.setSelected(Boolean.parseBoolean(in.readLine()));
                 RB_DEBUG.setSelected(Boolean.parseBoolean(in.readLine()));
                 RB_DISABLE_DYN_ADC.setSelected(Boolean.parseBoolean(in.readLine()));
                 RB_FAST_LOOP_LOG.setSelected(Boolean.parseBoolean(in.readLine()));
@@ -331,16 +332,16 @@ public void AddListItem(File newFile) {
 							+ "#ifndef CONFIG_H_\r\n"
 							+ "#define CONFIG_H_\r\n"
                                                         + "#include \"stdint.h\"\r\n"
-														+ "#define DIEPLSY_TYPE_DEBUG (1<<0)							// For ASCII-Output in Debug mode);\r\n"
-														+ "#define DIEPLSY_TYPE_KUNTENG (1<<1)							// For Kunteng display\r\n"
-														+ "#define DIEPLSY_TYPE_BAFANG_LCD (1<<2)						// For 'Blaupunkt' Display of Prophete Entdecker\r\n"
-														+ "#define DIEPLSY_TYPE_BAFANG_850_860 (1<<3)					// Bafang 850/860. Can do 9k6 baud, also compatible with 1200 baud detection at startup\r\n"
-														+ "#define DIEPLSY_TYPE_KINGMETER_618U (1<<4)                  // King-Meter 618U protocol ( J-LCD)\r\n"
-														+ "#define DIEPLSY_TYPE_KINGMETER_901U (1<<5)                  // King-Meter 901U protocol (KM5s)\r\n"
-														+ "#define DIEPLSY_TYPE_EBiCS (1<<6)                  			// Protocol using the ANT+ LEV logic\r\n"
-														+ "#define DIEPLSY_TYPE_NO2 (1<<7)								// For China Protokoll \"No_2\" S866 display for example\r\n"
-														+ "#define DIEPLSY_TYPE_BAFANG         (DISPLAY_TYPE_BAFANG_LCD|DISPLAY_TYPE_BAFANG_850_860)\r\n"
-														+ "#define DIEPLSY_TYPE_KINGMETER      (DISPLAY_TYPE_KINGMETER_618U|DISPLAY_TYPE_KINGMETER_901U)\r\n"
+														+ "#define DISPLAY_TYPE_DEBUG (1<<0)							// For ASCII-Output in Debug mode);\r\n"
+														+ "#define DISPLAY_TYPE_KUNTENG (1<<1)							// For Kunteng display\r\n"
+														+ "#define DISPLAY_TYPE_BAFANG_LCD (1<<2)						// For 'Blaupunkt' Display of Prophete Entdecker\r\n"
+														+ "#define DISPLAY_TYPE_BAFANG_850_860 (1<<3)					// Bafang 850/860. Can do 9k6 baud, also compatible with 1200 baud detection at startup\r\n"
+														+ "#define DISPLAY_TYPE_KINGMETER_618U (1<<4)                  // King-Meter 618U protocol ( J-LCD)\r\n"
+														+ "#define DISPLAY_TYPE_KINGMETER_901U (1<<5)                  // King-Meter 901U protocol (KM5s)\r\n"
+														+ "#define DISPLAY_TYPE_EBiCS (1<<6)                  			// Protocol using the ANT+ LEV logic\r\n"
+														+ "#define DISPLAY_TYPE_NO2 (1<<7)								// For China Protokoll \"No_2\" S866 display for example\r\n"
+														+ "#define DISPLAY_TYPE_BAFANG         (DISPLAY_TYPE_BAFANG_LCD|DISPLAY_TYPE_BAFANG_850_860)\r\n"
+														+ "#define DISPLAY_TYPE_KINGMETER      (DISPLAY_TYPE_KINGMETER_618U|DISPLAY_TYPE_KINGMETER_901U)\r\n"
                                                         + "#define EXTERNAL 1\r\n"
                                                         + "#define INTERNAL 0\r\n"
                                                         + "#define LEGALFLAG \r\n"
@@ -585,8 +586,15 @@ public void AddListItem(File newFile) {
 						text_to_save = "#define DISPLAY_TYPE DISPLAY_TYPE_BAFANG_850_860";
 						pWriter.println(text_to_save);
 					}
-					iWriter.println(RB_BAFANG_TFT.isSelected());
+
+					iWriter.println(RB_NO2.isSelected());
                                         
+                                        if (RB_NO2.isSelected()) {
+						text_to_save = "#define DISPLAY_TYPE DISPLAY_TYPE_NO2";
+						pWriter.println(text_to_save);
+					}
+
+					iWriter.println(RB_DEBUG.isSelected());                                        
                                         if (RB_DEBUG.isSelected()) {
 						text_to_save = "#define DISPLAY_TYPE DISPLAY_TYPE_DEBUG //ASCII Printout for debugging";
 						pWriter.println(text_to_save);
@@ -741,6 +749,7 @@ public void AddListItem(File newFile) {
         RB_BAFANG_LCD = new javax.swing.JRadioButton();
         RB_BAFANG_TFT = new javax.swing.JRadioButton();
         RB_KUNTENG = new javax.swing.JRadioButton();
+        RB_NO2 = new javax.swing.JRadioButton();
         RB_DEBUG = new javax.swing.JRadioButton();
         RB_TORQUESENSOR = new javax.swing.JRadioButton();
         jLabel21 = new javax.swing.JLabel();
@@ -901,6 +910,9 @@ public void AddListItem(File newFile) {
 
         BG_DISPLAYS.add(RB_KUNTENG);
         RB_KUNTENG.setText("Kunteng");
+        
+        BG_DISPLAYS.add(RB_NO2);
+        RB_NO2.setText("NO2");
 
         BG_DISPLAYS.add(RB_DEBUG);
         RB_DEBUG.setText("Debug");
@@ -1061,6 +1073,7 @@ public void AddListItem(File newFile) {
                                     .addComponent(RB_BAFANG_TFT)
                                     .addComponent(RB_EBICS)
                                     .addComponent(Label_Parameter1)
+                                    .addComponent(RB_NO2)
                                     .addComponent(RB_DEBUG))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 25, Short.MAX_VALUE)
                                 .addGroup(TAB1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
@@ -1192,6 +1205,8 @@ public void AddListItem(File newFile) {
                         .addComponent(RB_KUNTENG)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(RB_EBICS, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(RB_NO2)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(RB_DEBUG)
                         .addGap(0, 0, Short.MAX_VALUE))
@@ -1891,6 +1906,7 @@ public void AddListItem(File newFile) {
     private javax.swing.JRadioButton RB_AUTODETECT;
     private javax.swing.JRadioButton RB_BAFANG_LCD;
     private javax.swing.JRadioButton RB_BAFANG_TFT;
+    private javax.swing.JRadioButton RB_NO2;
     private javax.swing.JRadioButton RB_DEBUG;
     private javax.swing.JRadioButton RB_DIRDET;
     private javax.swing.JRadioButton RB_DISABLE_DYN_ADC;

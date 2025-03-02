@@ -510,6 +510,14 @@
                 <Property name="text" type="java.lang.String" value="Kunteng"/>
               </Properties>
             </Component>
+            <Component class="javax.swing.JRadioButton" name="RB_NO2">
+              <Properties>
+                <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
+                  <ComponentRef name="BG_DISPLAYS"/>
+                </Property>
+                <Property name="text" type="java.lang.String" value="NO2"/>
+              </Properties>
+            </Component>
             <Component class="javax.swing.JRadioButton" name="RB_DEBUG">
               <Properties>
                 <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
