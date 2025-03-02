@@ -86,6 +86,7 @@ void Bafang_Service(BAFANG_t* BF_ctx, uint8_t  rx, MotorState_t *MS)
     static uint8_t  recent_pointer_position;
     static uint8_t  Rx_message_length;
     static uint8_t  BF_Message[32];
+    static uint16_t batval = {0};
 
 //    //wait for gap
 //	if(BF_ctx->RxState == RXSTATE_WAITGAP){
@@ -180,7 +181,7 @@ void Bafang_Service(BAFANG_t* BF_ctx, uint8_t  rx, MotorState_t *MS)
                 break;
               case BF_CMD_GETCAL:
                 // calories in whole cal
-                uint16_t batval = ((uint32_t)(MS->Voltage*CAL_BAT_V)/100) & 0x0000FFFF;
+                batval = ((uint32_t)(MS->Voltage*CAL_BAT_V)/100) & 0x0000FFFF;
                 TxBuff[0] = (uint8_t) ((uint16_t) batval >> 8); 
                 TxBuff[1] = (uint8_t) batval;
                 TxBuff[2] = (uint8_t) ((batval >> 8) + (batval & 0x00FF));
