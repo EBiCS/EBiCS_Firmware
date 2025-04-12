@@ -89,11 +89,11 @@
 
 
 //#define NCTE
-//#define LEGALFLAG
+#define LEGALFLAG
 #define BATTERYVOLTAGE_MAX 53000
 #define R_TEMP_PULLUP 0
-#define TORQUE_OFFSET 1580
-#define TORQUE_MAX 850
+#define TORQUE_OFFSET 1535
+#define TORQUE_MAX 3000
 #define SPEC_ANGLE -1550960412L //-1312351118L		//Shengyi Heckmotor aus Fischer ETH1606 per trial and error
 #define FILTER_DELAY 59652323<<4	 //1073741824L	// for angle correction of i_alfa + i_beta
 enum state {Stop, SixStep, Regen, Running, BatteryCurrentLimit, Interpolation, PLL, IdleRun, Sensorless, OpenLoop};

@@ -1011,13 +1011,13 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 
 		  sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %u, %d\r\n",
 				  adcData[1],
+				  adcData[6],
 				  MS.i_q_setpoint,
-				  MS.Speed,
-				  ui_8_PLL_counter,
+				  uint32_PAS,
 				  MS.Battery_Current,
 				  int32_temp_current_target ,
 				  MS.i_q,
-				  q31_angle_per_tic>>12,
+				  uint32_SPEEDx100_cumulated>>SPEEDFILTER,
 				  MS.system_state);
 		  // sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5]),(uint16_t)(adcData[6])) ;
 		  // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",tic_array[0],tic_array[1],tic_array[2],tic_array[3],tic_array[4],tic_array[5]) ;

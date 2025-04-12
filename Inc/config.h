@@ -76,7 +76,7 @@
 
 //---------------------------------------------------------------------
 //Throttle settings
-#define THROTTLE_OFFSET 800   //only default value, throttle offset is set at startup automatically
+#define THROTTLE_OFFSET 920   //only default value, throttle offset is set at startup automatically
 #define THROTTLE_MAX 2850
 #define THROTTLE_OVERRIDE
 
@@ -85,8 +85,8 @@
 #define WHEEL_CIRCUMFERENCE 2200
 #define GEAR_RATIO 80 //11 for BionX IGH3
 #define SPEEDLIMIT 25
-#define PULSES_PER_REVOLUTION 1
-#define SPEEDSOURCE INTERNAL
+#define PULSES_PER_REVOLUTION 3
+#define SPEEDSOURCE EXTERNAL
 #define SPEEDFILTER 1
 #define SPDSHFT 0
 
@@ -100,14 +100,13 @@
 
 //---------------------------------------------------------------------
 //torquesensor settings
-#define TS_COEF 2400
+#define TS_COEF 1200
 #define TS_MODE
-//#define TQONAD1
+#define TQONAD1
 
 //---------------------------------------------------------------------
 //Display settings
-#define DISPLAY_TYPE DISPLAY_TYPE_DEBUG
-
+#define DISPLAY_TYPE DISPLAY_TYPE_KINGMETER_901U
 
 //---------------------------------------------------------------------
 //Regen settings
