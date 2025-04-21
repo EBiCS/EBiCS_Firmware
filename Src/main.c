@@ -940,11 +940,11 @@ int main(void)
 		//  sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n", hubdata.HS_Overtemperature, hubdata.HS_Pedalposition, hubdata.HS_Pedals_turning, hubdata.HS_Torque, hubdata.HS_Wheel_turning, hubdata.HS_Wheeltime );
 
 		 sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n",
-				 uint32_PAS,
-				 uint32_torque_cumulated,
-				 ui16_throttle,
+				 hubdata.HS_Pedalposition,
+				 hubdata.HS_Torque,
+				 uint16_mapped_throttle,
 				 MS.i_q_setpoint,
-				 uint16_mapped_PAS,
+				 adcData[1],
 				 int32_temp_current_target,
 				// (uint32_battery_current_cumulated>>4)*28,
 				// (q31_t_Battery_Current_accumulated>>8)*i8_direction*i8_reverse_flag,

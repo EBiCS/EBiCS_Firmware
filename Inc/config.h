@@ -68,8 +68,8 @@
 //#define DIRDET
 #define FRAC_HIGH 30
 #define FRAC_LOW 15
-#define TS_COEF 1200 			//12 for Kclamber Sensor
-#define RIDEMODE RIDEMODE_PAS
+#define TS_COEF 12 			//12 for Kclamber Sensor 1200 for T15 BB sensor
+#define RIDEMODE RIDEMODE_KCLAMBER_KASSETTE_SENSOR
 //#define TQONAD1
 
 //------------------------------Throttle settings
@@ -100,7 +100,7 @@
 
 //----------------------------- Display setting
 
-#define DISPLAY_TYPE DISPLAY_TYPE_KINGMETER_901U
+#define DISPLAY_TYPE DISPLAY_TYPE_DEBUG
 
 //------------------------------Autodetect setting
 #define AUTODETECT 0
