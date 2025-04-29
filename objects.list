@@ -18,6 +18,7 @@
 "./build/display_bafang.o"
 "./build/display_kingmeter.o"
 "./build/display_kunteng.o"
+"./build/display_No_2.o"
 "./build/eeprom.o"
 "./build/main.o"
 "./build/print.o"

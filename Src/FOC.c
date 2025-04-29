@@ -41,7 +41,6 @@ char PI_flag=0;
 
 extern TIM_HandleTypeDef htim1;
 
-
 void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int16_t int16_i_q_target, MotorState_t* MS_FOC);
 void svpwm(q31_t q31_u_alpha, q31_t q31_u_beta);
 

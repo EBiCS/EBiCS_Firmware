@@ -25,4 +25,4 @@
 "Src/stm32f1xx_hal_msp.o"
 "Src/stm32f1xx_it.o"
 "Src/system_stm32f1xx.o"
-"startup/startup_stm32f103x6.o"
+"Startup/startup_stm32f103x6.o"

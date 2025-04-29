@@ -103,6 +103,10 @@
 #define HALL_26 4092133376
 #define HALL_64 3209232384
 
+#define CONTROLLER_TEMPERATURE_THRESHOLD 70
+#define CONTROLLER_TEMPERATURE_MAX       80
+#define MOTOR_TEMPERATURE_THRESHOLD 100
+#define MOTOR_TEMPERATURE_MAX       130
 
 /* ########################## Assert Selection ############################## */
 /**
@@ -120,11 +124,13 @@ int32_t map (int32_t x, int32_t in_min, int32_t in_max, int32_t out_min, int32_t
 void autodetect();
 void runPIcontrol();
 void kingmeter_update(void);
+void No2_update(void);
 
 extern uint16_t switchtime[3];
 extern uint32_t ui32_tim1_counter;
 extern uint32_t uint32_PAS_counter;
 extern uint8_t throttle_is_set(void);
+extern uint8_t brake_is_set(void);
 extern void UART_IdleItCallback(void);
 extern void get_internal_temp_offset(void);
 
