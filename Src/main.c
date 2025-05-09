@@ -2013,6 +2013,7 @@ void kingmeter_update(void)
     /* Apply Rx parameters */
 
     MS.assist_level = KM.Rx.AssistLevel;
+    temp5=speed_to_tics(KM.Rx.AssistLevel/10+1);
 
     if(KM.Rx.Headlight == KM_HEADLIGHT_OFF)
         {
@@ -2379,6 +2380,11 @@ void runPIcontrol(){
 		  }
 
 			  q31_u_q_temp =  PI_control(&PI_iq);
+			  if ((uint32_tics_filtered>>3)>temp5&&temp6< _U_MAX<<6)temp6++;
+			  if ((uint32_tics_filtered>>3)<temp5&&temp6>0)temp6--;
+			  q31_u_q_temp=temp6>>6;
+			  q31_u_q_temp= map(MS.i_q, PH_CURRENT_MAX-200, PH_CURRENT_MAX, q31_u_q_temp, 0); //ramp down uq on phase current limit
+			  q31_u_q_temp= map(MS.Battery_Current, BATTERYCURRENT_MAX-1000, BATTERYCURRENT_MAX, q31_u_q_temp, 0); // ramp down uq on battery current limit
 
 		  //Control id
 		  PI_id.recent_value = MS.i_d;
@@ -2410,7 +2416,7 @@ q31_t speed_PLL (q31_t ist, q31_t soll, uint8_t speedadapt)
     q31_t q31_p;
     static q31_t q31_d_i = 0;
     static q31_t q31_d_dc = 0;
-    temp6 = soll-ist;
+    //temp6 = soll-ist;
   //  temp5 = speedadapt;
     q31_p=(soll - ist)>>(P_FACTOR_PLL-speedadapt);   				//7 for Shengyi middrive, 10 for BionX IGH3
     q31_d_i+=(soll - ist)>>(I_FACTOR_PLL-speedadapt);				//11 for Shengyi middrive, 10 for BionX IGH3
