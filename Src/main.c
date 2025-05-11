@@ -605,7 +605,7 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 	  //display message processing
 	  if(ui8_UART_flag){
 #if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
-	  kingmeter_update();
+		  KingMeter_Service(&KM);
 #endif
 
 
@@ -1509,6 +1509,7 @@ static void MX_USART1_UART_Init(void)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
+  __HAL_UART_ENABLE_IT(&huart1, UART_IT_IDLE);
 
 }
 
@@ -1941,6 +1942,12 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *UartHandle)
 {
+	//ui8_UART_flag=1;
+
+}
+
+void UART_IdleItCallback(void)
+{
 	ui8_UART_flag=1;
 
 }
@@ -1974,70 +1981,79 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *UartHandle) {
 #if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
 void kingmeter_update(void)
 {
-    /* Prepare Tx parameters */
+		/* Prepare Tx parameters */
 
-    if(battery_percent_fromcapacity > 10)
-    {
-        KM.Tx.Battery = KM_BATTERY_NORMAL;
-    }
-    else
-    {
-        KM.Tx.Battery = KM_BATTERY_LOW;
-    }
+		if(battery_percent_fromcapacity > 10)
+		{
+			KM.Tx.Battery = KM_BATTERY_NORMAL;
+		}
+		else
+		{
+			KM.Tx.Battery = KM_BATTERY_LOW;
+		}
 
 
 #if (SPEEDSOURCE  == EXTERNAL)
-    	KM.Tx.Wheeltime_ms = ((MS.Speed>>3)*PULSES_PER_REVOLUTION); //>>3 because of 8 kHz counter frequency, so 8 tics per ms
+		KM.Tx.Wheeltime_ms = ((MS.Speed>>3)*PULSES_PER_REVOLUTION); //>>3 because of 8 kHz counter frequency, so 8 tics per ms
 #else
-        if(__HAL_TIM_GET_COUNTER(&htim2) < 12000)
-        {
-    	KM.Tx.Wheeltime_ms = (MS.Speed*GEAR_RATIO*6)>>9; //>>9 because of 500kHZ timer2 frequency, 512 tics per ms should be OK *6 because of 6 hall interrupts per electric revolution.
+		if(__HAL_TIM_GET_COUNTER(&htim2) < 12000)
+		{
+			KM.Tx.Wheeltime_ms = (MS.Speed*GEAR_RATIO*6)>>9; //>>9 because of 500kHZ timer2 frequency, 512 tics per ms should be OK *6 because of 6 hall interrupts per electric revolution.
 
-    }
-    else
-    {
-        KM.Tx.Wheeltime_ms = 64000;
-    }
+		}
+		else
+		{
+			KM.Tx.Wheeltime_ms = 64000;
+		}
 
 #endif
-    if(MS.Temperature<130) KM.Tx.Error = KM_ERROR_NONE;
-    else KM.Tx.Error = KM_ERROR_OVHT;
-
-    KM.Tx.Current_x10 = (uint16_t) (MS.Battery_Current/100); //MS.Battery_Current is in mA
-
-
-    /* Receive Rx parameters/settings and send Tx parameters */
-    KingMeter_Service(&KM);
+		if(MS.Temperature>130) KM.Tx.Error = KM_ERROR_OVHT;
+		else if(MS.int_Temperature>80)KM.Tx.Error = KM_ERROR_IOVHT;
+		else KM.Tx.Error = KM_ERROR_NONE;
 
 
-    /* Apply Rx parameters */
-
-    MS.assist_level = KM.Rx.AssistLevel;
-
-    if(KM.Rx.Headlight == KM_HEADLIGHT_OFF)
-        {
-        	HAL_GPIO_WritePin(LIGHT_GPIO_Port, LIGHT_Pin, GPIO_PIN_RESET);
-        	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
-        }
-        else // KM_HEADLIGHT_ON, KM_HEADLIGHT_LOW, KM_HEADLIGHT_HIGH
-        {
-        	HAL_GPIO_WritePin(LIGHT_GPIO_Port, LIGHT_Pin, GPIO_PIN_SET);
-        	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
-        }
+		KM.Tx.Current_x10 = (uint16_t) (MS.Battery_Current/100); //MS.Battery_Current is in mA
 
 
-    if(KM.Rx.PushAssist == KM_PUSHASSIST_ON)
-    {
-    	ui8_Push_Assist_flag=1;
-    }
-    else
-    {
-    	ui8_Push_Assist_flag=0;
-    }
+		/* Receive Rx parameters/settings and send Tx parameters */
+#if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_618U)
+		KingMeter_Service(&KM);
+#endif
+
+
+		/* Apply Rx parameters */
+
+		MS.assist_level = KM.Rx.AssistLevel;
+
+		if(KM.Rx.Headlight == KM_HEADLIGHT_OFF)
+		{
+			HAL_GPIO_WritePin(LIGHT_GPIO_Port, LIGHT_Pin, GPIO_PIN_RESET);
+
+		}
+		else // KM_HEADLIGHT_ON, KM_HEADLIGHT_LOW, KM_HEADLIGHT_HIGH
+		{
+			HAL_GPIO_WritePin(LIGHT_GPIO_Port, LIGHT_Pin, GPIO_PIN_SET);
+
+		}
+
+
+		if(KM.Rx.PushAssist == KM_PUSHASSIST_ON)
+		{
+			ui8_Push_Assist_flag=1;
+		}
+		else
+		{
+			ui8_Push_Assist_flag=0;
+		}
+//	    if( KM.Settings.Reverse)i8_direction = -1;
+//	    else i8_direction = 1;
+		//    MP.speedLimit=KM.Rx.SPEEDMAX_Limit;
+		//    MP.battery_current_max = KM.Rx.CUR_Limit_mA;
 
 
 
-}
+	}
+
 
 #endif
 
