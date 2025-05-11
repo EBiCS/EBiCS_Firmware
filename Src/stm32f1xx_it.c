@@ -360,13 +360,28 @@ void TIM3_IRQHandler(void)
 */
 void USART1_IRQHandler(void)
 {
-  /* USER CODE BEGIN USART1_IRQn 0 */
+	  if (huart1.Instance->SR & UART_FLAG_IDLE)
+	  {
+	    // clear the IDLE interrupt
+	    // see RM0008 27.6.1 Status register (USART_SR)
+	    __HAL_UART_CLEAR_IDLEFLAG(&huart1);
 
-  /* USER CODE END USART1_IRQn 0 */
-  HAL_UART_IRQHandler(&huart1);
-  /* USER CODE BEGIN USART1_IRQn 1 */
+	    // Disable uart idle interrupt here and enable it again at the end of the uart processing?
+	    // -> Decided not to do it and assuming the cpu is fast enough to always process incoming messages.
+	    // -> If a new message is received before the previous message has been processed, it would simply be disregarded in Display_Service
+	    //          as the format is not correct.
 
-  /* USER CODE END USART1_IRQn 1 */
+	    //
+	    //HAL_UART_DMAStop(&huart1);
+	    //
+	    //HAL_UART_RxCpltCallback(&huart1);
+	    UART_IdleItCallback();
+
+	  }
+	  else
+	  {
+	    HAL_UART_IRQHandler(&huart1);
+	  }
 }
 
 /* USER CODE BEGIN 1 */
