@@ -56,7 +56,7 @@
 #include "eeprom.h"
 
 
-#if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
+#if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_901U||DISPLAY_TYPE & DISPLAY_TYPE_DEBUG)
   #include "display_kingmeter.h"
 #endif
 
@@ -221,7 +221,7 @@ enum state SystemState;
 
 
 //variables for display communication
-#if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
+#if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_901U||DISPLAY_TYPE & DISPLAY_TYPE_DEBUG)
 KINGMETER_t KM;
 #endif
 
@@ -272,7 +272,7 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
-#if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
+#if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_901U||DISPLAY_TYPE & DISPLAY_TYPE_DEBUG)
 void kingmeter_update(void);
 #endif
 
@@ -452,7 +452,7 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
             }
 
 
-#if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
+#if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_901U||DISPLAY_TYPE & DISPLAY_TYPE_DEBUG)
        KingMeter_Init (&KM);
 #endif
 
@@ -696,7 +696,9 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 		uint32_SPEEDx100_cumulated +=internal_tics_to_speedx100(uint32_tics_filtered>>3);
 #endif
 		ui16_erps=500000/((uint32_tics_filtered>>3)*6);
+#ifndef SPEEDTHROTTLE
 		ui8_SPEED_control_flag=0;
+#endif
 	  }
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG && defined(FAST_LOOP_LOG))
@@ -854,18 +856,18 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 
 
 
-					  PI_speed.setpoint = uint16_mapped_throttle*100;
-					  PI_speed.recent_value = internal_tics_to_speedx100(uint32_tics_filtered>>3);
+					  PI_speed.setpoint = MS.Speed; //soll und ist vertauscht, da sonst falschrum geregelt wird
+					  PI_speed.recent_value = 8000;
 					 if( PI_speed.setpoint)SET_BIT(TIM1->BDTR, TIM_BDTR_MOE);
-					if (internal_tics_to_speedx100(uint32_tics_filtered>>3)<300){//control current slower than 3 km/h
+					if ((uint32_tics_filtered>>3)>12000){//control current slower than 3 km/h
 						PI_speed.limit_i=100;
 						PI_speed.limit_output=100;
 						int32_temp_current_target = PI_control(&PI_speed);
 
 						if(int32_temp_current_target>100)int32_temp_current_target=100;
-						if(int32_temp_current_target*i8_direction*i8_reverse_flag<0){
-							int32_temp_current_target=0;
-						}
+//						if(int32_temp_current_target*i8_direction*i8_reverse_flag<0){
+//							int32_temp_current_target=0;
+//						}
 
 					}
 					else{
@@ -1016,10 +1018,10 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 
 		  sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %u, %d\r\n",
 				  adcData[1],
-				  adcData[6],
+				  MS.Speed,
+				  PI_speed.recent_value,
+				  PI_speed.setpoint,
 				  MS.i_q_setpoint,
-				  uint32_PAS,
-				  MS.Battery_Current,
 				  int32_temp_current_target ,
 				  MS.i_q,
 				  uint32_SPEEDx100_cumulated>>SPEEDFILTER,
@@ -1983,7 +1985,7 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *UartHandle) {
 
 
 
-#if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER)
+#if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_901U||DISPLAY_TYPE & DISPLAY_TYPE_DEBUG)
 void kingmeter_update(void)
 {
 		/* Prepare Tx parameters */
@@ -2029,7 +2031,7 @@ void kingmeter_update(void)
 		/* Apply Rx parameters */
 
 		MS.assist_level = KM.Rx.AssistLevel;
-		temp5=20*speed_to_tics(KM.Rx.AssistLevel);
+		temp5=map(KM.Rx.AssistLevel,0,255,15000,300);
 
 
 		if(KM.Rx.Headlight == KM_HEADLIGHT_OFF)
@@ -2401,12 +2403,6 @@ void runPIcontrol(){
 			    }
 		  }
 
-			  q31_u_q_temp =  PI_control(&PI_iq);
-			  if ((uint32_tics_filtered>>3)>temp5&&temp6< _U_MAX<<6)temp6++;
-			  if ((uint32_tics_filtered>>3)<temp5&&temp6>0)temp6--;
-			  q31_u_q_temp=-(temp6>>6);
-			  //q31_u_q_temp= map(MS.i_q, PH_CURRENT_MAX-200, PH_CURRENT_MAX, q31_u_q_temp, 0); //ramp down uq on phase current limit
-			  //q31_u_q_temp= map(MS.Battery_Current, BATTERYCURRENT_MAX-1000, BATTERYCURRENT_MAX, q31_u_q_temp, 0); // ramp down uq on battery current limit
 
 		  //Control id
 		  PI_id.recent_value = MS.i_d;
