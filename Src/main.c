@@ -2029,6 +2029,8 @@ void kingmeter_update(void)
 		/* Apply Rx parameters */
 
 		MS.assist_level = KM.Rx.AssistLevel;
+		temp5=20*speed_to_tics(KM.Rx.AssistLevel);
+
 
 		if(KM.Rx.Headlight == KM_HEADLIGHT_OFF)
 		{
@@ -2350,15 +2352,15 @@ int32_t speed_to_tics (uint8_t speed){
 }
 
 int8_t tics_to_speed (uint32_t tics){
-	return WHEEL_CIRCUMFERENCE*5*3600/(6*GEAR_RATIO*tics*10);;
+	return WHEEL_CIRCUMFERENCE*5*3600/(6*GEAR_RATIO*tics*10);
 }
 
 int16_t internal_tics_to_speedx100 (uint32_t tics){
-	return WHEEL_CIRCUMFERENCE*50*3600/(6*GEAR_RATIO*tics);;
+	return WHEEL_CIRCUMFERENCE*50*3600/(6*GEAR_RATIO*tics);
 }
 
 int16_t external_tics_to_speedx100 (uint32_t tics){
-	return WHEEL_CIRCUMFERENCE*8*360/(PULSES_PER_REVOLUTION*tics);;
+	return WHEEL_CIRCUMFERENCE*8*360/(PULSES_PER_REVOLUTION*tics);
 }
 
 void runPIcontrol(){
@@ -2402,9 +2404,9 @@ void runPIcontrol(){
 			  q31_u_q_temp =  PI_control(&PI_iq);
 			  if ((uint32_tics_filtered>>3)>temp5&&temp6< _U_MAX<<6)temp6++;
 			  if ((uint32_tics_filtered>>3)<temp5&&temp6>0)temp6--;
-			  q31_u_q_temp=temp6>>6;
-			  q31_u_q_temp= map(MS.i_q, PH_CURRENT_MAX-200, PH_CURRENT_MAX, q31_u_q_temp, 0); //ramp down uq on phase current limit
-			  q31_u_q_temp= map(MS.Battery_Current, BATTERYCURRENT_MAX-1000, BATTERYCURRENT_MAX, q31_u_q_temp, 0); // ramp down uq on battery current limit
+			  q31_u_q_temp=-(temp6>>6);
+			  //q31_u_q_temp= map(MS.i_q, PH_CURRENT_MAX-200, PH_CURRENT_MAX, q31_u_q_temp, 0); //ramp down uq on phase current limit
+			  //q31_u_q_temp= map(MS.Battery_Current, BATTERYCURRENT_MAX-1000, BATTERYCURRENT_MAX, q31_u_q_temp, 0); // ramp down uq on battery current limit
 
 		  //Control id
 		  PI_id.recent_value = MS.i_d;
