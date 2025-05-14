@@ -644,8 +644,7 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 		ui32_brake_adc_cumulated+=adcData[5];//get value for analog brake from AD2 = PB0
 		ui16_brake_adc=ui32_brake_adc_cumulated>>4;
 		ui16_torque = ui32_torque_raw_cumulated>>4;
-		//temp6=temp4;
-		temp4=0;
+		if(temp4>800)temp4=0;
 		ui8_adc_regular_flag=0;
 
 	  }
@@ -856,13 +855,16 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 					uint16_mapped_throttle = uint16_mapped_throttle*SPEEDLIMIT/PH_CURRENT_MAX;//throttle override: calulate speed target from thottle
 
 
-			if(!temp4&&ui8_SPEED_control_flag){
 
-					  if(MS.Speed>1000&&temp6<(PH_CURRENT_MAX)){
-						  //int32_temp_current_target++;
-						  temp6++;
-					  }
-					  if(MS.Speed<1000&&temp6>0)temp6--;
+				if(MS.Speed<12000&&ui8_SPEED_control_flag){
+					  if(MS.Speed>4000&&temp6<(PH_CURRENT_MAX))temp6++;
+					  if(MS.Speed<4000&&temp6>-PH_CURRENT_MAX)temp6--;
+				}
+				else if(MS.Speed>12000&&!temp4){
+					  if(MS.Speed>4000&&temp6<(PH_CURRENT_MAX))temp6++;
+					  if(MS.Speed<4000&&temp6>-PH_CURRENT_MAX)temp6--;
+				}
+
 					  //soll und ist vertauscht, da sonst falschrum geregelt wird
 					  //PI_speed.recent_value = 2000;
 //					 if( PI_speed.setpoint)SET_BIT(TIM1->BDTR, TIM_BDTR_MOE);
@@ -889,7 +891,7 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 //
 //					if(PI_speed.integral_part<0)PI_speed.integral_part=0;
 					  ui8_SPEED_control_flag=0;
-					}
+
 					temp4++;
 					int32_temp_current_target=temp6;
 
@@ -940,7 +942,7 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 
 //------------------------------------------------------------------------------------------------------------
 				//enable PWM if power is wanted
-	  if (MS.i_q_setpoint>0&&!READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)){
+	  if (MS.i_q_setpoint&&!READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)){
 		  MS.system_state=Running;
 		  uint16_half_rotation_counter=0;
 		  uint16_full_rotation_counter=0;
