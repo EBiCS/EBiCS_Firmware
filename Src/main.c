@@ -365,7 +365,7 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
   PI_iq.setpoint = 0;
   PI_iq.limit_output = _U_MAX;
   PI_iq.max_step=5000;
-  PI_iq.shift=9;
+  PI_iq.shift=5;
   PI_iq.limit_i=_U_MAX;
 
 #ifdef SPEEDTHROTTLE
@@ -374,7 +374,7 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
   PI_speed.gain_p=P_FACTOR_SPEED;
   PI_speed.setpoint = 0;
   PI_speed.limit_output = PH_CURRENT_MAX;
-  PI_speed.max_step=50;
+  PI_speed.max_step=5;
   PI_speed.shift=5;
   PI_speed.limit_i=PH_CURRENT_MAX;
 
@@ -644,7 +644,8 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 		ui32_brake_adc_cumulated+=adcData[5];//get value for analog brake from AD2 = PB0
 		ui16_brake_adc=ui32_brake_adc_cumulated>>4;
 		ui16_torque = ui32_torque_raw_cumulated>>4;
-
+		//temp6=temp4;
+		temp4=0;
 		ui8_adc_regular_flag=0;
 
 	  }
@@ -696,6 +697,7 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 		uint32_SPEEDx100_cumulated +=internal_tics_to_speedx100(uint32_tics_filtered>>3);
 #endif
 		ui16_erps=500000/((uint32_tics_filtered>>3)*6);
+
 #ifndef SPEEDTHROTTLE
 		ui8_SPEED_control_flag=0;
 #endif
@@ -854,36 +856,42 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 					uint16_mapped_throttle = uint16_mapped_throttle*SPEEDLIMIT/PH_CURRENT_MAX;//throttle override: calulate speed target from thottle
 
 
+			if(!temp4&&ui8_SPEED_control_flag){
 
-
-					  PI_speed.setpoint = MS.Speed; //soll und ist vertauscht, da sonst falschrum geregelt wird
-					  PI_speed.recent_value = 8000;
-					 if( PI_speed.setpoint)SET_BIT(TIM1->BDTR, TIM_BDTR_MOE);
-					if ((uint32_tics_filtered>>3)>12000){//control current slower than 3 km/h
-						PI_speed.limit_i=100;
-						PI_speed.limit_output=100;
-						int32_temp_current_target = PI_control(&PI_speed);
-
-						if(int32_temp_current_target>100)int32_temp_current_target=100;
-//						if(int32_temp_current_target*i8_direction*i8_reverse_flag<0){
-//							int32_temp_current_target=0;
+					  if(MS.Speed>1000&&temp6<(PH_CURRENT_MAX)){
+						  //int32_temp_current_target++;
+						  temp6++;
+					  }
+					  if(MS.Speed<1000&&temp6>0)temp6--;
+					  //soll und ist vertauscht, da sonst falschrum geregelt wird
+					  //PI_speed.recent_value = 2000;
+//					 if( PI_speed.setpoint)SET_BIT(TIM1->BDTR, TIM_BDTR_MOE);
+//					if ((uint32_tics_filtered>>3)>6000){//control current slower than 3 km/h
+//						PI_speed.limit_i=300;
+//						PI_speed.limit_output=300;
+//						int32_temp_current_target = PI_control(&PI_speed);
+//
+//						if(int32_temp_current_target>300)int32_temp_current_target=300;
+//
+//
+//					}
+//					else{
+//
+//
+//						if(ui8_SPEED_control_flag){//update current target only, if new hall event was detected
+//							PI_speed.limit_i=PH_CURRENT_MAX;
+//							PI_speed.limit_output=PH_CURRENT_MAX;
+//							int32_temp_current_target = PI_control(&PI_speed);
+//							ui8_SPEED_control_flag=0;
+//							}
+////						if(int32_temp_current_target*i8_direction*i8_reverse_flag<0)int32_temp_current_target=0;
 //						}
-
+//
+//					if(PI_speed.integral_part<0)PI_speed.integral_part=0;
+					  ui8_SPEED_control_flag=0;
 					}
-					else{
-
-
-						if(ui8_SPEED_control_flag){//update current target only, if new hall event was detected
-							PI_speed.limit_i=PH_CURRENT_MAX;
-							PI_speed.limit_output=PH_CURRENT_MAX;
-							int32_temp_current_target = PI_control(&PI_speed);
-							ui8_SPEED_control_flag=0;
-							}
-						if(int32_temp_current_target*i8_direction*i8_reverse_flag<0)int32_temp_current_target=0;
-
-						}
-
-
+					temp4++;
+					int32_temp_current_target=temp6;
 
 #else // end speedthrottle
 					int32_temp_current_target=uint16_mapped_throttle;
@@ -1019,10 +1027,10 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 		  sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %u, %d\r\n",
 				  adcData[1],
 				  MS.Speed,
-				  PI_speed.recent_value,
-				  PI_speed.setpoint,
+				  int32_temp_current_target,
+				  temp6,
+				  temp4,
 				  MS.i_q_setpoint,
-				  int32_temp_current_target ,
 				  MS.i_q,
 				  uint32_SPEEDx100_cumulated>>SPEEDFILTER,
 				  MS.system_state);
@@ -2368,66 +2376,68 @@ int16_t external_tics_to_speedx100 (uint32_t tics){
 void runPIcontrol(){
 
 
-		  q31_t_Battery_Current_accumulated -= q31_t_Battery_Current_accumulated>>8;
-		  q31_t_Battery_Current_accumulated += ((MS.i_q*MS.u_abs)>>11)*(uint16_t)(CAL_I>>8);
+	q31_t_Battery_Current_accumulated -= q31_t_Battery_Current_accumulated>>8;
+			  q31_t_Battery_Current_accumulated += ((MS.i_q*MS.u_abs)>>11)*(uint16_t)(CAL_I>>8);
 
-		  MS.Battery_Current = (q31_t_Battery_Current_accumulated>>8)*i8_direction*i8_reverse_flag; //Battery current in mA
-		  //Check battery current limit
-		  if(MS.Battery_Current>BATTERYCURRENT_MAX) ui8_BC_limit_flag=1;
-		  if(MS.Battery_Current<-REGEN_CURRENT_MAX) ui8_BC_limit_flag=1;
-		  //reset battery current flag with small hysteresis
-		  if(brake_flag==0){
-		  //if(HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin)){
-			  if(((MS.i_q_setpoint*MS.u_abs)>>11)*(uint16_t)(CAL_I>>8)<(BATTERYCURRENT_MAX*7)>>3)ui8_BC_limit_flag=0;
-		  }
-		  else{
-			  if(((MS.i_q_setpoint*MS.u_abs)>>11)*(uint16_t)(CAL_I>>8)>(-REGEN_CURRENT_MAX*7)>>3)ui8_BC_limit_flag=0;
-		  }
-
-		  //control iq
-
-		  //if
-		  if (!ui8_BC_limit_flag){
-			  PI_iq.recent_value = MS.i_q;
-			  PI_iq.setpoint = i8_direction*i8_reverse_flag*MS.i_q_setpoint;
-		  }
-		  else{
+			  MS.Battery_Current = (q31_t_Battery_Current_accumulated>>8)*i8_direction*i8_reverse_flag; //Battery current in mA
+			  //Check battery current limit
+			  if(MS.Battery_Current>BATTERYCURRENT_MAX) ui8_BC_limit_flag=1;
+			  if(MS.Battery_Current<-REGEN_CURRENT_MAX) ui8_BC_limit_flag=1;
+			  //reset battery current flag with small hysteresis
 			  if(brake_flag==0){
-			 // if(HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin)){
-				  PI_iq.recent_value=  (MS.Battery_Current>>6)*i8_direction*i8_reverse_flag;
-				  PI_iq.setpoint = (BATTERYCURRENT_MAX>>6)*i8_direction*i8_reverse_flag;
-			  	}
+			  //if(HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin)){
+				  if(((MS.i_q_setpoint*MS.u_abs)>>11)*(uint16_t)(CAL_I>>8)<(BATTERYCURRENT_MAX*7)>>3)ui8_BC_limit_flag=0;
+			  }
 			  else{
-				  PI_iq.recent_value=  (MS.Battery_Current>>6)*i8_direction*i8_reverse_flag;
-				  PI_iq.setpoint = (-REGEN_CURRENT_MAX>>6)*i8_direction*i8_reverse_flag;
-			    }
+				  if(((MS.i_q_setpoint*MS.u_abs)>>11)*(uint16_t)(CAL_I>>8)>(-REGEN_CURRENT_MAX*7)>>3)ui8_BC_limit_flag=0;
+			  }
+
+			  //control iq
+
+			  //if
+			  if (!ui8_BC_limit_flag){
+				  PI_iq.recent_value = MS.i_q;
+				  PI_iq.setpoint = i8_direction*i8_reverse_flag*MS.i_q_setpoint;
+			  }
+			  else{
+				  if(brake_flag==0){
+				 // if(HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin)){
+					  PI_iq.recent_value=  (MS.Battery_Current>>6)*i8_direction*i8_reverse_flag;
+					  PI_iq.setpoint = (BATTERYCURRENT_MAX>>6)*i8_direction*i8_reverse_flag;
+				  	}
+				  else{
+					  PI_iq.recent_value=  (MS.Battery_Current>>6)*i8_direction*i8_reverse_flag;
+					  PI_iq.setpoint = (-REGEN_CURRENT_MAX>>6)*i8_direction*i8_reverse_flag;
+				    }
+			  }
+
+				  q31_u_q_temp =  PI_control(&PI_iq);
+
+			  //Control id
+			  PI_id.recent_value = MS.i_d;
+			  PI_id.setpoint = MS.i_d_setpoint;
+			  q31_u_d_temp = -PI_control(&PI_id); //control direct current to zero
+
+
+			  	//limit voltage in rotating frame, refer chapter 4.10.1 of UM1052
+			  //MS.u_abs = (q31_t)hypot((double)q31_u_d_temp, (double)q31_u_q_temp); //absolute value of U in static frame
+				arm_sqrt_q31((q31_u_d_temp*q31_u_d_temp+q31_u_q_temp*q31_u_q_temp)<<1,&MS.u_abs);
+				MS.u_abs = (MS.u_abs>>16)+1;
+
+
+				if (MS.u_abs > _U_MAX){
+					MS.u_q = (q31_u_q_temp*_U_MAX)/MS.u_abs; //division!
+					MS.u_d = (q31_u_d_temp*_U_MAX)/MS.u_abs; //division!
+					MS.u_abs = _U_MAX;
+				}
+				else{
+					MS.u_q=q31_u_q_temp;
+					MS.u_d=q31_u_d_temp;
+				}
+
+			  	PI_flag=0;
 		  }
 
-
-		  //Control id
-		  PI_id.recent_value = MS.i_d;
-		  PI_id.setpoint = MS.i_d_setpoint;
-		  q31_u_d_temp = -PI_control(&PI_id); //control direct current to zero
-
-
-		  	//limit voltage in rotating frame, refer chapter 4.10.1 of UM1052
-		  //MS.u_abs = (q31_t)hypot((double)q31_u_d_temp, (double)q31_u_q_temp); //absolute value of U in static frame
-			arm_sqrt_q31((q31_u_d_temp*q31_u_d_temp+q31_u_q_temp*q31_u_q_temp)<<1,&MS.u_abs);
-			MS.u_abs = (MS.u_abs>>16)+1;
-
-
-			if (MS.u_abs > _U_MAX){
-				MS.u_q = (q31_u_q_temp*_U_MAX)/MS.u_abs; //division!
-				MS.u_d = (q31_u_d_temp*_U_MAX)/MS.u_abs; //division!
-				MS.u_abs = _U_MAX;
-			}
-			else{
-				MS.u_q=q31_u_q_temp;
-				MS.u_d=q31_u_d_temp;
-			}
-
-		  	PI_flag=0;
-	  }
 
 q31_t speed_PLL (q31_t ist, q31_t soll, uint8_t speedadapt)
   {

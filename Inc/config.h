@@ -43,9 +43,9 @@
 //#define FAST_LOOP_LOG
 //#define DISABLE_DYNAMIC_ADC
 //#define INDIVIDUAL_MODES
-//#define SPEEDTHROTTLE
+#define SPEEDTHROTTLE
 #define SIXSTEPTHRESHOLD 20000
-#define SPEED_PLL 1 //1 for using PLL, 0 for angle extrapolation
+#define SPEED_PLL 0 //1 for using PLL, 0 for angle extrapolation
 #define P_FACTOR_PLL 10
 #define I_FACTOR_PLL 10
 
@@ -64,7 +64,7 @@
 #define P_FACTOR_I_D 50
 #define I_FACTOR_I_D 2
 #define P_FACTOR_SPEED 1
-#define I_FACTOR_SPEED 10
+#define I_FACTOR_SPEED 1
 
 //----------------------------------------------------------------------
 //PAS mode settings
