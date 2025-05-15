@@ -63,7 +63,7 @@
 #define I_FACTOR_I_Q 2
 #define P_FACTOR_I_D 50
 #define I_FACTOR_I_D 2
-#define P_FACTOR_SPEED 1
+#define P_FACTOR_SPEED 150
 #define I_FACTOR_SPEED 1
 
 //----------------------------------------------------------------------

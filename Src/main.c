@@ -351,32 +351,32 @@ int main(void)
   MP.com_mode=Hallsensor;
 if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_flag=1;
 
-  //init PI structs
-  PI_id.gain_i=I_FACTOR_I_D;
-  PI_id.gain_p=P_FACTOR_I_D;
-  PI_id.setpoint = 0;
-  PI_id.limit_output = _U_MAX;
-  PI_id.max_step=5000;
-  PI_id.shift=9;
-  PI_id.limit_i=1800;
+//init PI structs
+PI_id.gain_i=I_FACTOR_I_D;
+PI_id.gain_p=P_FACTOR_I_D;
+PI_id.setpoint = 0;
+PI_id.limit_output = _U_MAX;
+PI_id.max_step=5000;
+PI_id.shift=10;
+PI_id.limit_i=1800;
 
-  PI_iq.gain_i=I_FACTOR_I_Q;
-  PI_iq.gain_p=P_FACTOR_I_Q;
-  PI_iq.setpoint = 0;
-  PI_iq.limit_output = _U_MAX;
-  PI_iq.max_step=5000;
-  PI_iq.shift=5;
-  PI_iq.limit_i=_U_MAX;
+PI_iq.gain_i=I_FACTOR_I_Q;
+PI_iq.gain_p=P_FACTOR_I_Q;
+PI_iq.setpoint = 0;
+PI_iq.limit_output = _U_MAX;
+PI_iq.max_step=5000;
+PI_iq.shift=10;
+PI_iq.limit_i=_U_MAX;
 
 #ifdef SPEEDTHROTTLE
 
-  PI_speed.gain_i=I_FACTOR_SPEED;
-  PI_speed.gain_p=P_FACTOR_SPEED;
-  PI_speed.setpoint = 0;
-  PI_speed.limit_output = PH_CURRENT_MAX;
-  PI_speed.max_step=5;
-  PI_speed.shift=5;
-  PI_speed.limit_i=PH_CURRENT_MAX;
+PI_speed.gain_i=I_FACTOR_SPEED;
+PI_speed.gain_p=P_FACTOR_SPEED;
+PI_speed.setpoint = 0;
+PI_speed.limit_output = PH_CURRENT_MAX;
+PI_speed.max_step=1000;
+PI_speed.shift=5;
+PI_speed.limit_i=PH_CURRENT_MAX;
 
 #endif
 
@@ -644,7 +644,7 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 		ui32_brake_adc_cumulated+=adcData[5];//get value for analog brake from AD2 = PB0
 		ui16_brake_adc=ui32_brake_adc_cumulated>>4;
 		ui16_torque = ui32_torque_raw_cumulated>>4;
-		if(temp4>800)temp4=0;
+		if(temp4>400)temp4=0;
 		ui8_adc_regular_flag=0;
 
 	  }
@@ -852,48 +852,51 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 #ifdef SPEEDTHROTTLE
 
 
-					uint16_mapped_throttle = uint16_mapped_throttle*SPEEDLIMIT/PH_CURRENT_MAX;//throttle override: calulate speed target from thottle
 
 
 
-				if(MS.Speed<12000&&ui8_SPEED_control_flag){
-					  if(MS.Speed>4000&&temp6<(PH_CURRENT_MAX))temp6++;
-					  if(MS.Speed<4000&&temp6>-PH_CURRENT_MAX)temp6--;
-				}
-				else if(MS.Speed>12000&&!temp4){
-					  if(MS.Speed>4000&&temp6<(PH_CURRENT_MAX))temp6++;
-					  if(MS.Speed<4000&&temp6>-PH_CURRENT_MAX)temp6--;
-				}
+//				if(MS.Speed<12000&&ui8_SPEED_control_flag){
+//					  if(MS.Speed>4000&&temp6<(PH_CURRENT_MAX))temp6++;
+//					  if(MS.Speed<4000&&temp6>-PH_CURRENT_MAX)temp6--;
+//				}
+//				else if(MS.Speed>12000&&!temp4){
+//					  if(MS.Speed>4000&&temp6<(PH_CURRENT_MAX))temp6++;
+//					  if(MS.Speed<4000&&temp6>-PH_CURRENT_MAX)temp6--;
+//				}
+//				else if(MS.Speed<12000&&__HAL_TIM_GET_COUNTER(&htim2)>(MS.Speed+(MS.Speed>>2))&&temp6<(PH_CURRENT_MAX)&&!temp4)temp6++; //if wheel breaks suddenly, increase power
 
-					  //soll und ist vertauscht, da sonst falschrum geregelt wird
-					  //PI_speed.recent_value = 2000;
-//					 if( PI_speed.setpoint)SET_BIT(TIM1->BDTR, TIM_BDTR_MOE);
-//					if ((uint32_tics_filtered>>3)>6000){//control current slower than 3 km/h
-//						PI_speed.limit_i=300;
-//						PI_speed.limit_output=300;
-//						int32_temp_current_target = PI_control(&PI_speed);
-//
-//						if(int32_temp_current_target>300)int32_temp_current_target=300;
-//
-//
-//					}
-//					else{
-//
-//
-//						if(ui8_SPEED_control_flag){//update current target only, if new hall event was detected
-//							PI_speed.limit_i=PH_CURRENT_MAX;
-//							PI_speed.limit_output=PH_CURRENT_MAX;
-//							int32_temp_current_target = PI_control(&PI_speed);
-//							ui8_SPEED_control_flag=0;
-//							}
-////						if(int32_temp_current_target*i8_direction*i8_reverse_flag<0)int32_temp_current_target=0;
-//						}
-//
-//					if(PI_speed.integral_part<0)PI_speed.integral_part=0;
-					  ui8_SPEED_control_flag=0;
+					PI_speed.setpoint=100;
+					 PI_speed.recent_value = internal_tics_to_speedx100(uint32_tics_filtered>>3);
+					 if( PI_speed.setpoint)SET_BIT(TIM1->BDTR, TIM_BDTR_MOE);
+					if (internal_tics_to_speedx100(uint32_tics_filtered>>3)<50){//control current slower than 3 km/h
+						PI_speed.limit_i=100;
+						PI_speed.limit_output=100;
+						int32_temp_current_target = PI_control(&PI_speed);
 
-					temp4++;
-					int32_temp_current_target=temp6;
+						if(int32_temp_current_target>100)int32_temp_current_target=100;
+						if(int32_temp_current_target<-100)int32_temp_current_target=-100;
+					//	if(int32_temp_current_target*i8_direction*i8_recent_rotor_direction<0)int32_temp_current_target=0;
+
+
+					}
+					else{
+
+
+						if(ui8_SPEED_control_flag){//update current target only, if new hall event was detected
+							PI_speed.limit_i=PH_CURRENT_MAX;
+							PI_speed.limit_output=PH_CURRENT_MAX;
+
+							temp6 = i8_direction*i8_recent_rotor_direction*PI_control(&PI_speed);
+							//int32_temp_current_target = PI_control(&PI_speed);
+							//workaround to avoid compiler optimizing this if out...
+							//temp6=int32_temp_current_target;
+							ui8_SPEED_control_flag=0;
+						}
+						int32_temp_current_target=temp6;
+					//	if(int32_temp_current_target*i8_direction*i8_recent_rotor_direction<0)int32_temp_current_target=0;
+
+					}
+
 
 #else // end speedthrottle
 					int32_temp_current_target=uint16_mapped_throttle;
@@ -1035,7 +1038,7 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 				  MS.i_q_setpoint,
 				  MS.i_q,
 				  uint32_SPEEDx100_cumulated>>SPEEDFILTER,
-				  MS.system_state);
+				  MS.u_q);
 		  // sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5]),(uint16_t)(adcData[6])) ;
 		  // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",tic_array[0],tic_array[1],tic_array[2],tic_array[3],tic_array[4],tic_array[5]) ;
 		  i=0;
