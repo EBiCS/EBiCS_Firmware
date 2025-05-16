@@ -88,7 +88,6 @@ void kunteng_init()
 
 void display_update(MotorState_t *MS_U)
 {
-
 	// prepare moving indication info
 	ui8_moving_indication = 0;
 	if (!HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin))
