@@ -853,22 +853,10 @@ PI_speed.limit_i=PH_CURRENT_MAX;
 
 
 
-
-
-//				if(MS.Speed<12000&&ui8_SPEED_control_flag){
-//					  if(MS.Speed>4000&&temp6<(PH_CURRENT_MAX))temp6++;
-//					  if(MS.Speed<4000&&temp6>-PH_CURRENT_MAX)temp6--;
-//				}
-//				else if(MS.Speed>12000&&!temp4){
-//					  if(MS.Speed>4000&&temp6<(PH_CURRENT_MAX))temp6++;
-//					  if(MS.Speed<4000&&temp6>-PH_CURRENT_MAX)temp6--;
-//				}
-//				else if(MS.Speed<12000&&__HAL_TIM_GET_COUNTER(&htim2)>(MS.Speed+(MS.Speed>>2))&&temp6<(PH_CURRENT_MAX)&&!temp4)temp6++; //if wheel breaks suddenly, increase power
-
-					PI_speed.setpoint=100;
+					//PI_speed.setpoint=100;
 					 PI_speed.recent_value = internal_tics_to_speedx100(uint32_tics_filtered>>3);
 					 if( PI_speed.setpoint)SET_BIT(TIM1->BDTR, TIM_BDTR_MOE);
-					if (internal_tics_to_speedx100(uint32_tics_filtered>>3)<50){//control current slower than 3 km/h
+					if (internal_tics_to_speedx100(uint32_tics_filtered>>3)<25&&!temp4){//control current slower than 0,25 km/h
 						PI_speed.limit_i=100;
 						PI_speed.limit_output=100;
 						int32_temp_current_target = PI_control(&PI_speed);
@@ -894,7 +882,7 @@ PI_speed.limit_i=PH_CURRENT_MAX;
 						}
 						int32_temp_current_target=temp6;
 					//	if(int32_temp_current_target*i8_direction*i8_recent_rotor_direction<0)int32_temp_current_target=0;
-
+						temp4++;
 					}
 
 
@@ -1013,9 +1001,10 @@ PI_speed.limit_i=PH_CURRENT_MAX;
 				if ((uint16_full_rotation_counter > 7999
 						|| uint16_half_rotation_counter > 7999)) {
 					SystemState = Stop;
+					uint32_tics_filtered = 1000000;
 					if (READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)) {
 						CLEAR_BIT(TIM1->BDTR, TIM_BDTR_MOE); //Disable PWM if motor is not turning
-						uint32_tics_filtered = 1000000;
+
 						get_standstill_position();
 					}
 
@@ -2016,9 +2005,9 @@ void kingmeter_update(void)
 #if (SPEEDSOURCE  == EXTERNAL)
 		KM.Tx.Wheeltime_ms = ((MS.Speed>>3)*PULSES_PER_REVOLUTION); //>>3 because of 8 kHz counter frequency, so 8 tics per ms
 #else
-		if(__HAL_TIM_GET_COUNTER(&htim2) < 12000)
+		if(uint32_tics_filtered < 1000000)
 		{
-			KM.Tx.Wheeltime_ms = (MS.Speed*GEAR_RATIO*6)>>9; //>>9 because of 500kHZ timer2 frequency, 512 tics per ms should be OK *6 because of 6 hall interrupts per electric revolution.
+			KM.Tx.Wheeltime_ms = (MS.Speed*GEAR_RATIO*6)/2500; //>>9 because of 500kHZ timer2 frequency, 512 tics per ms should be OK *6 because of 6 hall interrupts per electric revolution. /10 fuer bessere lesbarkeit
 
 		}
 		else
@@ -2044,7 +2033,7 @@ void kingmeter_update(void)
 		/* Apply Rx parameters */
 
 		MS.assist_level = KM.Rx.AssistLevel;
-		temp5=map(KM.Rx.AssistLevel,0,255,15000,300);
+		PI_speed.setpoint=KM.Rx.AssistLevel<<1; //map speed setpoint to range 0 ... 510 km/h (/100)
 
 
 		if(KM.Rx.Headlight == KM_HEADLIGHT_OFF)
