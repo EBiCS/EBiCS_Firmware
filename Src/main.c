@@ -375,7 +375,7 @@ PI_speed.gain_p=P_FACTOR_SPEED;
 PI_speed.setpoint = 0;
 PI_speed.limit_output = PH_CURRENT_MAX;
 PI_speed.max_step=1000;
-PI_speed.shift=5;
+PI_speed.shift=8;
 PI_speed.limit_i=PH_CURRENT_MAX;
 
 #endif
@@ -850,10 +850,11 @@ PI_speed.limit_i=PH_CURRENT_MAX;
 				if(uint16_mapped_throttle>int32_temp_current_target){
 
 #ifdef SPEEDTHROTTLE
+					//ramp setpoint to Assist level slowly to avoid jerks
+				if(PI_speed.setpoint<KM.Rx.AssistLevel<<1&&!temp4)PI_speed.setpoint++;
+				if(PI_speed.setpoint>KM.Rx.AssistLevel<<1)PI_speed.setpoint=KM.Rx.AssistLevel<<1;
+//				if(i8_direction==i8_recent_rotor_direction){ // avoid running in the wrong direction
 
-
-
-					//PI_speed.setpoint=100;
 					 PI_speed.recent_value = internal_tics_to_speedx100(uint32_tics_filtered>>3);
 					 if( PI_speed.setpoint)SET_BIT(TIM1->BDTR, TIM_BDTR_MOE);
 					if (internal_tics_to_speedx100(uint32_tics_filtered>>3)<25&&!temp4){//control current slower than 0,25 km/h
@@ -874,16 +875,22 @@ PI_speed.limit_i=PH_CURRENT_MAX;
 							PI_speed.limit_i=PH_CURRENT_MAX;
 							PI_speed.limit_output=PH_CURRENT_MAX;
 
-							temp6 = i8_direction*i8_recent_rotor_direction*PI_control(&PI_speed);
+							temp6 = PI_control(&PI_speed);
+							if(temp6<-100)temp6=-100;
+
+
 							//int32_temp_current_target = PI_control(&PI_speed);
 							//workaround to avoid compiler optimizing this if out...
 							//temp6=int32_temp_current_target;
 							ui8_SPEED_control_flag=0;
 						}
 						int32_temp_current_target=temp6;
-					//	if(int32_temp_current_target*i8_direction*i8_recent_rotor_direction<0)int32_temp_current_target=0;
-						temp4++;
 					}
+//				} // wrong direction
+//				else int32_temp_current_target=0;
+					//	if(int32_temp_current_target*i8_direction*i8_recent_rotor_direction<0)int32_temp_current_target=0;
+				temp4++;
+
 
 
 #else // end speedthrottle
@@ -891,7 +898,10 @@ PI_speed.limit_i=PH_CURRENT_MAX;
 #endif  //end speedthrottle
 
 				  } //end else of throttle override
-
+				else {
+					if(PI_speed.setpoint>0)PI_speed.setpoint--;
+					PI_speed.integral_part=0;
+				}
 #endif //end throttle override
 
 				} //end else for normal riding
@@ -1002,9 +1012,9 @@ PI_speed.limit_i=PH_CURRENT_MAX;
 						|| uint16_half_rotation_counter > 7999)) {
 					SystemState = Stop;
 					uint32_tics_filtered = 1000000;
+
 					if (READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)) {
 						CLEAR_BIT(TIM1->BDTR, TIM_BDTR_MOE); //Disable PWM if motor is not turning
-
 						get_standstill_position();
 					}
 
@@ -2007,7 +2017,7 @@ void kingmeter_update(void)
 #else
 		if(uint32_tics_filtered < 1000000)
 		{
-			KM.Tx.Wheeltime_ms = (MS.Speed*GEAR_RATIO*6)/2500; //>>9 because of 500kHZ timer2 frequency, 512 tics per ms should be OK *6 because of 6 hall interrupts per electric revolution. /10 fuer bessere lesbarkeit
+			KM.Tx.Wheeltime_ms = (MS.Speed*GEAR_RATIO*6)/2600; //>>9 because of 500kHZ timer2 frequency, 512 tics per ms should be OK *6 because of 6 hall interrupts per electric revolution. /10 fuer bessere lesbarkeit
 
 		}
 		else
@@ -2033,7 +2043,7 @@ void kingmeter_update(void)
 		/* Apply Rx parameters */
 
 		MS.assist_level = KM.Rx.AssistLevel;
-		PI_speed.setpoint=KM.Rx.AssistLevel<<1; //map speed setpoint to range 0 ... 510 km/h (/100)
+
 
 
 		if(KM.Rx.Headlight == KM_HEADLIGHT_OFF)
