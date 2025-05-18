@@ -153,7 +153,7 @@ q31_t q31_rotorposition_PLL = 0;
 q31_t q31_angle_per_tic = 0;
 
 uint8_t ui8_UART_Counter=0;
-int8_t i8_recent_rotor_direction=1;
+int8_t i8_recent_rotor_direction=REVERSE;
 int16_t i16_hall_order=1;
 uint16_t ui16_erps=0;
 
@@ -333,7 +333,7 @@ int main(void)
   MX_GPIO_Init();
   MX_DMA_Init();
   MX_USART1_UART_Init();
-
+  KM.Rx.AssistLevel=250;
   //initialize MS struct.
   MS.hall_angle_detect_flag=1;
   MS.Speed=128000;
@@ -852,20 +852,17 @@ PI_speed.limit_i=PH_CURRENT_MAX;
 #ifdef SPEEDTHROTTLE
 					//ramp setpoint to Assist level slowly to avoid jerks
 				if(PI_speed.setpoint<KM.Rx.AssistLevel<<1&&!temp4)PI_speed.setpoint++;
-				if(PI_speed.setpoint>KM.Rx.AssistLevel<<1)PI_speed.setpoint=KM.Rx.AssistLevel<<1;
-//				if(i8_direction==i8_recent_rotor_direction){ // avoid running in the wrong direction
+				if(PI_speed.setpoint>KM.Rx.AssistLevel<<1&&!temp4)PI_speed.setpoint--;
+
 
 					 PI_speed.recent_value = internal_tics_to_speedx100(uint32_tics_filtered>>3);
-					 if( PI_speed.setpoint)SET_BIT(TIM1->BDTR, TIM_BDTR_MOE);
+					//if( PI_speed.setpoint)SET_BIT(TIM1->BDTR, TIM_BDTR_MOE); //MOE has to be set, otherwise the PI control returns 0
 					if (internal_tics_to_speedx100(uint32_tics_filtered>>3)<25&&!temp4){//control current slower than 0,25 km/h
 						PI_speed.limit_i=100;
 						PI_speed.limit_output=100;
-						int32_temp_current_target = PI_control(&PI_speed);
-
-						if(int32_temp_current_target>100)int32_temp_current_target=100;
-						if(int32_temp_current_target<-100)int32_temp_current_target=-100;
-					//	if(int32_temp_current_target*i8_direction*i8_recent_rotor_direction<0)int32_temp_current_target=0;
-
+						temp6 = PI_control(&PI_speed);
+						if(temp6>100)temp6=100;
+						if(temp6<-100)temp6=-100;
 
 					}
 					else{
@@ -874,22 +871,14 @@ PI_speed.limit_i=PH_CURRENT_MAX;
 						if(ui8_SPEED_control_flag){//update current target only, if new hall event was detected
 							PI_speed.limit_i=PH_CURRENT_MAX;
 							PI_speed.limit_output=PH_CURRENT_MAX;
-
 							temp6 = PI_control(&PI_speed);
-							if(temp6<-100)temp6=-100;
-
-
-							//int32_temp_current_target = PI_control(&PI_speed);
-							//workaround to avoid compiler optimizing this if out...
-							//temp6=int32_temp_current_target;
 							ui8_SPEED_control_flag=0;
 						}
-						int32_temp_current_target=temp6;
+
 					}
-//				} // wrong direction
-//				else int32_temp_current_target=0;
-					//	if(int32_temp_current_target*i8_direction*i8_recent_rotor_direction<0)int32_temp_current_target=0;
-				temp4++;
+					if(i8_direction!=i8_recent_rotor_direction)temp6=0; //to avoid full power backwards
+					int32_temp_current_target=temp6;
+
 
 
 
@@ -898,10 +887,8 @@ PI_speed.limit_i=PH_CURRENT_MAX;
 #endif  //end speedthrottle
 
 				  } //end else of throttle override
-				else {
-					if(PI_speed.setpoint>0)PI_speed.setpoint--;
-					PI_speed.integral_part=0;
-				}
+				else if(PI_speed.setpoint>0&&!temp4)PI_speed.setpoint--;
+				temp4++;
 #endif //end throttle override
 
 				} //end else for normal riding
@@ -943,7 +930,7 @@ PI_speed.limit_i=PH_CURRENT_MAX;
 
 //------------------------------------------------------------------------------------------------------------
 				//enable PWM if power is wanted
-	  if (MS.i_q_setpoint&&!READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)){
+	  if ((MS.i_q_setpoint||PI_speed.setpoint)&&!READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)){
 		  MS.system_state=Running;
 		  uint16_half_rotation_counter=0;
 		  uint16_full_rotation_counter=0;
@@ -1012,7 +999,7 @@ PI_speed.limit_i=PH_CURRENT_MAX;
 						|| uint16_half_rotation_counter > 7999)) {
 					SystemState = Stop;
 					uint32_tics_filtered = 1000000;
-
+					PI_speed.integral_part=0;
 					if (READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)) {
 						CLEAR_BIT(TIM1->BDTR, TIM_BDTR_MOE); //Disable PWM if motor is not turning
 						get_standstill_position();
@@ -1028,16 +1015,17 @@ PI_speed.limit_i=PH_CURRENT_MAX;
 		  //print values for debugging
 
 
-		  sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %u, %d\r\n",
+		  sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n",
 				  adcData[1],
-				  MS.Speed,
-				  int32_temp_current_target,
-				  temp6,
-				  temp4,
+				  PI_speed.setpoint,
+				  PI_speed.recent_value,
+				  PI_speed.setpoint-PI_speed.recent_value,
+				  PI_speed.integral_part,
 				  MS.i_q_setpoint,
-				  MS.i_q,
-				  uint32_SPEEDx100_cumulated>>SPEEDFILTER,
-				  MS.u_q);
+				  i8_direction-i8_recent_rotor_direction,
+				  temp6,
+				  MS.u_q
+				  );
 		  // sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n",(uint16_t)adcData[0],(uint16_t)adcData[1],(uint16_t)adcData[2],(uint16_t)adcData[3],(uint16_t)(adcData[4]),(uint16_t)(adcData[5]),(uint16_t)(adcData[6])) ;
 		  // sprintf_(buffer, "%d, %d, %d, %d, %d, %d\r\n",tic_array[0],tic_array[1],tic_array[2],tic_array[3],tic_array[4],tic_array[5]) ;
 		  i=0;
