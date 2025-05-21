@@ -103,19 +103,19 @@ void display_update(MotorState_t *MS_U)
 
 	// calc battery pack state of charge (SOC)
 	ui32_battery_volts = (MS_U->Voltage * CAL_BAT_V);
-	if (ui32_battery_volts > ((uint16_t)BATTERY_LEVEL_5))
+	if (ui32_battery_volts > (BATTERY_LEVEL_5))
 	{
 		ui8_battery_soc = 16;
 	} // 4 bars | full
-	else if (ui32_battery_volts > ((uint16_t)BATTERY_LEVEL_4))
+	else if (ui32_battery_volts > (BATTERY_LEVEL_4))
 	{
 		ui8_battery_soc = 12;
 	} // 3 bars
-	else if (ui32_battery_volts > ((uint16_t)BATTERY_LEVEL_3))
+	else if (ui32_battery_volts > (BATTERY_LEVEL_3))
 	{
 		ui8_battery_soc = 8;
 	} // 2 bars
-	else if (ui32_battery_volts > ((uint16_t)BATTERY_LEVEL_2))
+	else if (ui32_battery_volts > (BATTERY_LEVEL_2))
 	{
 		ui8_battery_soc = 4;
 	} // 1 bar
