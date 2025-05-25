@@ -102,7 +102,8 @@ void display_update(MotorState_t *MS_U)
 	// if (pas_is_set ()) { ui8_moving_indication |= (1 << 4); }
 
 	// calc battery pack state of charge (SOC)
-	ui32_battery_volts = (MS_U->Voltage * CAL_BAT_V);
+	// filter for not so noisy battery indicaton.
+	ui32_battery_volts = ((MS_U->Voltage * CAL_BAT_V) * ui32_battery_volts * 255) / 256;
 	if (ui32_battery_volts > (BATTERY_LEVEL_5))
 	{
 		ui8_battery_soc = 16;
