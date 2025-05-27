@@ -15,7 +15,7 @@ uint8_t ui8_j;
 uint8_t ui8_crc;
 uint8_t ui8_last_XOR;
 uint16_t ui16_wheel_period_ms = 4500;
-uint32_t ui32_battery_volts = 36;
+uint32_t ui32_battery_volts = 490000;
 uint8_t ui8_battery_soc = 12;
 uint8_t ui16_error;
 static uint8_t ui8_rx_buffer[13];
@@ -103,7 +103,7 @@ void display_update(MotorState_t *MS_U)
 
 	// calc battery pack state of charge (SOC)
 	// filter for not so noisy battery indicaton.
-	ui32_battery_volts = ((MS_U->Voltage * CAL_BAT_V) * ui32_battery_volts * 255) / 256;
+	ui32_battery_volts = ((MS_U->Voltage * CAL_BAT_V) + (ui32_battery_volts * 31)) / 32;
 	if (ui32_battery_volts > (BATTERY_LEVEL_5))
 	{
 		ui8_battery_soc = 16;
