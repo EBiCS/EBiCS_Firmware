@@ -120,7 +120,7 @@
 
 //---------------------------------------------------------------------
 //Display settings
-#define DISPLAY_TYPE DISPLAY_TYPE_M365DASHBOARD
+#define DISPLAY_TYPE DISPLAY_TYPE_DEBUG
 #define BATTERY_COMMUNICATION
 
 //---------------------------------------------------------------------
@@ -131,6 +131,6 @@
 //#define ADC_BRAKE
 
 //---------------------------------------------------------------------
-#define AUTODETECT 0
+#define AUTODETECT 1
 
 #endif /* CONFIG_H_ */
