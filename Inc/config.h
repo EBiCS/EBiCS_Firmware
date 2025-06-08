@@ -96,7 +96,7 @@
 #define BATTERYCURRENT_MAX 14000
 #define REVERSE -1 //1 for normal direction, -1 for reverse
 #define PUSHASSIST_CURRENT 300
-#define VOLTAGE_MIN 1320 //33V
+#define VOLTAGE_MIN 800 //20V
 
 // motor current limits for invividual modes in mA, see default settings at https://max.cfw.sh/#
 #define PH_CURRENT_MAX_ECO 300
@@ -110,7 +110,7 @@
 
 // battery voltage limits in mV
 #define BATTERYVOLTAGE_MAX 41500
-#define BATTERYVOLTAGE_MIN 33000
+#define BATTERYVOLTAGE_MIN 20000
 
 //---------------------------------------------------------------------
 //torquesensor settings
@@ -120,7 +120,7 @@
 
 //---------------------------------------------------------------------
 //Display settings
-#define DISPLAY_TYPE DISPLAY_TYPE_DEBUG
+#define DISPLAY_TYPE DISPLAY_TYPE_M365DASHBOARD
 #define BATTERY_COMMUNICATION
 
 //---------------------------------------------------------------------
@@ -131,6 +131,6 @@
 //#define ADC_BRAKE
 
 //---------------------------------------------------------------------
-#define AUTODETECT 1
+#define AUTODETECT 0
 
 #endif /* CONFIG_H_ */
