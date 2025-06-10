@@ -783,7 +783,7 @@ int main(void)
 				// last priority normal ride conditiones
 				else {
 #if (RIDEMODE == RIDEMODE_KCLAMBER_KASSETTE_SENSOR)
-					int32_temp_current_target = (TS_COEF*hubdata.HS_Torque*MS.assist_level)>>8;
+					int32_temp_current_target = (((TS_COEF*hubdata.HS_Torque*MS.assist_level)>>8)*(16+(uint32_SPEEDx100_cumulated>>(4*SPEEDFILTER))))>>6;
 					if(int32_temp_current_target>PH_CURRENT_MAX)int32_temp_current_target=PH_CURRENT_MAX;
 					if(hubdata.HS_Pedalposition!=pedalposition_old){
 						pedalposition_old=hubdata.HS_Pedalposition;
@@ -944,7 +944,7 @@ int main(void)
 				 hubdata.HS_Torque,
 				 uint16_mapped_throttle,
 				 MS.i_q_setpoint,
-				 adcData[1],
+				 (adcData[0]*CAL_V)>>1,
 				 int32_temp_current_target,
 				// (uint32_battery_current_cumulated>>4)*28,
 				// (q31_t_Battery_Current_accumulated>>8)*i8_direction*i8_reverse_flag,

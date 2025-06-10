@@ -27,7 +27,7 @@
 #define TRIGGER_DEFAULT 2020
 #define _T 2028
 #define CAL_BAT_V 256
-#define CAL_V 25
+#define CAL_V 33 //double must bw 16.5 for JYT, shift right 1 for real value
 #define CAL_I 30LL<<8
 #define INDUCTANCE 6LL
 #define RESISTANCE 40LL
@@ -68,7 +68,7 @@
 //#define DIRDET
 #define FRAC_HIGH 30
 #define FRAC_LOW 15
-#define TS_COEF 12 			//12 for Kclamber Sensor 1200 for T15 BB sensor
+#define TS_COEF 6 			//12 for Kclamber Sensor 1200 for T15 BB sensor
 #define RIDEMODE RIDEMODE_KCLAMBER_KASSETTE_SENSOR
 //#define TQONAD1
 
@@ -79,7 +79,7 @@
 
 //-------------------------------Speed settings
 #define WHEEL_CIRCUMFERENCE 2200
-#define GEAR_RATIO 11 //dummy for testing
+#define GEAR_RATIO 105 //dummy for testing
 #define SPEEDLIMIT 25
 #define PULSES_PER_REVOLUTION 1
 #define REVERSE -1

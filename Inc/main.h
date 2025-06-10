@@ -83,7 +83,7 @@
 #define _1_1_PAS_GPIO_Port GPIOD
 
 //#define NCTE
-//#define LEGALFLAG
+#define LEGALFLAG
 #define BATTERYVOLTAGE_MAX 41500
 #define R_TEMP_PULLUP 0
 
