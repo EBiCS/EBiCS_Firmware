@@ -1,4 +1,4 @@
-if/*
+/*
  * config.h
  *
  *  Automatically created by Lishui Parameter Configurator
