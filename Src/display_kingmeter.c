@@ -416,7 +416,11 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
     			                KM_ctx->Rx.Throttle           = (KM_Message[5] & 0x04) >> 2;    // KM_THROTTLE_OFF / KM_THROTTLE_ON
     			                KM_ctx->Rx.CruiseControl      = (KM_Message[5] & 0x02) >> 1;    // KM_CRUISE_OFF / KM_CRUISE_ON
     			                KM_ctx->Rx.OverSpeed          = (KM_Message[5] & 0x01);         // KM_OVERSPEED_NO / KM_OVERSPEED_YES
-
+								
+                                if (KM_ctx->Rx.PushAssist)
+								{
+                                    KM_ctx->Rx.SPEEDMAX_Limit = KM_ctx->Rx.SPEEDMAX_Limit == SPEEDLIMIT ? BRIDLED_SPEEDLIMIT : SPEEDLIMIT;
+                                }
    			            		}
     			            	else {// printf_("Checksum fail! \n ");
 
