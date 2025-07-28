@@ -89,7 +89,7 @@
 
 //#define NCTE
 //#define LEGALFLAG
-#define BATTERYVOLTAGE_MAX 53000
+#define BATTERYVOLTAGE_MAX 42500
 #define R_TEMP_PULLUP 0
 #define INT_TEMP_25 0
 #define USE_FIX_POSITIONS 0
