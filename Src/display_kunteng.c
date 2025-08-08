@@ -98,14 +98,14 @@ if (!HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin)) { ui8_moving_indication |= (1
 
   // calc battery pack state of charge (SOC)
   if(MS_U->Battery_Current<500){
-			  if (ui32_battery_volts > ((uint16_t) BATTERY_LEVEL_4+500)) { ui8_battery_soc = 16; } // 4 bars | full
-			 	else if ((ui32_battery_volts > ((uint16_t) BATTERY_LEVEL_4))&&(ui8_battery_soc != 12)) { ui8_battery_soc = 16; } // 4 bars buffer zone
-			 	else if (ui32_battery_volts > ((uint16_t) BATTERY_LEVEL_3+500)) { ui8_battery_soc = 12; } // 3 bars
-			 	else if ((ui32_battery_volts > ((uint16_t) BATTERY_LEVEL_3))&&(ui8_battery_soc != 8)) { ui8_battery_soc = 12; } // 3 bars buffer zone
-			 	else if (ui32_battery_volts > ((uint16_t) BATTERY_LEVEL_2+500)) { ui8_battery_soc = 8; } // 2 bars
-			 	else if ((ui32_battery_volts > ((uint16_t) BATTERY_LEVEL_2))&&(ui8_battery_soc != 4)) { ui8_battery_soc = 8; } // 2 bars buffer zone
-			 	else if (ui32_battery_volts > ((uint16_t) BATTERY_LEVEL_1)) { ui8_battery_soc = 4; } // 1 bar
-			 	else if (ui32_battery_volts > ((uint16_t) BATTERY_LEVEL_0)) { ui8_battery_soc = 3; } // empty
+			  if (ui32_battery_volts > ((uint16_t) BATTERY_LEVEL_4+5000)/250) { ui8_battery_soc = 16; } // 4 bars | full
+			 	else if ((ui32_battery_volts > ((uint16_t) BATTERY_LEVEL_4)/250)&&(ui8_battery_soc != 12)) { ui8_battery_soc = 16; } // 4 bars buffer zone
+			 	else if (ui32_battery_volts > ((uint16_t) BATTERY_LEVEL_3+5000)/250) { ui8_battery_soc = 12; } // 3 bars
+			 	else if ((ui32_battery_volts > ((uint16_t) BATTERY_LEVEL_3)/250)&&(ui8_battery_soc != 8)) { ui8_battery_soc = 12; } // 3 bars buffer zone
+			 	else if (ui32_battery_volts > ((uint16_t) BATTERY_LEVEL_2+5000)/250) { ui8_battery_soc = 8; } // 2 bars
+			 	else if ((ui32_battery_volts > ((uint16_t) BATTERY_LEVEL_2)/250)&&(ui8_battery_soc != 4)) { ui8_battery_soc = 8; } // 2 bars buffer zone
+			 	else if (ui32_battery_volts > ((uint16_t) BATTERY_LEVEL_1)/250) { ui8_battery_soc = 4; } // 1 bar
+			 	else if (ui32_battery_volts > ((uint16_t) BATTERY_LEVEL_0/250)) { ui8_battery_soc = 3; } // empty
 			 	else { ui8_battery_soc = 1; } // below empty level
 	  }
   //ui16_wheel_period_ms = (MS_U->Speed*PULSES_PER_REVOLUTION)>>3; //for External speedsensor
