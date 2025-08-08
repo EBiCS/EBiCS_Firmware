@@ -45,6 +45,7 @@
 
 //----------------------------------------------------------------------
 //Battery bar settings for Kunteng and Bafang Display
+#define BATTERY_LEVEL_0 320000
 #define BATTERY_LEVEL_1 323000
 #define BATTERY_LEVEL_2 329000
 #define BATTERY_LEVEL_3 344000
