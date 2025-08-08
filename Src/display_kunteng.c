@@ -97,12 +97,17 @@ if (!HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin)) { ui8_moving_indication |= (1
 
 
   // calc battery pack state of charge (SOC)
-  ui32_battery_volts =  (MS_U->Voltage*CAL_BAT_V*256)/10000;  //hier noch die richtige Kalibrierung einbauen (*256 für bessere Auflösung)
-  if (ui32_battery_volts > ((uint16_t) BATTERY_PACK_VOLTS_80)) { ui8_battery_soc = 16; } // 4 bars | full
-  else if (ui32_battery_volts > ((uint16_t) BATTERY_PACK_VOLTS_60)) { ui8_battery_soc = 12; } // 3 bars
-  else if (ui32_battery_volts > ((uint16_t) BATTERY_PACK_VOLTS_40)) { ui8_battery_soc = 8; } // 2 bars
-  else if (ui32_battery_volts > ((uint16_t) BATTERY_PACK_VOLTS_20)) { ui8_battery_soc = 4; } // 1 bar
-  else { ui8_battery_soc = 3; } // empty
+  if(MS_U->Battery_Current<500){
+			  if (ui32_battery_volts > ((uint16_t) BATTERY_LEVEL_4+5000)/250) { ui8_battery_soc = 16; } // 4 bars | full
+			 	else if ((ui32_battery_volts > ((uint16_t) BATTERY_LEVEL_4)/250)&&(ui8_battery_soc != 12)) { ui8_battery_soc = 16; } // 4 bars buffer zone
+			 	else if (ui32_battery_volts > ((uint16_t) BATTERY_LEVEL_3+5000)/250) { ui8_battery_soc = 12; } // 3 bars
+			 	else if ((ui32_battery_volts > ((uint16_t) BATTERY_LEVEL_3)/250)&&(ui8_battery_soc != 8)) { ui8_battery_soc = 12; } // 3 bars buffer zone
+			 	else if (ui32_battery_volts > ((uint16_t) BATTERY_LEVEL_2+5000)/250) { ui8_battery_soc = 8; } // 2 bars
+			 	else if ((ui32_battery_volts > ((uint16_t) BATTERY_LEVEL_2)/250)&&(ui8_battery_soc != 4)) { ui8_battery_soc = 8; } // 2 bars buffer zone
+			 	else if (ui32_battery_volts > ((uint16_t) BATTERY_LEVEL_1)/250) { ui8_battery_soc = 4; } // 1 bar
+			 	else if (ui32_battery_volts > ((uint16_t) BATTERY_LEVEL_0/250)) { ui8_battery_soc = 3; } // empty
+			 	else { ui8_battery_soc = 1; } // below empty level
+	  }
   //ui16_wheel_period_ms = (MS_U->Speed*PULSES_PER_REVOLUTION)>>3; //for External speedsensor
   ui16_wheel_period_ms= ((MS_U->Speed)*6*(ui8_gear_ratio/2)/500);
   //ui16_wheel_period_ms= ((MS_U->Speed)*6*GEAR_RATIO/500); //*6 because 6 hall interrupts per revolution, /500 because of 500 kHz timer setting
@@ -134,7 +139,7 @@ if (!HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin)) { ui8_moving_indication |= (1
 
 
   //ui8_tx_buffer [8] =  (uint8_t)(((ui16_BatteryCurrent-ui16_current_cal_b+1)<<2)/current_cal_a);
-  ui8_tx_buffer [8] =  (uint8_t)(MS_U->Battery_Current*MS_U->Voltage*CAL_BAT_V/82010000);   //Kalibrierung nach Binatone, empririsch ermittelt. Strom und Spannung in Milli, 13W pro digit
+  ui8_tx_buffer [8] = (uint8_t)(MS_U->Battery_Current/250);
   // B9: motor temperature
   ui8_tx_buffer [9] = MS_U->Temperature-15; //according to documentation at endless sphere	
   // B10 and B11: 0
