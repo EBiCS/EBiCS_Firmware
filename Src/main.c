@@ -812,7 +812,11 @@ int main(void)
 			//next priority: undervoltage protection
 			else if(MS.Voltage<VOLTAGE_MIN)int32_temp_current_target=0;
 			//next priority: push assist
-			else if(ui8_Push_Assist_flag)int32_temp_current_target=(MS.assist_level*PUSHASSIST_CURRENT)>>8; //does not work for BAFANG and Kunteng protocol actually
+#if (DISPLAY_TYPE == DISPLAY_TYPE_KUNTENG)
+			else if(ui8_Walk_Assist_flag){int32_temp_current_target=(PUSHASSIST_CURRENT);} //Now working for Kunteng protocol.
+#else
+			else if(ui8_Push_Assist_flag)int32_temp_current_target=(MS.assist_level*PUSHASSIST_CURRENT)>>8; //does not work for BAFANG
+#endif
 			// last priority normal ride conditiones
 			else {
 
