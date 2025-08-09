@@ -9,7 +9,7 @@
 #define DISPLAY_KUNTENG_H_
 
 #include "config.h"
-
+#define BATTERY_LEVEL_0 320000
 void kunteng_init();
 void display_update(MotorState_t* MS_U);
 void check_message(MotorState_t* MS_D, MotorParams_t* MP_D);
