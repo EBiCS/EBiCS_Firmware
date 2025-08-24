@@ -63,7 +63,7 @@
 
 //------------------------------ Ride mode setting
 #define NUMBER_OF_PAS_MAGNETS 12
-#define PAS_TIMEOUT 8000
+#define PAS_TIMEOUT 3000
 #define RAMP_END 1600
 //#define DIRDET
 #define FRAC_HIGH 30
@@ -79,7 +79,7 @@
 
 //-------------------------------Speed settings
 #define WHEEL_CIRCUMFERENCE 2200
-#define GEAR_RATIO 105 //dummy for testing
+#define GEAR_RATIO 100 //dummy for testing
 #define SPEEDLIMIT 25
 #define PULSES_PER_REVOLUTION 1
 #define REVERSE -1
