@@ -357,7 +357,7 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
   PI_id.setpoint = 0;
   PI_id.limit_output = _U_MAX;
   PI_id.max_step=5000;
-  PI_id.shift=10;
+  PI_id.shift=11;
   PI_id.limit_i=1800;
 
   PI_iq.gain_i=I_FACTOR_I_Q;
@@ -365,7 +365,7 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
   PI_iq.setpoint = 0;
   PI_iq.limit_output = _U_MAX;
   PI_iq.max_step=5000;
-  PI_iq.shift=10;
+  PI_iq.shift=11;
   PI_iq.limit_i=_U_MAX;
 
 #ifdef SPEEDTHROTTLE
@@ -629,7 +629,7 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 
 	  //process regualr ADC
 	  if(ui8_adc_regular_flag){
-		ui32_torque_raw_cumulated -= ui32_torque_raw_cumulated>>4;
+		ui32_torque_raw_cumulated -= ui32_torque_raw_cumulated>>3;
 	#ifdef TQONAD1
 		ui32_torque_raw_cumulated += adcData[6]; //get value from AD1 PB1
 	#else
@@ -638,7 +638,7 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 		ui32_brake_adc_cumulated -= ui32_brake_adc_cumulated>>4;
 		ui32_brake_adc_cumulated+=adcData[5];//get value for analog brake from AD2 = PB0
 		ui16_brake_adc=ui32_brake_adc_cumulated>>4;
-		ui16_torque = ui32_torque_raw_cumulated>>4;
+		ui16_torque = ui32_torque_raw_cumulated>>3;
 
 		ui8_adc_regular_flag=0;
 
@@ -659,7 +659,7 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 		  uint32_PAS_counter =0;
 		  ui8_PAS_flag=0;
 		  //read in and sum up torque-signal within one crank revolution (for sempu sensor 32 PAS pulses/revolution, 2^5=32)
-		  uint32_torque_cumulated -= uint32_torque_cumulated>>5;
+		  uint32_torque_cumulated -= uint32_torque_cumulated>>3;
 #ifdef NCTE
 		  if(ui16_torque<TORQUE_OFFSET)uint32_torque_cumulated += (TORQUE_OFFSET-ui16_torque);
 #else
@@ -758,7 +758,7 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 
 		#ifdef TS_MODE //torque-sensor mode
 					//calculate current target form torque, cadence and assist level
-					int32_temp_current_target = (TS_COEF*(int16_t)(MS.assist_level)* (uint32_torque_cumulated>>5)/uint32_PAS)>>8; //>>5 aus Mittelung über eine Kurbelumdrehung, >>8 aus KM5S-Protokoll Assistlevel 0..255
+					int32_temp_current_target = (TS_COEF*(int16_t)(MS.assist_level)* (uint32_torque_cumulated>>3)/uint32_PAS)>>8; //>>5 aus Mittelung über eine Kurbelumdrehung, >>8 aus KM5S-Protokoll Assistlevel 0..255
 
 					//limit currest target to max value
 					if(int32_temp_current_target>PH_CURRENT_MAX) int32_temp_current_target = PH_CURRENT_MAX;
