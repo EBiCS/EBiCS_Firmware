@@ -59,9 +59,9 @@
 
 //----------------------------------------------------------------------
 //PI-control factor settings
-#define P_FACTOR_I_Q 50
+#define P_FACTOR_I_Q 15
 #define I_FACTOR_I_Q 2
-#define P_FACTOR_I_D 50
+#define P_FACTOR_I_D 25
 #define I_FACTOR_I_D 2
 #define P_FACTOR_SPEED 1
 #define I_FACTOR_SPEED 10
@@ -92,8 +92,8 @@
 
 //---------------------------------------------------------------------
 //power settings
-#define PH_CURRENT_MAX 1200
-#define BATTERYCURRENT_MAX 12000
+#define PH_CURRENT_MAX 1400
+#define BATTERYCURRENT_MAX 15000
 #define REVERSE 1 //1 for normal direction, -1 for reverse
 #define PUSHASSIST_CURRENT 300
 #define VOLTAGE_MIN 1320 //33V
