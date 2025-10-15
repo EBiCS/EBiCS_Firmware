@@ -149,6 +149,7 @@ volatile uint8_t ui8_SPEED_flag=0;
 volatile uint8_t ui8_SPEED_control_flag=0;
 volatile uint8_t ui8_BC_limit_flag=0;  //flag for Battery current limitation
 volatile uint8_t ui8_6step_flag=0;
+int16_t i16_60deg_Hall_flag=0;
 uint32_t uint32_PAS_counter= PAS_TIMEOUT+1;
 uint32_t uint32_PAS_HIGH_counter= 0;
 uint32_t uint32_PAS_HIGH_accumulated= 32000;
@@ -196,13 +197,20 @@ q31_t tic_array[6];
 
 //Rotor angle scaled from degree to q31 for arm_math. -180Â°-->-2^31, 0Â°-->0, +180Â°-->+2^31
 const q31_t deg_30 = 357913941;
-
+// angles for 120� setup
 q31_t Hall_13 = 0;
 q31_t Hall_32 = 0;
 q31_t Hall_26 = 0;
 q31_t Hall_64 = 0;
 q31_t Hall_51 = 0;
 q31_t Hall_45 = 0;
+// angles for 60� setup
+q31_t Hall_46 = 0;
+q31_t Hall_67 = 0;
+q31_t Hall_73 = 0;
+q31_t Hall_31 = 0;
+q31_t Hall_10 = 0;
+q31_t Hall_4 = 0;
 
 const q31_t tics_lower_limit = WHEEL_CIRCUMFERENCE*5*3600/(6*GEAR_RATIO*SPEEDLIMIT*10); //tics=wheelcirc*timerfrequency/(no. of hallevents per rev*gear-ratio*speedlimit)*3600/1000000
 const q31_t tics_higher_limit = WHEEL_CIRCUMFERENCE*5*3600/(6*GEAR_RATIO*(SPEEDLIMIT+2)*10);
@@ -215,7 +223,8 @@ uint16_t VirtAddVarTab[NB_OF_VAR] = { 	EEPROM_POS_HALL_ORDER,
 		EEPROM_POS_HALL_32,
 		EEPROM_POS_HALL_26,
 		EEPROM_POS_HALL_64,
-		EEPROM_INT_TEMP_V25
+		EEPROM_INT_TEMP_V25,
+		EEPROM_HALL_60
 };
 
 enum state {Stop, SixStep, Regen, Running, BatteryCurrentLimit, Interpolation, PLL, IdleRun};
@@ -278,7 +287,7 @@ void init_watchdog(void);
 void MX_IWDG_Init(void);
 void get_internal_temp_offset(void);
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
-
+void Set_Hall_Logic(void);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
@@ -615,6 +624,8 @@ int main(void)
 	}
 
 #else
+	EE_ReadVariable(EEPROM_HALL_60, &i16_60deg_Hall_flag);
+
 	i16_hall_order = HALL_ORDER;
 	ui32_KV = KV;
 	Hall_45 = HALL_45;
@@ -623,6 +634,14 @@ int main(void)
 	Hall_32 = HALL_32;
 	Hall_26 = HALL_26;
 	Hall_64 = HALL_64;
+
+	q31_t Hall_46 = HALL_60_46;
+	q31_t Hall_67 = HALL_60_67;
+	q31_t Hall_73 = HALL_60_73;
+	q31_t Hall_31 = HALL_60_31;
+	q31_t Hall_10 = HALL_60_10;
+	q31_t Hall_4 = HALL_60_4;
+
 #endif
 
 
@@ -1867,6 +1886,30 @@ int main(void)
 		if(MS.hall_angle_detect_flag){ //only process, if autodetect procedere is fininshed
 			ui8_hall_state_old=ui8_hall_state;
 		}
+#if (USE_FIX_POSITIONS)
+//Check for 60� hall configuration
+		if(ui8_hall_state==0)SET_BIT(i16_60deg_Hall_flag,0);
+		if(ui8_hall_state==7)SET_BIT(i16_60deg_Hall_flag,1);
+		if(!READ_BIT(i16_60deg_Hall_flag,2)&&READ_BIT(i16_60deg_Hall_flag,0)&&READ_BIT(i16_60deg_Hall_flag,1)){
+			SET_BIT(i16_60deg_Hall_flag,2);
+			CLEAR_BIT(i16_60deg_Hall_flag,3);
+			CLEAR_BIT(i16_60deg_Hall_flag,4);
+			CLEAR_BIT(i16_60deg_Hall_flag,5);
+			Set_Hall_Logic();
+
+		}
+//Check for 120� hall configuration
+		if(ui8_hall_state==2)SET_BIT(i16_60deg_Hall_flag,3);
+		if(ui8_hall_state==5)SET_BIT(i16_60deg_Hall_flag,4);
+		if(!READ_BIT(i16_60deg_Hall_flag,5)&&READ_BIT(i16_60deg_Hall_flag,3)&&READ_BIT(i16_60deg_Hall_flag,4)){
+			SET_BIT(i16_60deg_Hall_flag,5);
+			CLEAR_BIT(i16_60deg_Hall_flag,0);
+			CLEAR_BIT(i16_60deg_Hall_flag,1);
+			CLEAR_BIT(i16_60deg_Hall_flag,2);
+			Set_Hall_Logic();
+
+		}
+#endif
 
 		uint32_tics_filtered-=uint32_tics_filtered>>3;
 		uint32_tics_filtered+=ui16_timertics;
@@ -2573,6 +2616,11 @@ int main(void)
 		return (q31_d_dc);
 	}
 
+void Set_Hall_Logic(void){
+	HAL_FLASH_Unlock();
+	EE_WriteVariable(EEPROM_HALL_60, &i16_60deg_Hall_flag);
+	HAL_FLASH_Lock();
+	}
 #if (R_TEMP_PULLUP)
 	int16_t T_NTC(uint16_t ADC) // ADC 12 Bit, 10k Pullup, Rückgabewert in °C
 
