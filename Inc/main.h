@@ -104,11 +104,11 @@
  * bit 5: 120° hall configuration detected
  */
 #define KV 80
-#define HALL_ORDER 1
-#define HALL_45 1861152800
-#define HALL_51 -1741847630
-#define HALL_13 -1049880660
-#define HALL_32 -274400435
+#define HALL_ORDER -1
+#define HALL_45 1837291766
+#define HALL_51 2565050131
+#define HALL_13 3245086636
+#define HALL_32 4032497326
 #define HALL_26 417566535
 #define HALL_64 1109533505
 

@@ -1094,8 +1094,8 @@ int main(void)
 
 				sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d, %d, %d\r\n",
 						adcData[1],
-						ui16_throttle_offset,
-						ui16_timertics,
+						i16_60deg_Hall_flag,
+						ui8_hall_state,
 						uint32_PAS,
 						MS.Battery_Current,
 						int32_temp_current_target ,
@@ -1890,27 +1890,28 @@ int main(void)
 		}
 #if (USE_FIX_POSITIONS)
 //Check for 60° hall configuration
-		if(ui8_hall_state==0)SET_BIT(i16_60deg_Hall_flag,0);
-		if(ui8_hall_state==7)SET_BIT(i16_60deg_Hall_flag,1);
-		if(!READ_BIT(i16_60deg_Hall_flag,2)&&READ_BIT(i16_60deg_Hall_flag,0)&&READ_BIT(i16_60deg_Hall_flag,1)){
-			SET_BIT(i16_60deg_Hall_flag,2);
-			CLEAR_BIT(i16_60deg_Hall_flag,3);
-			CLEAR_BIT(i16_60deg_Hall_flag,4);
-			CLEAR_BIT(i16_60deg_Hall_flag,5);
+		if(ui8_hall_state==0)i16_60deg_Hall_flag |= 0b1;
+		if(ui8_hall_state==7)i16_60deg_Hall_flag |= 0b10;
+
+		if((i16_60deg_Hall_flag&0b111) == 0b11){
+			i16_60deg_Hall_flag = 0b111;
+
 			Set_Hall_Logic();
 
 		}
 //Check for 120° hall configuration
-		if(ui8_hall_state==2)SET_BIT(i16_60deg_Hall_flag,3);
-		if(ui8_hall_state==5)SET_BIT(i16_60deg_Hall_flag,4);
-		if(!READ_BIT(i16_60deg_Hall_flag,5)&&READ_BIT(i16_60deg_Hall_flag,3)&&READ_BIT(i16_60deg_Hall_flag,4)){
-			SET_BIT(i16_60deg_Hall_flag,5);
-			CLEAR_BIT(i16_60deg_Hall_flag,0);
-			CLEAR_BIT(i16_60deg_Hall_flag,1);
-			CLEAR_BIT(i16_60deg_Hall_flag,2);
+		if(ui8_hall_state==2)i16_60deg_Hall_flag |= 0b1000;
+		if(ui8_hall_state==5)i16_60deg_Hall_flag |= 0b10000;
+		if(i16_60deg_Hall_flag>>3==0b11){
+			i16_60deg_Hall_flag=0b111000;
 			Set_Hall_Logic();
 
 		}
+
+		if(i16_60deg_Hall_flag>7)Set_Hall_Angle120();
+		else Set_Hall_Angle60();
+#else
+		Set_Hall_Angle120();
 #endif
 
 		uint32_tics_filtered-=uint32_tics_filtered>>3;
@@ -1919,8 +1920,7 @@ int main(void)
 		ui8_overflow_flag=0;
 		ui8_SPEED_control_flag=1;
 
-		if(READ_BIT(i16_60deg_Hall_flag,5))Set_Hall_Angle120();
-		else Set_Hall_Angle60();
+
 
 
 
@@ -2324,9 +2324,9 @@ int main(void)
 			//printf_("%d, %d, %d, %d\n", temp3>>16,temp4>>16,temp5,temp6);
 
 			if (ui8_hall_state_old != ui8_hall_state) {
-				printf_("angle: %d, hallstate:  %d, hallcase %d \n",
+				printf_("angle: %d, hallstate:  %d, hallcase %d, q31_angle %u \n",
 						(int16_t) (((q31_rotorposition_absolute >> 23) * 180) >> 8),
-						ui8_hall_state, ui8_hall_case);
+						ui8_hall_state, ui8_hall_case,q31_rotorposition_absolute);
 
 				switch (ui8_hall_case) //12 cases for each transition from one stage to the next. 6x forward, 6x reverse
 				{
