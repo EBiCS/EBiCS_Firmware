@@ -92,7 +92,7 @@
 #define BATTERYVOLTAGE_MAX 53000
 #define R_TEMP_PULLUP 0
 #define INT_TEMP_25 0
-#define USE_FIX_POSITIONS 1
+#define USE_FIX_POSITIONS 0
 //Put values from the startup message after autodetect here, if you want to use fix positions. 32bit values for the hall angles!
 /*
  * i16_60deg_Hall_flag:
@@ -103,7 +103,7 @@
  * bit 4: hallstate 5 detected
  * bit 5: 120° hall configuration detected
  */
-#define KV 80
+#define KV 224
 #define HALL_ORDER -1
 #define HALL_45 1837291766
 #define HALL_51 2565050131
