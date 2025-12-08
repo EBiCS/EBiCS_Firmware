@@ -109,7 +109,9 @@ void No2_Service(No2_t* No2_ctx)
     	No2_ctx->Rx.Start_delay_PAS = No2_Message[9];
     	No2_ctx->Rx.BoostPower = No2_Message[10];
     	No2_ctx->Rx.ZeroStart = (No2_Message[5]>>6)&0x01;
-    	No2_ctx->Rx.Headlight = (No2_Message[5]>>5)&0x01;
+        // the light does not turn on, unless we set the value to 0x01.
+        // could be an error when reading the value from the display ?
+    	No2_ctx->Rx.Headlight = 0x01; //(No2_Message[5]>>5)&0x01;
     	No2_ctx->Rx.PushAssist = (No2_Message[5]>>1)&0x01;
     	No2_ctx->Rx.CruiseControl = (No2_Message[18]>>6)&0x01;
     	No2_ctx->Rx.SPEEDMAX_Limit = No2_Message[12];
