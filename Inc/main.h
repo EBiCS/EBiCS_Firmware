@@ -183,7 +183,9 @@ typedef struct
 	uint16_t       	PAS_timeout;
 	uint16_t       	ramp_end;
 	uint16_t       	throttle_offset;
+	uint16_t       	torque_offset;
 	uint16_t       	throttle_max;
+	uint16_t       	torque_max;
 	uint16_t       	gear_ratio;
 	uint8_t       	speedLimit;
 	uint8_t       	pulses_per_revolution;

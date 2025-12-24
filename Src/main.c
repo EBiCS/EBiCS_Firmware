@@ -486,11 +486,17 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
     	temp2+=adcData[3];
     	temp3+=adcData[4];
     	ui8_adc_regular_flag=0;
+#ifdef TQONAD1
+		temp4+=adcData[6];
+#else
+		temp4+=adcData[1];
+#endif
 
     }
     ui16_ph1_offset=temp1>>5;
     ui16_ph2_offset=temp2>>5;
     ui16_ph3_offset=temp3>>5;
+	MP.torque_offset=(temp4>>5)+5;
 
 #ifdef DISABLE_DYNAMIC_ADC // set  injected channel with offsets
 	 ADC1->JSQR=0b00100000000000000000; //ADC1 injected reads phase A JL = 0b00, JSQ4 = 0b00100 (decimal 4 = channel 4)
@@ -661,9 +667,9 @@ if(MP.com_mode==Sensorless_openloop||MP.com_mode==Sensorless_startkick)MS.Obs_fl
 		  //read in and sum up torque-signal within one crank revolution (for sempu sensor 32 PAS pulses/revolution, 2^5=32)
 		  uint32_torque_cumulated -= uint32_torque_cumulated>>3;
 #ifdef NCTE
-		  if(ui16_torque<TORQUE_OFFSET)uint32_torque_cumulated += (TORQUE_OFFSET-ui16_torque);
+		  if(ui16_torque<MP.torque_offset)uint32_torque_cumulated += (MP.torque_offset-ui16_torque);
 #else
-		  if(ui16_torque>TORQUE_OFFSET)uint32_torque_cumulated += (ui16_torque-TORQUE_OFFSET);
+		  if(ui16_torque>MP.torque_offset)uint32_torque_cumulated += (ui16_torque-MP.torque_offset);
 #endif
 		  }
 	  }
