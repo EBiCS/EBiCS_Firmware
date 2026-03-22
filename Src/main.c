@@ -107,9 +107,12 @@ uint8_t ui8_hall_case =0;
 uint16_t ui16_tim2_recent=0;
 uint16_t ui16_timertics=5000; 					//timertics between two hall events for 60Â° interpolation
 uint16_t ui16_throttle;
+uint16_t ui16_torque;
 uint16_t ui16_throttle_offset = THROTTLE_OFFSET;
+uint16_t ui16_torque_offset = TORQUE_OFFSET;
 uint16_t ui16_brake_adc;
 uint32_t ui32_throttle_cumulated;
+uint32_t ui32_torque_cumulated_raw;
 uint32_t ui32_brake_adc_cumulated;
 uint32_t ui32_int_Temp_cumulated = INT_TEMP_25<<5;
 int16_t i16_int_Temp_V25;
@@ -504,21 +507,26 @@ int main(void)
 
 	for(i=0;i<32;i++){
 		while(!ui8_adc_regular_flag){}
-		temp1+=adcData[2];
-		temp2+=adcData[3];
-		temp3+=adcData[4];
-		ui8_adc_regular_flag=0;
+		temp1+=adcData[2]; //Phasecurrent 1 offset
+		temp2+=adcData[3]; //Phasecurrent 2 offset
+		temp3+=adcData[4]; //Phasecurrent 3 offset
+		temp4+=adcData[1]; //Throttle Offset
+		temp5+=adcData[6]; //Torque Offset on AD1
 
-#ifdef TQONAD1
-		temp4+=adcData[6];
-#else
-		temp4+=adcData[1];
-#endif
+		ui8_adc_regular_flag=0;
 	}
 	ui16_ph1_offset=temp1>>5;
 	ui16_ph2_offset=temp2>>5;
 	ui16_ph3_offset=temp3>>5;
 	ui16_throttle_offset=(temp4>>5)+5;
+
+#ifdef TQONAD1
+	ui16_torque_offset=(temp5>>5)+5;
+
+#else
+	ui16_torque_offset=ui16_throttle_offset;
+
+#endif
 
 #ifdef DISABLE_DYNAMIC_ADC // set  injected channel with offsets
 	ADC1->JSQR=0b00100000000000000000; //ADC1 injected reads phase A JL = 0b00, JSQ4 = 0b00100 (decimal 4 = channel 4)
@@ -563,11 +571,6 @@ int main(void)
 
 #endif
 
-#ifdef NCTE
-	while(adcData[1]<ui16_throttle_offset)
-#else
-		// 	while(adcData[1]>ui16_throttle_offset)
-#endif
 	{
 		HAL_IWDG_Refresh(&hiwdg);//do nothing (For Safety at switching on)
 	}
@@ -711,16 +714,17 @@ int main(void)
 		//process regualr ADC
 		if(ui8_adc_regular_flag){
 			ui32_throttle_cumulated -= ui32_throttle_cumulated>>4;
-#ifdef TQONAD1
-			ui32_throttle_cumulated += adcData[6]; //get value from AD1 PB1
-#else
 			ui32_throttle_cumulated += adcData[1]; //get value from SP
+			ui32_torque_cumulated_raw -= ui32_torque_cumulated_raw>>4;
+			ui32_torque_cumulated_raw += adcData[6]; //get value from AD1
+#ifndef TQONAD1
+			ui32_torque_cumulated_raw=ui32_throttle_cumulated;
 #endif
 			ui32_brake_adc_cumulated -= ui32_brake_adc_cumulated>>4;
 			ui32_brake_adc_cumulated+=adcData[5];//get value for analog brake from AD2 = PB0
 			ui16_brake_adc=ui32_brake_adc_cumulated>>4;
 			ui16_throttle = ui32_throttle_cumulated>>4;
-
+			ui16_torque =  ui32_torque_cumulated_raw>>4;
 			ui8_adc_regular_flag=0;
 		}
 
@@ -742,9 +746,9 @@ int main(void)
 				//read in and sum up torque-signal within one crank revolution (for sempu sensor 32 PAS pulses/revolution, 2^5=32)
 				uint32_torque_cumulated -= (uint32_torque_cumulated*PAS_IMP_PER_TURN_RECIP_MULTIPLIER) >> 8 ;
 #ifdef NCTE
-				if(ui16_throttle<ui16_throttle_offset)uint32_torque_cumulated += (ui16_throttle_offset-ui16_throttle);
+				if(ui16_torque<ui16_torque_offset)uint32_torque_cumulated += (ui16_torque_offset-ui16_torque);
 #else
-				if(ui16_throttle>ui16_throttle_offset)uint32_torque_cumulated += (ui16_throttle-ui16_throttle_offset);
+				if(ui16_torque>ui16_torque_offset)uint32_torque_cumulated += (ui16_torque-ui16_torque_offset);
 #endif
 
 

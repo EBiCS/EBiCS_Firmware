@@ -13,12 +13,12 @@
 //q31_t	T_halfsample = 0.00003125;
 //q31_t	counterfrequency = 64000000;
 //q31_t	U_max = (1/_SQRT3)*_U_DC;
-q31_t	temp1;
-q31_t	temp2;
-q31_t	temp3;
-q31_t	temp4;
-q31_t	temp5;
-q31_t	temp6;
+q31_t	temp1=0;
+q31_t	temp2=0;
+q31_t	temp3=0;
+q31_t	temp4=0;
+q31_t	temp5=0;
+q31_t	temp6=0;
 
 q31_t q31_i_q_fil = 0;
 q31_t q31_i_d_fil = 0;
