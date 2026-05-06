@@ -12,6 +12,7 @@
 "Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_rcc_ex.o"
 "Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim.o"
 "Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim_ex.o"
+"Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_iwdg.o"
 "Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_uart.o"
 "Src/FOC.o"
 "Src/display_bafang.o"
@@ -24,4 +25,4 @@
 "Src/stm32f1xx_hal_msp.o"
 "Src/stm32f1xx_it.o"
 "Src/system_stm32f1xx.o"
-"startup/startup_stm32f103x6.o"
+"Startup/startup_stm32f103x6.o"

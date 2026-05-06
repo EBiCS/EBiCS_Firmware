@@ -42,7 +42,7 @@ C_DEPS += \
 ./Src/stm32f1xx_it.d \
 ./Src/system_stm32f1xx.d 
 
-INC_PATH = ../INC
+INC_PATH = ../Inc
 DRIVERS_PATH = ../Drivers/STM32F1xx_HAL_Driver/Inc
 LEGACY_PATH = ../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy
 DEVICE_PATH = ../Drivers/CMSIS/Device/ST/STM32F1xx/Include

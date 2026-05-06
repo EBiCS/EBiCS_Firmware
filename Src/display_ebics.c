@@ -10,9 +10,9 @@
 #include "print.h"
 #include "config.h"
 
-UART_HandleTypeDef huart1;
-uint8_t ui8_rx_buffer[12];
-uint8_t ui8_tx_buffer[12];
+extern UART_HandleTypeDef huart1;
+static uint8_t ui8_rx_buffer[12];
+static uint8_t ui8_tx_buffer[12];
 
 
 void ebics_init()

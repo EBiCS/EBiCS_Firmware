@@ -191,7 +191,7 @@
 #define PAGE_FULL             ((uint8_t)0x80)
 
 /* Variables' number */
-#define NB_OF_VAR             ((uint8_t)0x0E)
+#define NB_OF_VAR             ((uint8_t)0x0F)
 
 #define EEPROM_POS_HALL_ORDER	((uint16_t)0x00)
 #define EEPROM_POS_HALL_45	  	((uint16_t)0x01)
@@ -207,6 +207,7 @@
 #define EEPROM_KT_B8_B9	  		((uint8_t)0x0B)
 #define EEPROM_KT_B1_B10	  	((uint8_t)0x0C)
 #define EEPROM_INT_TEMP_V25	  	((uint16_t)0x0D)
+#define EEPROM_HALL_60		  	((uint16_t)0x0E)
 
 /* Exported types ------------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/

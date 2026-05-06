@@ -91,18 +91,39 @@
 //#define LEGALFLAG
 #define BATTERYVOLTAGE_MAX 53000
 #define R_TEMP_PULLUP 0
-#define INT_TEMP_25 2360
-#define USE_FIX_POSITIONS 0
+#define INT_TEMP_25 0
+#define TORQUE_OFFSET 850
+//#define USE_FIX_POSITIONS 1
 //Put values from the startup message after autodetect here, if you want to use fix positions. 32bit values for the hall angles!
-#define KV 80
-#define HALL_ORDER 1
-#define HALL_45 2636578816
-#define HALL_51 1896939520
-#define HALL_13 1157234688
-#define HALL_32 322109440
-#define HALL_26 4092133376
-#define HALL_64 3209232384
+/*
+ * i16_60deg_Hall_flag:
+ * bit 0: hallstate 0 detected
+ * bit 1: hallstate 7 detected
+ * bit 2: 60° hall configuration detected
+ * bit 3: hallstate 2 detected
+ * bit 4: hallstate 5 detected
+ * bit 5: 120° hall configuration detected
+ */
+#define KV 224
+#define HALL_ORDER -1
+#define HALL_45 1837291766
+#define HALL_51 2565050131
+#define HALL_13 3245086636
+#define HALL_32 4032497326
+#define HALL_26 417566535
+#define HALL_64 1109533505
 
+#define HALL_60_46 -1729917165
+#define HALL_60_67 -978297870
+#define HALL_60_73 -238609040
+#define HALL_60_31 417566535
+#define HALL_60_10 1169185830
+#define HALL_60_4 1861152800
+
+#define CONTROLLER_TEMPERATURE_THRESHOLD 70
+#define CONTROLLER_TEMPERATURE_MAX       80
+#define MOTOR_TEMPERATURE_THRESHOLD 100
+#define MOTOR_TEMPERATURE_MAX       130
 
 /* ########################## Assert Selection ############################## */
 /**
@@ -120,11 +141,13 @@ int32_t map (int32_t x, int32_t in_min, int32_t in_max, int32_t out_min, int32_t
 void autodetect();
 void runPIcontrol();
 void kingmeter_update(void);
+void No2_update(void);
 
 extern uint16_t switchtime[3];
 extern uint32_t ui32_tim1_counter;
 extern uint32_t uint32_PAS_counter;
 extern uint8_t throttle_is_set(void);
+extern uint8_t brake_is_set(void);
 extern void UART_IdleItCallback(void);
 extern void get_internal_temp_offset(void);
 

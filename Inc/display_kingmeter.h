@@ -66,6 +66,8 @@ typedef struct
     // Parameters received from display in setting mode:
     uint16_t WheelSize_mm;              // Unit: 1mm
     uint8_t  PAS_RUN_Direction;         // KM_PASDIR_FORWARD / KM_PASDIR_BACKWARD
+    uint8_t  ExecAutodetect;         	// 0 or 1, Use Parameter P18 of EN06 protocol
+    uint8_t  Reverse;         			// 0 or 1, Use Parameter P19 of EN06 protocol
     uint8_t  PAS_SCN_Tolerance;         // Number of PAS signals to start the motor
     uint8_t  PAS_N_Ratio;               // 0..255 PAS ratio
     uint8_t  HND_HL_ThrParam;           // KM_HND_HL_NO / KM_HND_HL_YES
@@ -123,6 +125,7 @@ typedef struct
 #define KM_ERROR_NONE           0x00
 #define KM_ERROR_COMM           0x30
 #define KM_ERROR_OVHT			0x25
+#define KM_ERROR_IOVHT			0x26
 
 typedef struct
 {

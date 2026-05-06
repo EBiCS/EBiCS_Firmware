@@ -13,12 +13,12 @@
 //q31_t	T_halfsample = 0.00003125;
 //q31_t	counterfrequency = 64000000;
 //q31_t	U_max = (1/_SQRT3)*_U_DC;
-q31_t	temp1;
-q31_t	temp2;
-q31_t	temp3;
-q31_t	temp4;
-q31_t	temp5;
-q31_t	temp6;
+q31_t	temp1=0;
+q31_t	temp2=0;
+q31_t	temp3=0;
+q31_t	temp4=0;
+q31_t	temp5=0;
+q31_t	temp6=0;
 
 q31_t q31_i_q_fil = 0;
 q31_t q31_i_d_fil = 0;
@@ -38,9 +38,6 @@ uint8_t ui8_debug_state=0;
 char PI_flag=0;
 
 //const q31_t _T = 2048;
-
-TIM_HandleTypeDef htim1;
-
 
 void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int16_t int16_i_q_target, MotorState_t* MS_FOC);
 void svpwm(q31_t q31_u_alpha, q31_t q31_u_beta);

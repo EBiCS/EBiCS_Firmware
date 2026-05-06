@@ -33,9 +33,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define RXSTATE_SENDTXMSG   1
 #define RXSTATE_MSGBODY     2
 #define RXSTATE_DONE        3
-
-UART_HandleTypeDef huart1;
-UART_HandleTypeDef huart3;
+uint8_t FirstRunFlag = 0;
+extern UART_HandleTypeDef huart1;
 
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_618U)
@@ -126,8 +125,8 @@ static void KM_618U_Service(KINGMETER_t* KM_ctx);
 static void KM_901U_Service(KINGMETER_t* KM_ctx);
 #endif
 
-uint8_t  lowByte(uint16_t word);
-uint8_t  highByte(uint16_t word);
+static uint8_t  lowByte(uint16_t word);
+static uint8_t  highByte(uint16_t word);
 
 uint8_t pas_tolerance  = 0;
 uint8_t wheel_magnets = 1;
@@ -246,7 +245,7 @@ void KingMeter_Service(KINGMETER_t* KM_ctx)
 static void KM_618U_Service(KINGMETER_t* KM_ctx)
 {
     uint8_t  i;
-    static uint8_t TxBuffer[KM_MAX_TxBuffer];
+    static uint8_t TxBuffer[KM_MAX_TXBUFF];
     KM_ctx->RxState = RXSTATE_SENDTXMSG;
 
 // Send message to display
@@ -269,8 +268,8 @@ static void KM_618U_Service(KINGMETER_t* KM_ctx)
         }
 
         TxBuffer[2] = (uint8_t) ((KM_ctx->Tx.Current_x10 * 3) / 10);      // Current unit: 1/3A
-        TxBuffer[3] = (KM_ctx->Tx.Wheeltime_ms)>>8; //High byte of wheeltime
-        TxBuffer[4] = (KM_ctx->Tx.Wheeltime_ms)|0xFF; // Mask lower 8 bits
+        TxBuffer[3] = highByte(KM_ctx->Tx.Wheeltime_ms);  //High byte of wheeltime
+        TxBuffer[4] = lowByte(KM_ctx->Tx.Wheeltime_ms);  // Mask lower 8 bits
         TxBuffer[5] = 0x7A;                                               // Reply with WheelSize 26" / Maxspeed 25km/h (no influence on display)
         TxBuffer[6] = KM_ctx->Tx.Error;
 
@@ -316,7 +315,7 @@ static void KM_618U_Service(KINGMETER_t* KM_ctx)
     {
 
         // Buffer ueber DMA senden
-        HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuffer, KM_MAX_TxBuffer);
+        HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&TxBuffer, KM_MAX_TXBUFF);
        // HAL_Delay(6);
 
         KM_ctx->RxState = RXSTATE_STARTCODE;
@@ -338,7 +337,7 @@ static void KM_618U_Service(KINGMETER_t* KM_ctx)
 //      KM_ctx->Rx.OverSpeed;
 
         // Decode Speedlimit
-        KM_ctx->Rx.SPEEDMAX_Limit_x10 = (((KM_ctx->RxBuff[2] & 0xF8) >> 3) + 10) * 10;
+        KM_ctx->Rx.SPEEDMAX_Limit= (((KM_ctx->RxBuff[2] & 0xF8) >> 3) + 10) * 10;
 
         // Decode Wheelsize by hashtable
         KM_ctx->Settings.WheelSize_mm = KM_WHEELSIZE[KM_ctx->RxBuff[2] & 0x07];
@@ -456,8 +455,10 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
     			                // Decode Rx message
     			            	if(!CheckSum) //low-byte and high-byte
     			            		{
-    			            		kingmeter_update();
+
     			                KM_ctx->Settings.PAS_RUN_Direction   = (KM_Message[4] & 0x80) >> 7; // KM_PASDIR_FORWARD / KM_PASDIR_BACKWARD
+    			                KM_ctx->Settings.ExecAutodetect   	 = (KM_Message[6]>>7)&0x01; 	// Execute Autodetect (with P18 of EN06 protocol)
+    			                KM_ctx->Settings.Reverse   	 		 = (KM_Message[6]>>6)&0x01; 	// set spinning direction (with P19 of EN06 protocol)
     			                KM_ctx->Settings.PAS_SCN_Tolerance   =  KM_Message[5];              // 2..9
     			                KM_ctx->Settings.PAS_N_Ratio         =  KM_Message[6];              // 0..255
     			                KM_ctx->Settings.HND_HL_ThrParam     = (KM_Message[7] & 0x80) >> 7; // KM_HND_HL_NO / KM_HND_HL_YES
@@ -469,8 +470,13 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
     			    	        KM_ctx->Rx.SPEEDMAX_Limit          		= KM_Message[11];
     			    	        KM_ctx->Rx.CUR_Limit_mA                 = (KM_Message[8]&0x3F)*500;
 
-    			    	        if(KM_ctx->Rx.CUR_Limit_mA==21500)autodetect();
-    			    	        if(KM_ctx->Rx.CUR_Limit_mA==20500)get_internal_temp_offset();
+    			    	        kingmeter_update();
+    			    	        if(KM_ctx->Settings.ExecAutodetect&&!FirstRunFlag){
+    			    	        	autodetect();
+    			    	        	FirstRunFlag=1;
+    			    	        }
+    			    	        //if(KM_ctx->Rx.CUR_Limit_mA==21500)autodetect();
+    			    	        //if(KM_ctx->Rx.CUR_Limit_mA==20500)get_internal_temp_offset();
     			            		}
 
     			                // Prepare Tx message with handshake code

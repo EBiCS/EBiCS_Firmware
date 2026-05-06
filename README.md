@@ -1,13 +1,15 @@
-This project has now reached a certain maturity, use is always at your own risk. The authors do not accept any liability for damage to property or personal injury!  
-The Master-branch supports sensored motors and Bafang-, Kunteng- and Kingmeter-Displays and debugging.
+This project has reached a certain maturity, use is always at your own risk. The authors do not accept any liability for damage to property or personal injury!  
 
-User specific settings can be done in a user-friendly gui.
+The [master]([https://github.com/ShalokShalom/EBiCS_Firmware/wiki](https://github.com/EBiCS/EBiCS_Firmware/tree/master) branch supports sensored motors, Bafang-, Kunteng- Kingmeter-Displays, and debugging.
 
-throttle, "torque-simulation" and torquesensor-modes are available.
+User-specific settings can be done in a user-friendly GUI.
 
-The sensorless_VESC-branch has adapted the sensorless control of the VESC. Recently optimized for a Fischer ETH 1606 bike. If will work with other motors also, of course.
+Throttle, torque-simulation, and torque-sensor modes are available.
 
-A short tutorial can be found in the wiki.
+The [sensorless_VESC](https://github.com/EBiCS/EBiCS_Firmware/tree/Sensorless_VESC) branch has adapted the VESC's sensorless control. It was recently optimized for a Fischer ETH 1606 bike. 
+Of course, it will work with other motors, too.
+
+A short tutorial can be found in the [Wiki](https://github.com/EBiCS/EBiCS_Firmware/wiki).
 
 Helpful links:
 
