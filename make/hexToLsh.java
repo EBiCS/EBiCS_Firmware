@@ -39,13 +39,6 @@ public class hexToLsh {
       String folderName = "output";
       Path path = Paths.get(folderName);
       Files.createDirectory(path);
-      File from = new File("Inc/config.h");
-      File to = new File("output/config.h");
-      Files.copy(from.toPath(), to.toPath());
-      from = new File("Inc/main.h");
-      to = new File("output/main.h");
-      Files.copy(from.toPath(), to.toPath());
-
       String lshFile = "output/EBiCS_Firmware";
       FileWriter myWriter = new FileWriter(lshFile + ".lsh");
 

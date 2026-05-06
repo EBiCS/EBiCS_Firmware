@@ -1,7 +1,7 @@
 /*
 Library for King-Meter displays
 
-Copyright Â© 2015 Michael Fabry (Michael@Fabry.de)
+Copyright © 2015 Michael Fabry (Michael@Fabry.de)
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -179,4 +179,3 @@ void KingMeter_Init (KINGMETER_t* KM_ctx);
 #endif // Display Type Kingmeter
 
 #endif // KINGMETER_H
-

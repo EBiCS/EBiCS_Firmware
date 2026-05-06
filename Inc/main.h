@@ -78,7 +78,7 @@
 #define BRAKE_LIGHT_GPIO_Port GPIOB
 #define PAS_Pin GPIO_PIN_8
 #define PAS_GPIO_Port GPIOB
-#define Brake_Pin GPIO_PIN_11  // put a 15 here for new generation controllers!
+#define Brake_Pin GPIO_PIN_15  // put a 15 here for new generation controllers!
 #define Brake_GPIO_Port GPIOA
 #define Speed_EXTI5_Pin GPIO_PIN_5
 #define Speed_EXTI5_GPIO_Port GPIOB
@@ -87,43 +87,17 @@
 #define PAS_EXTI8_GPIO_Port GPIOB
 #define PAS_EXTI8_EXTI_IRQn EXTI9_5_IRQn
 
+
 //#define NCTE
-//#define LEGALFLAG
+#define LEGALFLAG
 #define BATTERYVOLTAGE_MAX 53000
 #define R_TEMP_PULLUP 0
-#define INT_TEMP_25 0
-#define TORQUE_OFFSET 850
-//#define USE_FIX_POSITIONS 1
-//Put values from the startup message after autodetect here, if you want to use fix positions. 32bit values for the hall angles!
-/*
- * i16_60deg_Hall_flag:
- * bit 0: hallstate 0 detected
- * bit 1: hallstate 7 detected
- * bit 2: 60° hall configuration detected
- * bit 3: hallstate 2 detected
- * bit 4: hallstate 5 detected
- * bit 5: 120° hall configuration detected
- */
-#define KV 224
-#define HALL_ORDER -1
-#define HALL_45 1837291766
-#define HALL_51 2565050131
-#define HALL_13 3245086636
-#define HALL_32 4032497326
-#define HALL_26 417566535
-#define HALL_64 1109533505
-
-#define HALL_60_46 -1729917165
-#define HALL_60_67 -978297870
-#define HALL_60_73 -238609040
-#define HALL_60_31 417566535
-#define HALL_60_10 1169185830
-#define HALL_60_4 1861152800
-
-#define CONTROLLER_TEMPERATURE_THRESHOLD 70
-#define CONTROLLER_TEMPERATURE_MAX       80
-#define MOTOR_TEMPERATURE_THRESHOLD 100
-#define MOTOR_TEMPERATURE_MAX       130
+#define TORQUE_OFFSET 1535
+#define TORQUE_MAX 3000
+#define SPEC_ANGLE -1550960412L //-1312351118L		//Shengyi Heckmotor aus Fischer ETH1606 per trial and error
+#define FILTER_DELAY 59652323<<4	 //1073741824L	// for angle correction of i_alfa + i_beta
+enum state {Stop, SixStep, Regen, Running, BatteryCurrentLimit, Interpolation, PLL, IdleRun, Sensorless, OpenLoop};
+enum com_mode {Hallsensor, Sensorless_openloop, Sensorless_startkick, Hallsensor_Sensorless};
 
 /* ########################## Assert Selection ############################## */
 /**
@@ -140,16 +114,13 @@
 int32_t map (int32_t x, int32_t in_min, int32_t in_max, int32_t out_min, int32_t out_max);
 void autodetect();
 void runPIcontrol();
-void kingmeter_update(void);
-void No2_update(void);
 
 extern uint16_t switchtime[3];
 extern uint32_t ui32_tim1_counter;
 extern uint32_t uint32_PAS_counter;
 extern uint8_t throttle_is_set(void);
-extern uint8_t brake_is_set(void);
 extern void UART_IdleItCallback(void);
-extern void get_internal_temp_offset(void);
+extern void kingmeter_update(void);
 
 typedef struct
 {
@@ -193,6 +164,10 @@ typedef struct
 	int8_t         	error_state;
 	int8_t 			angle_est;
 	int16_t 		KV_detect_flag;
+	q31_t			teta_obs;
+	int8_t 			Obs_flag;
+	q31_t       	sin_delay_filter;
+	q31_t       	cos_delay_filter;
 
 }MotorState_t;
 
@@ -208,12 +183,15 @@ typedef struct
 	uint16_t       	PAS_timeout;
 	uint16_t       	ramp_end;
 	uint16_t       	throttle_offset;
+	uint16_t       	torque_offset;
 	uint16_t       	throttle_max;
+	uint16_t       	torque_max;
 	uint16_t       	gear_ratio;
 	uint8_t       	speedLimit;
 	uint8_t       	pulses_per_revolution;
 	uint16_t       	phase_current_max;
-	int32_t       	battery_current_max;
+	int16_t       	spec_angle;
+	uint8_t       	com_mode;
 
 
 }MotorParams_t;

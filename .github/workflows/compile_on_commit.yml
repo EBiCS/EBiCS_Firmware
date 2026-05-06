@@ -2,7 +2,7 @@ name: Compile on Commit
 
 on:
   push:
-    branches: [ Master_hex ]
+    branches: [ NewGeneration_hex ]
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 

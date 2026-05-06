@@ -160,16 +160,16 @@
 #define PAGE_SIZE               (uint32_t)FLASH_PAGE_SIZE  /* Page size */
 
 /* EEPROM start address in Flash */
-#define EEPROM_START_ADDRESS  ((uint32_t)ADDR_FLASH_PAGE_30) /* EEPROM emulation start address */
+#define EEPROM_START_ADDRESS  ((uint32_t)ADDR_FLASH_PAGE_126) /* EEPROM emulation start address */
 
 /* Pages 0 and 1 base and end addresses */
 #define PAGE0_BASE_ADDRESS    ((uint32_t)(EEPROM_START_ADDRESS + 0x0000))
 #define PAGE0_END_ADDRESS     ((uint32_t)(EEPROM_START_ADDRESS + (PAGE_SIZE - 1)))
-#define PAGE0_ID               ADDR_FLASH_PAGE_30
+#define PAGE0_ID               ADDR_FLASH_PAGE_126
 
 #define PAGE1_BASE_ADDRESS    ((uint32_t)(EEPROM_START_ADDRESS + PAGE_SIZE))
 #define PAGE1_END_ADDRESS     ((uint32_t)(EEPROM_START_ADDRESS + PAGE_SIZE + PAGE_SIZE - 1))
-#define PAGE1_ID               ADDR_FLASH_PAGE_31
+#define PAGE1_ID               ADDR_FLASH_PAGE_127
 
 /* Used Flash pages for EEPROM emulation */
 #define PAGE0                 ((uint16_t)0x0000)
@@ -191,7 +191,7 @@
 #define PAGE_FULL             ((uint8_t)0x80)
 
 /* Variables' number */
-#define NB_OF_VAR             ((uint8_t)0x0F)
+#define NB_OF_VAR             ((uint8_t)0x0D)
 
 #define EEPROM_POS_HALL_ORDER	((uint16_t)0x00)
 #define EEPROM_POS_HALL_45	  	((uint16_t)0x01)
@@ -206,8 +206,6 @@
 #define EEPROM_KT_B6_B7	  		((uint8_t)0x0A)
 #define EEPROM_KT_B8_B9	  		((uint8_t)0x0B)
 #define EEPROM_KT_B1_B10	  	((uint8_t)0x0C)
-#define EEPROM_INT_TEMP_V25	  	((uint16_t)0x0D)
-#define EEPROM_HALL_60		  	((uint16_t)0x0E)
 
 /* Exported types ------------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/
