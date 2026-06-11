@@ -471,7 +471,11 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
     			    	        KM_ctx->Rx.CUR_Limit_mA                 = (KM_Message[8]&0x3F)*500;
 
     			    	        kingmeter_update();
-    			    	        if(KM_ctx->Settings.ExecAutodetect&&!FirstRunFlag){
+//    			    	        if(KM_ctx->Settings.ExecAutodetect&&!FirstRunFlag){
+//    			    	        	autodetect();
+//    			    	        	FirstRunFlag=1;
+//    			    	        }
+    			    	        if(KM_ctx->Rx.CUR_Limit_mA==21500&&!FirstRunFlag){
     			    	        	autodetect();
     			    	        	FirstRunFlag=1;
     			    	        }
