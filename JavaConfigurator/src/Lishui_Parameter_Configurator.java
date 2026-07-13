@@ -344,8 +344,7 @@ public void AddListItem(File newFile) {
 														+ "#define DISPLAY_TYPE_KINGMETER      (DISPLAY_TYPE_KINGMETER_618U|DISPLAY_TYPE_KINGMETER_901U)\r\n"
                                                         + "#define EXTERNAL 1\r\n"
                                                         + "#define INTERNAL 0\r\n"
-                                                        + "#define LEGALFLAG \r\n"
-                                        
+                                                                           
                                         
                                         );
                                         
@@ -666,7 +665,7 @@ public void AddListItem(File newFile) {
 					iWriter.println(RB_REVERSE.isSelected()); 
 
                                         if (RB_LIMIT_THR.isSelected()) {
-						text_to_save = "#define LIMIT_THR";
+						text_to_save = "#define LEGALFLAG";
 						pWriter.println(text_to_save);
 					}
 					iWriter.println(RB_LIMIT_THR.isSelected());      
@@ -1040,7 +1039,7 @@ public void AddListItem(File newFile) {
 
         RB_IND_PROFILE.setText("Individual Profile");
 
-        RB_LIMIT_THR.setText("Limit Throttle to 6 kph");
+        RB_LIMIT_THR.setText("Activate Legal Mode");
 
         jLabel60.setText("Impulses per Turn");
 
