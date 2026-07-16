@@ -9,6 +9,7 @@ C_SRCS += \
 ../Src/display_ebics.c \
 ../Src/display_kingmeter.c \
 ../Src/display_kunteng.c \
+../Src/display_No_2.c \
 ../Src/eeprom.c \
 ../Src/main.c \
 ../Src/print.c \
@@ -22,6 +23,7 @@ OBJS += \
 ./Src/display_ebics.o \
 ./Src/display_kingmeter.o \
 ./Src/display_kunteng.o \
+./Src/display_No_2.o \
 ./Src/eeprom.o \
 ./Src/main.o \
 ./Src/print.o \
@@ -35,6 +37,7 @@ C_DEPS += \
 ./Src/display_ebics.d \
 ./Src/display_kingmeter.d \
 ./Src/display_kunteng.d \
+./Src/display_No_2.d \
 ./Src/eeprom.d \
 ./Src/main.d \
 ./Src/print.d \
