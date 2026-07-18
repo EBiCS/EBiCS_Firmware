@@ -103,7 +103,7 @@
 
 //---------------------------------------------------------------------
 //Display settings
-#define DISPLAY_TYPE DISPLAY_TYPE_NO2
+#define DISPLAY_TYPE DISPLAY_TYPE_DEBUG
 
 //---------------------------------------------------------------------
 //Regen settings
@@ -113,6 +113,6 @@
 //#define ADC_BRAKE
 
 //---------------------------------------------------------------------
-#define AUTODETECT 0
+#define AUTODETECT 1
 
 #endif /* CONFIG_H_ */
