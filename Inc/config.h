@@ -103,7 +103,7 @@
 
 //---------------------------------------------------------------------
 //Display settings
-#define DISPLAY_TYPE DISPLAY_DEBUG
+#define DISPLAY_TYPE DISPLAY_TYPE_DEBUG
 
 //---------------------------------------------------------------------
 //Regen settings
