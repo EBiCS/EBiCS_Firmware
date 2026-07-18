@@ -79,8 +79,8 @@
 
 //--------------------------------------------------------------------
 //Speed settings
-#define WHEEL_CIRCUMFERENCE 2200
-#define GEAR_RATIO 201
+#define WHEEL_CIRCUMFERENCE 2155
+#define GEAR_RATIO 100
 #define SPEEDLIMIT 35
 #define PULSES_PER_REVOLUTION 6
 #define SPEEDSOURCE INTERNAL
@@ -103,7 +103,7 @@
 
 //---------------------------------------------------------------------
 //Display settings
-#define DISPLAY_TYPE DISPLAY_TYPE_NO2
+#define DISPLAY_TYPE DISPLAY_DEBUG
 
 //---------------------------------------------------------------------
 //Regen settings
@@ -113,6 +113,6 @@
 //#define ADC_BRAKE
 
 //---------------------------------------------------------------------
-#define AUTODETECT 0
+#define AUTODETECT 1
 
 #endif /* CONFIG_H_ */
