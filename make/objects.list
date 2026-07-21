@@ -18,6 +18,7 @@
 "Src/display_ebics.o"
 "Src/display_kingmeter.o"
 "Src/display_kunteng.o"
+"Src/hubsensor.o"
 "Src/eeprom.o"
 "Src/main.o"
 "Src/print.o"
