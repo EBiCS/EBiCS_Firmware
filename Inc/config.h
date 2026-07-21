@@ -79,7 +79,7 @@
 
 //--------------------------------------------------------------------
 //Speed settings
-#define WHEEL_CIRCUMFERENCE 2155
+#define WHEEL_CIRCUMFERENCE 2150
 #define GEAR_RATIO 100
 #define SPEEDLIMIT 35
 #define PULSES_PER_REVOLUTION 6
