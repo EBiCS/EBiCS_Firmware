@@ -16,9 +16,9 @@
 
 //Hub sends blocks of 8 bytes, one complete message must be within 16 bytes.
 uint8_t HubMessage[8];
-char buffer[64];
-UART_HandleTypeDef huart1;
-UART_HandleTypeDef huart2;
+//char buffer[64];
+extern UART_HandleTypeDef huart1;
+extern UART_HandleTypeDef huart2;
 
 uint8_t torque_offset = 145;
 uint16_t torque_max = 1024;
@@ -27,7 +27,7 @@ uint16_t torque_recent;
 
 
 #ifdef BYTES8
-uint8_t UART2_RxBuff[16];
+static uint8_t UART2_RxBuff[16];
 void Hubsensor_Init (Hubsensor_t* HS_data){
     if (HAL_UART_Receive_DMA(&huart2, (uint8_t *)UART2_RxBuff,16) != HAL_OK)
      {
@@ -50,7 +50,7 @@ void Hubsensor_Service (Hubsensor_t* HS_data){
 	//printf_("%d , %d,\n ",checksum,HubMessage[7] );
 	if (checksum==HubMessage[7]){
 		HS_data->HS_UARTFail = 0;
-		HS_data->HS_Temperature = HubMessage[1]-30; //Byte 2: 0~210 represents -30°C~180°C, for example: 30—0°C
+		HS_data->HS_Temperature = HubMessage[1]-30; //Byte 2: 0~210 represents -30 C~180 C, for example: 30 0 C
 		HS_data->HS_Pedalposition = HubMessage[3]&127;
 		HS_data->HS_Pedals_turning = HubMessage[3]>>7;
 		//filter torque value

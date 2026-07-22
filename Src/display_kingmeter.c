@@ -1,7 +1,7 @@
 /*
 Library for King-Meter displays
 
-Copyright � 2015 Michael Fabry (Michael@Fabry.de)
+Copyright   2015 Michael Fabry (Michael@Fabry.de)
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -34,8 +34,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define RXSTATE_MSGBODY     2
 #define RXSTATE_DONE        3
 uint8_t FirstRunFlag = 0;
-UART_HandleTypeDef huart1;
-UART_HandleTypeDef huart3;
+extern UART_HandleTypeDef huart1;
+
 
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_618U)
@@ -126,8 +126,8 @@ static void KM_618U_Service(KINGMETER_t* KM_ctx);
 static void KM_901U_Service(KINGMETER_t* KM_ctx);
 #endif
 
-uint8_t  lowByte(uint16_t word);
-uint8_t  highByte(uint16_t word);
+static uint8_t  lowByte(uint16_t word);
+static uint8_t  highByte(uint16_t word);
 
 uint8_t pas_tolerance  = 0;
 uint8_t wheel_magnets = 1;
