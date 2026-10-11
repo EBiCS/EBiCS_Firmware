@@ -18,7 +18,7 @@
 
 #define THROTTLE_OFFSET 1275//950//1210 			//ADC-value at closed throttle 670 for throttle, 1255 for TS
 #define THROTTLE_MAX 3015
-#define TS_COEF 800					//coefficient for torque-sensor-mode
+#define TS_COEF 1600					//coefficient for torque-sensor-mode
 #define TS_MODE						//Torquesensor-Mode
 #define PAS_TIMEOUT 12000			//time tics @ 16kHz untils motor stops
 #define RAMP_END 4000					//time tics @ 16kHz where motor reaches full level power
@@ -56,6 +56,6 @@
 #define PULSES_PER_REVOLUTION 1
 #define PUSHASSIST_CURRENT 300
 #define WHEEL_CIRCUMFERENCE 2200
-#define GEAR_RATIO 70
+#define GEAR_RATIO 115
 
 #endif
