@@ -15,11 +15,11 @@
 //#define DISPLAY_TYPE DEBUG_FAST_LOOP
 
 
-#define wheel_circumference 2.202 	//wheel circumference in m
+
 #define THROTTLE_OFFSET 1275//950//1210 			//ADC-value at closed throttle 670 for throttle, 1255 for TS
 #define THROTTLE_MAX 3015
 #define TS_COEF 800					//coefficient for torque-sensor-mode
-//#define TS_MODE						//Torquesensor-Mode
+#define TS_MODE						//Torquesensor-Mode
 #define PAS_TIMEOUT 12000			//time tics @ 16kHz untils motor stops
 #define RAMP_END 4000					//time tics @ 16kHz where motor reaches full level power
 #define PH_CURRENT_MAX 300			//iq value (phase current in rotating frame), not calibrated yet
@@ -43,9 +43,9 @@
 #define CAL_I 38LL<<8					// ADC * 37,5 mA/Digit. Strom kommt in mA *2^-8 im Observer an. Siehe Post Nr. 99 im Thread (für 12 FET)
 
 //Constants for Motor model of observer
-#define INDUCTANCE	11LL		//9 Hoverboard,6 BionX,war nach Messung 13 (mit einfachem LCR-Tester)		//H = V*s/A Induktivität in µH/100 Shengyi hat 200µHenry Induktivität 2^16*0,0002 -->>>16 in Observer um auf Henry zukommen
+#define INDUCTANCE	2LL		//9 Hoverboard,6 BionX,war nach Messung 13 (mit einfachem LCR-Tester)		//H = V*s/A Induktivität in µH/100 Shengyi hat 200µHenry Induktivität 2^16*0,0002 -->>>16 in Observer um auf Henry zukommen
 #define RESISTANCE 120LL		//220 BionX,Für ShengyiMM 80	//Ohm = V/A Widerstand in Shengi ist 117mOhm -->2^9*0,117 >>9 in Observer um auf Ohm zu kommen.
-#define FLUX_LINKAGE 2000LL			//2400 BionX,Für ShengyiMM 1800| V*s/rad von Hand angepasst
+#define FLUX_LINKAGE 2400LL			//2400 BionX,Für ShengyiMM 1800| V*s/rad von Hand angepasst
 #define GAMMA 13LL					//Für ShengyiMM 10| per trial and error
 
 
@@ -56,5 +56,6 @@
 #define PULSES_PER_REVOLUTION 1
 #define PUSHASSIST_CURRENT 300
 #define WHEEL_CIRCUMFERENCE 2200
+#define GEAR_RATIO 70
 
 #endif

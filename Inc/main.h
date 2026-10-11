@@ -134,6 +134,7 @@ typedef struct
 	uint8_t 		assist_level;
 	int16_t         Temperature;
 	int16_t         int_Temperature;
+	int16_t         Speed_kphx100;
 
 }MotorState_t;
 

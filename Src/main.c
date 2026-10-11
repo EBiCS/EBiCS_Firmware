@@ -116,6 +116,7 @@ uint32_t uint32_torque_cumulated=0;
 uint16_t uint16_mapped_throttle=0;
 uint16_t uint16_mapped_PAS=0;
 uint16_t uint16_current_target=0;
+uint16_t uint16_current_target_temp =0;
 
 uint8_t ui8_adc_inj_flag=0;
 uint8_t ui8_adc_offset_done_flag=0;
@@ -190,7 +191,7 @@ void kingmeter_update(void);
 static void dyn_adc_state(q31_t angle);
 static void set_inj_channel(char state);
 void UART_IdleItCallback(void);
-
+int16_t internal_tics_to_speedx100 (uint32_t tics);
 int32_t map (int32_t x, int32_t in_min, int32_t in_max, int32_t out_min, int32_t out_max);
 
 
@@ -451,7 +452,7 @@ int main(void) {
 	  }
 
 	  //throttle and PAS current target setting
-if(ui8_Push_Assist_flag)uint16_current_target=(MS.assist_level*PUSHASSIST_CURRENT)>>8; //does not work for BAFANG and Kunteng protocol actually
+if(ui8_Push_Assist_flag)uint16_current_target_temp=(MS.assist_level*PUSHASSIST_CURRENT)>>8; //does not work for BAFANG and Kunteng protocol actually
 		// last priority normal ride conditiones
 		else {
 
@@ -464,15 +465,15 @@ if(ui8_Push_Assist_flag)uint16_current_target=(MS.assist_level*PUSHASSIST_CURREN
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_901U||DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_FISCHER_1822)
 
-	  uint16_current_target = (TS_COEF*(int16_t)(KM.Rx.AssistLevel)* (uint32_torque_cumulated>>5)/uint32_PAS)>>8;
+	  uint16_current_target_temp = (TS_COEF*(int16_t)(KM.Rx.AssistLevel)* (uint32_torque_cumulated>>5)/uint32_PAS)>>8;
 
 #else
 
 	  uint16_current_target = (TS_COEF* (uint32_torque_cumulated>>5)/uint32_PAS)>>1;
 #endif
 
-	  if(uint16_current_target>PH_CURRENT_MAX) uint16_current_target = PH_CURRENT_MAX;
-	  if(uint32_PAS_counter > PAS_TIMEOUT) uint16_current_target = 0;
+	  if(uint16_current_target_temp>PH_CURRENT_MAX) uint16_current_target_temp = PH_CURRENT_MAX;
+	  if(uint32_PAS_counter > PAS_TIMEOUT) uint16_current_target_temp = 0;
 	  //uint16_current_target = 0;
 
 #else
@@ -489,7 +490,12 @@ if(ui8_Push_Assist_flag)uint16_current_target=(MS.assist_level*PUSHASSIST_CURREN
 
 #endif
 
-	  uint16_current_target = map(MS.Speed, 25 , 45, 0, uint16_current_target);
+	 // uint16_current_target = map(MS.Speed, 25 , 45, 0, uint16_current_target);
+
+	  //ramp down current at the speed limit
+	uint16_current_target=map(MS.Speed_kphx100,2500,2700,uint16_current_target_temp,0);
+
+
 		}//end current target calculation
 	  //enable PWM output, if power is wanted
 	  if (uint16_current_target>0&&!READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)) {
@@ -539,6 +545,8 @@ if(ui8_Push_Assist_flag)uint16_current_target=(MS.assist_level*PUSHASSIST_CURREN
 		   if(!MS.Motor_state&&READ_BIT(TIM1->BDTR, TIM_BDTR_MOE))CLEAR_BIT(TIM1->BDTR, TIM_BDTR_MOE); //disable
 		   if(READ_BIT(TIM1->BDTR, TIM_BDTR_MOE))temp3=1;
 		   else temp3=0;
+
+		   MS.Speed_kphx100=internal_tics_to_speedx100 (MS.Speed);
 #if (DISPLAY_TYPE == DEBUG_SLOW_LOOP)
 		   //print values for debugging
 	  		sprintf_(buffer, "%d, %d, %d, %d, %d, %d, %d\r\n", uint16_current_target, MS.i_q, MS.Motor_state, ui16_reg_adc_value-THROTTLE_OFFSET, MS.Speed, MS.u_d, temp5);
@@ -1429,6 +1437,10 @@ static void set_inj_channel(char state){
 	}
 
 
+}
+// calculate speed from duration of one electrical revolution
+int16_t internal_tics_to_speedx100 (uint32_t tics){
+	return WHEEL_CIRCUMFERENCE*16*360/(GEAR_RATIO*tics); //16kHz Zählerfrequenz, 3.6 von m/s auf km/h
 }
 
 /* USER CODE END 4 */
