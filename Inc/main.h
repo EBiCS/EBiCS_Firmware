@@ -108,6 +108,7 @@ extern uint8_t ui8_debug_state;
 extern q31_t q31_rotorposition_absolute;
 extern q31_t q31_delta_teta_obs;
 extern q31_t q31_teta_obs;
+extern void UART_IdleItCallback(void);
 void kingmeter_update(void);
 /* USER CODE END Private defines */
 
