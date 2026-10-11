@@ -156,7 +156,7 @@ int16_t wheel_time = 1000;							//duration of one wheel rotation for speed calc
 int16_t current_display;							//pepared battery current for display
 int16_t throttle_stat;								//throttle value, not linked to ADC-Value yet
 int16_t poti_stat;									//scaled assist level
-q31_t startup_counter=0;
+//q31_t startup_counter=0;
 int16_t tim1cc4=1948;									//cc4 value of timer 1 for injected ADC timing
 volatile uint8_t ui8_Push_Assist_flag=0;
 
@@ -378,17 +378,18 @@ int main(void) {
 
 	  //PI-control processing
 	  if(PI_flag){
-
-		  if(!MS.Motor_state&&uint16_current_target>0){
-			  MS.u_q =  PI_control_i_q(MS.i_q, 160);
-			  uint16_current_target/=(21-startup_counter);
-			  	startup_counter++;
-			  	if (startup_counter>20){
-			  		MS.Motor_state=1;
-			  		startup_counter=0;
-			  	}
-			  	temp5=startup_counter;
-			  }
+		  //start in open loop
+		  if(!MS.Motor_state&&uint16_current_target>0){ MS.u_q =  PI_control_i_q(MS.i_q, 160);}
+//		  if(!MS.Motor_state&&uint16_current_target>0){
+//			  MS.u_q =  PI_control_i_q(MS.i_q, 160);
+//			  uint16_current_target/=(21-startup_counter);
+//			  	startup_counter++;
+//			  	if (startup_counter>20){
+//			  		MS.Motor_state=1;
+//			  		startup_counter=0;
+//			  	}
+//			  	temp5=startup_counter;
+//			  }
 
 
 
@@ -469,7 +470,7 @@ if(ui8_Push_Assist_flag)uint16_current_target_temp=(MS.assist_level*PUSHASSIST_C
 
 #else
 
-	  uint16_current_target = (TS_COEF* (uint32_torque_cumulated>>5)/uint32_PAS)>>1;
+	  uint16_current_target_temp = (TS_COEF* (uint32_torque_cumulated>>5)/uint32_PAS)>>1;
 #endif
 
 	  if(uint16_current_target_temp>PH_CURRENT_MAX) uint16_current_target_temp = PH_CURRENT_MAX;
@@ -481,10 +482,10 @@ if(ui8_Push_Assist_flag)uint16_current_target_temp=(MS.assist_level*PUSHASSIST_C
 	  if (uint16_mapped_PAS>uint16_mapped_throttle)
 
 	  {
-		  if (uint32_PAS_counter < PAS_TIMEOUT) uint16_current_target= uint16_mapped_PAS;
+		  if (uint32_PAS_counter < PAS_TIMEOUT) uint16_current_target_temp= uint16_mapped_PAS;
 		  else uint16_current_target= 0;
 	  }
-	  else uint16_current_target = uint16_mapped_throttle;
+	  else uint16_current_target_temp = uint16_mapped_throttle;
 //reduce target, if speed goes to values where current measurement doesn't wo
 
 
