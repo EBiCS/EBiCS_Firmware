@@ -186,8 +186,123 @@ public void AddListItem(File newFile) {
         JOptionPane.showMessageDialog(null,experimentalSettingsFilesModel.toString(),"Titel", JOptionPane.PLAIN_MESSAGE);
 }
     
+    // Sets a component's text and an explanatory tooltip (tooltip shows the config.h define it writes).
+    private static void label(javax.swing.JComponent c, String text, String tooltip) {
+        if (text != null) {
+            if (c instanceof JLabel) ((JLabel) c).setText(text);
+            else if (c instanceof javax.swing.AbstractButton) ((javax.swing.AbstractButton) c).setText(text);
+        }
+        if (tooltip != null) c.setToolTipText("<html><body style='width:320px'>" + tooltip + "</body></html>");
+    }
+
+    // Clearer English labels and tooltips. Kept outside initComponents() so the NetBeans form stays untouched.
+    private void applyClearLabels() {
+        setTitle("EBiCS Lishui Parameter Configurator");
+        javax.swing.ToolTipManager.sharedInstance().setDismissDelay(30000);
+        label1.setText("EBiCS Lishui Parameter Configurator");
+
+        // --- Display ---
+        label(Label_Parameter1, "Display protocol", "Which display is connected. Sets DISPLAY_TYPE.");
+        label(RB_JLCD, "J-LCD (618U)", "KingMeter 618U protocol, e.g. J-LCD.");
+        label(RB_KM5S, "KM5S (901U)", "KingMeter 901U protocol, e.g. KM5S.");
+        label(RB_BAFANG_LCD, "Bafang LCD", "Bafang LCD protocol, including the 'Blaupunkt' display.");
+        label(RB_BAFANG_TFT, "Bafang TFT", "Bafang 850/860 color displays (9600 baud).");
+        label(RB_KUNTENG, "Kunteng LCD3/5", "Kunteng (KT) LCD protocol.");
+        label(RB_NO2, "No.2 (S866)", "Chinese 'No_2' protocol, used e.g. by the S866 display.");
+        label(RB_EBICS, "EBiCS app", "EBiCS protocol based on ANT+ LEV, used with the EBiCS Flutter app / BLE module.");
+        label(RB_DEBUG, "Debug (ASCII)", "No display. Prints debug values as ASCII text on the display UART. Needed for hall angle autodetect.");
+
+        // --- Ride mode ---
+        label(jLabel21, "Assist mode", null);
+        label(RB_TORQUESENSOR, "Torque sensor", "Assist is proportional to pedal torque (TS_MODE). Leave off for a plain cadence (PAS) sensor.");
+        label(RB_TQ_ON_AD1, "Torque on AD1", "Torque sensor wired to the AD1 input instead of the throttle input (TQONAD1).");
+        label(jLabel27, "TS gain", "Multiplier from torque signal to motor current (TS_COEF). Higher = more assist per Nm.");
+        label(RB_IND_PROFILE, "Indiv. profile", "Scale PAS assist with a per-level speed factor from the display (INDIVIDUAL_MODES).");
+
+        // --- PAS ---
+        label(jLabel28, "Pedal sensor", null);
+        label(jLabel29, "Timeout (ticks)", "Motor stops if no PAS pulse arrives within this time (PAS_TIMEOUT). Unit: timer ticks, about 8 per ms, so 8000 = 1 s.");
+        label(jLabel30, "Full assist (ticks)", "PAS pulse interval at which full assist is reached (RAMP_END). Slower pedalling ramps assist down towards the timeout. Unit: ticks (8 per ms).");
+        label(jLabel60, "Pulses / crank", "Number of PAS magnets / pulses per crank revolution (PAS_IMP_PER_TURN).");
+        label(RB_DIRDET, "Stop on backpedal", "Direction detection via the PAS duty cycle (DIRDET). Needs a PAS sensor with asymmetric pulses.");
+        label(jLabel45, "Dir. window max", "Upper limit of the PAS high/low fraction counted as forward pedalling (FRAC_HIGH).");
+        label(jLabel46, "Dir. window min", "Lower limit of the PAS high/low fraction counted as forward pedalling (FRAC_LOW).");
+
+        // --- Throttle ---
+        label(jLabel31, "Throttle", null);
+        label(jLabel32, "Throttle min", "Throttle ADC value at rest (THROTTLE_OFFSET). Only a default, measured automatically at power-up.");
+        label(jLabel33, "Throttle max", "Throttle ADC value at full throttle (THROTTLE_MAX), 0..4095.");
+        label(RB_THR_OVERRIDE, "Throttle > PAS", "Throttle can request more current than PAS assist (THROTTLE_OVERRIDE). Off = throttle is ignored.");
+        label(RB_LIMIT_THR, "Legal mode", "Ramps the motor down between the speed limit and +2 km/h. Without pedalling the motor is limited to 6 km/h (LEGALFLAG).");
+        label(jLabel49, "Push assist", "Motor current for push/walk assist (PUSHASSIST_CURRENT), in internal current units.");
+
+        // --- Bike and motor ---
+        label(jLabel34, "Bike and motor", null);
+        label(jLabel35, "Wheel circ. mm", "Used for speed calculation and speed limit (WHEEL_CIRCUMFERENCE).");
+        label(jLabel36, "Pole pairs x gear", "Electrical motor revolutions per wheel revolution (GEAR_RATIO), i.e. motor pole pairs x internal gear reduction. Used for speed from hall sensors.");
+        label(jLabel37, "Speed limit (km/h)", "Assist is cut above this speed (SPEEDLIMIT).");
+        label(jLabel38, "Speed sensor pulses", "Pulses per wheel revolution of an external speed sensor (PULSES_PER_REVOLUTION).");
+        label(jLabel39, "Phase current (mA)", "Maximum motor phase current (PH_CURRENT_MAX). This sets the motor power.");
+        label(jLabel40, "Hall angle offset", "Motor specific hall sensor angle (SPEC_ANGLE). Not used by the current master firmware.");
+        label(jLabel44, "Motor direction", null);
+        label(RB_REVERSE, "Reverse motor", "Invert the motor rotation direction (REVERSE).");
+
+        // --- Battery / currents ---
+        label(jLabel50, "Battery current (mA)", "Maximum current drawn from the battery (BATTERYCURRENT_MAX).");
+        label(jLabel48, "Brake regen (mA)", "Phase current used for regenerative braking with the brake lever (REGEN_CURRENT).");
+        label(jLabel51, "Regen battery (mA)", "Maximum current fed back into the battery during regen (REGEN_CURRENT_MAX).");
+        label(jLabel47, "Cutoff (mV)", "Undervoltage cutoff (VOLTAGE_MIN). Below this the motor stops to protect the battery.");
+        label(jLabel52, "Voltage max (mV)", "Upper battery voltage limit (VOLTAGE_MAX).");
+
+        // --- Tool paths ---
+        label(jLabel41, "Compiler (Ac6)", "Folder of System Workbench (Ac6) with the ARM compiler, e.g. C:\\Ac6\\SystemWorkbench. Start_Compiling.bat also finds it automatically.");
+        label(jLabel42, "ST-Link tools", "Folder containing 'STM32 ST-LINK Utility', e.g. C:\\Program Files (x86)\\STMicroelectronics. The batch files use STM32CubeProgrammer if installed.");
+
+        // --- Buttons / settings lists ---
+        label(jButton1, "Compile & Flash", "Saves config.h, compiles the firmware and flashes it via ST-Link (Start_Compiling.bat). To flash the last build again without compiling, run Flash_Only.bat.");
+        label(jButton2, "Unlock (erases!)", "Removes the read-out protection (WriteOptionBytes.bat). Needed once on a new controller. Erases the original firmware permanently.");
+        label(jLabel1, "Experimental settings", "Settings files from the 'experimental settings' folder. Click one to load it.");
+        label(jLabel2, "Proven settings", "Settings files from the 'proven settings' folder. Click one to load it.");
+
+        // --- Advanced tab ---
+        label(Label_Param3, "ADC trigger offset", "Shift of the current-sampling trigger before the PWM switching point (TRIGGER_OFFSET_ADC).");
+        label(jLabel3, "ADC trigger default", "Default ADC trigger time (TRIGGER_DEFAULT).");
+        label(jLabel4, "ADC timing", null);
+        label(jLabel5, "PWM timer period", "PWM timer period (_T). Don't change unless you know why.");
+        label(RB_FAST_LOOP_LOG, "Fast loop log", "Log fast-loop data over UART for analysis (FAST_LOOP_LOG).");
+        label(RB_DISABLE_DYN_ADC, "Fixed ADC trigger", "Disable the dynamic ADC trigger timing (DISABLE_DYNAMIC_ADC).");
+        label(jLabel6, "Calibration", null);
+        label(jLabel7, "Battery V cal.", "Battery voltage ADC calibration factor (CAL_BAT_V).");
+        label(jLabel8, "Voltage cal.", "Voltage calibration factor, mV per ADC count (CAL_V). Also used to convert the voltage limits.");
+        label(jLabel9, "Current cal.", "Current calibration factor, mA per ADC count, shifted by 8 (CAL_I). Depends on the shunt resistor.");
+        label(jLabel10, "Sensorless observer", null);
+        label(jLabel11, "Inductance", "Motor phase inductance for the sensorless observer (INDUCTANCE).");
+        label(jLabel12, "Resistance", "Motor phase resistance for the sensorless observer (RESISTANCE).");
+        label(jLabel13, "Flux linkage", "Motor flux linkage for the sensorless observer (FLUX_LINKAGE).");
+        label(jLabel14, "Gamma", "Observer gain (GAMMA).");
+        label(jLabel15, "Battery bars (mV)", "Battery voltage thresholds for the bars on Kunteng and Bafang displays (BATTERY_LEVEL_1..5).");
+        label(jLabel22, "Current controller (PI)", null);
+        label(jLabel23, "Iq P gain", "Proportional gain of the torque current (Iq) controller (P_FACTOR_I_Q).");
+        label(jLabel24, "Iq I gain", "Integral gain of the torque current (Iq) controller (I_FACTOR_I_Q).");
+        label(jLabel25, "Id P gain", "Proportional gain of the field current (Id) controller (P_FACTOR_I_D).");
+        label(jLabel26, "Id I gain", "Integral gain of the field current (Id) controller (I_FACTOR_I_D).");
+        label(RB_SPEED_PLL, "Rotor position PLL", "Estimate rotor position with a PLL instead of angle extrapolation between hall events (SPEED_PLL).");
+        label(jLabel53, "PLL P gain", "Proportional gain of the position PLL (P_FACTOR_PLL).");
+        label(jLabel54, "PLL I gain", "Integral gain of the position PLL (I_FACTOR_PLL).");
+        label(RB_SPEEDTHROTTLE, "Throttle = speed", "Throttle controls speed with a PI controller instead of current (SPEEDTHROTTLE).");
+        label(jLabel55, "Speed P gain", "Proportional gain of the speed controller (P_FACTOR_SPEED).");
+        label(jLabel56, "Speed I gain", "Integral gain of the speed controller (I_FACTOR_SPEED).");
+        label(RB_AUTODETECT, "Hall autodetect", "Auto-detect hall sensor angles and direction at startup. Only runs with the Debug display setting (AUTODETECT).");
+        label(RB_SS_EXTERNAL, "Ext. speed sensor", "Use the external wheel speed sensor for the speed limit instead of the motor hall sensors (SPEEDSOURCE).");
+        label(jLabel57, "Speed filter", "Low-pass filter strength for the speed value, as a bit shift (SPEEDFILTER). Higher = smoother, slower.");
+        label(jLabel58, "6-step threshold", "Below this speed (hall interval longer than this, in timer ticks) the motor runs in block (6-step) commutation (SIXSTEPTHRESHOLD).");
+        label(RB_LINEARREGEN, "Regen on AD2", "Analog brake sensor on AD2 gives regen proportional to lever travel (ADC_BRAKE).");
+        label(jLabel59, "PLL speed shift", "Speed scaling for the position PLL (SPDSHFT).");
+    }
+
     public Lishui_Parameter_Configurator() {
         initComponents();
+        applyClearLabels();
         BufferedImage image;
         try {
             try {
