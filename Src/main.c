@@ -226,9 +226,25 @@ uint16_t VirtAddVarTab[NB_OF_VAR] = { 	EEPROM_POS_HALL_ORDER,
 		EEPROM_POS_HALL_32,
 		EEPROM_POS_HALL_26,
 		EEPROM_POS_HALL_64,
+		EEPROM_POS_KV,
+		EEPROM_KT_B0_B3,
+		EEPROM_KT_B2_B4,
+		EEPROM_KT_B6_B7,
+		EEPROM_KT_B8_B9,
+		EEPROM_KT_B1_B10,
 		EEPROM_INT_TEMP_V25,
 		EEPROM_HALL_60
-};
+}; //all NB_OF_VAR (15) entries, otherwise variables are dropped when the EEPROM page is full
+
+// Setup mailbox: the EBiCS Setup app writes/reads these over the ST-Link (SWD) while the controller runs.
+// No UART or debug display is needed for hall/KV calibration.
+volatile uint8_t ui8_setup_cmd = 0;          // app writes 1 = start hall + KV autodetect (only accepted when motor is off)
+volatile uint8_t ui8_setup_state = 0;        // 0 idle, 1 hall scan, 2 KV spin-up, 3 done, 4 failed (hall missing)
+volatile uint8_t ui8_setup_progress = 0;     // 0..100 for the running step
+volatile uint8_t ui8_setup_halls_found = 0;  // bitmask of the 6 hall transitions seen during the scan, 0x3F = all
+volatile uint8_t ui8_hall_calibrated = 0;    // 1 if hall angles were loaded from EEPROM or detected
+volatile uint8_t ui8_watchdog_reset = 0;     // 1 if the last reset was caused by the watchdog
+const volatile uint32_t ui32_setup_magic = 0xEB1C5002; // lets the app check the firmware supports the mailbox
 
 enum state {Stop, SixStep, Regen, Running, BatteryCurrentLimit, Interpolation, PLL, IdleRun};
 enum state SystemState;
@@ -579,10 +595,11 @@ int main(void)
 	if(!i16_int_Temp_V25)i16_int_Temp_V25=INT_TEMP_25; //use value from main.h, if not in EEPROM yet.
 
 #if (!USE_FIX_POSITIONS)
-	EE_ReadVariable(EEPROM_POS_HALL_ORDER, &i16_hall_order);
+	uint16_t ui16_hall_order_status = EE_ReadVariable(EEPROM_POS_HALL_ORDER, (uint16_t*)&i16_hall_order);
 	printf_("Hall_Order: %d \n",i16_hall_order);
 	// set varaiables to value from emulated EEPROM only if valid
-	if(i16_hall_order!=0xFFFF) {
+	if(ui16_hall_order_status==0) { //0 = variable found in EEPROM
+		ui8_hall_calibrated=1;
 		int16_t temp;
 
 		EE_ReadVariable(EEPROM_POS_HALL_45, &temp);
@@ -673,6 +690,12 @@ int main(void)
 	while (1)
 	{
 		HAL_IWDG_Refresh(&hiwdg);
+
+		//setup app requested hall + KV autodetect over SWD (only while the motor is switched off)
+		if(ui8_setup_cmd==1){
+			ui8_setup_cmd=0;
+			if(!READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)) autodetect();
+		}
 
 
 		/* if(PI_flag){
@@ -838,7 +861,7 @@ int main(void)
 			else if(MS.Voltage<VOLTAGE_MIN)int32_temp_current_target=0;
 			//next priority: push assist
 #if (DISPLAY_TYPE == DISPLAY_TYPE_KUNTENG)
-			else if(ui8_Walk_Assist_flag){int32_temp_current_target=(PUSHASSIST_CURRENT);} //Now working for Kunteng protocol.
+			else if(ui8_Push_Assist_flag){int32_temp_current_target=(PUSHASSIST_CURRENT);} //Kunteng: walk assist = level 6, sets ui8_Push_Assist_flag (ui8_Walk_Assist_flag was never declared -> Kunteng did not compile)
 #else
 			else if(ui8_Push_Assist_flag)int32_temp_current_target=(MS.assist_level*PUSHASSIST_CURRENT)>>8; //does not work for BAFANG
 #endif
@@ -1002,7 +1025,10 @@ int main(void)
 				if(ui16_KV_detect_counter>32){
 					ui8_KV_detect_flag++;
 					ui16_KV_detect_counter=0;
-					if(MS.u_abs>1900){
+					ui8_setup_progress = (MS.u_abs>=1900) ? 100 : (uint8_t)((MS.u_abs*100)/1900);
+					if(MS.u_abs>1900 || ui8_KV_detect_flag>=250){ //250: stop before the uint8 counter wraps to 0
+						ui8_setup_state = 3;
+						ui8_setup_progress = 100;
 						ui8_KV_detect_flag=0;
 						HAL_FLASH_Unlock();
 						EE_WriteVariable(EEPROM_POS_KV, (int16_t) ui32_KV);
@@ -1042,7 +1068,7 @@ int main(void)
 			//----------------------------------------------------------------------------------------------------------------------------------------------------------
 			//slow loop procedere @16Hz, for LEV standard every 4th loop run, send page,
 			if(ui32_tim3_counter>500){
-				if(__HAL_RCC_GET_FLAG(RCC_FLAG_IWDGRST)) HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
+				if(ui8_watchdog_reset) HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
 				else HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
 
 
@@ -2170,6 +2196,8 @@ int main(void)
 		/* else battery_percent_fromcapacity=5; */
 
         battery_percent_fromcapacity = ((((MS.Voltage * CAL_BAT_V) - (BATTERY_LEVEL_1)) * 100) / ((BATTERY_LEVEL_5 - BATTERY_LEVEL_1)));
+        if (battery_percent_fromcapacity < 0) battery_percent_fromcapacity = 0;
+        if (battery_percent_fromcapacity > 100) battery_percent_fromcapacity = 100;
 
 		BF.Tx.Battery = battery_percent_fromcapacity;
 
@@ -2226,6 +2254,7 @@ int main(void)
 
 	int32_t map (int32_t x, int32_t in_min, int32_t in_max, int32_t out_min, int32_t out_max)
 	{
+		if (in_max <= in_min) return (x <= in_min) ? out_min : out_max; //avoid division by zero -> HardFault
 		// if input is smaller/bigger than expected return the min/max out ranges value
 		if (x < in_min)
 			return out_min;
@@ -2315,6 +2344,9 @@ int main(void)
 	}
 	void autodetect() {
 		SET_BIT(TIM1->BDTR, TIM_BDTR_MOE);
+		ui8_setup_state = 1;
+		ui8_setup_progress = 0;
+		ui8_setup_halls_found = 0;
 		MS.hall_angle_detect_flag = 0; //set uq to contstant value in FOC.c for open loop control
 		q31_rotorposition_absolute = 1 << 31;
 		i16_hall_order = 1;//reset hall order
@@ -2326,6 +2358,7 @@ int main(void)
 		for (i = 0; i < 1080; i++) {
 			HAL_IWDG_Refresh(&hiwdg);
 			q31_rotorposition_absolute += 11930465; //drive motor in open loop with steps of 1 deg
+			ui8_setup_progress = (uint8_t)((i*100UL)/1080);
 			HAL_Delay(5);
 			//printf_("%d, %d, %d, %d\n", temp3>>16,temp4>>16,temp5,temp6);
 
@@ -2339,41 +2372,53 @@ int main(void)
 				//6 cases for forward direction
 				case 64:
 					Hall_64=q31_rotorposition_absolute;
+					ui8_setup_halls_found |= (1<<0);
 					break;
 				case 45:
 					Hall_45=q31_rotorposition_absolute;
+					ui8_setup_halls_found |= (1<<1);
 					break;
 				case 51:
 					Hall_51=q31_rotorposition_absolute;
+					ui8_setup_halls_found |= (1<<2);
 					break;
 				case 13:
 					Hall_13=q31_rotorposition_absolute;
+					ui8_setup_halls_found |= (1<<3);
 					break;
 				case 32:
 					Hall_32=q31_rotorposition_absolute;
+					ui8_setup_halls_found |= (1<<4);
 					break;
 				case 26:
 					Hall_26=q31_rotorposition_absolute;
+					ui8_setup_halls_found |= (1<<5);
 					break;
 
 					//6 cases for reverse direction
 				case 46:
 					Hall_64=q31_rotorposition_absolute;
+					ui8_setup_halls_found |= (1<<0);
 					break;
 				case 62:
 					Hall_26=q31_rotorposition_absolute;
+					ui8_setup_halls_found |= (1<<5);
 					break;
 				case 23:
 					Hall_32=q31_rotorposition_absolute;
+					ui8_setup_halls_found |= (1<<4);
 					break;
 				case 31:
 					Hall_13=q31_rotorposition_absolute;
+					ui8_setup_halls_found |= (1<<3);
 					break;
 				case 15:
 					Hall_51=q31_rotorposition_absolute;
+					ui8_setup_halls_found |= (1<<2);
 					break;
 				case 54:
 					Hall_45=q31_rotorposition_absolute;
+					ui8_setup_halls_found |= (1<<1);
 					break;
 
 				} // end case
@@ -2394,6 +2439,12 @@ int main(void)
 		MS.u_q=0;
 		MS.i_d_setpoint= 0;
 		uint32_tics_filtered=1000000;
+
+		if(ui8_setup_halls_found != 0x3F){ //not all 6 hall positions seen: wiring/hall problem, don't save garbage
+			ui8_setup_state = 4;
+			printf_("autodetect failed, halls found: %d \n", ui8_setup_halls_found);
+			return;
+		}
 
 		HAL_FLASH_Unlock();
 
@@ -2416,6 +2467,9 @@ int main(void)
 		MS.hall_angle_detect_flag = 1;
 
 		HAL_Delay(5);
+		ui8_hall_calibrated = 1;
+		ui8_setup_state = 2;
+		ui8_setup_progress = 0;
 		ui8_KV_detect_flag = 30;
 
 
@@ -2540,6 +2594,8 @@ int main(void)
 		static q31_t q31_d_dc = 0;
 		// temp6 = soll-ist;
 		// temp5 = speedadapt;
+		if (speedadapt > P_FACTOR_PLL) speedadapt = P_FACTOR_PLL; //negative shift is undefined
+		if (speedadapt > I_FACTOR_PLL) speedadapt = I_FACTOR_PLL;
 		q31_p=(soll - ist)>>(P_FACTOR_PLL-speedadapt);   				//7 for Shengyi middrive, 10 for BionX IGH3
 		q31_d_i+=(soll - ist)>>(I_FACTOR_PLL-speedadapt);				//11 for Shengyi middrive, 10 for BionX IGH3
 
@@ -2742,6 +2798,7 @@ void Set_Hall_Angle60(void){
 
 		if(__HAL_RCC_GET_FLAG(RCC_FLAG_IWDGRST))
 		{
+			ui8_watchdog_reset=1;
 
 			printf_("watchdog reset!\n");
 			HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
@@ -2755,6 +2812,7 @@ void Set_Hall_Angle60(void){
 			printf_("regular reset\n\n");
 
 		}
+		__HAL_RCC_CLEAR_RESET_FLAGS();
 		// start independent watchdog
 		MX_IWDG_Init();
 

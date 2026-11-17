@@ -85,7 +85,7 @@ void Bafang_Service(BAFANG_t* BF_ctx, uint8_t  rx, MotorState_t *MS)
     static uint8_t  last_pointer_position;
     static uint8_t  recent_pointer_position;
     static uint8_t  Rx_message_length;
-    static uint8_t  BF_Message[32];
+    static uint8_t  BF_Message[BF_MAX_RXBUFF]; // must hold a full 64 byte DMA buffer (was 32 -> overflow into other variables)
     static uint16_t batval = {0};
 
 //    //wait for gap

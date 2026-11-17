@@ -367,7 +367,7 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
 
     static uint8_t  TxCnt;
     static uint8_t  Rx_message_length;
-    static uint8_t  KM_Message[32];
+    static uint8_t  KM_Message[64+2]; // must hold a full 64 byte DMA buffer (was 32 -> overflow into other variables), +2 for checksum reads
 
     recent_pointer_position = 64-DMA1_Channel5->CNDTR;
 
@@ -392,6 +392,7 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
 
 
 
+            	if(KM_Message[3] > 64-6) KM_Message[3] = 0; //length byte comes from the wire: keep the checksum loop inside the buffer
             	CheckSum = 0x0000;
             	for(m=1; m<(4+KM_Message[3]); m++)
             		{
@@ -465,7 +466,7 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
     			                KM_ctx->Settings.HND_HF_ThrParam     = (KM_Message[7] & 0x40) >> 6; // KM_HND_HF_NO / KM_HND_HF_YES
     			                KM_ctx->Settings.SYS_SSP_SlowStart   =  KM_Message[8];              // 1..9
     			                KM_ctx->Settings.SPS_SpdMagnets      =  KM_Message[9];             // 1..4
-    			                KM_ctx->Settings.VOL_1_UnderVolt_x10 = (((uint16_t) KM_Message[11])<<8) | KM_Message[11];
+    			                KM_ctx->Settings.VOL_1_UnderVolt_x10 = (((uint16_t) KM_Message[10])<<8) | KM_Message[11];
     			                KM_ctx->Settings.WheelSize_mm        = (((uint16_t) KM_Message[12])<<8) | KM_Message[13];
     			    	        KM_ctx->Rx.SPEEDMAX_Limit          		= KM_Message[11];
     			    	        KM_ctx->Rx.CUR_Limit_mA                 = (KM_Message[8]&0x3F)*500;
@@ -487,7 +488,7 @@ static void KM_901U_Service(KINGMETER_t* KM_ctx)
     			                TxBuffer[4] = 0x00;
     			                TxBuffer[5] = 0x00;
     			                TxBuffer[6] = 0x0D;
-    			                TxBuffer[7] = KM_901U_HANDSHAKE[KM_Message[9]];
+    			                TxBuffer[7] = KM_901U_HANDSHAKE[KM_Message[9] & 0x3F]; //table has 64 entries, index comes from the display
     			                TxBuffer[8] = 0x00;
     			                TxBuffer[9] = 0x0C;
     			                TxBuffer[10] = 0x01;
