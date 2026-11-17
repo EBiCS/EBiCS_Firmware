@@ -76,7 +76,7 @@ void No2_Service(No2_t* No2_ctx)
     static uint8_t  last_pointer_position;
     static uint8_t  recent_pointer_position;
     static uint8_t  Rx_message_length;
-    static uint8_t  No2_Message[32];
+    static uint8_t  No2_Message[KM_MAX_RXBUFF]; // must hold a full DMA buffer: Rx_message_length can be up to 64, a 32 byte buffer overflowed and corrupted the FOC flags
 
     recent_pointer_position = 64-DMA1_Channel5->CNDTR;
 

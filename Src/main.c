@@ -2031,7 +2031,8 @@ int main(void)
 #else
 		if(__HAL_TIM_GET_COUNTER(&htim2) < 12000)
 		{
-			No2.Tx.Wheeltime_ms = (MS.Speed*GEAR_RATIO*6)>>9; //>>9 because of 500kHZ timer2 frequency, 512 tics per ms should be OK *6 because of 6 hall interrupts per electric revolution.
+			uint32_t ui32_wheeltime = ((uint32_t)MS.Speed*GEAR_RATIO*6)>>9;
+			No2.Tx.Wheeltime_ms = (ui32_wheeltime > 64000) ? 64000 : ui32_wheeltime; //clamp, the 16 bit field overflowed at low speed and showed random speeds. //>>9 because of 500kHZ timer2 frequency, 512 tics per ms should be OK *6 because of 6 hall interrupts per electric revolution.
 
 		}
 		else
@@ -2097,7 +2098,8 @@ int main(void)
 #else
 		if(__HAL_TIM_GET_COUNTER(&htim2) < 12000)
 		{
-			KM.Tx.Wheeltime_ms = (MS.Speed*GEAR_RATIO*6)>>9; //>>9 because of 500kHZ timer2 frequency, 512 tics per ms should be OK *6 because of 6 hall interrupts per electric revolution.
+			uint32_t ui32_wheeltime = ((uint32_t)MS.Speed*GEAR_RATIO*6)>>9;
+			KM.Tx.Wheeltime_ms = (ui32_wheeltime > 64000) ? 64000 : ui32_wheeltime; //clamp, the 16 bit field overflowed at low speed and showed random speeds. //>>9 because of 500kHZ timer2 frequency, 512 tics per ms should be OK *6 because of 6 hall interrupts per electric revolution.
 
 		}
 		else
