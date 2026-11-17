@@ -143,7 +143,10 @@ DISPLAYS = [
 WHEELS = [("16\"", 1270), ("20\"", 1590), ("24\"", 1900), ("26\"", 2070), ("27.5\"", 2200),
           ("28\" / 700C", 2240), ("29\"", 2290), ("custom", None)]
 
-BATTERIES = [("24 V (7S)", 7), ("36 V (10S)", 10), ("48 V (13S)", 13), ("52 V (14S)", 14)]
+BATTERIES = [("24 V (7S)", 7), ("36 V (10S)", 10), ("48 V (13S)", 13), ("52 V (14S)", 14),
+             ("custom (set voltages below)", 0)]
+
+SPEED_TEMP_INPUTS = [("not used", 0), ("AD1 (PB1)", 6), ("AD2 (PB0)", 5)]
 
 # Field: key, label, kind, default, section, unit, help
 # kind: int, float, bool, str, display, battery, wheel
@@ -153,6 +156,11 @@ FIELDS = [
      "Which protocol your display speaks. Multi-protocol displays: choose the same in the display menu."),
     ("battery", "Battery", "battery", 10, "basic", "",
      "Nominal battery voltage. Sets the low-voltage cutoff and the battery bars."),
+    ("full_voltage_v", "Full charge voltage (0 = automatic)", "float", 0.0, "basic", "V",
+     "Battery voltage when fully charged. Regen braking is ramped down to zero at this voltage so the battery "
+     "is never overcharged. 0 = cells x 4.2 V. Must be set for a custom battery."),
+    ("voltage_min_v", "Cutoff voltage (0 = automatic)", "float", 0.0, "basic", "V",
+     "Below this voltage the motor stops (soft ramp just above it). 0 = cells x 3.1 V. Must be set for a custom battery."),
     ("wheel", "Wheel size", "wheel", "28\" / 700C", "basic", "", "Used for speed and the speed limit."),
     ("wheel_mm", "Wheel circumference", "int", 2240, "basic", "mm",
      "Only used when wheel size is 'custom'. Roll the bike one turn and measure."),
@@ -170,6 +178,9 @@ FIELDS = [
      "Ramps the motor down at the speed limit and limits to 6 km/h when you don't pedal."),
     ("walk_current_a", "Walk assist current", "float", 6.0, "basic", "A",
      "Motor current for the walk / push assist button."),
+    ("sensorless", "Sensorless motor (no hall sensors) - experimental", "bool", False, "basic", "",
+     "Run the motor without hall sensors (observer from the EBiCS Sensorless_VESC branch). Needs the motor parameters "
+     "in Expert > Sensorless. Hall calibration and gearing measurement are not possible. Test carefully."),
     ("reverse", "Reverse motor direction", "bool", False, "basic", "",
      "Tick if the wheel turns backwards. The setup wizard asks you and sets this."),
     ("gear_ratio", "Pole pairs x gear ratio", "int", 60, "basic", "",
@@ -178,6 +189,21 @@ FIELDS = [
     ("speed_sensor_external", "External speed sensor", "bool", False, "advanced", "",
      "Use a spoke magnet speed sensor instead of the motor hall sensors for speed."),
     ("pulses_per_rev", "Speed sensor magnets", "int", 1, "advanced", "", "Magnets on the wheel for the external speed sensor."),
+    ("speed_temp_input", "Speed/temperature wire on", "speedtemp", 0, "advanced", "",
+     "Motors with one wire for speed sensor AND temperature (NTC between the signal and GND): connect that wire to an "
+     "analog input (AD1 or AD2) with a pull-up resistor to 3.3 V. Not on AD1 together with 'Torque signal on AD1', "
+     "not on AD2 together with 'Proportional regen on AD2'."),
+    ("speed_on_wire", "  use it for speed", "bool", True, "advanced", "",
+     "Speed pulses from this wire (the motor's speed sensor). Sets the speed source to external."),
+    ("temp_on_wire", "  use it for motor temperature", "bool", True, "advanced", "",
+     "Motor temperature from the NTC on this wire. The motor current is reduced above 'derating start'."),
+    ("ntc_pullup_ohm", "  NTC pull-up resistor", "int", 3000, "advanced", "ohm",
+     "Pull-up resistor from the input to 3.3 V (measure it). NTC: 10k B3950. Tune it with a 10k resistor until Live data shows 25 C."),
+    ("speed_temp_threshold", "  speed pulse threshold", "int", 100, "advanced", "ADC",
+     "Readings below = speed pulse, above = temperature. See the raw value in Live data: it must stay above this "
+     "when hot and drop below it when the magnet passes."),
+    ("motor_temp_derate", "Motor temp: derating start", "int", 100, "advanced", "\u00b0C", "Motor current is reduced from here ..."),
+    ("motor_temp_max", "Motor temp: maximum", "int", 130, "advanced", "\u00b0C", "... down to zero at this temperature."),
     ("torque_on_ad1", "Torque signal on AD1", "bool", False, "advanced", "", "Torque sensor wired to AD1 instead of the throttle input."),
     ("ts_coef", "Torque sensor gain", "int", 60000, "advanced", "", "Higher = more assist per torque."),
     ("pas_timeout", "PAS stop timeout", "int", 8000, "advanced", "ticks", "Motor stops after this time without PAS pulse. 8000 = 1 s."),
@@ -191,7 +217,8 @@ FIELDS = [
     ("regen_current_a", "Brake regen current", "float", 0.0, "advanced", "A", "Phase current for regenerative braking (0 = off)."),
     ("regen_max_a", "Regen max into battery", "float", 0.0, "advanced", "A", ""),
     ("linear_regen", "Proportional regen on AD2", "bool", False, "advanced", "", "Analog brake sensor on AD2."),
-    ("voltage_min_v", "Cutoff voltage (0 = from battery)", "float", 0.0, "advanced", "V", "Override the low-voltage cutoff."),
+    ("voltage_ramp_v", "Soft voltage ramp width", "float", 1.0, "advanced", "V",
+     "Current is reduced smoothly within this voltage above the cutoff (motor) and below the full charge voltage (regen)."),
     ("individual_profile", "Individual assist profile", "bool", False, "advanced", "", ""),
     # --- expert (motor control internals)
     ("pll", "Rotor position PLL", "bool", False, "expert", "", "Leave off: hall interpolation works for most motors."),
@@ -214,10 +241,15 @@ FIELDS = [
     ("cal_bat_v", "Battery voltage cal.", "int", 256, "expert", "", ""),
     ("cal_v", "Voltage cal. (mV/count)", "int", 25, "expert", "", ""),
     ("cal_i", "Current cal. (mA/count <<8)", "str", "38LL<<8", "expert", "", "Depends on the shunt resistor."),
-    ("inductance", "Inductance", "str", "6", "expert", "", ""),
-    ("resistance", "Resistance", "str", "40", "expert", "", ""),
-    ("flux_linkage", "Flux linkage", "str", "1200", "expert", "", ""),
-    ("gamma", "Observer gamma", "str", "9", "expert", "", ""),
+    ("inductance", "Sensorless: inductance", "str", "2", "expert", "uH/100",
+     "Phase inductance for the observer, e.g. 200 uH = 2. Only used in sensorless mode."),
+    ("resistance", "Sensorless: resistance", "str", "120", "expert", "mOhm*512/1000",
+     "Phase resistance for the observer (Shengyi 117 mOhm = 120). Only used in sensorless mode."),
+    ("flux_linkage", "Sensorless: flux linkage", "str", "2400", "expert", "",
+     "Tuned by hand in the branch (BionX 2400, Shengyi 1800). Only used in sensorless mode."),
+    ("gamma", "Sensorless: observer gain (shift)", "str", "13", "expert", "", "Trial and error, 10..13. Only used in sensorless mode."),
+    ("obs_angle_deg", "Sensorless: angle offset", "float", 20.0, "expert", "deg",
+     "Offset between observer and rotor. Change in small steps until the motor runs smooth and efficient."),
     ("spec_angle", "Hall angle offset (unused)", "str", "-715827882", "expert", "", ""),
     ("autodetect_at_boot", "Autodetect at every power-up", "bool", False, "expert", "",
      "Only with the debug display. The app starts calibration over the ST-Link instead."),
@@ -260,7 +292,7 @@ def import_java_ini(path):
              walk_current_a=round(f(34) * cal_i_ma(v[5]) / 1000.0, 2), wheel="custom", wheel_mm=int(v[35]),
              gear_ratio=int(v[36]), speed_limit=int(v[37]), pulses_per_rev=max(1, int(v[38])),
              phase_current_a=f(39) / 1000.0, battery_current_a=f(40) / 1000.0, regen_current_a=f(41) / 1000.0,
-             regen_max_a=f(42) / 1000.0, voltage_min_v=f(43) / 1000.0, spec_angle=v[45],
+             regen_max_a=f(42) / 1000.0, voltage_min_v=f(43) / 1000.0, full_voltage_v=f(44) / 1000.0, spec_angle=v[45],
              dirdet=b(46), torque_sensor=b(47), torque_on_ad1=b(48), disable_dyn_adc=b(57), fast_loop_log=b(58),
              pll=b(59), speed_throttle=b(60), linear_regen=b(61), speed_sensor_external=b(62),
              autodetect_at_boot=b(63), reverse=b(64), legal_mode=b(65), throttle=b(66), individual_profile=b(67))
@@ -287,13 +319,37 @@ def wheel_circumference(s):
 
 
 def battery_mv(s):
-    """(cutoff_mv, max_mv, [bar1..bar5 mV]) from the battery cell count."""
+    """(cutoff_mv, full_mv, [bar1..bar5 mV]) from the cell count or the custom voltages."""
     cells = int(s.get("battery", 10))
     cutoff = int(cells * 3100)
+    full = int(cells * 4200)
     if float(s.get("voltage_min_v") or 0) > 0:
         cutoff = int(float(s["voltage_min_v"]) * 1000)
-    bars = [int(cells * v) for v in (3300, 3450, 3600, 3800, 4000)]
-    return cutoff, int(cells * 4250), bars
+    if float(s.get("full_voltage_v") or 0) > 0:
+        full = int(float(s["full_voltage_v"]) * 1000)
+    span = max(1, full - cutoff)
+    bars = [int(cutoff + span * f) for f in (0.10, 0.25, 0.45, 0.65, 0.85)]
+    return cutoff, full, bars
+
+
+def check_settings(s):
+    """List of problems that would make a bad firmware, empty if fine."""
+    p = []
+    cutoff, full, _ = battery_mv(s)
+    if int(s.get("battery", 10)) == 0 and (float(s.get("voltage_min_v") or 0) <= 0 or float(s.get("full_voltage_v") or 0) <= 0):
+        p.append("Custom battery: set both 'Full charge voltage' and 'Cutoff voltage'.")
+    if full <= cutoff + 1000:
+        p.append("'Full charge voltage' must be clearly above the 'Cutoff voltage'.")
+    if float(s.get("voltage_ramp_v") or 0) * 1000 >= (full - cutoff) / 2:
+        p.append("'Soft voltage ramp width' is too big for this battery voltage range.")
+    idx = int(s.get("speed_temp_input") or 0)
+    if idx == 6 and s.get("torque_on_ad1"):
+        p.append("Speed/temperature wire and torque sensor can't both use AD1.")
+    if idx == 5 and s.get("linear_regen"):
+        p.append("Speed/temperature wire and proportional regen can't both use AD2.")
+    if idx and not (s.get("speed_on_wire") or s.get("temp_on_wire")):
+        p.append("Speed/temperature wire is selected but neither speed nor temperature is ticked.")
+    return p
 
 
 def generate_config_h(s):
@@ -340,6 +396,21 @@ def generate_config_h(s):
     d("PH_CURRENT_MAX", units(s["phase_current_a"])); d("BATTERYCURRENT_MAX", ma(s["battery_current_a"]))
     d("REGEN_CURRENT", units(s["regen_current_a"])); d("REGEN_CURRENT_MAX", ma(s["regen_max_a"]))
     d("VOLTAGE_MIN", int(cutoff / cal_v)); d("VOLTAGE_MAX", int(vmax / cal_v)); d("SPEC_ANGLE", s["spec_angle"])
+    d("BATTERYVOLTAGE_MIN", cutoff); d("BATTERYVOLTAGE_MAX", vmax)
+    d("VOLTAGE_RAMP_MV", max(100, int(float(s.get("voltage_ramp_v", 1.0)) * 1000)))
+    d("MOTOR_TEMPERATURE_THRESHOLD", int(s.get("motor_temp_derate", 100)))
+    d("MOTOR_TEMPERATURE_MAX", max(int(s.get("motor_temp_derate", 100)) + 5, int(s.get("motor_temp_max", 130))))
+    st = int(s.get("speed_temp_input") or 0)
+    speed_from_wire = bool(st and s.get("speed_on_wire"))
+    if st:
+        d("SPEED_TEMP_ADC", st); d("SPEED_TEMP_THRESHOLD", int(s.get("speed_temp_threshold", 100)))
+        if speed_from_wire:
+            L.append("#define SPEED_FROM_ADC")
+        if s.get("temp_on_wire"):
+            d("R_TEMP_PULLUP", max(1, int(s.get("ntc_pullup_ohm", 3000))))
+    if s.get("sensorless"):
+        L.append("#define SENSORLESS")
+        d("OBS_ANGLE_OFFSET", f"{int(round(float(s.get('obs_angle_deg', 20.0)) / 180.0 * 2 ** 31)) & 0xFFFFFFFF}UL")
     flag = lambda on, text: L.append(text) if on else None
     flag(s["dirdet"], "#define DIRDET")
     flag(s["torque_sensor"], "#define TS_MODE")
@@ -350,8 +421,8 @@ def generate_config_h(s):
     d("SPEED_PLL", 1 if s["pll"] else 0)
     flag(s["speed_throttle"], "#define SPEEDTHROTTLE")
     flag(s["linear_regen"], "#define ADC_BRAKE")
-    d("SPEEDSOURCE", "EXTERNAL" if s["speed_sensor_external"] else "INTERNAL")
-    d("AUTODETECT", 1 if (s["autodetect_at_boot"] and s["display"] == "DEBUG") else 0)
+    d("SPEEDSOURCE", "EXTERNAL" if (s["speed_sensor_external"] or speed_from_wire) else "INTERNAL")
+    d("AUTODETECT", 1 if (s["autodetect_at_boot"] and s["display"] == "DEBUG" and not s.get("sensorless")) else 0)
     d("REVERSE", -1 if s["reverse"] else 1)
     flag(s["legal_mode"], "#define LEGALFLAG")
     flag(s["throttle"], "#define THROTTLE_OVERRIDE")
@@ -517,6 +588,8 @@ LIVE_VARS = {
     "i16_hall_order": ("i16", 0),
     "ui32_KV": ("i16", 0),
     "ui8_watchdog_reset": ("u8", 0),
+    "ui16_motor_temp_adc": ("u16", 0),
+    "ui8_sensorless_running": ("u8", 0),
 }
 MS_FIELDS = {"Voltage": ("i32", 0), "Speed": ("u32", 4), "i_q": ("i32", 12), "i_q_setpoint": ("i32", 16),
              "u_abs": ("i32", 44), "Battery_Current": ("i32", 48), "assist_level": ("u8", 54),
@@ -563,6 +636,11 @@ class Live:
             for h in HALLS:
                 if h in self.syms:
                     regions.append((self.syms[h][0], 4)); plan.append((h, self.syms[h][0], "u32"))
+        if "adcData" in self.syms:
+            base = self.syms["adcData"][0]
+            regions.append((base, 18))
+            for n in range(9):
+                plan.append((f"adc{n}", base + 2 * n, "u16"))
         mem = self.st.read(regions)
         if mem is None:
             return None

@@ -15,6 +15,7 @@ C_SRCS += \
 ../Src/eeprom.c \
 ../Src/main.c \
 ../Src/print.c \
+../Src/sensorless.c \
 ../Src/stm32f1xx_hal_msp.c \
 ../Src/stm32f1xx_it.c \
 ../Src/system_stm32f1xx.c 
@@ -31,6 +32,7 @@ OBJS += \
 ./Src/eeprom.o \
 ./Src/main.o \
 ./Src/print.o \
+./Src/sensorless.o \
 ./Src/stm32f1xx_hal_msp.o \
 ./Src/stm32f1xx_it.o \
 ./Src/system_stm32f1xx.o 
@@ -47,6 +49,7 @@ C_DEPS += \
 ./Src/eeprom.d \
 ./Src/main.d \
 ./Src/print.d \
+./Src/sensorless.d \
 ./Src/stm32f1xx_hal_msp.d \
 ./Src/stm32f1xx_it.d \
 ./Src/system_stm32f1xx.d 

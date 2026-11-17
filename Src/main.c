@@ -85,6 +85,10 @@
 #include "display_vesc.h"
 #endif
 
+#ifdef SENSORLESS
+#include "sensorless.h"
+#endif
+
 #include <arm_math.h>
 /* USER CODE END Includes */
 
@@ -254,6 +258,8 @@ volatile uint8_t ui8_hall_calibrated = 0;    // 1 if hall angles were loaded fro
 volatile uint8_t ui8_watchdog_reset = 0;     // 1 if the last reset was caused by the watchdog
 volatile uint32_t ui32_hall_events = 0;      // counts every hall sensor change (gear ratio measurement by hand)
 volatile uint32_t ui32_pas_events = 0;       // counts PAS sensor pulses (sensor check)
+volatile uint16_t ui16_motor_temp_adc = 0;   // filtered NTC reading of the speed/temperature input (only samples above the threshold)
+volatile uint32_t ui32_motor_temp_adc_cumulated = 2048UL<<4;
 const volatile uint32_t ui32_setup_magic = 0xEB1C5002; // lets the app check the firmware supports the mailbox
 
 enum state {Stop, SixStep, Regen, Running, BatteryCurrentLimit, Interpolation, PLL, IdleRun};
@@ -885,11 +891,11 @@ int main(void)
 				else int32_temp_current_target=0;
 
 #endif
-				int32_temp_current_target= -map(MS.Voltage*CAL_V,BATTERYVOLTAGE_MAX-1000,BATTERYVOLTAGE_MAX,int32_temp_current_target,0);
+				int32_temp_current_target= -map(MS.Voltage*CAL_V,BATTERYVOLTAGE_MAX-VOLTAGE_RAMP_MV,BATTERYVOLTAGE_MAX,int32_temp_current_target,0); //soft ramp: no regen above the full charge voltage
 			}
 
 			//next priority: undervoltage protection
-			else if(MS.Voltage<VOLTAGE_MIN)int32_temp_current_target=0;
+			else if(MS.Voltage*CAL_V<BATTERYVOLTAGE_MIN)int32_temp_current_target=0; //below cutoff: off (soft ramp above, see below)
 			//next priority: push assist
 #if (DISPLAY_TYPE == DISPLAY_TYPE_KUNTENG)
 			else if(ui8_Push_Assist_flag){int32_temp_current_target=(PUSHASSIST_CURRENT);} //Kunteng: walk assist = level 6, sets ui8_Push_Assist_flag (ui8_Walk_Assist_flag was never declared -> Kunteng did not compile)
@@ -1052,6 +1058,10 @@ int main(void)
 			}
 			else VESC.cmd_active=0;
 #endif
+			//soft ramp down of the motor current when the battery voltage approaches the cutoff (all modes: PAS, throttle, push, VESC, display)
+			if(!brake_flag && int32_temp_current_target>0){
+				int32_temp_current_target=map(MS.Voltage*CAL_V, BATTERYVOLTAGE_MIN, BATTERYVOLTAGE_MIN+VOLTAGE_RAMP_MV, 0, int32_temp_current_target);
+			}
 			MS.i_q_setpoint=map(MS.Temperature, MOTOR_TEMPERATURE_THRESHOLD,MOTOR_TEMPERATURE_MAX,int32_temp_current_target,0); //ramp down power with temperature to avoid overheating the motor
 #if(INT_TEMP_25)
 			MS.i_q_setpoint=map(MS.int_Temperature, CONTROLLER_TEMPERATURE_THRESHOLD,CONTROLLER_TEMPERATURE_MAX,MS.i_q_setpoint,0); //ramp down power with processor temperatur to avoid overheating the controller
@@ -1100,12 +1110,18 @@ int main(void)
 				ui16_timertics=20000; //set interval between two hallevents to a large value
 				i8_recent_rotor_direction=i8_direction*i8_reverse_flag*sign(MS.i_q_setpoint);
 				get_standstill_position();
+#ifdef SENSORLESS
+				sensorless_reset();
+#endif
 			}
 
 
 			//----------------------------------------------------------------------------------------------------------------------------------------------------------
 			//slow loop procedere @16Hz, for LEV standard every 4th loop run, send page,
 			if(ui32_tim3_counter>500){
+#ifdef SENSORLESS
+				sensorless_slow();
+#endif
 				if(ui8_watchdog_reset) HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
 				else HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
 
@@ -1113,7 +1129,7 @@ int main(void)
 
 				if(ui8_KV_detect_flag){ui16_KV_detect_counter++;}
 #if (R_TEMP_PULLUP)
-				MS.Temperature = T_NTC(adcData[6]); //Thank you Hendrik ;-)
+				MS.Temperature = T_NTC(ui16_motor_temp_adc); //NTC on SPEED_TEMP_ADC, filtered without speed pulses. Thank you Hendrik ;-)
 #else
 				MS.Temperature=25;
 #endif
@@ -1794,6 +1810,26 @@ int main(void)
 	void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 	{
 		ui8_adc_regular_flag=1;
+#if defined(SPEED_FROM_ADC) || (R_TEMP_PULLUP)
+		{
+			// motor speed sensor and NTC on one wire: the NTC sits between signal and GND, the speed sensor
+			// pulls the signal to ~0 V when the magnet passes. Low = speed pulse, everything else = temperature.
+			static uint8_t ui8_speed_input_low = 0;
+			uint16_t v = adcData[SPEED_TEMP_ADC];
+			if(v < SPEED_TEMP_THRESHOLD){
+#ifdef SPEED_FROM_ADC
+				if(!ui8_speed_input_low) ui8_SPEED_flag = 1; //falling edge = one speed sensor pulse
+#endif
+				ui8_speed_input_low = 1;
+			}
+			else if(v > SPEED_TEMP_THRESHOLD + (SPEED_TEMP_THRESHOLD>>1) + 20){ //hysteresis
+				ui8_speed_input_low = 0;
+				ui32_motor_temp_adc_cumulated -= ui32_motor_temp_adc_cumulated>>4;
+				ui32_motor_temp_adc_cumulated += v;
+				ui16_motor_temp_adc = ui32_motor_temp_adc_cumulated>>4;
+			}
+		}
+#endif
 
 	}
 
@@ -1922,7 +1958,11 @@ int main(void)
 			// call FOC procedure if PWM is enabled
 
 			if (READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)){
+#ifdef SENSORLESS
+				FOC_calculation(i16_ph1_current, i16_ph2_current, q31_teta_obs, (((int16_t)i8_direction*i8_reverse_flag)*MS.i_q_setpoint), &MS);
+#else
 				FOC_calculation(i16_ph1_current, i16_ph2_current, q31_rotorposition_absolute, (((int16_t)i8_direction*i8_reverse_flag)*MS.i_q_setpoint), &MS);
+#endif
 			}
 			//temp5=__HAL_TIM_GET_COUNTER(&htim1);
 			//set PWM
@@ -2101,21 +2141,7 @@ int main(void)
 	{
 		/* Prepare Tx parameters */
 
-#if (SPEEDSOURCE  == EXTERNAL)
-		No2.Tx.Wheeltime_ms = ((MS.Speed>>3)*PULSES_PER_REVOLUTION); //>>3 because of 8 kHz counter frequency, so 8 tics per ms
-#else
-		if(__HAL_TIM_GET_COUNTER(&htim2) < 12000)
-		{
-			uint32_t ui32_wheeltime = ((uint32_t)MS.Speed*GEAR_RATIO*6)>>9;
-			No2.Tx.Wheeltime_ms = (ui32_wheeltime > 64000) ? 64000 : ui32_wheeltime; //clamp, the 16 bit field overflowed at low speed and showed random speeds. //>>9 because of 500kHZ timer2 frequency, 512 tics per ms should be OK *6 because of 6 hall interrupts per electric revolution.
-
-		}
-		else
-		{
-			No2.Tx.Wheeltime_ms = 64000;
-		}
-
-#endif
+		No2.Tx.Wheeltime_ms = get_wheeltime_ms(); //clamped, works for hall, external sensor and sensorless
 		if(MS.Temperature>MOTOR_TEMPERATURE_MAX) No2.Tx.Error = 7;  //motor failure
 		else if(MS.int_Temperature>CONTROLLER_TEMPERATURE_MAX)No2.Tx.Error = 9; //controller failure
 		else No2.Tx.Error = 0; //no failure
@@ -2168,21 +2194,7 @@ int main(void)
 		}
 
 
-#if (SPEEDSOURCE  == EXTERNAL)
-		KM.Tx.Wheeltime_ms = ((MS.Speed>>3)*PULSES_PER_REVOLUTION); //>>3 because of 8 kHz counter frequency, so 8 tics per ms
-#else
-		if(__HAL_TIM_GET_COUNTER(&htim2) < 12000)
-		{
-			uint32_t ui32_wheeltime = ((uint32_t)MS.Speed*GEAR_RATIO*6)>>9;
-			KM.Tx.Wheeltime_ms = (ui32_wheeltime > 64000) ? 64000 : ui32_wheeltime; //clamp, the 16 bit field overflowed at low speed and showed random speeds. //>>9 because of 500kHZ timer2 frequency, 512 tics per ms should be OK *6 because of 6 hall interrupts per electric revolution.
-
-		}
-		else
-		{
-			KM.Tx.Wheeltime_ms = 64000;
-		}
-
-#endif
+		KM.Tx.Wheeltime_ms = get_wheeltime_ms(); //clamped, works for hall, external sensor and sensorless
 		if(MS.Temperature>130) KM.Tx.Error = KM_ERROR_OVHT;
 		else if(MS.int_Temperature>80)KM.Tx.Error = KM_ERROR_IOVHT;
 		else KM.Tx.Error = KM_ERROR_NONE;
@@ -2258,7 +2270,7 @@ int main(void)
 		else BF.Tx.Speed = 0;
 
 #else
-		if(__HAL_TIM_GET_COUNTER(&htim2) < 12000 && MS.system_state != Stop)
+		if(motor_is_turning() && MS.system_state != Stop)
 		{
 			BF.Tx.Speed =(internal_tics_to_speedx100(MS.Speed)*20)>>8; //factor is *20/256, found empiric
 
@@ -2301,6 +2313,16 @@ int main(void)
 
 #endif
 
+	//1 if the motor turns: hall event within the last 24 ms, or the sensorless observer is running
+	uint8_t motor_is_turning(void)
+	{
+#ifdef SENSORLESS
+		return ui8_sensorless_running;
+#else
+		return __HAL_TIM_GET_COUNTER(&htim2) < 12000;
+#endif
+	}
+
 	//duration of one wheel revolution in ms for the displays, 64000 = standing still
 	uint32_t get_wheeltime_ms(void)
 	{
@@ -2308,7 +2330,7 @@ int main(void)
 #if (SPEEDSOURCE == EXTERNAL)
 		t = ((MS.Speed>>3)*PULSES_PER_REVOLUTION); //8 kHz counter, 8 tics per ms
 #else
-		if(__HAL_TIM_GET_COUNTER(&htim2) >= 12000) return 64000; //no hall event for 24 ms: motor stopped
+		if(!motor_is_turning()) return 64000;
 		t = ((uint32_t)MS.Speed*GEAR_RATIO*6)>>9; //500 kHz timer2, 6 hall events per electric revolution
 #endif
 		return (t > 64000) ? 64000 : t;

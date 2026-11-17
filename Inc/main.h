@@ -89,8 +89,24 @@
 
 //#define NCTE
 //#define LEGALFLAG
+#ifndef BATTERYVOLTAGE_MAX
 #define BATTERYVOLTAGE_MAX 53000
+#endif
+#ifndef R_TEMP_PULLUP
 #define R_TEMP_PULLUP 0
+#endif
+#ifndef BATTERYVOLTAGE_MIN
+#define BATTERYVOLTAGE_MIN (VOLTAGE_MIN*CAL_V)   // cutoff in mV
+#endif
+#ifndef VOLTAGE_RAMP_MV
+#define VOLTAGE_RAMP_MV 1000                   // soft current ramp width at cutoff and full charge voltage
+#endif
+#ifndef SPEED_TEMP_ADC
+#define SPEED_TEMP_ADC 6                       // adcData index of the speed/temperature input: 6 = AD1 (PB1), 5 = AD2 (PB0)
+#endif
+#ifndef SPEED_TEMP_THRESHOLD
+#define SPEED_TEMP_THRESHOLD 100               // ADC value below = speed pulse, above = NTC temperature
+#endif
 #define INT_TEMP_25 0
 #define TORQUE_OFFSET 850
 //#define USE_FIX_POSITIONS 1
@@ -122,8 +138,12 @@
 
 #define CONTROLLER_TEMPERATURE_THRESHOLD 70
 #define CONTROLLER_TEMPERATURE_MAX       80
+#ifndef MOTOR_TEMPERATURE_THRESHOLD
 #define MOTOR_TEMPERATURE_THRESHOLD 100
+#endif
+#ifndef MOTOR_TEMPERATURE_MAX
 #define MOTOR_TEMPERATURE_MAX       130
+#endif
 
 /* ########################## Assert Selection ############################## */
 /**
@@ -145,6 +165,7 @@
 #define DISPLAY_TYPE_VESC (1<<9)        // VESC UART protocol (telemetry + current command)
 #endif
 uint32_t get_wheeltime_ms(void);
+uint8_t motor_is_turning(void);
 int32_t map (int32_t x, int32_t in_min, int32_t in_max, int32_t out_min, int32_t out_max);
 void autodetect();
 void runPIcontrol();

@@ -17,7 +17,6 @@
 #include "display_vesc.h"
 
 extern UART_HandleTypeDef huart1;
-extern TIM_HandleTypeDef htim2;
 extern MotorState_t MS;
 extern uint16_t ui16_erps;
 extern int8_t i8_direction;
@@ -76,7 +75,7 @@ static void reply_values(void)
 	int32_t i = 0;
 	int32_t ma_per_unit = CAL_I >> 8;                           // mA per internal current unit
 	int32_t dir = i8_direction * i8_reverse_flag;
-	int32_t erpm = (__HAL_TIM_GET_COUNTER(&htim2) < 12000) ? (int32_t)ui16_erps * 60 * dir : 0;
+	int32_t erpm = motor_is_turning() ? (int32_t)ui16_erps * 60 * dir : 0;
 
 	p[i++] = COMM_GET_VALUES;
 	put16(p, &i, MS.int_Temperature * 10);                     // temp fet, 0.1 C

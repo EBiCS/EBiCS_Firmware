@@ -10,6 +10,10 @@
 #include "stm32f1xx_hal.h"
 #include <arm_math.h>
 
+#ifdef SENSORLESS
+#include "sensorless.h"
+#endif
+
 //q31_t	T_halfsample = 0.00003125;
 //q31_t	counterfrequency = 64000000;
 //q31_t	U_max = (1/_SQRT3)*_U_DC;
@@ -88,9 +92,15 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 //	else runPIcontrol();
 
 	runPIcontrol();
+#ifdef SENSORLESS
+	sensorless_startup(MS_FOC, int16_i_q_target); //open loop start until the observer takes over
+#endif
 
 	//inverse Park transformation
 	arm_inv_park_q31(MS_FOC->u_d, MS_FOC->u_q, &q31_u_alpha, &q31_u_beta, -sinevalue, cosinevalue);
+#ifdef SENSORLESS
+	sensorless_observe(q31_u_alpha, q31_u_beta, q31_i_alpha, q31_i_beta, int16_i_q_target);
+#endif
 
 
 

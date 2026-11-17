@@ -61,25 +61,79 @@ class LogBox(ttk.Frame):
 
 
 class Tooltip:
+    """Hover help. Only one tooltip exists at a time; it closes as soon as the mouse is no longer over its
+    widget (checked every 150 ms, because <Leave> is not delivered reliably, e.g. when a page changes)."""
+    _tip = None      # the one tooltip window
+    _owner = None    # Tooltip object that currently shows it
+
     def __init__(self, widget, text):
-        self.widget, self.text, self.tip = widget, text, None
+        self.widget, self.text, self._pending = widget, text, None
         if text:
-            widget.bind("<Enter>", self.show)
-            widget.bind("<Leave>", self.hide)
+            widget.bind("<Enter>", self._enter, add="+")
+            widget.bind("<Leave>", self._leave, add="+")
+            widget.bind("<ButtonPress>", self._leave, add="+")
 
-    def show(self, _e=None):
-        x = self.widget.winfo_rootx() + 20
-        y = self.widget.winfo_rooty() + self.widget.winfo_height() + 4
-        self.tip = tk.Toplevel(self.widget)
-        self.tip.wm_overrideredirect(True)
-        self.tip.geometry(f"+{x}+{y}")
-        tk.Label(self.tip, text=self.text, bg="#fffbe6", relief="solid", borderwidth=1, wraplength=px(360),
+    def _enter(self, _e=None):
+        self._cancel()
+        self._pending = self.widget.after(350, self._show)
+
+    def _leave(self, _e=None):
+        self._cancel()
+        if Tooltip._owner is self:
+            Tooltip.close()
+
+    def _cancel(self):
+        if self._pending:
+            try:
+                self.widget.after_cancel(self._pending)
+            except tk.TclError:
+                pass
+            self._pending = None
+
+    def _pointer_inside(self):
+        try:
+            x, y = self.widget.winfo_pointerxy()
+            w = self.widget.winfo_containing(x, y)
+        except (tk.TclError, KeyError):
+            return False
+        while w is not None:
+            if w == self.widget:
+                return True
+            w = w.master
+        return False
+
+    def _show(self):
+        self._pending = None
+        if not self._pointer_inside():
+            return
+        Tooltip.close()
+        x = self.widget.winfo_rootx() + px(20)
+        y = self.widget.winfo_rooty() + self.widget.winfo_height() + px(4)
+        tip = tk.Toplevel(self.widget)
+        tip.wm_overrideredirect(True)
+        tip.attributes("-topmost", True)
+        tip.geometry(f"+{x}+{y}")
+        tk.Label(tip, text=self.text, bg="#fffbe6", relief="solid", borderwidth=1, wraplength=px(360),
                  justify="left", padx=6, pady=4, font=("Segoe UI", 9)).pack()
+        Tooltip._tip, Tooltip._owner = tip, self
+        self._watch()
 
-    def hide(self, _e=None):
-        if self.tip:
-            self.tip.destroy()
-            self.tip = None
+    def _watch(self):
+        if Tooltip._owner is not self:
+            return
+        if not self._pointer_inside():
+            Tooltip.close()
+            return
+        self.widget.after(150, self._watch)
+
+    @classmethod
+    def close(cls):
+        if cls._tip is not None:
+            try:
+                cls._tip.destroy()
+            except tk.TclError:
+                pass
+        cls._tip, cls._owner = None, None
 
 
 def field_widget(parent, app, key, var_store):
@@ -97,6 +151,11 @@ def field_widget(parent, app, key, var_store):
     elif kind == "battery":
         labels = [b[0] for b in core.BATTERIES]
         cur = next((b[0] for b in core.BATTERIES if b[1] == int(val)), labels[1])
+        var = tk.StringVar(value=cur)
+        w = ttk.Combobox(parent, textvariable=var, values=labels, state="readonly", width=16)
+    elif kind == "speedtemp":
+        labels = [x[0] for x in core.SPEED_TEMP_INPUTS]
+        cur = next((x[0] for x in core.SPEED_TEMP_INPUTS if x[1] == int(val or 0)), labels[0])
         var = tk.StringVar(value=cur)
         w = ttk.Combobox(parent, textvariable=var, values=labels, state="readonly", width=16)
     elif kind == "wheel":
@@ -123,6 +182,8 @@ def read_fields(var_store, settings):
                 new[key] = next(d[0] for d in core.DISPLAYS if d[2] == v)
             elif kind == "battery":
                 new[key] = next(b[1] for b in core.BATTERIES if b[0] == v)
+            elif kind == "speedtemp":
+                new[key] = next(x[1] for x in core.SPEED_TEMP_INPUTS if x[0] == v)
             elif kind == "wheel":
                 new[key] = v
             elif kind == "int":
@@ -133,6 +194,9 @@ def read_fields(var_store, settings):
                 new[key] = str(v).strip()
         except (ValueError, StopIteration):
             return f"'{label}' has an invalid value: {v}"
+    problems = core.check_settings(new)
+    if problems:
+        return "\n".join(problems)
     settings.update(new)
     return None
 
@@ -203,6 +267,7 @@ class App(tk.Tk):
         s.configure("Horizontal.TProgressbar", thickness=18)
 
     def show(self, key):
+        Tooltip.close()
         if self.current:
             self.pages[self.current].pack_forget()
             self.pages[self.current].on_hide()
@@ -408,6 +473,11 @@ class SettingsPage(Page):
 
 def build_and_flash(app, log, compile_first=True):
     """Background job. Returns True on success."""
+    problems = core.check_settings(app.settings)
+    if problems:
+        for pr in problems:
+            log("ERROR: " + pr)
+        return False
     if compile_first:
         log("--- building firmware ---")
         if not core.build_firmware(app.settings, log=log):
@@ -471,7 +541,9 @@ class LivePage(Page):
     TILES = [("battery", "Battery", "V"), ("speed", "Speed", "km/h"), ("assist", "Assist level", ""),
              ("throttle", "Throttle", "%"), ("brake", "Brake", ""), ("motor_a", "Motor current", "A"),
              ("battery_a", "Battery current", "A"), ("pas", "Pedal pulses", ""), ("halls", "Hall events", ""),
-             ("temp", "Controller temp", "°C"), ("calibrated", "Motor calibrated", ""), ("kv", "KV", "")]
+             ("temp", "Controller temp", "\u00b0C"), ("calibrated", "Motor calibrated", ""), ("kv", "KV", ""),
+             ("motor_temp", "Motor temp", "\u00b0C"), ("wire_raw", "Speed/temp wire (raw ADC)", ""),
+             ("sensorless", "Sensorless observer", ""), ("watchdog", "Last reset", "")]
 
     def __init__(self, master, app):
         super().__init__(master, app)
@@ -532,8 +604,13 @@ class LivePage(Page):
             put("pas", str(snap.get("ui32_pas_events", "-")))
             put("halls", str(snap.get("ui32_hall_events", "-")))
             put("temp", str(snap.get("MS.int_Temperature", "-")))
-            put("calibrated", "yes" if snap.get("ui8_hall_calibrated") else "NO")
+            put("calibrated", "not needed" if s.get("sensorless") else ("yes" if snap.get("ui8_hall_calibrated") else "NO"))
             put("kv", str(snap.get("ui32_KV", "-")))
+            st_idx = int(s.get("speed_temp_input") or 0)
+            put("motor_temp", str(snap.get("MS.Temperature", "-")) if (st_idx and s.get("temp_on_wire")) else "no sensor")
+            put("wire_raw", str(snap.get(f"adc{st_idx}", "-")) if st_idx else "not used")
+            put("sensorless", ("running" if snap.get("ui8_sensorless_running") else "stopped / start") if s.get("sensorless") else "off (hall)")
+            put("watchdog", "WATCHDOG" if snap.get("ui8_watchdog_reset") else "normal")
             if snap.get("ui32_setup_magic") != core.SETUP_MAGIC:
                 self.status.configure(text="old firmware on the controller - install the new one for all values", foreground=WARN)
             ang = core.hall_angles_deg(snap)
@@ -637,6 +714,7 @@ class WizardPage(Page):
         self.polling = False
 
     def render(self):
+        Tooltip.close()
         self.polling = False
         for w in self.body.winfo_children():
             w.destroy()
@@ -755,8 +833,9 @@ class WizardPage(Page):
         form = ttk.Frame(self.body, style="Page.TFrame")
         form.pack(anchor="w")
         self.vars = {}
-        keys = ["display", "battery", "wheel", "wheel_mm", "speed_limit", "phase_current_a", "battery_current_a",
-                "pas_magnets", "torque_sensor", "throttle", "legal_mode"]
+        keys = ["display", "battery", "full_voltage_v", "voltage_min_v", "wheel", "wheel_mm", "speed_limit",
+                "phase_current_a", "battery_current_a", "pas_magnets", "torque_sensor", "throttle", "legal_mode",
+                "sensorless"]
         for r, key in enumerate(keys):
             f = core.FIELD_BY_KEY[key]
             lab = ttk.Label(form, text=f[1])
@@ -821,6 +900,13 @@ class WizardPage(Page):
 
     def s_calibrate(self):
         self.head.configure(text="Motor calibration")
+        if self.app.settings.get("sensorless"):
+            self.text("Sensorless motor: there are no hall sensors to calibrate.")
+            self.bullets(["Check the motor parameters in Settings > Expert > 'Sensorless' (inductance, resistance, "
+                          "flux linkage, gain, angle offset). The defaults are from the EBiCS Sensorless_VESC branch.",
+                          "The motor starts with a short open loop spin before the observer takes over.",
+                          "Sensorless is experimental: test with the wheel lifted, low current first."])
+            return
         self.text("The controller now finds the position of the motor's hall sensors and measures the motor. "
                   "Before you start:")
         checks = []
@@ -934,7 +1020,11 @@ class WizardPage(Page):
 
     def s_direction(self):
         self.head.configure(text="Motor direction")
-        self.text("During the calibration the wheel spun up. Which way did it turn?")
+        if self.app.settings.get("sensorless") or not self.app.settings.get("throttle"):
+            self.text("Give the motor a short spin (throttle, or turn the pedals with the wheel lifted). "
+                      "Which way did the wheel turn?")
+        else:
+            self.text("During the calibration the wheel spun up. Which way did it turn?")
         row = ttk.Frame(self.body, style="Page.TFrame")
         row.pack(anchor="w", pady=10)
         st = self.status()
@@ -955,6 +1045,11 @@ class WizardPage(Page):
 
     def s_gear(self):
         self.head.configure(text="Measure the motor gearing")
+        if self.app.settings.get("sensorless"):
+            self.text("Without hall sensors the gearing can't be measured by turning the wheel. Enter "
+                      "'Pole pairs x gear ratio' in Settings, or use an external speed sensor / the speed wire "
+                      "(Settings > Advanced) for a correct speed.")
+            return
         self.text("This makes the speed on the display correct. Put a mark on the tyre (e.g. at the valve).")
         self.bullets(["Click 'Start measuring'",
                       "Turn the wheel slowly BACKWARDS by hand, exactly 3 full turns",

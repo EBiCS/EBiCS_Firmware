@@ -2,7 +2,8 @@
 
 A fork of [EBiCS/EBiCS_Firmware](https://github.com/EBiCS/EBiCS_Firmware), the open source FOC firmware for
 Lishui e-bike controllers (STM32F103). This fork adds a **simple setup app with a step-by-step first-setup
-wizard**, fixes a number of **firmware bugs**, and adds **two more display protocols**.
+wizard**, fixes a number of **firmware bugs**, adds **two more display protocols**, an experimental
+**sensorless** mode, **speed + motor temperature on one wire**, and **custom battery voltages with soft current ramps**.
 
 > Use at your own risk, like upstream EBiCS. Unlocking the chip erases the original Lishui firmware for good.
 > Test with the wheel lifted before riding.
@@ -64,6 +65,38 @@ The old Java configurator still works (labels and tooltips improved, batch files
   cannot configure the motor.
 
 Both are new and not yet tested on many devices - please report results.
+
+### 4. Sensorless motors (experimental)
+
+Tick **"Sensorless motor (no hall sensors)"** in the app. This builds the firmware with the flux observer from the
+EBiCS [Sensorless_VESC](https://github.com/EBiCS/EBiCS_Firmware/tree/Sensorless_VESC) branch (`Src/sensorless.c`):
+open loop start, then the observer estimates the rotor angle; its speed feeds display speed, speed limit and
+standstill detection. The motor parameters (inductance, resistance, flux linkage, observer gain, angle offset) are in
+**Settings > Expert**; the defaults are the values tuned in that branch. The atan2 of the branch was replaced by an
+overflow-safe version (error < 0.06 deg). Hall calibration and the gearing measurement are skipped for sensorless motors.
+Test with the wheel lifted and low current first.
+
+### 5. Speed sensor and motor temperature on one wire
+
+Many hub motors have one wire for the speed sensor *and* the temperature sensor (NTC between the signal and GND, the
+speed sensor pulls the signal to ~0 V when the magnet passes). Connect that wire to an analog input, **AD1 (PB1)** or
+**AD2 (PB0)**, with a pull-up resistor to 3.3 V, then in **Settings > Advanced**:
+
+- *Speed/temperature wire on*: AD1 or AD2
+- tick *use it for speed* and/or *use it for motor temperature*
+- *NTC pull-up resistor* (ohm, measure it; NTC 10k B3950) and *speed pulse threshold* (ADC, default 100)
+- *Motor temp derating start / maximum*: current is reduced smoothly between the two temperatures
+
+Readings below the threshold count as speed pulses, readings above it are averaged for the temperature. Live data shows
+the raw ADC value and the motor temperature for tuning.
+
+### 6. Custom battery voltages and soft current ramps
+
+- *Full charge voltage* and *Cutoff voltage* can be set freely (or choose "custom" battery) - e.g. for 13S at 54.0 V.
+- **Regen** is ramped down to zero when the battery approaches the full charge voltage (no overcharging).
+- **Motor current** is ramped down smoothly when the battery approaches the cutoff (instead of a hard stop), in every
+  mode: PAS, throttle, walk assist, display and VESC commands.
+- Both ramps use the same width, *Soft voltage ramp width* (default 1.0 V). Battery bars follow the two voltages.
 
 ## What you need
 
@@ -157,6 +190,9 @@ specification (APT, KDS ...) are not supported.
 | Throttle does nothing | Live data: does the throttle value rise? Is "Brake" off? Battery above the cutoff? |
 | Wrong speed on the display | Run the gearing step again (Settings -> "Pole pairs x gear ratio") |
 | Walk assist too weak | Settings -> "Walk assist current" |
+| Sensorless motor doesn't start / runs rough | Expert tab: adjust angle offset in small steps, check inductance/resistance; low current first |
+| Speed jumps when the motor gets warm | Raise *speed pulse threshold* (Live data shows the raw value) |
+| Motor stops early when the battery is low | Lower *Cutoff voltage* or the *Soft voltage ramp width* |
 
 ## For developers
 
