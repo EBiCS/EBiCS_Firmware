@@ -252,6 +252,8 @@ volatile uint8_t ui8_setup_progress = 0;     // 0..100 for the running step
 volatile uint8_t ui8_setup_halls_found = 0;  // bitmask of the 6 hall transitions seen during the scan, 0x3F = all
 volatile uint8_t ui8_hall_calibrated = 0;    // 1 if hall angles were loaded from EEPROM or detected
 volatile uint8_t ui8_watchdog_reset = 0;     // 1 if the last reset was caused by the watchdog
+volatile uint32_t ui32_hall_events = 0;      // counts every hall sensor change (gear ratio measurement by hand)
+volatile uint32_t ui32_pas_events = 0;       // counts PAS sensor pulses (sensor check)
 const volatile uint32_t ui32_setup_magic = 0xEB1C5002; // lets the app check the firmware supports the mailbox
 
 enum state {Stop, SixStep, Regen, Running, BatteryCurrentLimit, Interpolation, PLL, IdleRun};
@@ -1950,6 +1952,7 @@ int main(void)
 		//Hall sensor event processing
 
 		ui8_hall_state = GPIOA->IDR & 0b111; //Mask input register with Hall 1 - 3 bits
+		ui32_hall_events++;
 
 
 		ui8_hall_case=ui8_hall_state_old*10+ui8_hall_state;
@@ -2023,6 +2026,7 @@ int main(void)
 		if(GPIO_Pin == PAS_EXTI8_Pin)
 		{
 			ui8_PAS_flag = 1;
+			ui32_pas_events++;
 		}
 
 		//Speed processing

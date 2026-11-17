@@ -19,3 +19,8 @@ Debug
 /JavaConfigurator/dist/
 /Release/
 /build/
+
+# EBiCS Setup app: personal bike settings and the ELF of the flashed firmware
+/setup_app/my_bike.json
+/setup_app/last_flashed.elf
+__pycache__/

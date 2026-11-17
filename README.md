@@ -1,3 +1,37 @@
+# EBiCS-ClaudesFork
+
+Fork of [EBiCS/EBiCS_Firmware](https://github.com/EBiCS/EBiCS_Firmware) with a simple setup app,
+firmware bug fixes and two more display protocols.
+
+## Quick start: EBiCS Setup
+
+1. Install [STM32CubeProgrammer](https://www.st.com/en/development-tools/stm32cubeprog.html),
+   an ARM compiler ([STM32CubeIDE](https://www.st.com/en/development-tools/stm32cubeide.html) or System Workbench)
+   and [Python 3](https://www.python.org/downloads/) (tick "Add python.exe to PATH").
+2. Wire an ST-Link V2 to the controller's programming plug: SWDIO, SWCLK, GND
+   (Lishui plug: BLACK = SWDIO, YELLOW = GND, GREEN = SWCLK - check with a multimeter).
+   Power the controller from the battery and lift the wheel.
+3. Double-click **`EBiCS Setup.bat`** and click **Start first setup**.
+
+The wizard checks the connection, unlocks the chip (erases the original firmware), asks a few questions
+about the bike, builds and installs the firmware, calibrates the motor over the ST-Link (hall angles and KV,
+it tells you when to wait for the wheel to stop), checks the motor direction, measures the gearing while you
+turn the wheel by hand, and tests display, throttle, brake and pedal sensor. Settings, Live data and Tools
+pages are there for later changes. The old Java configurator still works but is no longer needed.
+
+### What changed compared to upstream
+
+- **Bug fixes**: RX buffer overflows in the No2, KingMeter and Bafang drivers (No2: throttle/push assist dead),
+  KM5S checksum loop/handshake out of bounds, flash layout overlapping the emulated EEPROM, incomplete EEPROM
+  variable table (KV lost), map() division by zero, Bafang battery % wrap, negative shift in the PLL,
+  watchdog flag never cleared, Kunteng build error, wheel time overflow (99.9 km/h on the display),
+  autodetect saving incomplete hall data.
+- **New display protocols**: Tongsheng VLCD5 / VLCD6 / XH18, and a minimal VESC UART mode
+  (live values + current command) for VESC displays and apps.
+- **Setup mailbox**: calibration can be started and followed over SWD, no UART or debug display needed.
+
+---
+
 This project has reached a certain maturity, use is always at your own risk. The authors do not accept any liability for damage to property or personal injury!  
 
 The [master]([https://github.com/ShalokShalom/EBiCS_Firmware/wiki](https://github.com/EBiCS/EBiCS_Firmware/tree/master) branch supports sensored motors, Bafang-, Kunteng- Kingmeter-Displays, and debugging.
