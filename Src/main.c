@@ -77,6 +77,14 @@
 #include "display_No_2.h"
 #endif
 
+#if (DISPLAY_TYPE == DISPLAY_TYPE_TONGSHENG)
+#include "display_tongsheng.h"
+#endif
+
+#if (DISPLAY_TYPE == DISPLAY_TYPE_VESC)
+#include "display_vesc.h"
+#endif
+
 #include <arm_math.h>
 /* USER CODE END Includes */
 
@@ -272,6 +280,14 @@ uint8_t ui8_LEV_Page_to_send=1;
 //variables for display communication
 #if (DISPLAY_TYPE == DISPLAY_TYPE_NO2)
 No2_t No2;
+#endif
+
+#if (DISPLAY_TYPE == DISPLAY_TYPE_TONGSHENG)
+TONGSHENG_t TS;
+#endif
+
+#if (DISPLAY_TYPE == DISPLAY_TYPE_VESC)
+VESC_t VESC;
 #endif
 
 MotorState_t MS;
@@ -512,6 +528,13 @@ int main(void)
 #if (DISPLAY_TYPE == DISPLAY_TYPE_NO2)
 	No2_Init(&No2);
 #endif
+#if (DISPLAY_TYPE == DISPLAY_TYPE_TONGSHENG)
+	Tongsheng_Init(&TS);
+#endif
+#if (DISPLAY_TYPE == DISPLAY_TYPE_VESC)
+	Vesc_Init(&VESC);
+	MS.assist_level = 153; //no assist level from VESC devices: PAS at level 3 of 5
+#endif
 	TIM1->CCR1 = 1023; //set initial PWM values
 	TIM1->CCR2 = 1023;
 	TIM1->CCR3 = 1023;
@@ -730,6 +753,12 @@ int main(void)
 #if (DISPLAY_TYPE == DISPLAY_TYPE_NO2)
 			No2_Service(&No2);
 #endif
+#if (DISPLAY_TYPE == DISPLAY_TYPE_TONGSHENG)
+			Tongsheng_Service(&TS);
+#endif
+#if (DISPLAY_TYPE == DISPLAY_TYPE_VESC)
+			Vesc_Service(&VESC);
+#endif
 			ui8_UART_flag=0;
 		}
 
@@ -896,7 +925,7 @@ int main(void)
 				uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, (PH_CURRENT_MAX*(int32_t)(MS.assist_level-1))>>2, 0); // level in range 1...5
 #endif
 
-#if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_901U||DISPLAY_TYPE == DISPLAY_TYPE_NO2)
+#if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_901U||DISPLAY_TYPE == DISPLAY_TYPE_NO2||DISPLAY_TYPE == DISPLAY_TYPE_TONGSHENG||DISPLAY_TYPE == DISPLAY_TYPE_VESC)
 				uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, ((PH_CURRENT_MAX*(int32_t)(MS.assist_level)))>>8, 0); // level in range 0...255
 #endif
 
@@ -1013,6 +1042,13 @@ int main(void)
 
 #if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER || DISPLAY_TYPE & DISPLAY_TYPE_DEBUG)
 			if(KM.DirectSetpoint!=-1)int32_temp_current_target=(KM.DirectSetpoint*PH_CURRENT_MAX)>>7;
+#endif
+#if (DISPLAY_TYPE == DISPLAY_TYPE_VESC)
+			//current requested by a VESC device, released 1 s after the last command, never overrides braking
+			if(VESC.cmd_active && (HAL_GetTick()-VESC.last_cmd_tick) < VESC_CMD_TIMEOUT_MS){
+				if(!brake_flag) int32_temp_current_target=VESC.current_target;
+			}
+			else VESC.cmd_active=0;
 #endif
 			MS.i_q_setpoint=map(MS.Temperature, MOTOR_TEMPERATURE_THRESHOLD,MOTOR_TEMPERATURE_MAX,int32_temp_current_target,0); //ramp down power with temperature to avoid overheating the motor
 #if(INT_TEMP_25)
@@ -1613,8 +1649,10 @@ int main(void)
 
 		huart1.Instance = USART1;
 
-#if ((DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER) ||DISPLAY_TYPE==DISPLAY_TYPE_KUNTENG||DISPLAY_TYPE==DISPLAY_TYPE_EBiCS||DISPLAY_TYPE==DISPLAY_TYPE_NO2 || DISPLAY_TYPE==DISPLAY_TYPE_BAFANG_850_860)
+#if ((DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER) ||DISPLAY_TYPE==DISPLAY_TYPE_KUNTENG||DISPLAY_TYPE==DISPLAY_TYPE_EBiCS||DISPLAY_TYPE==DISPLAY_TYPE_NO2 || DISPLAY_TYPE==DISPLAY_TYPE_BAFANG_850_860 || DISPLAY_TYPE==DISPLAY_TYPE_TONGSHENG)
 		huart1.Init.BaudRate = 9600;
+#elif (DISPLAY_TYPE == DISPLAY_TYPE_VESC)
+		huart1.Init.BaudRate = 115200;
 #elif (DISPLAY_TYPE == DISPLAY_TYPE_BAFANG_LCD)
 		huart1.Init.BaudRate = 1200; 
 #else
@@ -2034,6 +2072,13 @@ int main(void)
 #if (DISPLAY_TYPE == DISPLAY_TYPE_NO2)
 	No2_Init(&No2);
 #endif
+#if (DISPLAY_TYPE == DISPLAY_TYPE_TONGSHENG)
+	Tongsheng_Init(&TS);
+#endif
+#if (DISPLAY_TYPE == DISPLAY_TYPE_VESC)
+	Vesc_Init(&VESC);
+	MS.assist_level = 153; //no assist level from VESC devices: PAS at level 3 of 5
+#endif
 	}
 
 	void get_internal_temp_offset(void){
@@ -2251,6 +2296,19 @@ int main(void)
 	}
 
 #endif
+
+	//duration of one wheel revolution in ms for the displays, 64000 = standing still
+	uint32_t get_wheeltime_ms(void)
+	{
+		uint32_t t;
+#if (SPEEDSOURCE == EXTERNAL)
+		t = ((MS.Speed>>3)*PULSES_PER_REVOLUTION); //8 kHz counter, 8 tics per ms
+#else
+		if(__HAL_TIM_GET_COUNTER(&htim2) >= 12000) return 64000; //no hall event for 24 ms: motor stopped
+		t = ((uint32_t)MS.Speed*GEAR_RATIO*6)>>9; //500 kHz timer2, 6 hall events per electric revolution
+#endif
+		return (t > 64000) ? 64000 : t;
+	}
 
 	int32_t map (int32_t x, int32_t in_min, int32_t in_max, int32_t out_min, int32_t out_max)
 	{

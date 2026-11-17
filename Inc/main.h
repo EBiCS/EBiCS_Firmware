@@ -137,6 +137,14 @@
 
 
 
+// display types added after the Java configurator: fallback if config.h does not define them
+#ifndef DISPLAY_TYPE_TONGSHENG
+#define DISPLAY_TYPE_TONGSHENG (1<<8)   // Tongsheng VLCD5 / VLCD6 / XH18
+#endif
+#ifndef DISPLAY_TYPE_VESC
+#define DISPLAY_TYPE_VESC (1<<9)        // VESC UART protocol (telemetry + current command)
+#endif
+uint32_t get_wheeltime_ms(void);
 int32_t map (int32_t x, int32_t in_min, int32_t in_max, int32_t out_min, int32_t out_max);
 void autodetect();
 void runPIcontrol();

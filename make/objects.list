@@ -20,6 +20,8 @@
 "Src/display_kingmeter.o"
 "Src/display_kunteng.o"
 "Src/display_No_2.o"
+"Src/display_tongsheng.o"
+"Src/display_vesc.o"
 "Src/eeprom.o"
 "Src/main.o"
 "Src/print.o"
