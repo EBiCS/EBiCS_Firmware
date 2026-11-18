@@ -3,7 +3,8 @@
 A fork of [EBiCS/EBiCS_Firmware](https://github.com/EBiCS/EBiCS_Firmware), the open source FOC firmware for
 Lishui e-bike controllers (STM32F103). This fork adds a **simple setup app with a step-by-step first-setup
 wizard**, fixes a number of **firmware bugs**, adds **two more display protocols**, an experimental
-**sensorless** mode, **speed + motor temperature on one wire**, and **custom battery voltages with soft current ramps**.
+**sensorless** mode, **speed + motor temperature on one wire**, **custom battery voltages with soft current ramps**,
+and an **Android app** that does the whole setup from a phone with an ST-Link V2 on USB OTG.
 
 > Use at your own risk, like upstream EBiCS. Unlocking the chip erases the original Lishui firmware for good.
 > Test with the wheel lifted before riding.
@@ -11,6 +12,7 @@ wizard**, fixes a number of **firmware bugs**, adds **two more display protocols
 ## Contents
 
 - [What's different from upstream](#whats-different-from-upstream)
+- [Android app (setup from a phone)](#android-app-setup-from-a-phone)
 - [What you need](#what-you-need)
 - [Wiring the ST-Link](#wiring-the-st-link)
 - [First setup, step by step](#first-setup-step-by-step)
@@ -98,6 +100,44 @@ the raw ADC value and the motor temperature for tuning.
   mode: PAS, throttle, walk assist, display and VESC commands.
 - Both ramps use the same width, *Soft voltage ramp width* (default 1.0 V). Battery bars follow the two voltages.
 
+### 7. Runtime settings block
+
+The numeric settings (currents, voltages, speed limit, wheel, gearing, PAS, ramps, temperatures, sensorless motor
+parameters) and the simple on/off options (throttle, legal mode, torque sensor, torque on AD1, backpedal stop,
+analog brake, external speed sensor, speed/temperature wire) are read at power-up from a 256 byte block at
+`0x08007700` (`Inc/settings.h`). The firmware checks a magic, version, CRC-32 and plausible ranges; without a valid
+block it uses `config.h` as before. This is what lets the Android app configure prebuilt firmware without a compiler.
+Desktop builds write an empty block, so the desktop app and `config.h` keep working exactly as before.
+The display protocol, hall/sensorless and the control-loop internals stay compile-time options.
+
+Side effect: PAS assist now also works with *Throttle* switched off (before, the PAS current was only set inside
+the throttle code, so a bike without throttle got no assist).
+
+## Android app (setup from a phone)
+
+`android_app/` is a Flutter app (**EBiCS Setup** APK) with the same first-setup wizard as the desktop app, plus
+Settings, Live data and Tools. It talks to an **ST-Link V2** plugged into the phone with a **USB OTG adapter**
+(own ST-Link driver, no other app needed) and flashes **prebuilt firmware** that ships inside the APK: one per
+display protocol, each for hall sensor and sensorless motors. Your settings go into the runtime settings block.
+
+1. Install the APK (allow "install unknown apps"). Plug the ST-Link into the phone (OTG adapter), wire it to the
+   controller like for the PC, switch the controller on. Android asks to allow USB access - tick *always*.
+2. **Start first setup**: connect, unlock (once), your bike, install (about half a minute), motor calibration,
+   direction, gear measurement, sensor test. Every step has **Back**, **Retry** and **Skip**.
+3. Later: **Settings** -> change -> **Write to controller**. Only the settings block is rewritten (a second);
+   changing the display or motor type installs the matching firmware again.
+
+The app never erases or writes flash pages 30-31 (`0x08007800`-`0x08007FFF`, the hall angles and KV), checked in
+code and in the unit tests. Unlocking the chip (read-out protection) erases the whole chip once, like on the PC.
+Profiles are the same JSON as `setup_app/my_bike.json` (copy/paste in Settings).
+
+Not possible from the phone: the Expert control-loop settings (PI gains, PLL, ADC timing, current calibration),
+*Throttle sets target speed* and *Individual assist profile*. Use the desktop app for those. Live data and
+calibration from the phone need firmware installed by the phone (it recognises its own builds by reading the flash
+back); with a desktop build it offers to install its own.
+
+Build: see [android_app/README.md](android_app/README.md).
+
 ## What you need
 
 **Hardware**
@@ -158,6 +198,7 @@ Then lower the wheel and do a careful first ride.
 
 Settings -> change -> **Save + install firmware**. Your settings are stored in `setup_app/my_bike.json` (not in git).
 Use *Export profile* to keep a copy. Old Java configurator files can be imported (*Import old Java settings*).
+On the phone: Settings -> **Write to controller** (see [Android app](#android-app-setup-from-a-phone)).
 
 ## Display protocols
 
@@ -204,6 +245,13 @@ specification (APT, KDS ...) are not supported.
   `ui8_hall_calibrated`, `ui32_hall_events`, `ui32_pas_events`, `ui32_setup_magic` = `0xEB1C5002`.
   The app reads/writes them with `STM32_Programmer_CLI` in hot-plug mode, addresses come from the ELF.
 - New display drivers: `Src/display_tongsheng.c`, `Src/display_vesc.c`.
+- Runtime settings: `Inc/settings.h` (layout), `Src/settings.c` (defaults from `config.h`, checks), Python reference
+  `ebics_core.settings_block()`, Dart `android_app/lib/firmware/settings_block.dart`. Keep all three in sync and bump
+  `EBICS_SETTINGS_VERSION` when the layout changes.
+- `python setup_app/build_variants.py` builds every display x hall/sensorless firmware with symbol maps into
+  `android_app/assets/firmware/` (plus `manifest.json` and settings-block test vectors for the app's unit tests).
+- Flash layout: code `0x08000000`-`0x080076FF`, settings block `0x08007700`-`0x080077FF`, emulated EEPROM
+  `0x08007800`-`0x08007FFF` (never part of an image).
 
 ---
 
