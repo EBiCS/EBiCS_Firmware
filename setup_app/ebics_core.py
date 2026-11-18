@@ -589,6 +589,7 @@ LIVE_VARS = {
     "ui32_KV": ("i16", 0),
     "ui8_watchdog_reset": ("u8", 0),
     "ui16_motor_temp_adc": ("u16", 0),
+    "ui8_motor_temp_sensor_ok": ("u8", 0),
     "ui8_sensorless_running": ("u8", 0),
 }
 MS_FIELDS = {"Voltage": ("i32", 0), "Speed": ("u32", 4), "i_q": ("i32", 12), "i_q_setpoint": ("i32", 16),

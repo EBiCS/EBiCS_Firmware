@@ -259,6 +259,7 @@ class App(tk.Tk):
         s.configure("Big.TLabel", font=("Segoe UI", 12), background=BG)
         s.configure("Value.TLabel", font=("Segoe UI Semibold", 18), background="white")
         s.configure("TCheckbutton", background=BG, indicatorsize=px(15), indicatormargin=(2, 2, px(8), 2))
+        s.configure("TRadiobutton", background=BG, font=("Segoe UI", 11), indicatorsize=px(15), indicatormargin=(2, 2, px(8), 2))
         s.configure("Card.TCheckbutton", background="white")
         s.configure("Accent.TButton", font=("Segoe UI Semibold", 11), foreground="white", background=ACCENT,
                     padding=(16, 9), borderwidth=0)
@@ -607,7 +608,10 @@ class LivePage(Page):
             put("calibrated", "not needed" if s.get("sensorless") else ("yes" if snap.get("ui8_hall_calibrated") else "NO"))
             put("kv", str(snap.get("ui32_KV", "-")))
             st_idx = int(s.get("speed_temp_input") or 0)
-            put("motor_temp", str(snap.get("MS.Temperature", "-")) if (st_idx and s.get("temp_on_wire")) else "no sensor")
+            if st_idx and s.get("temp_on_wire"):
+                put("motor_temp", str(snap.get("MS.Temperature", "-")) if snap.get("ui8_motor_temp_sensor_ok") else "not detected")
+            else:
+                put("motor_temp", "no sensor")
             put("wire_raw", str(snap.get(f"adc{st_idx}", "-")) if st_idx else "not used")
             put("sensorless", ("running" if snap.get("ui8_sensorless_running") else "stopped / start") if s.get("sensorless") else "off (hall)")
             put("watchdog", "WATCHDOG" if snap.get("ui8_watchdog_reset") else "normal")
@@ -699,10 +703,17 @@ class WizardPage(Page):
         nav.pack(fill="x", pady=(12, 0))
         self.back_btn = ttk.Button(nav, text="← Back", command=self.back)
         self.back_btn.pack(side="left")
+        self.retry_btn = ttk.Button(nav, text="↻ Retry step", command=self.retry)
+        self.retry_btn.pack(side="left", padx=(8, 0))
+        self.skip_btn = ttk.Button(nav, text="Skip step", command=self.skip)
+        self.skip_btn.pack(side="left", padx=(8, 0))
         self.next_btn = ttk.Button(nav, text="Next →", style="Accent.TButton", command=self.next)
         self.next_btn.pack(side="right")
-        self.steps = [self.s_welcome, self.s_connect, self.s_unlock, self.s_bike, self.s_install, self.s_calibrate,
-                      self.s_direction, self.s_gear, self.s_reinstall, self.s_test, self.s_done]
+        Tooltip(self.retry_btn, "Start this step again from the beginning.")
+        Tooltip(self.skip_btn, "Go on without finishing this step. You can come back with Back, "
+                               "or do it later from Settings / Install firmware / Live data.")
+        self.steps = [self.s_welcome, self.s_connect, self.s_unlock, self.s_bike, self.s_sensors, self.s_install,
+                      self.s_calibrate, self.s_direction, self.s_gear, self.s_reinstall, self.s_test, self.s_done]
         self.i = 0
         self.need_reinstall = False
         self.polling = False
@@ -721,13 +732,51 @@ class WizardPage(Page):
         self.next_btn.state(["!disabled"])
         self.next_btn.configure(text="Next →")
         self.back_btn.state(["!disabled"] if self.i > 0 else ["disabled"])
+        middle = 0 < self.i < len(self.steps) - 1
+        self.retry_btn.state(["!disabled"] if middle else ["disabled"])
+        self.skip_btn.state(["!disabled"] if middle else ["disabled"])
         self.stepinfo.configure(text=f"Step {self.i + 1} of {len(self.steps)}")
         self.steps[self.i]()
+
+    SKIP_WARNINGS = {
+        "s_connect": "Without a connection the next steps (unlock, install, calibration) can't work.",
+        "s_unlock": "A locked chip can't be programmed. Only skip if you know it is already unlocked.",
+        "s_bike": "Your answers on this page are not saved; the current settings are used.",
+        "s_sensors": "Your answers on this page are not saved; the current settings are used.",
+        "s_install": "The controller keeps its current firmware. Calibration and tests need the new one.",
+        "s_calibrate": "Without calibration the motor may run rough or not at all (hall motors). "
+                       "You can calibrate later by running this setup again.",
+        "s_reinstall": "The changed direction/gearing will only be used after you install the firmware "
+                       "(Install firmware page).",
+    }
 
     def back(self):
         if self.i > 0:
             self.i -= 1
+            # going back over the automatic re-install step only makes sense if something changed
+            if self.steps[self.i] == self.s_reinstall and not self.need_reinstall:
+                self.i -= 1
             self.render()
+
+    def retry(self):
+        self.render()
+
+    def skip(self):
+        warn = self.SKIP_WARNINGS.get(self.steps[self.i].__name__)
+        if warn and not messagebox.askyesno("Skip this step?", warn + "\n\nSkip anyway?"):
+            return
+        self.polling = False
+        self._advance()
+
+    def _advance(self):
+        if self.i < len(self.steps) - 1:
+            self.i += 1
+            # skip the re-install step when nothing changed
+            if self.steps[self.i] == self.s_reinstall and not self.need_reinstall:
+                self.i += 1
+            self.render()
+        else:
+            self.app.show("home")
 
     def block(self, on=True):
         self.next_btn.state(["disabled"] if on else ["!disabled"])
@@ -889,14 +938,89 @@ class WizardPage(Page):
     def next(self):
         if self.steps[self.i] == self.s_bike and not self._save_bike():
             return
-        if self.i < len(self.steps) - 1:
-            self.i += 1
-            # skip the re-install step when nothing changed
-            if self.steps[self.i] == self.s_reinstall and not self.need_reinstall:
-                self.i += 1
-            self.render()
+        if self.steps[self.i] == self.s_sensors and not self._save_sensors():
+            return
+        self._advance()
+
+    # ---------------------------------------------------------------- speed sensor / motor temperature
+    SENSOR_MODES = [
+        ("halls", "Speed from the motor's hall sensors, no temperature sensor  (most bikes)"),
+        ("external", "Separate speed sensor (spoke magnet) on the controller's SPEED input"),
+        ("wire", "One wire for speed and/or motor temperature on AD1 or AD2"),
+    ]
+
+    def s_sensors(self):
+        self.head.configure(text="Speed sensor and motor temperature")
+        s = self.app.settings
+        self.text("How does the controller get the wheel speed, and does the motor have a temperature sensor? "
+                  "If you're not sure, keep the first option.")
+        if int(s.get("speed_temp_input") or 0):
+            mode = "wire"
+        elif s.get("speed_sensor_external"):
+            mode = "external"
         else:
-            self.app.show("home")
+            mode = "halls"
+        self.sensor_mode = tk.StringVar(value=mode)
+        for key, label in self.SENSOR_MODES:
+            ttk.Radiobutton(self.body, text=label, value=key, variable=self.sensor_mode,
+                            command=lambda: self._sensor_form()).pack(anchor="w", padx=10, pady=2)
+        self.sensor_box = ttk.Frame(self.body, style="Page.TFrame")
+        self.sensor_box.pack(anchor="w", fill="x", pady=(10, 0), padx=(30, 0))
+        self.vars = {}
+        self._sensor_form()
+        self.next_btn.configure(text="Save and continue →")
+
+    def _sensor_form(self):
+        for w in self.sensor_box.winfo_children():
+            w.destroy()
+        self.vars = {}
+        mode = self.sensor_mode.get()
+        if mode == "halls":
+            keys = []
+            note = "Speed comes from the motor itself. Run the gearing step later so the speed is right."
+        elif mode == "external":
+            keys = ["pulses_per_rev"]
+            note = "Number of magnets on the wheel (usually 1)."
+        else:
+            keys = ["speed_temp_input", "speed_on_wire", "temp_on_wire", "ntc_pullup_ohm", "speed_temp_threshold",
+                    "pulses_per_rev", "motor_temp_derate", "motor_temp_max"]
+            note = ("Wire: the motor's speed/temperature wire to AD1 (PB1) or AD2 (PB0), plus a pull-up resistor to 3.3 V. "
+                    "Only tick 'temperature' if the motor really has an NTC: a missing sensor is ignored (shown as "
+                    "'not detected'), it no longer causes a motor overheat error. The test step shows the reading.")
+        form = ttk.Frame(self.sensor_box, style="Page.TFrame")
+        form.pack(anchor="w")
+        for r, key in enumerate(keys):
+            f = core.FIELD_BY_KEY[key]
+            lab = ttk.Label(form, text=f[1].strip())
+            lab.grid(row=r, column=0, sticky="w", pady=4, padx=(0, 16))
+            cell = ttk.Frame(form, style="Page.TFrame")
+            cell.grid(row=r, column=1, sticky="w")
+            w, var = field_widget(cell, self.app, key, self.vars)
+            if key == "speed_temp_input" and var.get() == core.SPEED_TEMP_INPUTS[0][0]:
+                var.set(core.SPEED_TEMP_INPUTS[1][0])  # 'wire' chosen: default to AD1 instead of 'not used'
+            w.pack(side="left")
+            ttk.Label(cell, text=f[5], style="Muted.TLabel").pack(side="left", padx=6)
+            Tooltip(lab, f[6]); Tooltip(w, f[6])
+        ttk.Label(self.sensor_box, text=note, style="Muted.TLabel", wraplength=px(720), justify="left").pack(anchor="w", pady=(8, 0))
+
+    def _save_sensors(self):
+        s = dict(self.app.settings)
+        mode = self.sensor_mode.get()
+        if mode == "halls":
+            s.update(speed_temp_input=0, speed_sensor_external=False)
+        elif mode == "external":
+            s.update(speed_temp_input=0, speed_sensor_external=True)
+        else:
+            s.update(speed_sensor_external=False)
+        err = read_fields(self.vars, s)
+        if not err and mode == "wire" and not (s.get("speed_on_wire") or s.get("temp_on_wire")):
+            err = "Tick 'use it for speed' and/or 'use it for motor temperature', or choose another option."
+        if err:
+            messagebox.showerror("Speed sensor and motor temperature", err)
+            return False
+        self.app.settings.update(s)
+        self.app.save()
+        return True
 
     def s_calibrate(self):
         self.head.configure(text="Motor calibration")
@@ -1001,6 +1125,14 @@ class WizardPage(Page):
                     return
                 st.configure(text="Measured. Please wait until the wheel has stopped ...", foreground=WARN)
                 detail.configure(text="Don't touch the wheel - it is still coasting.")
+                self.cal.setdefault("measured_at", time.time())
+                if time.time() - self.cal["measured_at"] > 45 and not self.cal.get("manual_btn"):
+                    # hall noise can keep the counter moving: let the user confirm instead of waiting forever
+                    def manual():
+                        self.polling = False
+                        self.app.bg(lambda: self.app.live.snapshot(with_halls=True), lambda s: self.cal_done(s, st, detail))
+                    self.cal["manual_btn"] = ttk.Button(self.body, text="The wheel has stopped", command=manual)
+                    self.cal["manual_btn"].pack(anchor="w", pady=6)
             self.cal["last_halls"] = halls
             self.after(300, lambda: self.poll_calibration(st, bar, detail, btn))
         self.app.bg(self.app.live.snapshot, show)
@@ -1114,6 +1246,12 @@ class WizardPage(Page):
                  "pas": ("Pedal sensor: turn the pedals forward by hand", None)}
         if not self.app.settings["throttle"]:
             del items["throttle"]
+        s = self.app.settings
+        wire = int(s.get("speed_temp_input") or 0)
+        if s.get("speed_sensor_external") or (wire and s.get("speed_on_wire")):
+            items["speed"] = ("Speed sensor: turn the wheel by hand a few turns", None)
+        if wire and s.get("temp_on_wire"):
+            items["temp"] = ("Motor temperature sensor: reading must look plausible", None)
         labels = {}
         for k, (t, _) in items.items():
             labels[k] = ttk.Label(self.body, text="○  " + t, style="Big.TLabel")
@@ -1141,6 +1279,23 @@ class WizardPage(Page):
                         seen.add("brake")
                     if (snap.get("ui32_pas_events") or 0) - (base.get("ui32_pas_events") or 0) > 4:
                         seen.add("pas")
+                    if "speed" in labels and snap.get("MS.Speed") not in (None, base.get("MS.Speed"), 32000):
+                        seen.add("speed")
+                    if "temp" in labels:
+                        ok = snap.get("ui8_motor_temp_sensor_ok")
+                        temp = snap.get("MS.Temperature")
+                        raw = snap.get(f"adc{wire}")
+                        if ok and temp is not None and -20 <= temp <= 90:
+                            seen.add("temp")
+                            items["temp"] = (f"Motor temperature sensor: {temp} °C (raw {raw})", None)
+                        elif ok:
+                            items["temp"] = (f"Motor temperature sensor: {temp} °C looks wrong (raw {raw}) - "
+                                             "check 'NTC pull-up resistor' in Settings", None)
+                            labels["temp"].configure(text="!  " + items["temp"][0], foreground=WARN)
+                        else:
+                            items["temp"] = (f"Motor temperature sensor: NOT DETECTED (raw {raw}) - wire or pull-up "
+                                             "missing; temperature is ignored. Untick it in Settings if there is none.", None)
+                            labels["temp"].configure(text="!  " + items["temp"][0], foreground=WARN)
                     for k in labels:
                         if k in seen:
                             labels[k].configure(text="✔  " + items[k][0], foreground=OK)
