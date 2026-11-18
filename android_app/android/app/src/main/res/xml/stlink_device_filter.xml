@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- STMicroelectronics ST-Link programmers (vendor 0x0483). Decimal ids. -->
+<resources>
+    <usb-device vendor-id="1155" product-id="14152" /> <!-- 0x3748 ST-Link V2 (and most clones) -->
+    <usb-device vendor-id="1155" product-id="14155" /> <!-- 0x374B ST-Link V2-1 -->
+    <usb-device vendor-id="1155" product-id="14162" /> <!-- 0x3752 ST-Link V2-1 without mass storage -->
+    <usb-device vendor-id="1155" product-id="14158" /> <!-- 0x374E ST-Link V3 -->
+    <usb-device vendor-id="1155" product-id="14159" /> <!-- 0x374F ST-Link V3 -->
+    <usb-device vendor-id="1155" product-id="14163" /> <!-- 0x3753 ST-Link V3 -->
+    <usb-device vendor-id="1155" product-id="14164" /> <!-- 0x3754 ST-Link V3 -->
+</resources>

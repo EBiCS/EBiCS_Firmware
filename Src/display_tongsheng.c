@@ -48,9 +48,9 @@ static uint8_t ts_battery_level(void)
 {
 	// 0..12 from the battery voltage, using the battery bar thresholds of config.h (mV*10)
 	int32_t v = MS.Voltage * CAL_BAT_V;
-	if (v <= BATTERY_LEVEL_1) return 0;
-	if (v >= BATTERY_LEVEL_5) return 12;
-	return (uint8_t)(((v - BATTERY_LEVEL_1) * 12) / (BATTERY_LEVEL_5 - BATTERY_LEVEL_1));
+	if (v <= RS.battery_level[0]) return 0;
+	if (v >= RS.battery_level[4]) return 12;
+	return (uint8_t)(((v - RS.battery_level[0]) * 12) / (RS.battery_level[4] - RS.battery_level[0]));
 }
 
 static void ts_apply_rx(TONGSHENG_t* ts, const uint8_t *f)
@@ -65,7 +65,7 @@ static void ts_apply_rx(TONGSHENG_t* ts, const uint8_t *f)
 	// assist level 0..5 -> 0..255 scale used by the KM5S/No2 code path in main.c
 	if (ts->walk) {
 		ui8_Push_Assist_flag = 1;
-		MS.assist_level = 255;      // push assist current = PUSHASSIST_CURRENT
+		MS.assist_level = 255;      // push assist current = RS.pushassist_current
 	} else {
 		ui8_Push_Assist_flag = 0;
 		MS.assist_level = ts->assist_level * 51;
@@ -84,11 +84,11 @@ static void ts_send_status(void)
 	if (current_x10 > 255) current_x10 = 255;
 
 	uint8_t status = 0;
-	if (MS.Voltage < VOLTAGE_MIN) status |= 0x01;           // undervoltage
+	if (MS.Voltage*CAL_V < RS.battery_voltage_min) status |= 0x01;           // undervoltage
 	if (READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)) status |= 0x04; // motor working
 
 	uint8_t error = 0;
-	if (MS.Temperature > MOTOR_TEMPERATURE_MAX || MS.int_Temperature > CONTROLLER_TEMPERATURE_MAX) error = 1; // temperature protection
+	if (MS.Temperature > RS.motor_temp_max || MS.int_Temperature > CONTROLLER_TEMPERATURE_MAX) error = 1; // temperature protection
 
 	tx_frame[0] = TS_TX_HEADER;
 	tx_frame[1] = ts_battery_level();

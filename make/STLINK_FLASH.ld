@@ -42,7 +42,9 @@ _Min_Stack_Size = 0x400; /* required amount of stack */
 MEMORY
 {
 RAM (xrw)      : ORIGIN = 0x20000000, LENGTH = 10K
-FLASH (rx)      : ORIGIN = 0x8000000, LENGTH = 30K  /* last 2K (pages 30+31) = emulated EEPROM with hall angles/KV */
+FLASH (rx)      : ORIGIN = 0x8000000, LENGTH = 0x7700  /* 30K minus the settings block */
+SETTINGS (r)    : ORIGIN = 0x8007700, LENGTH = 256     /* runtime settings block, see Inc/settings.h */
+/* last 2K (pages 30+31, 0x08007800..0x08007FFF) = emulated EEPROM with hall angles/KV: never part of the image */
 }
 
 /* Define output sections */
@@ -154,6 +156,12 @@ SECTIONS
   } >RAM
 
   
+
+  /* Runtime settings block at a fixed address (Inc/settings.h). Not in the .bin: the setup apps write it. */
+  .ebics_settings :
+  {
+    KEEP(*(.ebics_settings))
+  } >SETTINGS
 
   /* Remove information from the standard libraries */
   /DISCARD/ :

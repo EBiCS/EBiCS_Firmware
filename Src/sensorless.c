@@ -103,9 +103,9 @@ static int truncate_abs(long long *number, long long max)
 static void observer_update(long long v_alpha, long long v_beta, long long i_alpha, long long i_beta,
                             long long *e_alpha, long long *e_beta)
 {
-	const long long L = (3LL * INDUCTANCE) >> 1;
-	const long long R = (3LL * RESISTANCE) >> 1;
-	const long long lambda = FLUX_LINKAGE;
+	const long long L = (3LL * RS.obs_inductance) >> 1;
+	const long long R = (3LL * RS.obs_resistance) >> 1;
+	const long long lambda = RS.obs_flux_linkage;
 	const long long lambda_2 = lambda * lambda;
 	const long long dT = 13LL;
 
@@ -119,8 +119,8 @@ static void observer_update(long long v_alpha, long long v_beta, long long i_alp
 	long long err = lambda_2 - ((*e_alpha * *e_alpha) + (*e_beta * *e_beta));
 	truncate_abs(&err, lambda_2);
 
-	long long x1_dot = -R_ia + v_alpha + ((*e_alpha * err) >> GAMMA);
-	long long x2_dot = -R_ib + v_beta  + ((*e_beta * err) >> GAMMA);
+	long long x1_dot = -R_ia + v_alpha + ((*e_alpha * err) >> RS.obs_gamma);
+	long long x2_dot = -R_ib + v_beta  + ((*e_beta * err) >> RS.obs_gamma);
 	x1 += x1_dot >> dT;
 	x2 += x2_dot >> dT;
 
@@ -168,7 +168,7 @@ void sensorless_observe(q31_t u_alpha, q31_t u_beta, q31_t i_alpha, q31_t i_beta
 	                &e_a, &e_b);
 
 	if (ui8_sensorless_running) {
-		q31_teta_obs = atan2_q31(e_a, -e_b) + OBS_ANGLE_OFFSET;
+		q31_teta_obs = atan2_q31(e_a, -e_b) + RS.obs_angle_offset;
 	}
 
 	// electrical speed: count FOC cycles per electric revolution (angle crossing +-180 deg)

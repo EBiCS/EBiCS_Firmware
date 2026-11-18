@@ -48,7 +48,7 @@ clean:
 post-build:
 	-@echo 'Generating hex and Printing size information:'
 	arm-none-eabi-objcopy -O ihex "LishuiFOC_01.elf" "LishuiFOC_01.hex"
-	arm-none-eabi-objcopy -O binary "LishuiFOC_01.elf" "LishuiFOC_01.bin"
+	arm-none-eabi-objcopy -O binary -R .ebics_settings "LishuiFOC_01.elf" "LishuiFOC_01.bin"
 	arm-none-eabi-size "LishuiFOC_01.elf"
 	stat "LishuiFOC_01.bin"
 	-@echo ' '
