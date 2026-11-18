@@ -258,6 +258,7 @@ volatile uint8_t ui8_hall_calibrated = 0;    // 1 if hall angles were loaded fro
 volatile uint8_t ui8_watchdog_reset = 0;     // 1 if the last reset was caused by the watchdog
 volatile uint32_t ui32_hall_events = 0;      // counts every hall sensor change (gear ratio measurement by hand)
 volatile uint32_t ui32_pas_events = 0;       // counts PAS sensor pulses (sensor check)
+volatile uint8_t ui8_motor_temp_sensor_ok = 0; // 1 = NTC reading plausible, 0 = open/shorted/not connected (temperature ignored)
 volatile uint16_t ui16_motor_temp_adc = 0;   // filtered NTC reading of the speed/temperature input (only samples above the threshold)
 volatile uint32_t ui32_motor_temp_adc_cumulated = 2048UL<<4;
 const volatile uint32_t ui32_setup_magic = 0xEB1C5002; // lets the app check the firmware supports the mailbox
@@ -1129,7 +1130,16 @@ int main(void)
 
 				if(ui8_KV_detect_flag){ui16_KV_detect_counter++;}
 #if (R_TEMP_PULLUP)
-				MS.Temperature = T_NTC(ui16_motor_temp_adc); //NTC on SPEED_TEMP_ADC, filtered without speed pulses. Thank you Hendrik ;-)
+				//NTC on SPEED_TEMP_ADC, filtered without speed pulses. An open input (no NTC, ~3.3 V) or a short reads
+				//as an impossible temperature: ignore it instead of derating to zero / reporting overheat.
+				if(ui16_motor_temp_adc > 4000 || ui16_motor_temp_adc <= SPEED_TEMP_THRESHOLD){
+					ui8_motor_temp_sensor_ok = 0;
+					MS.Temperature = 25;
+				}
+				else {
+					ui8_motor_temp_sensor_ok = 1;
+					MS.Temperature = T_NTC(ui16_motor_temp_adc); //Thank you Hendrik ;-)
+				}
 #else
 				MS.Temperature=25;
 #endif
