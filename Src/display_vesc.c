@@ -121,7 +121,7 @@ static void process(VESC_t* v, const uint8_t *p, uint8_t len)
 			int32_t ma = get32(p + 1);
 			int32_t target = ma / (CAL_I >> 8);
 			if (target < 0) target = 0;                        // no regen via VESC commands
-			if (target > PH_CURRENT_MAX) target = PH_CURRENT_MAX;
+			if (target > RS.ph_current_max) target = RS.ph_current_max;
 			v->current_target = target;
 			v->cmd_active = 1;
 			v->last_cmd_tick = HAL_GetTick();

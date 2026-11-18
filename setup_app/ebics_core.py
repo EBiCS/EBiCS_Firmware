@@ -432,41 +432,121 @@ def generate_config_h(s):
 
 
 # --------------------------------------------------------------------------------------------
+# Runtime settings block (Inc/settings.h): the same numbers as config.h, as 256 bytes that the
+# firmware reads at boot. The Android app builds this block itself (lib/firmware/settings_block.dart);
+# this is the reference implementation, used for the test vectors in build_variants.py.
+# --------------------------------------------------------------------------------------------
+
+SETTINGS_BLOCK_ADDR = 0x08007700
+SETTINGS_BLOCK_SIZE = 256
+SETTINGS_MAGIC = 0xEB1C5E77
+SETTINGS_VERSION = 1
+SETTINGS_FLAGS = ["throttle", "legal", "torque_sensor", "torque_on_ad1", "dirdet", "adc_brake",
+                  "speed_external", "speed_from_wire", "temp_from_wire"]
+# order and offsets as in ebics_settings_t, all int32 from offset 12
+SETTINGS_FIELDS = ["ph_current_max", "battery_current_max", "regen_current", "regen_current_max",
+                   "battery_voltage_min", "battery_voltage_max", "voltage_ramp_mv",
+                   "battery_level_1", "battery_level_2", "battery_level_3", "battery_level_4", "battery_level_5",
+                   "speed_limit", "wheel_circumference", "gear_ratio", "pas_imp_per_turn", "pulses_per_revolution",
+                   "pushassist_current", "ts_coef", "pas_timeout", "ramp_end", "throttle_offset", "throttle_max",
+                   "motor_temp_threshold", "motor_temp_max", "frac_high", "frac_low", "reverse",
+                   "speed_temp_adc", "speed_temp_threshold", "ntc_pullup_ohm",
+                   "obs_inductance", "obs_resistance", "obs_flux_linkage", "obs_gamma", "obs_angle_offset"]
+
+
+def _c_int(v):
+    """'38LL<<8' style config strings -> int (only the leading number for gains like '500')."""
+    m = re.match(r"\s*(-?\d+)", str(v))
+    return int(m.group(1)) if m else 0
+
+
+def settings_block_values(s):
+    """(flags dict, values dict) for the settings block, same conversions as generate_config_h."""
+    cal_i = cal_i_ma(s["cal_i"])
+    cutoff, vmax, bars = battery_mv(s)
+    units = lambda a: int(round(float(a) * 1000 / cal_i))
+    ma = lambda a: int(round(float(a) * 1000))
+    st = int(s.get("speed_temp_input") or 0)
+    speed_from_wire = bool(st and s.get("speed_on_wire"))
+    temp_from_wire = bool(st and s.get("temp_on_wire"))
+    flags = {"throttle": bool(s["throttle"]), "legal": bool(s["legal_mode"]), "torque_sensor": bool(s["torque_sensor"]),
+             "torque_on_ad1": bool(s["torque_on_ad1"]), "dirdet": bool(s["dirdet"]), "adc_brake": bool(s["linear_regen"]),
+             "speed_external": bool(s["speed_sensor_external"] or speed_from_wire),
+             "speed_from_wire": speed_from_wire, "temp_from_wire": temp_from_wire}
+    v = {"ph_current_max": units(s["phase_current_a"]), "battery_current_max": ma(s["battery_current_a"]),
+         "regen_current": units(s["regen_current_a"]), "regen_current_max": ma(s["regen_max_a"]),
+         "battery_voltage_min": cutoff, "battery_voltage_max": vmax,
+         "voltage_ramp_mv": max(100, int(float(s.get("voltage_ramp_v", 1.0)) * 1000)),
+         "speed_limit": int(s["speed_limit"]), "wheel_circumference": wheel_circumference(s),
+         "gear_ratio": max(1, int(s["gear_ratio"])), "pas_imp_per_turn": max(1, int(s["pas_magnets"])),
+         "pulses_per_revolution": max(1, int(s["pulses_per_rev"])), "pushassist_current": units(s["walk_current_a"]),
+         "ts_coef": int(s["ts_coef"]), "pas_timeout": int(s["pas_timeout"]), "ramp_end": int(s["ramp_end"]),
+         "throttle_offset": int(s["throttle_offset"]), "throttle_max": int(s["throttle_max"]),
+         "motor_temp_threshold": int(s.get("motor_temp_derate", 100)),
+         "motor_temp_max": max(int(s.get("motor_temp_derate", 100)) + 5, int(s.get("motor_temp_max", 130))),
+         "frac_high": int(s["frac_high"]), "frac_low": int(s["frac_low"]), "reverse": -1 if s["reverse"] else 1,
+         "speed_temp_adc": st if st else 6, "speed_temp_threshold": int(s.get("speed_temp_threshold", 100)),
+         "ntc_pullup_ohm": max(1, int(s.get("ntc_pullup_ohm", 3000))) if temp_from_wire else 0,
+         "obs_inductance": _c_int(s["inductance"]), "obs_resistance": _c_int(s["resistance"]),
+         "obs_flux_linkage": _c_int(s["flux_linkage"]), "obs_gamma": _c_int(s["gamma"]),
+         "obs_angle_offset": int.from_bytes((int(round(float(s.get("obs_angle_deg", 20.0)) / 180.0 * 2 ** 31)) & 0xFFFFFFFF)
+                                            .to_bytes(4, "little"), "little", signed=True)}
+    for n, mv in enumerate(bars, 1):
+        v[f"battery_level_{n}"] = mv * 10
+    return flags, v
+
+
+def settings_block(s):
+    """The 256 byte settings block for the flash address SETTINGS_BLOCK_ADDR."""
+    import struct
+    import zlib
+    flags, v = settings_block_values(s)
+    f = sum(1 << i for i, k in enumerate(SETTINGS_FLAGS) if flags[k])
+    body = struct.pack("<IHHI", SETTINGS_MAGIC, SETTINGS_VERSION, SETTINGS_BLOCK_SIZE, f)
+    body += struct.pack(f"<{len(SETTINGS_FIELDS)}i", *[v[k] for k in SETTINGS_FIELDS])
+    body += bytes(SETTINGS_BLOCK_SIZE - 4 - len(body))
+    return body + struct.pack("<I", zlib.crc32(body) & 0xFFFFFFFF)
+
+
+# --------------------------------------------------------------------------------------------
 # Build
 # --------------------------------------------------------------------------------------------
 
-def build_firmware(settings, log=print):
-    """Write config.h and compile. Returns True on success."""
+def build_firmware(settings, log=print, root=None):
+    """Write config.h and compile in root (default: this repository). Returns True on success.
+    root can be a copy of the repository (Src, Inc, Drivers, Startup, make), used by build_variants.py."""
+    root = Path(root or REPO)
+    debug_dir, make_dir = root / "Debug", root / "make"
     gcc, make = find_toolchain()
     if not gcc or not make:
         log("ERROR: ARM compiler or make not found. Install STM32CubeIDE or System Workbench (Ac6).")
         return False
-    (REPO / "Inc" / "config.h").write_text(generate_config_h(settings), encoding="utf-8", newline="")
+    (root / "Inc" / "config.h").write_text(generate_config_h(settings), encoding="utf-8", newline="")
     log("config.h written")
     env = dict(os.environ)
     env["PATH"] = os.pathsep.join([gcc, str(Path(make).parent), env.get("PATH", "")])
-    DEBUG_DIR.mkdir(exist_ok=True)
-    run([make, "-f", "../make/makefile", "clean"], cwd=DEBUG_DIR, env=env, timeout=60)
-    for f in MAKE_DIR.iterdir():
+    debug_dir.mkdir(exist_ok=True)
+    run([make, "-f", "../make/makefile", "clean"], cwd=debug_dir, env=env, timeout=60)
+    for f in make_dir.iterdir():
         if f.is_file():
-            shutil.copy2(f, DEBUG_DIR / f.name)
+            shutil.copy2(f, debug_dir / f.name)
     for sub in ("Drivers/STM32F1xx_HAL_Driver/Src", "startup", "Src"):
-        (DEBUG_DIR / sub).mkdir(parents=True, exist_ok=True)
-    shutil.copy2(DEBUG_DIR / "subdir_drivers.mk", DEBUG_DIR / "Drivers/STM32F1xx_HAL_Driver/Src/subdir.mk")
-    shutil.copy2(DEBUG_DIR / "subdir_src.mk", DEBUG_DIR / "Src/subdir.mk")
-    shutil.copy2(DEBUG_DIR / "subdir_startup.mk", DEBUG_DIR / "startup/subdir.mk")
-    shutil.copy2(DEBUG_DIR / "STLINK_FLASH.ld", REPO / "STM32F103C6Tx_FLASH.ld")
-    shutil.copy2(DEBUG_DIR / "STLINK_system_stm32f1xx.c", REPO / "Src/system_stm32f1xx.c")
+        (debug_dir / sub).mkdir(parents=True, exist_ok=True)
+    shutil.copy2(debug_dir / "subdir_drivers.mk", debug_dir / "Drivers/STM32F1xx_HAL_Driver/Src/subdir.mk")
+    shutil.copy2(debug_dir / "subdir_src.mk", debug_dir / "Src/subdir.mk")
+    shutil.copy2(debug_dir / "subdir_startup.mk", debug_dir / "startup/subdir.mk")
+    shutil.copy2(debug_dir / "STLINK_FLASH.ld", root / "STM32F103C6Tx_FLASH.ld")
+    shutil.copy2(debug_dir / "STLINK_system_stm32f1xx.c", root / "Src/system_stm32f1xx.c")
     log("compiling ...")
-    rc, out = run([make, "all"], cwd=DEBUG_DIR, env=env, timeout=600,
+    rc, out = run([make, "all"], cwd=debug_dir, env=env, timeout=600,
                   log=lambda l: log(l) if ("error" in l.lower() or "warning: " in l and "Src/" in l) else None)
     m = re.search(r"^\s*(\d+)\s+(\d+)\s+(\d+)\s+\d+\s+[0-9a-f]+\s+LishuiFOC_01\.elf", out, re.M)
-    if rc != 0 or not HEX_FILE.is_file():
+    if rc != 0 or not (debug_dir / HEX_FILE.name).is_file():
         log("ERROR: compiling failed")
         return False
     if m:
-        used = int(m.group(1)) + int(m.group(2))
-        log(f"firmware size: {used} of 30720 bytes")
+        used = int(m.group(1)) + int(m.group(2)) - SETTINGS_BLOCK_SIZE
+        log(f"firmware size: {used} of {SETTINGS_BLOCK_ADDR - 0x08000000} bytes")
     log("compiled OK")
     return True
 

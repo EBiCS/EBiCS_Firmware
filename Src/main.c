@@ -120,7 +120,7 @@ uint16_t ui16_tim2_recent=0;
 uint16_t ui16_timertics=5000; 					//timertics between two hall events for 60Â° interpolation
 uint16_t ui16_throttle;
 uint16_t ui16_torque;
-uint16_t ui16_throttle_offset = THROTTLE_OFFSET;
+uint16_t ui16_throttle_offset = 0; //default from RS.throttle_offset, measured at power-up
 uint16_t ui16_torque_offset = TORQUE_OFFSET;
 uint16_t ui16_brake_adc;
 uint32_t ui32_throttle_cumulated;
@@ -147,7 +147,7 @@ volatile uint8_t ui8_adc_inj_flag=0;
 volatile uint8_t ui8_adc_regular_flag=0;
 uint8_t ui8_speedcase=0;
 uint8_t ui8_speedfactor=0;
-int8_t i8_direction= REVERSE; //for permanent reverse direction
+int8_t i8_direction= 1; //for permanent reverse direction, set from RS.reverse at boot
 int8_t i8_reverse_flag = 1; //for temporaribly reverse direction
 uint8_t ui8_KV_detect_flag = 0; //for getting the KV of the motor after auto angle detect
 uint16_t ui16_KV_detect_counter = 0; //for getting timing of the KV detect
@@ -165,14 +165,14 @@ volatile uint8_t ui8_SPEED_control_flag=0;
 volatile uint8_t ui8_BC_limit_flag=0;  //flag for Battery current limitation
 volatile uint8_t ui8_6step_flag=0;
 int16_t i16_60deg_Hall_flag=0;
-uint32_t uint32_PAS_counter= PAS_TIMEOUT+1;
+uint32_t uint32_PAS_counter= 32000; //set to RS.pas_timeout+1 at boot
 uint32_t uint32_PAS_HIGH_counter= 0;
 uint32_t uint32_PAS_HIGH_accumulated= 32000;
 uint32_t uint32_PAS_fraction= 100;
 uint32_t uint32_SPEED_counter=32000;
 uint32_t uint32_SPEEDx100_cumulated=0;
 uint32_t uint32_PAS=32000;
-uint32_t PAS_IMP_PER_TURN_RECIP_MULTIPLIER = ((1 << 8) / PAS_IMP_PER_TURN);  // recproce multiplier to avoid division in the main loop
+uint32_t PAS_IMP_PER_TURN_RECIP_MULTIPLIER = 8;  // recproce multiplier to avoid division in the main loop, (1<<8)/RS.pas_imp_per_turn set at boot
 
 q31_t q31_rotorposition_PLL = 0;
 q31_t q31_angle_per_tic = 0;
@@ -227,8 +227,8 @@ q31_t Hall_31 = 0;
 q31_t Hall_10 = 0;
 q31_t Hall_4 = 0;
 
-const q31_t tics_lower_limit = WHEEL_CIRCUMFERENCE*5*3600/(6*GEAR_RATIO*SPEEDLIMIT*10); //tics=wheelcirc*timerfrequency/(no. of hallevents per rev*gear-ratio*speedlimit)*3600/1000000
-const q31_t tics_higher_limit = WHEEL_CIRCUMFERENCE*5*3600/(6*GEAR_RATIO*(SPEEDLIMIT+2)*10);
+q31_t tics_lower_limit = 0; //set at boot
+q31_t tics_higher_limit = 0; //set at boot
 uint32_t uint32_tics_filtered=1000000;
 
 uint16_t VirtAddVarTab[NB_OF_VAR] = { 	EEPROM_POS_HALL_ORDER,
@@ -399,6 +399,15 @@ int main(void)
 	MX_USART1_UART_Init();
 
 
+	//runtime settings: block written by the Android setup app, or the config.h values
+	settings_load();
+	ui16_throttle_offset = RS.throttle_offset;
+	i8_direction = RS.reverse;
+	uint32_PAS_counter = RS.pas_timeout+1;
+	PAS_IMP_PER_TURN_RECIP_MULTIPLIER = (1 << 8) / RS.pas_imp_per_turn;
+	tics_lower_limit = RS.wheel_circumference*5*3600/(6*RS.gear_ratio*RS.speed_limit*10); //tics=wheelcirc*timerfrequency/(no. of hallevents per rev*gear-ratio*speedlimit)*3600/1000000
+	tics_higher_limit = RS.wheel_circumference*5*3600/(6*RS.gear_ratio*(RS.speed_limit+2)*10);
+
 	//initialize MS struct.
 	MS.hall_angle_detect_flag=1;
 	MS.Speed=128000;
@@ -409,10 +418,10 @@ int main(void)
 	MS.angle_est=SPEED_PLL;
 
 
-	MP.pulses_per_revolution = PULSES_PER_REVOLUTION;
-	MP.wheel_cirumference = WHEEL_CIRCUMFERENCE;
-	MP.speedLimit=SPEEDLIMIT;
-	MP.battery_current_max = BATTERYCURRENT_MAX;
+	MP.pulses_per_revolution = RS.pulses_per_revolution;
+	MP.wheel_cirumference = RS.wheel_circumference;
+	MP.speedLimit=RS.speed_limit;
+	MP.battery_current_max = RS.battery_current_max;
 
 
 	//init PI structs
@@ -437,10 +446,10 @@ int main(void)
 	PI_speed.gain_i=I_FACTOR_SPEED;
 	PI_speed.gain_p=P_FACTOR_SPEED;
 	PI_speed.setpoint = 0;
-	PI_speed.limit_output = PH_CURRENT_MAX;
+	PI_speed.limit_output = RS.ph_current_max;
 	PI_speed.max_step=50;
 	PI_speed.shift=5;
-	PI_speed.limit_i=PH_CURRENT_MAX;
+	PI_speed.limit_i=RS.ph_current_max;
 
 #endif
 
@@ -567,13 +576,8 @@ int main(void)
 	ui16_ph3_offset=temp3>>5;
 	ui16_throttle_offset=(temp4>>5)+5;
 
-#ifdef TQONAD1
-	ui16_torque_offset=(temp5>>5)+5;
-
-#else
-	ui16_torque_offset=ui16_throttle_offset;
-
-#endif
+	if(RS_FLAG(SF_TORQUE_ON_AD1)) ui16_torque_offset=(temp5>>5)+5;
+	else ui16_torque_offset=ui16_throttle_offset;
 
 #ifdef DISABLE_DYNAMIC_ADC // set  injected channel with offsets
 	ADC1->JSQR=0b00100000000000000000; //ADC1 injected reads phase A JL = 0b00, JSQ4 = 0b00100 (decimal 4 = channel 4)
@@ -585,15 +589,13 @@ int main(void)
 	ui8_adc_offset_done_flag=1;
 	init_watchdog();
 
-#if defined (ADC_BRAKE)
-
-	while ((adcData[5]>ui16_throttle_offset)&&(adcData[1]>(THROTTLE_MAX-ui16_throttle_offset))){HAL_Delay(200);
-	HAL_IWDG_Refresh(&hiwdg);
-	y++;
-	if(y==35) autodetect();
+	if(RS_FLAG(SF_ADC_BRAKE)){
+		while ((adcData[5]>ui16_throttle_offset)&&(adcData[1]>(RS.throttle_max-ui16_throttle_offset))){HAL_Delay(200);
+		HAL_IWDG_Refresh(&hiwdg);
+		y++;
+		if(y==35) autodetect();
+		}
 	}
-
-#endif
 
 	//run autodect, whenn brake is pulled an throttle is pulled for 10 at startup
 #ifndef NCTE
@@ -612,7 +614,7 @@ int main(void)
 	printf_("phase current offsets:  %d, %d, %d \n ", ui16_ph1_offset, ui16_ph2_offset, ui16_ph3_offset);
 	printf_("internal temperature raw reading:  %d, \n ", adcData[7]);
 #if (AUTODETECT == 1)
-	if(adcData[0]>VOLTAGE_MIN) autodetect();
+	if(adcData[0]*CAL_V>RS.battery_voltage_min) autodetect();
 	else printf_("Battery voltage too low!:  %d,\n ",adcData[0]);
 #endif
 
@@ -777,9 +779,7 @@ int main(void)
 			ui32_throttle_cumulated += adcData[1]; //get value from SP
 			ui32_torque_cumulated_raw -= ui32_torque_cumulated_raw>>4;
 			ui32_torque_cumulated_raw += adcData[6]; //get value from AD1
-#ifndef TQONAD1
-			ui32_torque_cumulated_raw=ui32_throttle_cumulated;
-#endif
+			if(!RS_FLAG(SF_TORQUE_ON_AD1)) ui32_torque_cumulated_raw=ui32_throttle_cumulated;
 			ui32_brake_adc_cumulated -= ui32_brake_adc_cumulated>>4;
 			ui32_brake_adc_cumulated+=adcData[5];//get value for analog brake from AD2 = PB0
 			ui16_brake_adc=ui32_brake_adc_cumulated>>4;
@@ -816,27 +816,21 @@ int main(void)
 		}
 
 		//SPEED signal processing
-#if (SPEEDSOURCE == INTERNAL)
-		MS.Speed = uint32_tics_filtered>>3;
-#else
-
-		if(ui8_SPEED_flag){
-			// HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+		if(!RS_FLAG(SF_SPEED_EXTERNAL)) MS.Speed = uint32_tics_filtered>>3;
+		else if(ui8_SPEED_flag){
 			if(uint32_SPEED_counter>200){ //debounce
 				MS.Speed = uint32_SPEED_counter;
-				//HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
 				uint32_SPEED_counter =0;
 				ui8_SPEED_flag=0;
 				uint32_SPEEDx100_cumulated -=uint32_SPEEDx100_cumulated>>SPEEDFILTER;
 				uint32_SPEEDx100_cumulated +=external_tics_to_speedx100(MS.Speed);
 			}
 		}
-#endif
 		if(ui8_SPEED_control_flag){
-#if (SPEEDSOURCE == INTERNAL)
-			uint32_SPEEDx100_cumulated -=uint32_SPEEDx100_cumulated>>SPEEDFILTER;
-			uint32_SPEEDx100_cumulated +=internal_tics_to_speedx100(uint32_tics_filtered>>3);
-#endif
+			if(!RS_FLAG(SF_SPEED_EXTERNAL)){
+				uint32_SPEEDx100_cumulated -=uint32_SPEEDx100_cumulated>>SPEEDFILTER;
+				uint32_SPEEDx100_cumulated +=internal_tics_to_speedx100(uint32_tics_filtered>>3);
+			}
 			ui16_erps=500000/((uint32_tics_filtered>>3)*6);
 			ui8_SPEED_control_flag=0;
 		}
@@ -864,134 +858,95 @@ int main(void)
 		//highest priority: regen by brake lever
 
 
-#ifdef ADC_BRAKE
-		uint16_mapped_BRAKE = map(ui16_brake_adc, ui16_throttle_offset , THROTTLE_MAX, 0, REGEN_CURRENT);
-
-
-		if(uint16_mapped_BRAKE>0) brake_flag=1;
-		else brake_flag=0;
-
+		if(RS_FLAG(SF_ADC_BRAKE)){ //proportional regen with an analog brake sensor on AD2
+			uint16_mapped_BRAKE = map(ui16_brake_adc, ui16_throttle_offset , RS.throttle_max, 0, RS.regen_current);
+			brake_flag = (uint16_mapped_BRAKE>0);
+		}
+		else brake_flag = !HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin);
 
 		if(brake_flag){
-
-			//if(!HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin)){
-			//if(tics_to_speed(uint32_tics_filtered>>3)>6)int32_current_target=-REGEN_CURRENT; //only apply regen, if motor is turning fast enough
-			if(tics_to_speed(uint32_tics_filtered>>3)>6)int32_temp_current_target=uint16_mapped_BRAKE;
-			else int32_temp_current_target=0;
-
-
-#else
-			if(HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin)) brake_flag=0;
-			else brake_flag=1;
-			if(brake_flag){
-
-				if(tics_to_speed(uint32_tics_filtered>>3)>6){
-					int32_temp_current_target=REGEN_CURRENT; //only apply regen, if motor is turning fast enough
-				}
-				else int32_temp_current_target=0;
-
-#endif
-				int32_temp_current_target= -map(MS.Voltage*CAL_V,BATTERYVOLTAGE_MAX-VOLTAGE_RAMP_MV,BATTERYVOLTAGE_MAX,int32_temp_current_target,0); //soft ramp: no regen above the full charge voltage
+			if(tics_to_speed(uint32_tics_filtered>>3)>6){ //only apply regen, if motor is turning fast enough
+				int32_temp_current_target = RS_FLAG(SF_ADC_BRAKE) ? uint16_mapped_BRAKE : RS.regen_current;
 			}
+			else int32_temp_current_target=0;
+			int32_temp_current_target= -map(MS.Voltage*CAL_V,RS.battery_voltage_max-RS.voltage_ramp_mv,RS.battery_voltage_max,int32_temp_current_target,0); //soft ramp: no regen above the full charge voltage
+		}
 
-			//next priority: undervoltage protection
-			else if(MS.Voltage*CAL_V<BATTERYVOLTAGE_MIN)int32_temp_current_target=0; //below cutoff: off (soft ramp above, see below)
-			//next priority: push assist
+		//next priority: undervoltage protection
+		else if(MS.Voltage*CAL_V<RS.battery_voltage_min)int32_temp_current_target=0; //below cutoff: off (soft ramp above, see below)
+		//next priority: push assist
 #if (DISPLAY_TYPE == DISPLAY_TYPE_KUNTENG)
-			else if(ui8_Push_Assist_flag){int32_temp_current_target=(PUSHASSIST_CURRENT);} //Kunteng: walk assist = level 6, sets ui8_Push_Assist_flag (ui8_Walk_Assist_flag was never declared -> Kunteng did not compile)
+		else if(ui8_Push_Assist_flag){int32_temp_current_target=(RS.pushassist_current);} //Kunteng: walk assist = level 6, sets ui8_Push_Assist_flag
 #else
-			else if(ui8_Push_Assist_flag)int32_temp_current_target=(MS.assist_level*PUSHASSIST_CURRENT)>>8; //does not work for BAFANG
+		else if(ui8_Push_Assist_flag)int32_temp_current_target=(MS.assist_level*RS.pushassist_current)>>8; //does not work for BAFANG
 #endif
-			// last priority normal ride conditiones
-			else {
-
-#ifdef TS_MODE //torque-sensor mode
+		// last priority normal ride conditiones
+		else {
+			if(RS_FLAG(SF_TORQUE_SENSOR)){ //torque-sensor mode
 				//calculate current target form torque, cadence and assist level
-				int32_temp_current_target = (TS_COEF*(int32_t)(MS.assist_level)* ((uint32_torque_cumulated*PAS_IMP_PER_TURN_RECIP_MULTIPLIER)>>8)/uint32_PAS)>>8; // >>8 aus KM5S-Protokoll Assistlevel 0..255
-
-				//limit currest target to max value
-				if(int32_temp_current_target>PH_CURRENT_MAX) int32_temp_current_target = PH_CURRENT_MAX;
+				int32_temp_current_target = (RS.ts_coef*(int32_t)(MS.assist_level)* ((uint32_torque_cumulated*PAS_IMP_PER_TURN_RECIP_MULTIPLIER)>>8)/uint32_PAS)>>8; // >>8 aus KM5S-Protokoll Assistlevel 0..255
+				//limit current target to max value
+				if(int32_temp_current_target>RS.ph_current_max) int32_temp_current_target = RS.ph_current_max;
 				//set target to zero, if pedals are not turning
-				if(uint32_PAS_counter > PAS_TIMEOUT){
+				if(uint32_PAS_counter > RS.pas_timeout){
 					int32_temp_current_target = 0;
 					if(uint32_torque_cumulated>0)uint32_torque_cumulated--; //ramp down cumulated torque value
 				}
-
-
-
-#else		// torque-simulation mode with throttle override
-
+			}
+			else { // torque-simulation mode: assist from the cadence (PAS) and the assist level
 #if (DISPLAY_TYPE & DISPLAY_TYPE_BAFANG)
-				uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, (PH_CURRENT_MAX*(int32_t)(assist_factor[MS.assist_level]))>>8, 0); // level in range 0...5
+				uint16_mapped_PAS = map(uint32_PAS, RS.ramp_end, RS.pas_timeout, (RS.ph_current_max*(int32_t)(assist_factor[MS.assist_level]))>>8, 0); // level in range 0...5
 #endif
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_KUNTENG)
-				uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, (PH_CURRENT_MAX*(int32_t)(MS.assist_level))/5, 0); // level in range 0...5
+				uint16_mapped_PAS = map(uint32_PAS, RS.ramp_end, RS.pas_timeout, (RS.ph_current_max*(int32_t)(MS.assist_level))/5, 0); // level in range 0...5
 #endif
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_618U)
-				uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, (PH_CURRENT_MAX*(int32_t)(MS.assist_level-1))>>2, 0); // level in range 1...5
+				uint16_mapped_PAS = map(uint32_PAS, RS.ramp_end, RS.pas_timeout, (RS.ph_current_max*(int32_t)(MS.assist_level-1))>>2, 0); // level in range 1...5
 #endif
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_KINGMETER_901U||DISPLAY_TYPE == DISPLAY_TYPE_NO2||DISPLAY_TYPE == DISPLAY_TYPE_TONGSHENG||DISPLAY_TYPE == DISPLAY_TYPE_VESC)
-				uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, ((PH_CURRENT_MAX*(int32_t)(MS.assist_level)))>>8, 0); // level in range 0...255
+				uint16_mapped_PAS = map(uint32_PAS, RS.ramp_end, RS.pas_timeout, ((RS.ph_current_max*(int32_t)(MS.assist_level)))>>8, 0); // level in range 0...255
 #endif
 
 #if (DISPLAY_TYPE == DISPLAY_TYPE_DEBUG)
-				uint16_mapped_PAS = map(uint32_PAS, RAMP_END, PAS_TIMEOUT, PH_CURRENT_MAX, 0); // Full amps in debug mode
+				uint16_mapped_PAS = map(uint32_PAS, RS.ramp_end, RS.pas_timeout, RS.ph_current_max, 0); // Full amps in debug mode
 #endif
 
-
-
-#ifdef DIRDET
-				if (uint32_PAS_counter< PAS_TIMEOUT){
-					if ((uint32_PAS_fraction < FRAC_LOW ||uint32_PAS_fraction > FRAC_HIGH)){
-						uint16_mapped_PAS= 0;//pedals are turning backwards, stop motor
+				if(RS_FLAG(SF_DIRDET)){ //direction detection
+					if (uint32_PAS_counter< RS.pas_timeout){
+						if ((uint32_PAS_fraction < RS.frac_low ||uint32_PAS_fraction > RS.frac_high)){
+							uint16_mapped_PAS= 0;//pedals are turning backwards, stop motor
+						}
 					}
+					else uint32_PAS_HIGH_accumulated=uint32_PAS_cumulated;
 				}
-				else uint32_PAS_HIGH_accumulated=uint32_PAS_cumulated;
-#endif //end direction detection
-
-
-#endif //end if else TQ sensor mode
-
 #ifdef INDIVIDUAL_MODES
-
 				uint16_mapped_PAS = (uint16_mapped_PAS * ui8_speedfactor)>>8;
-
 #endif
-
-#ifdef THROTTLE_OVERRIDE
-
-
-#ifdef NCTE
-				// read in throttle for throttle override
-				uint16_mapped_throttle = map(ui16_throttle, THROTTLE_MAX, ui16_throttle_offset,PH_CURRENT_MAX,0);
-
-
-#else //else NTCE
-				// read in throttle for throttle override
-				uint16_mapped_throttle = map(ui16_throttle, ui16_throttle_offset, THROTTLE_MAX, 0,PH_CURRENT_MAX);
-
-#endif //end NTCE
-
-#ifndef TS_MODE //normal PAS Mode
-
-				if (uint32_PAS_counter < PAS_TIMEOUT) int32_temp_current_target = uint16_mapped_PAS;		//set current target in torque-simulation-mode, if pedals are turning
+				//set current target in torque-simulation-mode, if pedals are turning
+				//(before the runtime settings this was only done with THROTTLE_OVERRIDE: without a throttle PAS gave no assist)
+				if (uint32_PAS_counter < RS.pas_timeout) int32_temp_current_target = uint16_mapped_PAS;
 				else  {
 					int32_temp_current_target= 0;//pedals are not turning, stop motor
 					uint32_PAS_cumulated=32000;
 					uint32_PAS=32000;
 				}
+			}
 
-#endif		// end #ifndef TS_MODE
+			if(RS_FLAG(SF_THROTTLE)){ //throttle override
+#ifdef NCTE
+				uint16_mapped_throttle = map(ui16_throttle, RS.throttle_max, ui16_throttle_offset,RS.ph_current_max,0);
+#else
+				uint16_mapped_throttle = map(ui16_throttle, ui16_throttle_offset, RS.throttle_max, 0,RS.ph_current_max);
+#endif
 				//check for throttle override
 				if(uint16_mapped_throttle>int32_temp_current_target){
-
 #ifdef SPEEDTHROTTLE
 
 
-					uint16_mapped_throttle = uint16_mapped_throttle*SPEEDLIMIT/PH_CURRENT_MAX;//throttle override: calulate speed target from thottle
+					uint16_mapped_throttle = uint16_mapped_throttle*RS.speed_limit/RS.ph_current_max;//throttle override: calulate speed target from thottle
 
 
 
@@ -1014,42 +969,33 @@ int main(void)
 
 
 						if(ui8_SPEED_control_flag){//update current target only, if new hall event was detected
-							PI_speed.limit_i=PH_CURRENT_MAX;
-							PI_speed.limit_output=PH_CURRENT_MAX;
+							PI_speed.limit_i=RS.ph_current_max;
+							PI_speed.limit_output=RS.ph_current_max;
 							int32_temp_current_target = PI_control(&PI_speed);
 							ui8_SPEED_control_flag=0;
 						}
 						if(int32_temp_current_target*i8_direction*i8_reverse_flag<0)int32_temp_current_target=0;
 
 					}
-
-
-
 #else // else speedthrottle
 					int32_temp_current_target=uint16_mapped_throttle;
 #endif  //end speedthrottle
-
-				} //end else of throttle override
-
-#endif //end throttle override
-
-			} //end else for normal riding
-			//ramp down setpoint at speed limit
-#ifdef LEGALFLAG
-			if(!brake_flag){ //only ramp down if no regen active
-				if(uint32_PAS_counter<PAS_TIMEOUT){
-					int32_temp_current_target=map(uint32_SPEEDx100_cumulated>>SPEEDFILTER, MP.speedLimit*100,(MP.speedLimit+2)*100,int32_temp_current_target,0);
 				}
-				else{ //limit to 6km/h if pedals are not turning
-					int32_temp_current_target=map(uint32_SPEEDx100_cumulated>>SPEEDFILTER, 500,700,int32_temp_current_target,0);
-				}
+			} //end throttle override
+		} //end else for normal riding
+
+		//ramp down setpoint at speed limit (legal mode), only if no regen active
+		if(RS_FLAG(SF_LEGAL) && !brake_flag){
+			if(uint32_PAS_counter<RS.pas_timeout){
+				int32_temp_current_target=map(uint32_SPEEDx100_cumulated>>SPEEDFILTER, MP.speedLimit*100,(MP.speedLimit+2)*100,int32_temp_current_target,0);
 			}
-			//			else int32_temp_current_target=int32_temp_current_target;
-
-#endif //legalflag
+			else{ //limit to 6km/h if pedals are not turning
+				int32_temp_current_target=map(uint32_SPEEDx100_cumulated>>SPEEDFILTER, 500,700,int32_temp_current_target,0);
+			}
+		}
 
 #if (DISPLAY_TYPE & DISPLAY_TYPE_KINGMETER || DISPLAY_TYPE & DISPLAY_TYPE_DEBUG)
-			if(KM.DirectSetpoint!=-1)int32_temp_current_target=(KM.DirectSetpoint*PH_CURRENT_MAX)>>7;
+			if(KM.DirectSetpoint!=-1)int32_temp_current_target=(KM.DirectSetpoint*RS.ph_current_max)>>7;
 #endif
 #if (DISPLAY_TYPE == DISPLAY_TYPE_VESC)
 			//current requested by a VESC device, released 1 s after the last command, never overrides braking
@@ -1060,9 +1006,9 @@ int main(void)
 #endif
 			//soft ramp down of the motor current when the battery voltage approaches the cutoff (all modes: PAS, throttle, push, VESC, display)
 			if(!brake_flag && int32_temp_current_target>0){
-				int32_temp_current_target=map(MS.Voltage*CAL_V, BATTERYVOLTAGE_MIN, BATTERYVOLTAGE_MIN+VOLTAGE_RAMP_MV, 0, int32_temp_current_target);
+				int32_temp_current_target=map(MS.Voltage*CAL_V, RS.battery_voltage_min, RS.battery_voltage_min+RS.voltage_ramp_mv, 0, int32_temp_current_target);
 			}
-			MS.i_q_setpoint=map(MS.Temperature, MOTOR_TEMPERATURE_THRESHOLD,MOTOR_TEMPERATURE_MAX,int32_temp_current_target,0); //ramp down power with temperature to avoid overheating the motor
+			MS.i_q_setpoint=map(MS.Temperature, RS.motor_temp_threshold,RS.motor_temp_max,int32_temp_current_target,0); //ramp down power with temperature to avoid overheating the motor
 #if(INT_TEMP_25)
 			MS.i_q_setpoint=map(MS.int_Temperature, CONTROLLER_TEMPERATURE_THRESHOLD,CONTROLLER_TEMPERATURE_MAX,MS.i_q_setpoint,0); //ramp down power with processor temperatur to avoid overheating the controller
 #endif
@@ -1128,11 +1074,8 @@ int main(void)
 
 
 				if(ui8_KV_detect_flag){ui16_KV_detect_counter++;}
-#if (R_TEMP_PULLUP)
-				MS.Temperature = T_NTC(ui16_motor_temp_adc); //NTC on SPEED_TEMP_ADC, filtered without speed pulses. Thank you Hendrik ;-)
-#else
-				MS.Temperature=25;
-#endif
+				if(RS_FLAG(SF_TEMP_FROM_WIRE)) MS.Temperature = T_NTC(ui16_motor_temp_adc); //NTC on the speed/temperature wire, filtered without speed pulses. Thank you Hendrik ;-)
+				else MS.Temperature=25;
 				//filter internal temperature reading
 				ui32_int_Temp_cumulated-=ui32_int_Temp_cumulated>>5;
 				ui32_int_Temp_cumulated+=adcData[7];
@@ -1141,9 +1084,7 @@ int main(void)
 				MS.Voltage=adcData[0];
 				if(uint32_SPEED_counter>32000){
 					MS.Speed = 32000;
-#if (SPEEDSOURCE == EXTERNAL)
-					uint32_SPEEDx100_cumulated=0;
-#endif
+					if(RS_FLAG(SF_SPEED_EXTERNAL)) uint32_SPEEDx100_cumulated=0;
 				}
 
 #ifdef INDIVIDUAL_MODES
@@ -1792,7 +1733,7 @@ int main(void)
 #endif
 
 			if(ui32_tim3_counter<32000)ui32_tim3_counter++;
-			if (uint32_PAS_counter < PAS_TIMEOUT+1){
+			if (uint32_PAS_counter < RS.pas_timeout+1){
 				uint32_PAS_counter++;
 				if(HAL_GPIO_ReadPin(PAS_GPIO_Port, PAS_Pin))uint32_PAS_HIGH_counter++;
 			}
@@ -1810,26 +1751,23 @@ int main(void)
 	void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 	{
 		ui8_adc_regular_flag=1;
-#if defined(SPEED_FROM_ADC) || (R_TEMP_PULLUP)
+		if(RS.flags & (SF_SPEED_FROM_WIRE | SF_TEMP_FROM_WIRE))
 		{
 			// motor speed sensor and NTC on one wire: the NTC sits between signal and GND, the speed sensor
 			// pulls the signal to ~0 V when the magnet passes. Low = speed pulse, everything else = temperature.
 			static uint8_t ui8_speed_input_low = 0;
-			uint16_t v = adcData[SPEED_TEMP_ADC];
-			if(v < SPEED_TEMP_THRESHOLD){
-#ifdef SPEED_FROM_ADC
-				if(!ui8_speed_input_low) ui8_SPEED_flag = 1; //falling edge = one speed sensor pulse
-#endif
+			uint16_t v = adcData[RS.speed_temp_adc];
+			if(v < RS.speed_temp_threshold){
+				if(!ui8_speed_input_low && RS_FLAG(SF_SPEED_FROM_WIRE)) ui8_SPEED_flag = 1; //falling edge = one speed sensor pulse
 				ui8_speed_input_low = 1;
 			}
-			else if(v > SPEED_TEMP_THRESHOLD + (SPEED_TEMP_THRESHOLD>>1) + 20){ //hysteresis
+			else if(v > RS.speed_temp_threshold + (RS.speed_temp_threshold>>1) + 20){ //hysteresis
 				ui8_speed_input_low = 0;
 				ui32_motor_temp_adc_cumulated -= ui32_motor_temp_adc_cumulated>>4;
 				ui32_motor_temp_adc_cumulated += v;
 				ui16_motor_temp_adc = ui32_motor_temp_adc_cumulated>>4;
 			}
 		}
-#endif
 
 	}
 
@@ -2142,7 +2080,7 @@ int main(void)
 		/* Prepare Tx parameters */
 
 		No2.Tx.Wheeltime_ms = get_wheeltime_ms(); //clamped, works for hall, external sensor and sensorless
-		if(MS.Temperature>MOTOR_TEMPERATURE_MAX) No2.Tx.Error = 7;  //motor failure
+		if(MS.Temperature>RS.motor_temp_max) No2.Tx.Error = 7;  //motor failure
 		else if(MS.int_Temperature>CONTROLLER_TEMPERATURE_MAX)No2.Tx.Error = 9; //controller failure
 		else No2.Tx.Error = 0; //no failure
 
@@ -2249,14 +2187,14 @@ int main(void)
 	{
 		/* Prepare Tx parameters */
 
-		/* if(MS.Voltage*CAL_BAT_V>BATTERY_LEVEL_5)battery_percent_fromcapacity=95; */
-		/* else if(MS.Voltage*CAL_BAT_V>BATTERY_LEVEL_4)battery_percent_fromcapacity=80; */
-		/* else if(MS.Voltage*CAL_BAT_V>BATTERY_LEVEL_3)battery_percent_fromcapacity=50; */
-		/* else if(MS.Voltage*CAL_BAT_V>BATTERY_LEVEL_2)battery_percent_fromcapacity=30; */
-		/* else if(MS.Voltage*CAL_BAT_V>BATTERY_LEVEL_1)battery_percent_fromcapacity=20; */
+		/* if(MS.Voltage*CAL_BAT_V>RS.battery_level[4])battery_percent_fromcapacity=95; */
+		/* else if(MS.Voltage*CAL_BAT_V>RS.battery_level[3])battery_percent_fromcapacity=80; */
+		/* else if(MS.Voltage*CAL_BAT_V>RS.battery_level[2])battery_percent_fromcapacity=50; */
+		/* else if(MS.Voltage*CAL_BAT_V>RS.battery_level[1])battery_percent_fromcapacity=30; */
+		/* else if(MS.Voltage*CAL_BAT_V>RS.battery_level[0])battery_percent_fromcapacity=20; */
 		/* else battery_percent_fromcapacity=5; */
 
-        battery_percent_fromcapacity = ((((MS.Voltage * CAL_BAT_V) - (BATTERY_LEVEL_1)) * 100) / ((BATTERY_LEVEL_5 - BATTERY_LEVEL_1)));
+        battery_percent_fromcapacity = ((((MS.Voltage * CAL_BAT_V) - (RS.battery_level[0])) * 100) / ((RS.battery_level[4] - RS.battery_level[0])));
         if (battery_percent_fromcapacity < 0) battery_percent_fromcapacity = 0;
         if (battery_percent_fromcapacity > 100) battery_percent_fromcapacity = 100;
 
@@ -2264,12 +2202,11 @@ int main(void)
 
 
 
-#if (SPEEDSOURCE == EXTERNAL)    // Adapt wheeltime to match displayed speedo value according config.h setting
-
+		if(RS_FLAG(SF_SPEED_EXTERNAL)){ // Adapt wheeltime to match displayed speedo value
 		if(uint32_SPEED_counter<16000) BF.Tx.Speed = (external_tics_to_speedx100(MS.Speed)*20)>>8;// Geschwindigkeit ist Weg pro Zeit Radumfang durch Dauer einer Radumdrehung --> Umfang * 8000*3600/(n*1000000) * Skalierung Bafang Display 200/26,6
 		else BF.Tx.Speed = 0;
-
-#else
+		}
+		else {
 		if(motor_is_turning() && MS.system_state != Stop)
 		{
 			BF.Tx.Speed =(internal_tics_to_speedx100(MS.Speed)*20)>>8; //factor is *20/256, found empiric
@@ -2279,7 +2216,7 @@ int main(void)
 		{
 			BF.Tx.Speed = 0;
 		}
-#endif
+		}
 
         if (MS.Battery_Current < 0) BF.Tx.Power = MS.Battery_Current*-1 > 0 && MS.Battery_Current*-1 < 500 ? 1 : ((MS.Battery_Current*-1)/500);
         else BF.Tx.Power = MS.Battery_Current > 0 && MS.Battery_Current < 500 ? 1 : (MS.Battery_Current/500); // Unit: 1 digit --> 0.5 A, MS.Battery_Current is in mA
@@ -2327,12 +2264,11 @@ int main(void)
 	uint32_t get_wheeltime_ms(void)
 	{
 		uint32_t t;
-#if (SPEEDSOURCE == EXTERNAL)
-		t = ((MS.Speed>>3)*PULSES_PER_REVOLUTION); //8 kHz counter, 8 tics per ms
-#else
-		if(!motor_is_turning()) return 64000;
-		t = ((uint32_t)MS.Speed*GEAR_RATIO*6)>>9; //500 kHz timer2, 6 hall events per electric revolution
-#endif
+		if(RS_FLAG(SF_SPEED_EXTERNAL)) t = ((MS.Speed>>3)*RS.pulses_per_revolution); //8 kHz counter, 8 tics per ms
+		else {
+			if(!motor_is_turning()) return 64000;
+			t = ((uint32_t)MS.Speed*RS.gear_ratio*6)>>9; //500 kHz timer2, 6 hall events per electric revolution
+		}
 		return (t > 64000) ? 64000 : t;
 	}
 
@@ -2591,19 +2527,19 @@ int main(void)
 	}
 
 	int32_t speed_to_tics (uint8_t speed){
-		return WHEEL_CIRCUMFERENCE*5*3600/(6*GEAR_RATIO*speed*10);
+		return RS.wheel_circumference*5*3600/(6*RS.gear_ratio*speed*10);
 	}
 
 	int8_t tics_to_speed (uint32_t tics){
-		return WHEEL_CIRCUMFERENCE*5*3600/(6*GEAR_RATIO*tics*10);
+		return RS.wheel_circumference*5*3600/(6*RS.gear_ratio*tics*10);
 	}
 
 	int16_t internal_tics_to_speedx100 (uint32_t tics){
-		return WHEEL_CIRCUMFERENCE*50*3600/(6*GEAR_RATIO*tics);
+		return RS.wheel_circumference*50*3600/(6*RS.gear_ratio*tics);
 	}
 
 	int16_t external_tics_to_speedx100 (uint32_t tics){
-		return WHEEL_CIRCUMFERENCE*8*360/(PULSES_PER_REVOLUTION*tics);
+		return RS.wheel_circumference*8*360/(RS.pulses_per_revolution*tics);
 	}
 
 	void runPIcontrol(){
@@ -2615,14 +2551,14 @@ int main(void)
 		MS.Battery_Current = (q31_t_Battery_Current_accumulated>>8)*i8_direction*i8_reverse_flag; //Battery current in mA
 		//Check battery current limit
 		if(MS.Battery_Current>MP.battery_current_max) ui8_BC_limit_flag=1;
-		if(MS.Battery_Current<-REGEN_CURRENT_MAX) ui8_BC_limit_flag=1;
+		if(MS.Battery_Current<-RS.regen_current_max) ui8_BC_limit_flag=1;
 		//reset battery current flag with small hysteresis
 		if(brake_flag==0){
 			//if(HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin)){
 			if(((MS.i_q_setpoint*MS.u_abs)>>11)*(uint16_t)(CAL_I>>8)<(MP.battery_current_max*7)>>3)ui8_BC_limit_flag=0;
 		}
 		else{
-			if(((MS.i_q_setpoint*MS.u_abs)>>11)*(uint16_t)(CAL_I>>8)>(-REGEN_CURRENT_MAX*7)>>3)ui8_BC_limit_flag=0;
+			if(((MS.i_q_setpoint*MS.u_abs)>>11)*(uint16_t)(CAL_I>>8)>(-RS.regen_current_max*7)>>3)ui8_BC_limit_flag=0;
 		}
 
 		//control iq
@@ -2640,7 +2576,7 @@ int main(void)
 			}
 			else{
 				PI_iq.recent_value=  (MS.Battery_Current>>6)*i8_direction*i8_reverse_flag;
-				PI_iq.setpoint = (-REGEN_CURRENT_MAX>>6)*i8_direction*i8_reverse_flag;
+				PI_iq.setpoint = (-RS.regen_current_max>>6)*i8_direction*i8_reverse_flag;
 			}
 		}
 
@@ -2857,13 +2793,12 @@ void Set_Hall_Angle60(void){
 
 
 
-#if (R_TEMP_PULLUP)
 	int16_t T_NTC(uint16_t ADC) // ADC 12 Bit, 10k Pullup, Rückgabewert in °C
 
 	{
 		uint16_t Ux1000 = 3300;
 		uint16_t U2x1000 = ADC*Ux1000/4095;
-		uint16_t R1 = R_TEMP_PULLUP;
+		uint32_t R1 = RS.ntc_pullup_ohm;
 		uint32_t R = U2x1000*R1/(Ux1000-U2x1000);
 		// 	printf("R= %d\r\n",R);
 		//  printf("u2= %d\r\n",U2x1000);
@@ -2876,7 +2811,6 @@ void Set_Hall_Angle60(void){
 		return (T6 > 0 ? T6+3 : T6-2)/6; // Rundung
 
 	}
-#endif
 	void init_watchdog(void)
 	{
 

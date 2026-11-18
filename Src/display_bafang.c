@@ -139,7 +139,7 @@ void Bafang_Service(BAFANG_t* BF_ctx, uint8_t  rx, MotorState_t *MS)
 
               case BF_CMD_GETSTATUS:
 
-                if (MS->Temperature > MOTOR_TEMPERATURE_THRESHOLD) {
+                if (MS->Temperature > RS.motor_temp_threshold) {
                     status = BF_STATUS_MOTOR_OVERTEMP;
                 } else if (MS->int_Temperature > CONTROLLER_TEMPERATURE_THRESHOLD) {
                     status = BF_STATUS_CONTROLLER_OVERTEMP;

@@ -45,6 +45,7 @@
 
 /* USER CODE BEGIN Includes */
 #include <arm_math.h>
+#include "settings.h"   // runtime settings block (RS)
 
 
 /* USER CODE END Includes */

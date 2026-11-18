@@ -112,7 +112,7 @@ void FOC_calculation(int16_t int16_i_as, int16_t int16_i_bs, q31_t q31_teta, int
 	temp5=MS_FOC->u_d;
 	temp6=MS_FOC->u_q;
 
-	if(uint32_PAS_counter < PAS_TIMEOUT&&ui8_debug_state==0)
+	if(uint32_PAS_counter < RS.pas_timeout&&ui8_debug_state==0)
 			{
 		e_log[z][0]=temp1;//fl_e_alpha_obs;
 		e_log[z][1]=temp2;//fl_e_beta_obs;
