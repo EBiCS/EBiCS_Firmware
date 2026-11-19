@@ -7,7 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 Future<AppState> state() async {
   SharedPreferences.setMockInitialValues({});
-  return AppState(await SharedPreferences.getInstance(), FirmwareRepo());
+  return AppState(await SharedPreferences.getInstance(), FirmwareRepo())..kind = 'lishui';
 }
 
 void main() {

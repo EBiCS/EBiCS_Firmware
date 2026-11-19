@@ -1,5 +1,6 @@
 """
-EBiCS Setup - simple setup app for Lishui controllers running EBiCS.
+EBiCS Setup - simple setup app for Lishui controllers running EBiCS and Kunteng (KT) controllers
+running the open source KT firmware.
 
 Start with "EBiCS Setup.bat" in the firmware folder, or: pythonw setup_app/ebics_setup.py
 
@@ -17,6 +18,9 @@ from tkinter import ttk, messagebox, filedialog
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import ebics_core as core  # noqa: E402
+import kunteng_core as kt  # noqa: E402
+
+LAST_CONTROLLER_FILE = Path(__file__).resolve().parent / "last_controller.txt"
 
 BG = "#f5f6f8"
 SIDEBAR = "#1f2a37"
@@ -138,9 +142,16 @@ class Tooltip:
 
 def field_widget(parent, app, key, var_store):
     """Create the input widget for a settings field, returns (widget, variable)."""
-    _, label, kind, default, section, unit, helptext = core.FIELD_BY_KEY[key]
+    c = app.core
+    _, label, kind, default, section, unit, helptext = c.FIELD_BY_KEY[key]
     val = app.settings.get(key, default)
-    if kind == "bool":
+    if kind == "choice":
+        opts = c.CHOICES[key]
+        labels = [o[0] for o in opts]
+        cur = next((o[0] for o in opts if o[1] == val), labels[0])
+        var = tk.StringVar(value=cur)
+        w = ttk.Combobox(parent, textvariable=var, values=labels, state="readonly", width=40)
+    elif kind == "bool":
         var = tk.BooleanVar(value=bool(val))
         w = ttk.Checkbutton(parent, variable=var)
     elif kind == "display":
@@ -169,14 +180,16 @@ def field_widget(parent, app, key, var_store):
     return w, var
 
 
-def read_fields(var_store, settings):
+def read_fields(var_store, settings, c=core):
     """Copy widget values into settings. Returns error text or None."""
     new = dict(settings)
     for key, var in var_store.items():
-        _, label, kind, default, *_ = core.FIELD_BY_KEY[key]
+        _, label, kind, default, *_ = c.FIELD_BY_KEY[key]
         v = var.get()
         try:
-            if kind == "bool":
+            if kind == "choice":
+                new[key] = next(o[1] for o in c.CHOICES[key] if o[0] == v)
+            elif kind == "bool":
                 new[key] = bool(v)
             elif kind == "display":
                 new[key] = next(d[0] for d in core.DISPLAYS if d[2] == v)
@@ -194,7 +207,7 @@ def read_fields(var_store, settings):
                 new[key] = str(v).strip()
         except (ValueError, StopIteration):
             return f"'{label}' has an invalid value: {v}"
-    problems = core.check_settings(new)
+    problems = c.check_settings(new)
     if problems:
         return "\n".join(problems)
     settings.update(new)
@@ -215,35 +228,104 @@ class App(tk.Tk):
         self.minsize(px(900), px(620))
         self.configure(bg=BG)
         self._style()
-        self.settings = core.load_settings()
         self.stlink = core.StLink()
         self.live = core.Live(self.stlink)
         self.q = queue.Queue()
         self.after(40, self._pump)
+        self.kind = None
+        self.core = core
+        self.settings = {}
+        self.sidebar = self.content = None
+        self.current = None
+        self.chooser = None
+        self.pages, self.nav = {}, {}
+        self.show_chooser()
+        self.protocol("WM_DELETE_WINDOW", self._close)
 
+    # --- controller choice at start: Lishui (STM32, EBiCS) or Kunteng (STM8, KT firmware)
+    def show_chooser(self):
+        if self.current:
+            self.pages[self.current].on_hide()
+        if self.kind:
+            self.save()
+        Tooltip.close()
+        for w in (self.sidebar, self.content):
+            if w is not None:
+                w.destroy()
+        self.sidebar = self.content = None
+        self.current = None
+        self.pages, self.nav = {}, {}
+        try:
+            last = LAST_CONTROLLER_FILE.read_text().strip()
+        except OSError:
+            last = "lishui"
+        f = ttk.Frame(self, style="Page.TFrame", padding=(px(60), px(50)))
+        f.pack(fill="both", expand=True)
+        self.chooser = f
+        ttk.Label(f, text="Which controller do you want to set up?", style="H1.TLabel").pack(anchor="w")
+        ttk.Label(f, text="Look at the label and the chip on the controller board. You can switch later with "
+                          "'Change controller'.", style="Muted.TLabel").pack(anchor="w", pady=(4, 22))
+        var = tk.StringVar(value=last if last in ("lishui", "kunteng") else "lishui")
+        for key, title, text in (
+                ("lishui", "Lishui  (EBiCS firmware)",
+                 "Lishui / LSW controllers with an STM32F103 chip. Field oriented control, setup wizard,\n"
+                 "motor calibration and live data over the ST-Link (SWD pins)."),
+                ("kunteng", "Kunteng / KT  (open source KT firmware)",
+                 "KT controllers (S06S, S12S, KT36/48 ...) with an STM8S105 chip. Installed over the SWIM pin\n"
+                 "of the ST-Link. Works with KT LCD3 / LCD5 displays.")):
+            card = ttk.Frame(f, style="Card.TFrame", padding=16)
+            card.pack(fill="x", pady=6)
+            ttk.Radiobutton(card, text=title, value=key, variable=var, style="Card.TRadiobutton").pack(anchor="w")
+            ttk.Label(card, text=text, style="Card.TLabel", foreground=MUTED).pack(anchor="w", padx=(px(30), 0), pady=(4, 0))
+            for w in (card,) + tuple(card.winfo_children()):
+                w.bind("<Button-1>", lambda _e, k=key: var.set(k), add="+")
+        ttk.Button(f, text="Continue  \u2192", style="Accent.TButton",
+                   command=lambda: self.choose(var.get())).pack(anchor="w", pady=(22, 0))
+
+    def choose(self, kind):
+        try:
+            LAST_CONTROLLER_FILE.write_text(kind)
+        except OSError:
+            pass
+        self.chooser.destroy()
+        self.chooser = None
+        self.kind = kind
+        self.core = kt if kind == "kunteng" else core
+        self.settings = self.core.load_settings()
+        self.build_ui()
+
+    def build_ui(self):
         self.sidebar = tk.Frame(self, bg=SIDEBAR, width=px(210))
         self.sidebar.pack(side="left", fill="y")
         self.sidebar.pack_propagate(False)
-        tk.Label(self.sidebar, text="EBiCS", font=("Segoe UI Semibold", 20), fg="white", bg=SIDEBAR).pack(pady=(22, 0))
-        tk.Label(self.sidebar, text="Lishui controller setup", font=("Segoe UI", 9), fg="#9fb0c2", bg=SIDEBAR).pack(pady=(0, 20))
+        name, sub_text = ("KT", kt.SUBTITLE) if self.kind == "kunteng" else ("EBiCS", "Lishui controller setup")
+        tk.Label(self.sidebar, text=name, font=("Segoe UI Semibold", 20), fg="white", bg=SIDEBAR).pack(pady=(22, 0))
+        tk.Label(self.sidebar, text=sub_text, font=("Segoe UI", 9), fg="#9fb0c2", bg=SIDEBAR).pack(pady=(0, 20))
 
         self.content = ttk.Frame(self, style="Page.TFrame")
         self.content.pack(side="left", fill="both", expand=True)
         self.pages, self.nav = {}, {}
-        for key, text, cls in (("home", "Home", HomePage), ("wizard", "First setup", WizardPage),
-                               ("settings", "Settings", SettingsPage), ("flash", "Install firmware", FlashPage),
-                               ("live", "Live data", LivePage), ("tools", "Tools", ToolsPage)):
+        if self.kind == "kunteng":
+            pages = (("home", "Home", KtHomePage), ("settings", "Settings", SettingsPage),
+                     ("flash", "Install firmware", KtFlashPage), ("tools", "Tools", KtToolsPage))
+        else:
+            pages = (("home", "Home", HomePage), ("wizard", "First setup", WizardPage),
+                     ("settings", "Settings", SettingsPage), ("flash", "Install firmware", FlashPage),
+                     ("live", "Live data", LivePage), ("tools", "Tools", ToolsPage))
+        for key, text, cls in pages:
             b = tk.Button(self.sidebar, text=("  " + text), anchor="w", relief="flat", bd=0, padx=18, pady=10,
                           font=("Segoe UI", 11), fg="white", bg=SIDEBAR, activebackground=SIDEBAR_ACTIVE,
                           activeforeground="white", cursor="hand2", command=lambda k=key: self.show(k))
             b.pack(fill="x")
             self.nav[key] = b
             self.pages[key] = cls(self.content, self)
+        tk.Button(self.sidebar, text="  \u21c4  Change controller", anchor="w", relief="flat", bd=0, padx=18, pady=8,
+                  font=("Segoe UI", 9), fg="#9fb0c2", bg=SIDEBAR, activebackground=SIDEBAR_ACTIVE,
+                  activeforeground="white", cursor="hand2", command=self.show_chooser).pack(side="bottom", fill="x", pady=(0, 10))
         tk.Label(self.sidebar, text="Keep the controller powered\nfrom the battery while connected.",
-                 font=("Segoe UI", 8), fg="#9fb0c2", bg=SIDEBAR, justify="left").pack(side="bottom", pady=14)
+                 font=("Segoe UI", 8), fg="#9fb0c2", bg=SIDEBAR, justify="left").pack(side="bottom", pady=(14, 4))
         self.current = None
         self.show("home")
-        self.protocol("WM_DELETE_WINDOW", self._close)
 
     def _style(self):
         s = ttk.Style(self)
@@ -261,6 +343,8 @@ class App(tk.Tk):
         s.configure("TCheckbutton", background=BG, indicatorsize=px(15), indicatormargin=(2, 2, px(8), 2))
         s.configure("TRadiobutton", background=BG, font=("Segoe UI", 11), indicatorsize=px(15), indicatormargin=(2, 2, px(8), 2))
         s.configure("Card.TCheckbutton", background="white")
+        s.configure("Card.TRadiobutton", background="white", font=("Segoe UI Semibold", 12), indicatorsize=px(15),
+                    indicatormargin=(2, 2, px(8), 2))
         s.configure("Accent.TButton", font=("Segoe UI Semibold", 11), foreground="white", background=ACCENT,
                     padding=(16, 9), borderwidth=0)
         s.map("Accent.TButton", background=[("active", "#1758c7"), ("disabled", "#9db7e4")])
@@ -305,7 +389,8 @@ class App(tk.Tk):
         self.after(40, self._pump)
 
     def save(self):
-        core.save_settings(self.settings)
+        if self.kind:
+            self.core.save_settings(self.settings)
 
     def _close(self):
         self.save()
@@ -376,8 +461,9 @@ class SettingsPage(Page):
         self.nb.pack(fill="both", expand=True)
         bar = ttk.Frame(self, style="Page.TFrame")
         bar.pack(fill="x", pady=(10, 0))
-        ttk.Button(bar, text="Import old Java settings (.ini)", command=self.import_ini).pack(side="left")
-        ttk.Button(bar, text="Export profile", command=self.export).pack(side="left", padx=8)
+        if hasattr(app.core, "import_java_ini"):
+            ttk.Button(bar, text="Import old Java settings (.ini)", command=self.import_ini).pack(side="left", padx=(0, 8))
+        ttk.Button(bar, text="Export profile", command=self.export).pack(side="left")
         ttk.Button(bar, text="Load profile", command=self.load).pack(side="left")
         ttk.Button(bar, text="Reset to defaults", command=self.reset).pack(side="right")
         self.vars = {}
@@ -405,7 +491,7 @@ class SettingsPage(Page):
                 ttk.Label(frame, text="Only change these if you know what they do. Wrong values can damage the motor or controller.",
                           foreground=WARN).grid(row=0, column=0, columnspan=3, sticky="w", pady=(0, 8))
             row = 1
-            for f in core.FIELDS:
+            for f in self.app.core.FIELDS:
                 if f[4] != section:
                     continue
                 lab = ttk.Label(frame, text=f[1])
@@ -420,7 +506,7 @@ class SettingsPage(Page):
             self.nb.add(outer, text=title)
 
     def save(self):
-        err = read_fields(self.vars, self.app.settings)
+        err = read_fields(self.vars, self.app.settings, self.app.core)
         if err:
             messagebox.showerror("Settings", err)
             return False
@@ -455,7 +541,7 @@ class SettingsPage(Page):
     def load(self):
         p = filedialog.askopenfilename(filetypes=[("EBiCS profile", "*.json")])
         if p:
-            s = core.default_settings()
+            s = self.app.core.default_settings()
             s.update(core.json.loads(Path(p).read_text(encoding="utf-8")))
             self.app.settings = s
             self.app.save()
@@ -463,7 +549,7 @@ class SettingsPage(Page):
 
     def reset(self):
         if messagebox.askyesno("Reset", "Reset all settings to the defaults?"):
-            self.app.settings = core.default_settings()
+            self.app.settings = self.app.core.default_settings()
             self.app.save()
             self.build_tabs()
 
@@ -671,6 +757,146 @@ class ToolsPage(Page):
     def open_folder(self):
         import os
         os.startfile(str(core.REPO))
+
+
+# ============================================================================================
+# Kunteng (KT, STM8) pages
+# ============================================================================================
+
+class KtHomePage(Page):
+    def __init__(self, master, app):
+        super().__init__(master, app)
+        ttk.Label(self, text="Kunteng controller", style="H1.TLabel").pack(anchor="w")
+        ttk.Label(self, text="This installs the open source KT firmware (casainho's, with bug fixes) on a Kunteng\n"
+                             "controller with an STM8S105 chip, using the SWIM pin of the ST-Link V2.",
+                  style="Big.TLabel").pack(anchor="w", pady=(4, 14))
+        ttk.Label(self, text="First setup", style="H2.TLabel").pack(anchor="w")
+        steps = ttk.Frame(self, style="Page.TFrame")
+        steps.pack(anchor="w", pady=(4, 16))
+        for i, (text, btn, cmd) in enumerate((
+                ("Wire the ST-Link: 3.3V, SWIM, GND, RST to the 4 pin header on the KT board. Power the controller "
+                 "from the battery.", "Check connection", lambda: self.app.pages["tools"].run("check")),
+                ("Unlock the chip. This erases the original KT firmware for good (no backup is possible).",
+                 "Unlock ...", lambda: self.app.pages["tools"].run("unlock")),
+                ("Choose your settings (controller type, battery, current).", "Settings", lambda: app.show("settings")),
+                ("Build and install the firmware. Test with the wheel lifted first.", "Install firmware",
+                 lambda: app.show("flash"))), 1):
+            r = ttk.Frame(steps, style="Page.TFrame")
+            r.pack(anchor="w", fill="x", pady=4)
+            ttk.Label(r, text=f"{i}.", style="H2.TLabel", width=3).pack(side="left", anchor="n")
+            ttk.Label(r, text=text, wraplength=px(560), justify="left").pack(side="left", anchor="n")
+            ttk.Button(r, text=btn, command=cmd, width=18).pack(side="right", padx=(12, 0))
+        ttk.Label(self, text="What this PC has", style="H2.TLabel").pack(anchor="w")
+        self.status = ttk.Frame(self, style="Page.TFrame")
+        self.status.pack(anchor="w", pady=6)
+
+    def on_show(self):
+        for w in self.status.winfo_children():
+            w.destroy()
+        rows = [("SDCC compiler (builds the STM8 firmware)", bool(kt.find_compiler()),
+                 "Install SDCC: winget install SDCC.SDCC  (or sdcc.sourceforge.net)", None),
+                ("USB access for the ST-Link (Python pyusb)", kt.pyusb_ok(),
+                 "click Install", self.install_usb)]
+        for text, ok, fix, action in rows:
+            r = ttk.Frame(self.status, style="Page.TFrame")
+            r.pack(anchor="w", pady=2)
+            tk.Label(r, text="\u2714" if ok else "\u2716", fg=OK if ok else BAD, bg=BG, font=("Segoe UI", 12)).pack(side="left")
+            ttk.Label(r, text="  " + text + ("" if ok else f"  -  {fix}")).pack(side="left")
+            if not ok and action:
+                ttk.Button(r, text="Install", command=action).pack(side="left", padx=8)
+
+    def install_usb(self):
+        if not messagebox.askyesno("Install", "Install the Python modules pyusb and libusb-package with pip?"):
+            return
+        self.app.bg(lambda: kt.install_pyusb(log=lambda _l: None), lambda _ok: self.on_show())
+
+
+class KtFlashPage(Page):
+    def __init__(self, master, app):
+        super().__init__(master, app)
+        ttk.Label(self, text="Install firmware", style="H1.TLabel").pack(anchor="w")
+        self.summary = ttk.Label(self, style="Big.TLabel", justify="left")
+        self.summary.pack(anchor="w", pady=(6, 14))
+        bar = ttk.Frame(self, style="Page.TFrame")
+        bar.pack(anchor="w")
+        self.btn = ttk.Button(bar, text="Build and install", style="Accent.TButton", command=self.install)
+        self.btn.pack(side="left")
+        self.btn2 = ttk.Button(bar, text="Install last build again", command=lambda: self.install(False))
+        self.btn2.pack(side="left", padx=8)
+        self.btn3 = ttk.Button(bar, text="Write settings only", command=self.write_settings)
+        self.btn3.pack(side="left")
+        Tooltip(self.btn3, "The firmware reads its settings from the EEPROM at start up. If the firmware is already "
+                           "installed, this changes the settings in a second without reinstalling.")
+        self.result = ttk.Label(self, style="H2.TLabel")
+        self.result.pack(anchor="w", pady=(14, 4))
+        self.log = LogBox(self, height=18)
+        self.log.pack(fill="both", expand=True)
+
+    def write_settings(self):
+        self.log.clear()
+        self.result.configure(text="Working ...", foreground=MUTED)
+        log = lambda l: self.app.ui(lambda: self.log.add(l))
+        self.app.bg(lambda: kt.write_settings(self.app.settings, log),
+                    lambda ok: self.result.configure(text="Settings written, controller restarted" if ok is True
+                                                     else "Failed - see the log", foreground=OK if ok is True else BAD))
+
+    def on_show(self):
+        s = self.app.settings
+        ctrl = next(o[0] for o in kt.CHOICES["controller"] if o[1] == s["controller"])
+        self.summary.configure(text=f"{ctrl}\n{s['cells']}S battery, motor current {s['motor_current_a']} A, "
+                                    f"regen {s['regen_current_a']} A")
+
+    def install(self, compile_first=True):
+        for b in (self.btn, self.btn2, self.btn3):
+            b.state(["disabled"])
+        self.log.clear()
+        self.result.configure(text="Working ...", foreground=MUTED)
+        log = lambda l: self.app.ui(lambda: self.log.add(l))
+
+        def done(ok):
+            for b in (self.btn, self.btn2, self.btn3):
+                b.state(["!disabled"])
+            ok = ok is True
+            self.result.configure(text="Done - firmware installed. Test with the wheel lifted." if ok else
+                                  "Failed - see the log", foreground=OK if ok else BAD)
+        self.app.bg(lambda: kt.build_and_flash(self.app.settings, log, compile_first), done)
+
+
+class KtToolsPage(Page):
+    def __init__(self, master, app):
+        super().__init__(master, app)
+        ttk.Label(self, text="Tools", style="H1.TLabel").pack(anchor="w", pady=(0, 10))
+        bar = ttk.Frame(self, style="Page.TFrame")
+        bar.pack(anchor="w")
+        for text, key in (("Check connection", "check"), ("Unlock chip (erases flash)", "unlock"),
+                          ("Show build settings", "defines"), ("Open firmware folder", "folder")):
+            ttk.Button(bar, text=text, command=lambda k=key: self.run(k)).pack(side="left", padx=(0, 8))
+        self.log = LogBox(self, height=22)
+        self.log.pack(fill="both", expand=True, pady=(12, 0))
+
+    def _log(self, line):
+        self.app.ui(lambda: self.log.add(line))
+
+    def run(self, what):
+        if self.app.current != "tools":
+            self.app.show("tools")
+        if what == "check":
+            self.log.add("checking ST-Link (SWIM) and controller ...")
+            self.app.bg(kt.probe, lambda i: self.log.add(kt.describe_probe(i)))
+        elif what == "unlock":
+            if not messagebox.askyesno("Unlock chip", "Unlocking erases the whole chip, including the original KT "
+                                                      "firmware. It cannot be read out or restored.\nContinue?"):
+                return
+            self.app.bg(lambda: kt.unlock(log=self._log),
+                        lambda ok: self.log.add("unlocked - switch the controller off and on again, then install the firmware"
+                                                if ok is True else "unlock failed"))
+        elif what == "defines":
+            self.log.clear()
+            for line in kt.describe_build(self.app.settings).splitlines():
+                self.log.add(line)
+        elif what == "folder":
+            import os
+            os.startfile(str(kt.FW_DIR))
 
 
 def describe_probe(i):
@@ -1060,7 +1286,8 @@ class WizardPage(Page):
                     btn.state(["!disabled"])
                     return
                 self.polling = True
-                self.cal = {"t0": time.time(), "stopped_since": None, "last_halls": None, "phase": 0}
+                self.cal = {"t0": time.time(), "stopped_since": None, "last_halls": None, "phase": 0,
+                            "fails": 0, "ever_ok": False, "lost_box": None}
                 self.poll_calibration(st, bar, detail, btn)
 
             def kick():
@@ -1083,16 +1310,30 @@ class WizardPage(Page):
         def show(snap):
             if not self.polling:
                 return
-            if not isinstance(snap, dict):
-                detail.configure(text="(no answer from the controller this time, retrying ...)")
-                self.after(500, lambda: self.poll_calibration(st, bar, detail, btn))
+            if not isinstance(snap, dict) or snap.get("ui8_setup_state") is None:
+                # the motor current often disturbs the ST-Link (cheap clones drop off USB): the calibration
+                # keeps running on the controller, so keep trying and let the user reconnect
+                self.cal["fails"] += 1
+                err = self.app.stlink.last_error or "no answer"
+                if self.cal["fails"] >= 3:
+                    self._show_lost_box(st, bar, detail, btn, err)
+                else:
+                    detail.configure(text=f"(no answer from the controller this time: {err} - retrying ...)")
+                self.after(2000, lambda: self.poll_calibration(st, bar, detail, btn))
                 return
+            self.cal["fails"] = 0
+            self.cal["ever_ok"] = True
+            if self.cal.get("lost_box"):
+                self.cal["lost_box"].destroy()
+                self.cal["lost_box"] = None
             state, prog = snap.get("ui8_setup_state"), snap.get("ui8_setup_progress") or 0
             halls = snap.get("ui32_hall_events")
             if state == 0:
                 if time.time() - self.cal["t0"] > 8:
-                    st.configure(text="The controller did not start the calibration.", foreground=BAD)
-                    detail.configure(text="Is the motor running (throttle/pedals)? Release everything and try again.")
+                    st.configure(text="The controller did not start the calibration (or it restarted).", foreground=BAD)
+                    detail.configure(text="Is the motor running (throttle/pedals)? Release everything and try again. "
+                                          "If the ST-Link lost the connection, the controller may have restarted from a "
+                                          "voltage dip: check the battery and try again.")
                     btn.state(["!disabled"])
                     self.polling = False
                     return
@@ -1134,8 +1375,39 @@ class WizardPage(Page):
                     self.cal["manual_btn"] = ttk.Button(self.body, text="The wheel has stopped", command=manual)
                     self.cal["manual_btn"].pack(anchor="w", pady=6)
             self.cal["last_halls"] = halls
-            self.after(300, lambda: self.poll_calibration(st, bar, detail, btn))
+            # gentle polling while current flows (each read reconnects the ST-Link), faster while coasting
+            self.after(1000 if state in (1, 2) else 600, lambda: self.poll_calibration(st, bar, detail, btn))
         self.app.bg(self.app.live.snapshot, show)
+
+    def _show_lost_box(self, st, bar, detail, btn, err):
+        gone = self.app.stlink.probe_lost()
+        st.configure(text="Connection to the ST-Link lost - the calibration keeps running on the controller.",
+                     foreground=WARN)
+        detail.configure(text=f"Last error: {err}")
+        if self.cal.get("lost_box"):
+            return
+        box = ttk.Frame(self.body, style="Page.TFrame")
+        box.pack(anchor="w", fill="x", pady=(8, 0))
+        self.cal["lost_box"] = box
+        steps = ["Don't switch the controller off and keep clear of the wheel.",
+                 "Wait until the wheel has stopped (up to a few minutes).",
+                 ("Unplug the ST-Link from USB and plug it in again (it dropped off USB)." if gone else
+                  "If it doesn't come back by itself, unplug and replug the ST-Link."),
+                 "Click 'Reconnect and check result'. The app also keeps trying every 2 seconds."]
+        for s_ in steps:
+            ttk.Label(box, text="•  " + s_, style="Big.TLabel", wraplength=px(740), justify="left").pack(anchor="w", padx=(10, 0))
+        ttk.Label(box, text="This is caused by the motor current disturbing the ST-Link. It helps to: connect only "
+                            "SWDIO, SWCLK and GND (no 3.3 V), keep the wires short and twisted with GND, run the "
+                            "controller from the battery, use a laptop on battery or a USB isolator, put a ferrite on "
+                            "the USB cable.", style="Muted.TLabel", wraplength=px(740), justify="left").pack(anchor="w", pady=(6, 0))
+
+        def check_now():
+            self.cal["fails"] = 0
+            self.cal["stopped_since"] = None
+            self.cal["last_halls"] = None
+            st.configure(text="Checking ...", foreground=MUTED)
+            self.app.bg(self.app.live.snapshot, lambda s: None)   # wakes the ST-Link; the poll loop shows the result
+        ttk.Button(box, text="Reconnect and check result", style="Accent.TButton", command=check_now).pack(anchor="w", pady=8)
 
     def cal_done(self, snap, st, detail):
         ang = core.hall_angles_deg(snap) if isinstance(snap, dict) else None

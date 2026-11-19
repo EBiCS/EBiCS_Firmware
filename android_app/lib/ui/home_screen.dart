@@ -28,7 +28,13 @@ class HomeScreen extends StatelessWidget {
           ),
         );
     return Scaffold(
-      appBar: AppBar(title: const Text('EBiCS Setup')),
+      appBar: AppBar(title: const Text('EBiCS Setup'), actions: [
+        IconButton(
+          icon: const Icon(Icons.swap_horiz),
+          tooltip: 'Change controller',
+          onPressed: () => app.chooseKind(null),
+        ),
+      ]),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [

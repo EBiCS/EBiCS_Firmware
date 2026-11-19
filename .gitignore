@@ -24,3 +24,6 @@ Debug
 /setup_app/my_bike.json
 /setup_app/last_flashed.elf
 __pycache__/
+/setup_app/my_kunteng.json
+/setup_app/last_controller.txt
+/kunteng/build/

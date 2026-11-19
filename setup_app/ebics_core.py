@@ -583,12 +583,24 @@ class StLink:
         self.cli = find_cube_cli()
         self.old_cli = find_stlink_cli()
         self.lock = threading.Lock()
+        self.last_error = ""
+
+    # SWD clock for the live reads/writes while the motor runs: slower is more robust against motor current noise
+    LIVE_FREQ = "freq=480"
 
     def _cube(self, args, timeout=60, log=None):
         if not self.cli:
-            return -1, "STM32CubeProgrammer not found"
+            self.last_error = "STM32CubeProgrammer not found"
+            return -1, self.last_error
         with self.lock:
-            return run([self.cli] + args, timeout=timeout, log=log)
+            rc, out = run([self.cli] + args, timeout=timeout, log=log)
+        m = re.search(r"Error:\s*(.+)", out)
+        self.last_error = m.group(1).strip() if m else ("" if rc == 0 else f"STM32CubeProgrammer exit code {rc}")
+        return rc, out
+
+    def probe_lost(self):
+        """True if the ST-Link itself is gone from USB (not only the controller not answering)."""
+        return "ST-Link" in self.last_error or "debug probe" in self.last_error.lower() or "No ST-LINK" in self.last_error
 
     def probe(self):
         """dict with keys: probe, target, device, flash_kb, voltage, error"""
@@ -632,7 +644,7 @@ class StLink:
 
     def read(self, regions):
         """regions: list of (address, size). Returns {address: byte} or None if no connection."""
-        args = ["-c", "port=SWD", "mode=HOTPLUG"]
+        args = ["-c", "port=SWD", "mode=HOTPLUG", self.LIVE_FREQ]
         for addr, size in regions:
             args += ["-r8", hex(addr), str(size)]
         rc, out = self._cube(args, timeout=30)
@@ -645,10 +657,13 @@ class StLink:
                 a = int(m.group(1), 16)
                 for i, bt in enumerate(m.group(2).split()):
                     mem[a + i] = int(bt, 16)
+        if not mem:
+            self.last_error = self.last_error or "no data read"
+            return None
         return mem
 
     def write8(self, addr, value):
-        rc, out = self._cube(["-c", "port=SWD", "mode=HOTPLUG", "-w8", hex(addr), hex(value)], timeout=30)
+        rc, out = self._cube(["-c", "port=SWD", "mode=HOTPLUG", self.LIVE_FREQ, "-w8", hex(addr), hex(value)], timeout=30)
         return rc == 0 and "Error" not in out
 
 

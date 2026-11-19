@@ -5,6 +5,8 @@ Lishui e-bike controllers (STM32F103). This fork adds a **simple setup app with 
 wizard**, fixes a number of **firmware bugs**, adds **two more display protocols**, an experimental
 **sensorless** mode, **speed + motor temperature on one wire**, **custom battery voltages with soft current ramps**,
 and an **Android app** that does the whole setup from a phone with an ST-Link V2 on USB OTG.
+Both apps also set up **Kunteng (KT) controllers** (STM8S105) with the open source KT firmware in
+[`kunteng/`](kunteng/README.md): choose Lishui or Kunteng on the start screen.
 
 > Use at your own risk, like upstream EBiCS. Unlocking the chip erases the original Lishui firmware for good.
 > Test with the wheel lifted before riding.
@@ -112,6 +114,16 @@ The display protocol, hall/sensorless and the control-loop internals stay compil
 
 Side effect: PAS assist now also works with *Throttle* switched off (before, the PAS current was only set inside
 the throttle code, so a bike without throttle got no assist).
+
+### 8. Kunteng (KT) controllers (new)
+
+The apps ask at start whether you set up a **Lishui** controller (EBiCS, STM32) or a **Kunteng / KT**
+controller (STM8S105: S06S, S12S, KT36/48 ...). For KT they install casainho's open source KT firmware with
+bug fixes and motor control improvements ([`kunteng/`](kunteng/README.md), [changes](kunteng/CHANGES.md)) over
+the SWIM pin of the same ST-Link V2: own SWIM driver in both apps, no ST Visual Programmer needed. Settings are
+read from the STM8 EEPROM at power up, so they can be changed in a second without reinstalling. The PC app needs
+SDCC to build the KT firmware (`winget install SDCC.SDCC`) and Python `pyusb` + `libusb-package` for USB (it
+offers to install them). Not tested on a real KT controller yet: test with the wheel lifted.
 
 ## Android app (setup from a phone)
 

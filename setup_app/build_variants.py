@@ -10,7 +10,13 @@ For every variant this writes:
     <out>/manifest.json     list of variants, flash layout, firmware version
     <out>/test_vectors.json settings -> expected settings block (checked by the app's unit tests)
 
+Plus the Kunteng (KT, STM8) firmware: one build, all settings at runtime (EEPROM settings block):
+
+    <out>/kunteng.ihx                Intel hex for the STM8S105 (needs SDCC)
+    <out>/kunteng_test_vectors.json  KT settings -> expected settings block
+
 Usage:  python setup_app/build_variants.py [--out android_app/assets/firmware] [--only km5s_hall ...]
+        python setup_app/build_variants.py --kunteng-only
 Needs arm-none-eabi-gcc and make (see ebics_core.find_toolchain), works on Windows and Linux (CI).
 
 Part of EBiCS, GPL v3 or later.
@@ -27,6 +33,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import ebics_core as core  # noqa: E402
+import kunteng_core as kt  # noqa: E402
 
 SYMBOLS = (list(core.LIVE_VARS) + core.HALLS +
            ["MS", "adcData", "ui8_setup_cmd", "RS", "ui8_settings_source", "ui8_motor_temp_sensor_ok",
@@ -70,6 +77,39 @@ def test_vectors():
     return [{"name": n, "settings": st, "block_hex": core.settings_block(st).hex()} for n, st in cases]
 
 
+def kunteng_test_vectors():
+    cases = [("defaults", kt.default_settings())]
+    s = kt.default_settings()
+    s.update(controller=2, cells=13, motor_current_a=22, regen_current_a=6, throttle_type=2, direct_drive=True,
+             pas_magnets=12, pas_direction=1, pas_max_cadence=75, assist_1=0.125, assist_2=0.333, assist_3=0.5,
+             assist_4=0.875, assist_5=0.95, over_voltage_protection=True, rotor_offset_angle=190,
+             foc_angle_adjust=140, erps_interpolation=20, max_speed=32, wheel=0x18, phase_current_limit=False,
+             hall_learning=False)
+    cases.append(("everything_changed", s))
+    return [{"name": n, "settings": st, "block_hex": kt.settings_block(st).hex()} for n, st in cases]
+
+
+def build_kunteng(out, manifest):
+    """KT firmware for the app. Returns True on success (False also when SDCC is missing)."""
+    print("=== kunteng (STM8)", flush=True)
+    if not kt.find_compiler():
+        print("   ERROR: SDCC not found (apt install sdcc / winget install SDCC.SDCC)")
+        return False
+    with tempfile.TemporaryDirectory(prefix="kt_build_") as tmp:
+        try:
+            ihx = kt.fw_build.build(tmp, [], log=lambda l: print("   " + l))
+        except RuntimeError as e:
+            print("   ERROR: %s" % e)
+            return False
+        data = Path(ihx).read_text()
+    (out / "kunteng.ihx").write_text(data)
+    manifest["kunteng"] = {"file": "kunteng.ihx", "sha256": hashlib.sha256(data.encode()).hexdigest(),
+                           "settings_block": {"address": kt.SETTINGS_BLOCK_ADDR, "size": kt.SETTINGS_BLOCK_LEN,
+                                              "version": kt.SETTINGS_BLOCK_VERSION}}
+    (out / "kunteng_test_vectors.json").write_text(json.dumps(kunteng_test_vectors(), indent=1))
+    return True
+
+
 def read_symbols(elf, gcc_dir):
     nm = str(Path(gcc_dir) / "arm-none-eabi-nm")
     out = subprocess.run([nm, "-S", str(elf)], capture_output=True, text=True, timeout=60).stdout
@@ -85,9 +125,16 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default=str(core.REPO / "android_app" / "assets" / "firmware"))
     ap.add_argument("--only", nargs="*", help="variant names, e.g. km5s_hall")
+    ap.add_argument("--kunteng-only", action="store_true", help="only the Kunteng (STM8) firmware")
     args = ap.parse_args()
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
+    if args.kunteng_only:
+        mpath = out / "manifest.json"
+        manifest = json.loads(mpath.read_text()) if mpath.is_file() else {"format": 1, "variants": []}
+        ok = build_kunteng(out, manifest)
+        mpath.write_text(json.dumps(manifest, indent=1))
+        return 0 if ok else 1
     gcc, make = core.find_toolchain()
     if not gcc or not make:
         print("ERROR: arm-none-eabi-gcc or make not found")
@@ -135,6 +182,8 @@ def main():
             manifest["variants"].append(dict(v, file=f"{v['name']}.bin", symbols=f"{v['name']}.sym.json",
                                              size=len(data), sha256=hashlib.sha256(data).hexdigest()))
             print(f"   {len(data)} bytes, free {core.SETTINGS_BLOCK_ADDR - FLASH_BASE - len(data)}")
+    if not build_kunteng(out, manifest):
+        failed.append("kunteng")
     (out / "manifest.json").write_text(json.dumps(manifest, indent=1))
     (out / "test_vectors.json").write_text(json.dumps(test_vectors(), indent=1))
     if failed:
