@@ -38,4 +38,25 @@
 - Build script (`build.py`) without make, works on Windows and Linux.
 - Simulator test (`sim/run_sim.py`).
 
+## Found with the motor simulator (tools/kt_motor_sim.py)
+
+| Problem | Effect (simulated) | Fix |
+|---|---|---|
+| Broken hall wire: angle froze, PWM stayed on | 40+ A phase current spikes for 2 s until the blocked motor protection | PWM off after 0.5 ms of invalid hall states, error 24, restarts once the halls are valid and the throttle is released |
+| Brake set the duty cycle target to 0 once, the controllers restored it | Direct drive: brake + throttle kept pushing (13 A); regen did nothing | The brake overrides the target every 10 ms; without a known back-EMF constant the PWM goes off while braking |
+| FOC angle correction also ran with regen current (opposite sign) | Regen current swung -17 ... +2 A, angle through ±90° | Correction only while motoring (> 1 A) |
+| Duty cycle far below the back-EMF (power on while rolling, restart) shorts the motor: phase current flows, battery current ~0 | Direct drive braked with 7 A phase current, the current controller saw 0 A and stayed there | Phase B current peak per revolution; phase current without battery current raises the duty cycle |
+| Regen ramped the duty cycle down to 0 | Below half the back-EMF the battery current falls again, at 0 the motor is shorted | Duty cycle floor at half the back-EMF while braking (back-EMF constant learned at ~0 A) |
+| Speed limiter as an integrator from below the limit | Duty cycle held back to +2 per 100 ms, then 1.1 km/h over the limit | Soft limit: current reduced over the last 1 km/h (filtered speed), hard limiter only above the limit |
+| PWM on with no current requested (geared motor) | Motor kept spinning at no load speed in the freewheel | PWM off after 400 ms, restart at the duty cycle matching the spinning motor |
+
+Simulated comparison, original vs this firmware (same motor model): current step 3 -> 12 A settles in 0.2 s
+(original 1.7 s and then oscillating 5 ... 15 A); torque ripple with misplaced halls 0.75 A rms (5.9 A);
+speed limit 24.8 ... 24.9 km/h at a 25 km/h limit (24.7 ... 26.1); regen spike after releasing the throttle
+-1.3 A (-9.3 A).
+
+Known limits: a direct drive motor restarted at speed before the back-EMF constant was ever learned (no
+moment at ~0 A since power on) still sees a short braking current spike (~8 A phase, simulated). Regen current
+stays below the setting when the winding inductance limits it (sine commutation without field angle control).
+
 Removed: the 360° interpolation mode (was off by default, replaced by the new interpolation).

@@ -47,6 +47,16 @@ python kunteng/sim/run_sim.py
 Runs the real firmware in ucsim, the STM8 simulator that comes with SDCC, and checks: the settings block
 is used, speed and interpolation from a hall sensor sequence, the hall position learning with misplaced
 sensors, the defaults without a settings block, and the phase current limit. Takes about 2 minutes.
+
+```
+python tools/kt_motor_sim.py
+```
+
+Motor simulator: a Python port of the motor control (16 bit integer overflows are reported) runs against a
+PMSM motor and bike model, once as casainho's original and once as this firmware: start, locked rotor, hall
+mounting errors, current steps, speed limit, throttle release, regen and brake with a direct drive, broken hall
+wire, coasting. About 1 minute.
+
 The flashing code of the apps is tested against a simulated ST-Link + STM8 (`python setup_app/test_swim.py`,
 `flutter test` in `android_app`).
 
