@@ -59,4 +59,27 @@ Known limits: a direct drive motor restarted at speed before the back-EMF consta
 moment at ~0 A since power on) still sees a short braking current spike (~8 A phase, simulated). Regen current
 stays below the setting when the winding inductance limits it (sine commutation without field angle control).
 
+## Displays, saved learning, more settings, live data
+
+- **Display protocols** (display.c), chosen in the settings: Kunteng KT-LCD3/5/8 (as before), KingMeter
+  901U / KM5S (with the 901U handshake) and Bafang LCD (1200 baud) / 850C / 860C (9600 baud), ported from
+  EBiCS. Receiving and sending are interrupt driven: the main loop never waits for the UART (the KT status
+  used to block it for 12.5 ms every 150 ms). KingMeter and Bafang assist levels are mapped to the 5 levels;
+  the KingMeter speed limit and wheel circumference are used.
+- **Learned values kept**: hall edge offsets and the back-EMF constant are saved in the data EEPROM at
+  standstill (once per stop, only when changed) and loaded at power on.
+- **New settings** (settings block bytes 23 ... 26, 0 = old behaviour): display protocol, power ramp (time to
+  full power), FOC sample delay compensation (signed; in the motor simulator +164 us made the angle worse and
+  -40 us slightly better, so it is off and meant for tuning on the controller), motor constant (P1) for non-KT
+  displays.
+- **Live data** in both apps over SWIM without reset: battery, current, speed, duty cycle, throttle, cadence,
+  assist level, states and errors, FOC correction, phase current peak, learned values.
+
+More bugs of the original found on the way (simulator):
+
+| Where | Bug | Fix |
+|---|---|---|
+| ebike_app.c | Standstill wheel period `36000 x circumference` overflowed 16 bits above 1.82 m (26": 74250 -> 8714 ms, the display showed 0.9 km/h) | 65000 ms |
+| ebike_app.c | External speed sensor assumed connected at power on with the shortest period: ~850 km/h for 4 s | Not connected until the first pulse |
+
 Removed: the 360° interpolation mode (was off by default, replaced by the new interpolation).

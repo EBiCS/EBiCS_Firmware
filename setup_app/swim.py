@@ -194,6 +194,31 @@ class Swim:
         self._high_speed()
         return self
 
+    def open_live(self):
+        """Connect to the running firmware without reset and without stalling the CPU (live data). The SWIM
+        entry sequence does not reset the chip; SWIM_CSR is left as it is (no SAFE_MASK: interrupts keep running),
+        memory is read on the fly between CPU accesses."""
+        if self.t is None:
+            self.t = UsbTransport()
+        v = self._cmd(GET_VERSION, rx=6)
+        ver = (v[0] << 8) | v[1]
+        self.version = {"stlink": (ver >> 12) & 0x3F, "jtag": (ver >> 6) & 0x3F, "swim": ver & 0x3F}
+        if self.version["swim"] == 0:
+            raise SwimError("This ST-Link has no SWIM support (needs an ST-Link V2 with SWIM pin).")
+        mode = self._cmd(GET_CURRENT_MODE, rx=2)[0]
+        if mode == MODE_DEBUG:
+            self._cmd(DEBUG, DEBUG_EXIT)
+        elif mode in (MODE_DFU, MODE_MASS, MODE_BOOTLOADER):
+            self._cmd(DFU, DFU_EXIT)
+        if mode != MODE_SWIM:
+            self._cmd(SWIM, SWIM_ENTER)
+        bs = self._cmd(SWIM, SWIM_READBUFSIZE, rx=2)
+        self.read_buf_size = (bs[0] | (bs[1] << 8)) or 6144
+        self._cmd(SWIM, SWIM_READ_CAP, 0x01, rx=8)
+        self._swim(SWIM_ENTER_SEQ)
+        self._swim(SWIM_RESET)          # resynchronise the SWIM clock, does not reset the chip
+        return self
+
     def _high_speed(self):
         csr = 0
         for _ in range(10):

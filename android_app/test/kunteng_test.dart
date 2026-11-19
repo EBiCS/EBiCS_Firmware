@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:ebics_setup/app_state.dart';
 import 'package:ebics_setup/firmware/firmware_repo.dart';
 import 'package:ebics_setup/kunteng/kt_controller.dart';
+import 'package:ebics_setup/kunteng/kt_live.dart';
 import 'package:ebics_setup/kunteng/kt_settings.dart';
 import 'package:ebics_setup/main.dart';
 import 'package:ebics_setup/stlink/swim.dart';
@@ -23,6 +24,7 @@ class FakeStm8 implements UsbTransport {
   int _expect = 0, _waddr = 0;
   Uint8List _pending = Uint8List(0), _readbuf = Uint8List(0);
   int blockWrites = 0;
+  int resets = 0;
 
   FakeStm8({this.locked = false}) {
     if (locked) {
@@ -58,6 +60,8 @@ class FakeStm8 implements UsbTransport {
         mode = Swim.modeSwim;
       case Swim.swimReadBufSize:
         _pending = Uint8List.fromList([0x00, 0x18]);
+      case Swim.swimAssertReset:
+        resets++;
       case Swim.swimReadCap:
         _pending = Uint8List(8);
       case Swim.swimReadStatus:
@@ -114,10 +118,12 @@ class FakeStm8 implements UsbTransport {
 
 class FwBundle extends CachingAssetBundle {
   final String ihx;
-  FwBundle(this.ihx);
+  final String syms;
+  FwBundle(this.ihx, {this.syms = '{}'});
   @override
   Future<ByteData> load(String key) async {
     if (key == 'assets/firmware/kunteng.ihx') return ByteData.sublistView(Uint8List.fromList(utf8.encode(ihx)));
+    if (key == 'assets/firmware/kunteng.sym.json') return ByteData.sublistView(Uint8List.fromList(utf8.encode(syms)));
     throw FlutterError('no asset $key');
   }
 }
@@ -183,6 +189,34 @@ void main() {
     await c.writeSettings(s);
     expect(chip.blockWrites, 1);
     expect(chip.mem[KtSettings.blockAddress + 5], 12);
+  });
+
+  test('live data over SWIM without reset', () async {
+    final chip = FakeStm8();
+    chip.mem[0x51] = 140; // battery 38.1 V
+    chip.mem[0x4D] = 0xFF;
+    chip.mem[0x4E] = 0xE8; // -24 = -3 A
+    chip.mem.setRange(0x80, 0x84, (ByteData(4)..setFloat32(0, 23.5)).buffer.asUint8List());
+    chip.mem.setRange(0x2F, 0x37, [0, 1, 0xFE, 3, 0xFC, 2, 0, 0]);
+    final syms = jsonEncode({
+      'ui8_adc_battery_voltage_filtered': [0x51, 1],
+      'i16_motor_current_filtered_10b': [0x4D, 2],
+      'f_wheel_speed': [0x80, 4],
+      'i8_hall_offset': [0x2F, 8],
+    });
+    final c = KtController(
+      bundle: FwBundle('', syms: syms),
+      transport: () => chip,
+      sleep: noSleep,
+    );
+    final snap = await c.liveSnapshot();
+    await c.stopLive();
+    final v = {for (final x in ktLiveVars) x.name: x};
+    expect(ktDescribe(v['ui8_adc_battery_voltage_filtered']!, snap['ui8_adc_battery_voltage_filtered']!), '38.08 V');
+    expect(ktDescribe(v['i16_motor_current_filtered_10b']!, snap['i16_motor_current_filtered_10b']!), '-3.00 A');
+    expect(ktDescribe(v['f_wheel_speed']!, snap['f_wheel_speed']!), '23.50 km/h');
+    expect(ktDescribe(v['i8_hall_offset']!, snap['i8_hall_offset']!), '-4 +0 -2 +3 +1 +2');
+    expect(chip.resets, 0, reason: 'live: no reset');
   });
 
   testWidgets('start screen leads to the Kunteng screens', (tester) async {

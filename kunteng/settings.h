@@ -14,11 +14,14 @@
  *   4  battery cells             20 wheel size default (KT display code)
  *   5  motor current (A)         21 controller type (1 = S06S, 2 = S12S)
  *   6  regen current (A)         22 phase current factor (x10, phase limit = factor * motor current)
- *   7  throttle type (1/2)       23 ... 30 reserved (0)
- *   8  flags (KT_FLAG_*)         31 checksum: ~(sum of bytes 0 ... 30)
- *   9  PAS magnets
- *   10 cadence for full PAS power (rpm)
- *   11 ... 15 assist level 1 ... 5 (percent)
+ *   7  throttle type (1/2)       23 display protocol (display.h, 0 = Kunteng)
+ *   8  flags (KT_FLAG_*)         24 power ramp: time 0 -> full duty cycle (x0.1 s, 0 = default)
+ *   9  PAS magnets               25 FOC current sample delay compensation (int8, x4 us, 0 = off)
+ *   10 cadence for full PAS      26 motor characteristic for non-KT displays (KT display P1, 0 = 202)
+ *      power (rpm)               27 ... 30 reserved (0)
+ *   11 ... 15 assist level       31 checksum: ~(sum of bytes 0 ... 30)
+ *      1 ... 5 (percent)
+ * Bytes 23 ... 26 were reserved (0) in the first firmware: 0 means the old behaviour, version stays 1.
  *
  * This file is part of the KT firmware, GPL v3.
  */
@@ -55,6 +58,10 @@ typedef struct
   uint8_t ui8_default_wheel_size;
   uint8_t ui8_controller_type;
   uint8_t ui8_phase_current_factor_x10;
+  uint8_t ui8_display;
+  uint8_t ui8_ramp_x10;
+  int8_t i8_foc_delay_x4us;      // signed: the right sign depends on the hardware
+  uint8_t ui8_motor_characteristic;
 
   // derived at start up
   uint8_t ui8_adc_battery_voltage_max;

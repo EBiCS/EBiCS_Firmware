@@ -14,7 +14,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 
 SPL = ["itc", "clk", "iwdg", "gpio", "exti", "uart2", "tim1", "tim2", "adc1", "flash"]
 APP = ["watchdog", "gpio", "utils", "uart", "adc", "brake", "pas", "timers", "pwm", "eeprom",
-       "motor", "ebike_app", "wheel_speed_sensor", "settings"]
+       "motor", "ebike_app", "wheel_speed_sensor", "settings", "display"]
 
 CFLAGS = ["-mstm8", "--std-c99", "--opt-code-size", "-Ddouble=float"]
 

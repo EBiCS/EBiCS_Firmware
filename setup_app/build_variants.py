@@ -84,7 +84,7 @@ def kunteng_test_vectors():
              pas_magnets=12, pas_direction=1, pas_max_cadence=75, assist_1=0.125, assist_2=0.333, assist_3=0.5,
              assist_4=0.875, assist_5=0.95, over_voltage_protection=True, rotor_offset_angle=190,
              foc_angle_adjust=140, erps_interpolation=20, max_speed=32, wheel=0x18, phase_current_limit=False,
-             hall_learning=False)
+             hall_learning=False, display=1, ramp_s=1.25, motor_characteristic=88, foc_delay_us=-42)
     cases.append(("everything_changed", s))
     return [{"name": n, "settings": st, "block_hex": kt.settings_block(st).hex()} for n, st in cases]
 
@@ -102,8 +102,15 @@ def build_kunteng(out, manifest):
             print("   ERROR: %s" % e)
             return False
         data = Path(ihx).read_text()
+        import kt_live
+        syms = kt_live.live_symbols(kt_live.read_map(str(Path(tmp) / "main.map")))
+        if len(syms) != len(kt_live.LIVE_VARS):
+            print("   ERROR: live data symbols missing in the map file")
+            return False
     (out / "kunteng.ihx").write_text(data)
-    manifest["kunteng"] = {"file": "kunteng.ihx", "sha256": hashlib.sha256(data.encode()).hexdigest(),
+    (out / "kunteng.sym.json").write_text(json.dumps(syms, indent=1, sort_keys=True))
+    manifest["kunteng"] = {"file": "kunteng.ihx", "symbols": "kunteng.sym.json",
+                           "sha256": hashlib.sha256(data.encode()).hexdigest(),
                            "settings_block": {"address": kt.SETTINGS_BLOCK_ADDR, "size": kt.SETTINGS_BLOCK_LEN,
                                               "version": kt.SETTINGS_BLOCK_VERSION}}
     (out / "kunteng_test_vectors.json").write_text(json.dumps(kunteng_test_vectors(), indent=1))

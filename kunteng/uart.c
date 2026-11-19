@@ -13,6 +13,7 @@
 #include "stm8s.h"
 #include "stm8s_uart2.h"
 #include "main.h"
+#include "display.h"
 
 void uart_init (void)
 {
@@ -20,7 +21,7 @@ void uart_init (void)
 #ifdef DEBUG_UART
   UART2_Init((uint32_t) 115200,
 #else
-  UART2_Init((uint32_t) 9600,
+  UART2_Init(display_baudrate (), // 9600, Bafang LCD 1200
 #endif
 	     UART2_WORDLENGTH_8D,
 	     UART2_STOPBITS_1,

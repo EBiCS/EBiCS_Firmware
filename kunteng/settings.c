@@ -61,6 +61,10 @@ static void load_defaults (void)
   kt_settings.ui8_default_wheel_size = DEFAULT_VALUE_WHEEL_SIZE;
   kt_settings.ui8_controller_type = CONTROLLER_TYPE;
   kt_settings.ui8_phase_current_factor_x10 = PHASE_CURRENT_FACTOR_X10;
+  kt_settings.ui8_display = 0;
+  kt_settings.ui8_ramp_x10 = 0;
+  kt_settings.i8_foc_delay_x4us = 0;
+  kt_settings.ui8_motor_characteristic = DEFAULT_VALUE_MOTOR_CHARACTARISTIC;
 }
 
 // returns 1 if the EEPROM block is valid and in range
@@ -106,6 +110,13 @@ static uint8_t load_block (void)
   if (ui8_p <= 0x1e) { kt_settings.ui8_default_wheel_size = ui8_p; }
   kt_settings.ui8_controller_type = read_eeprom (21);
   kt_settings.ui8_phase_current_factor_x10 = read_eeprom (22);
+  ui8_p = read_eeprom (23);
+  if (ui8_p <= 3) { kt_settings.ui8_display = ui8_p; }
+  ui8_p = read_eeprom (24);
+  if (ui8_p <= 50) { kt_settings.ui8_ramp_x10 = ui8_p; }
+  kt_settings.i8_foc_delay_x4us = (int8_t) read_eeprom (25);
+  ui8_p = read_eeprom (26);
+  if (ui8_p) { kt_settings.ui8_motor_characteristic = ui8_p; }
   return 1;
 }
 

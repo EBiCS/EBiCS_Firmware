@@ -28,6 +28,7 @@
 #include "pas.h"
 #include "wheel_speed_sensor.h"
 #include "settings.h"
+#include "display.h"
 
 uint16_t ui16_TIM2_counter = 0;
 uint16_t ui16_motor_controller_counter = 0;
@@ -69,6 +70,8 @@ void TIM1_UPD_OVF_TRG_BRK_IRQHandler(void) __interrupt(TIM1_UPD_OVF_TRG_BRK_IRQH
 
 // UART2 Receive interrupt
 void UART2_IRQHandler(void) __interrupt(UART2_IRQHANDLER);
+// UART2 Transmit interrupt (display messages)
+void UART2_TX_IRQHandler(void) __interrupt(UART2_TX_IRQHANDLER);
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -92,6 +95,7 @@ int main (void)
   motor_init ();
   pas_init ();
   wheel_speed_sensor_init ();
+  display_init ();
   enableInterrupts ();
 
   while (1)
@@ -102,6 +106,8 @@ int main (void)
 
     // because of continue; at the end of each if code block that will stop the while (1) loop there,
     // the first if block code will have the higher priority over the others
+    display_poll (); // answer requests of the display (KingMeter / Bafang wait for an answer)
+
     ui16_TIM2_counter = TIM2_GetCounter ();
     if ((ui16_TIM2_counter - ui16_motor_fast_controller_counter) > 78) // every 10ms
     {

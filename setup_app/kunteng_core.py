@@ -29,12 +29,17 @@ CHOICES = {
     "wheel": [("16 inch", 0x00), ("20 inch", 0x08), ("24 inch", 0x10), ("26 inch", 0x14), ("700c", 0x18),
               ("28 inch", 0x1C), ("29 inch", 0x1E)],
     "pas_direction": [("Right (normal)", 0), ("Left", 1)],
+    "display": [("Kunteng KT-LCD3 / LCD5 / LCD8", 0), ("KingMeter 901U / KM5S", 1), ("Bafang LCD (1200 baud)", 2),
+                ("Bafang 850C / 860C (9600 baud)", 3)],
 }
 
 FIELDS = [
     # key, label, kind, default, section, unit, help
     ("controller", "Controller", "choice", 1, "basic", "",
      "Which KT controller you have. The 12 MOSFET boards (S12S) allow more current."),
+    ("display", "Display", "choice", 0, "basic", "",
+     "Display protocol. KT-LCD3/5/8 use the Kunteng protocol. Multi protocol displays: set the same protocol "
+     "in the display menu. KingMeter and Bafang displays: assist levels are mapped to the 5 levels below."),
     ("cells", "Battery cells in series", "int", 10, "basic", "S",
      "7S = 24 V, 10S = 36 V, 13S = 48 V, 14S = 52 V. Sets the low voltage cutoff (3.0 V per cell) and the battery bars."),
     ("motor_current_a", "Max motor current", "int", 15, "basic", "A",
@@ -62,6 +67,12 @@ FIELDS = [
     ("assist_3", "Assist level 3", "float", 0.6, "advanced", "x", "Power factor of display level 3 (0 ... 1)."),
     ("assist_4", "Assist level 4", "float", 0.8, "advanced", "x", "Power factor of display level 4 (0 ... 1)."),
     ("assist_5", "Assist level 5", "float", 1.0, "advanced", "x", "Power factor of display level 5 (0 ... 1)."),
+    ("ramp_s", "Power ramp (time to full power)", "float", 0.4, "advanced", "s",
+     "How fast the power comes up when you press the throttle or start pedalling. 0.4 s is the old behaviour of "
+     "the S06S, longer is gentler on the gears."),
+    ("motor_characteristic", "Motor constant for non-KT displays", "int", 202, "advanced", "",
+     "Same as P1 of a KT display: motor magnets x gear ratio (202 for Q85/Q100 motors). KT displays send their own "
+     "P1; with KingMeter/Bafang displays this value is used for the speed."),
     ("over_voltage_protection", "Over voltage protection", "bool", False, "advanced", "",
      "Stops the motor above 4.2 V per cell (shows error 05) and restarts when the voltage drops again."),
     # expert
@@ -72,6 +83,10 @@ FIELDS = [
      "Where the phase B current is sampled for the automatic angle correction. 137 fits Q85/Q100 motors."),
     ("erps_interpolation", "Speed for sine wave mode", "int", 15, "expert", "erps",
      "Above this motor speed the controller switches from block commutation to smooth sine wave."),
+    ("foc_delay_us", "FOC current sample delay compensation", "int", 0, "expert", "us",
+     "Delay of the phase current measurement. The FOC sample angle is moved by the angle the rotor turns in this "
+     "time, so the angle correction is right at every speed. 0 = off (old behaviour). Signed: the right sign and "
+     "size depend on the controller (in the motor simulator about -40 us). Tune it with Live data on the bike."),
     ("phase_current_limit", "Limit phase current at low speed", "bool", True, "expert", "",
      "Also limits the motor phase current (estimated from battery current and duty cycle). Protects the "
      "MOSFETs when starting under load."),
@@ -121,6 +136,12 @@ def check_settings(s):
     for k in ("rotor_offset_angle", "foc_angle_adjust"):
         if not 0 <= int(s[k]) <= 255:
             p.append(f"{FIELD_BY_KEY[k][1]} must be 0 ... 255.")
+    if not 0.1 <= float(s.get("ramp_s", 0.4)) <= 5.0:
+        p.append("Power ramp must be 0.1 ... 5 s.")
+    if not 1 <= int(s.get("motor_characteristic", 202)) <= 255:
+        p.append("Motor constant must be 1 ... 255.")
+    if not -500 <= int(s.get("foc_delay_us", 0)) <= 500:
+        p.append("FOC delay compensation must be -500 ... 500 us.")
     if not 5 <= int(s["erps_interpolation"]) <= 100:
         p.append("Speed for sine wave mode must be 5 ... 100 erps.")
     return p
@@ -191,6 +212,10 @@ def settings_block(s):
     b[20] = int(s["wheel"])
     b[21] = int(s["controller"])
     b[22] = int(s.get("phase_current_factor_x10", 25))
+    b[23] = int(s.get("display", 0))
+    b[24] = int(round(float(s.get("ramp_s", 0.4)) * 10))
+    b[25] = int(int(s.get("foc_delay_us", 0)) / 4) & 0xFF   # int8
+    b[26] = int(s.get("motor_characteristic", 202))
     b[31] = (~sum(b[:31])) & 0xFF
     return bytes(b)
 
@@ -265,6 +290,15 @@ def write_settings(s, log=print):
     except Exception as e:
         log("ERROR: USB: %s" % e)
     return False
+
+
+def live_symbols():
+    """Addresses of the live variables from the last build (kunteng/build/main.map), or None."""
+    import kt_live
+    mp = BUILD_DIR / "main.map"
+    if not mp.is_file():
+        return None
+    return kt_live.live_symbols(kt_live.read_map(str(mp)))
 
 
 def probe():

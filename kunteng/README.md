@@ -5,6 +5,9 @@ similar boards. Based on [casainho's BMSBattery_S_controllers_firmware](https://
 (GPL v3), with bug fixes, runtime settings and motor control improvements. It is installed and configured
 with the **EBiCS Setup** apps (PC and Android) over the SWIM pin of an ST-Link V2. No ST Visual Programmer needed.
 
+Displays: Kunteng KT-LCD3 / LCD5 / LCD8, KingMeter 901U / KM5S, Bafang LCD and 850C / 860C (setting
+"Display"). Both apps show live data of the running controller over the ST-Link (no restart).
+
 > Not tested on a real KT controller yet. It builds, and the motor code runs in the STM8 simulator (see
 > below), but test with the wheel lifted first and start with a low current.
 
@@ -46,7 +49,8 @@ python kunteng/sim/run_sim.py
 
 Runs the real firmware in ucsim, the STM8 simulator that comes with SDCC, and checks: the settings block
 is used, speed and interpolation from a hall sensor sequence, the hall position learning with misplaced
-sensors, the defaults without a settings block, and the phase current limit. Takes about 2 minutes.
+sensors, the defaults without a settings block, the phase current limit, the Kunteng / KingMeter / Bafang
+display protocols (answers and checksums) and the learned values loaded from the EEPROM. About 3 minutes.
 
 ```
 python tools/kt_motor_sim.py

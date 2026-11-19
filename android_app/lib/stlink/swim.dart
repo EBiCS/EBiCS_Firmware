@@ -158,6 +158,22 @@ class Swim {
     }
   }
 
+  /// Connects to the running firmware without reset and without stalling the CPU (live data).
+  Future<void> openLive() async {
+    final v = await _cmd([_getVersion], rx: 6);
+    swimVersion = ((v[0] << 8) | v[1]) & 0x3F;
+    if (swimVersion == 0) throw SwimException('this ST-Link has no SWIM support');
+    final mode = (await _cmd([_getCurrentMode], rx: 2))[0];
+    if (mode == modeDebug) await _cmd([_debug, 0x21]);
+    if (mode == modeDfu || mode == modeMass || mode == modeBootloader) await _cmd([_dfu, 0x07]);
+    if (mode != modeSwim) await _cmd([_swim, swimEnter]);
+    final bs = await _cmd([_swim, swimReadBufSize], rx: 2);
+    readBufSize = (bs[0] | (bs[1] << 8)) == 0 ? 6144 : (bs[0] | (bs[1] << 8));
+    await _cmd([_swim, swimReadCap, 0x01], rx: 8);
+    await _swimCmd([swimEnterSeq]);
+    await _swimCmd([swimReset]); // resynchronises the SWIM clock, does not reset the chip
+  }
+
   Future<void> resetTarget() async {
     await writeByte(swimCsr, (await readByte(swimCsr)) | 0x04);
     await _swimCmd([swimGenRst]);

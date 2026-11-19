@@ -107,8 +107,10 @@ FOC_HIGH, FOC_LOW = 127, 125
 class Firmware:
     def __init__(self, original=False, cells=10, current_a=15, regen_a=0, erps_interp=15, rotor_offset=202,
                  foc_adjust=137, phase_factor_x10=25, direct_drive=False, hall_learning=True, phase_limit=True,
-                 offset8=79, offset10=317):
+                 offset8=79, offset10=317, foc_delay_us=0):
         self.orig = original
+        self.foc_delay_x4 = max(-128, min(127, int(foc_delay_us / 4)))
+        self.foc_adjust_eff = foc_adjust
         self.cells, self.current_a, self.regen_a = cells, current_a, regen_a
         self.erps_interp, self.rotor_offset, self.foc_adjust = erps_interp, rotor_offset, foc_adjust
         self.direct_drive = direct_drive
@@ -304,14 +306,14 @@ class Firmware:
                     elif adc_phase_b8 < FOC_LOW:
                         self.correction = (self.correction - 1) & 0xFF
         elif self.erps > self.erps_interp and adc_total8 > self.offset8 + 2:
-            if self.foc_flag and rel >= self.foc_adjust:
+            if self.foc_flag and rel >= self.foc_adjust_eff:
                 self.foc_flag = 0
                 self.last_adc_id = adc_phase_b8
                 if adc_phase_b8 > FOC_HIGH:
                     self.correction = (self.correction + 1) & 0xFF
                 elif adc_phase_b8 < FOC_LOW:
                     self.correction = (self.correction - 1) & 0xFF
-            if self.foc_flag2 and ((rel - 128) & 0xFF) >= self.foc_adjust:
+            if self.foc_flag2 and ((rel - 128) & 0xFF) >= self.foc_adjust_eff:
                 self.foc_flag2 = 0
                 if adc_phase_b8 > FOC_HIGH:
                     self.correction = (self.correction - 1) & 0xFF
@@ -391,6 +393,8 @@ class Firmware:
             return
         current = self.current_filter(adc10)
         self.learn()
+        comp = int((self.erps * self.foc_delay_x4) / 977)
+        self.foc_adjust_eff = (self.foc_adjust + max(-64, min(64, comp))) & 0xFF
         x10 = 156250 // self.total if self.total not in (0, 0xFFFF) else 0
         self.erps_x10_f = self.erps_x10_f - (self.erps_x10_f >> 3) + (x10 >> 3)
         if x10 == 0:
@@ -748,6 +752,21 @@ def main():
         print(f"  {name:8s}: current angle within 8 deg after {t_ok if t_ok is None else round(t_ok, 2)} s, "
               f"at the end {g_end:5.1f} deg, iq {stats(rows, 'iq', 5)[1]:.1f} A, id {stats(rows, 'id', 5)[1]:.1f} A  "
               f"findings: {f or '-'}")
+
+    # 3b. FOC sample delay compensation. The phase B current is measured with a delay (here: 1 PWM period ADC +
+    # 0.1 ms filter = 164 us). Compensating by +164 us (the textbook direction) made the angle worse in this model,
+    # -40 us made it flatter over the speed: the sign and size depend on the real sensor, so it is a setting (off).
+    print("\n=== 3b. current angle at 3 speeds, hall mounting error 10 deg, with delay compensation 0 / +164 / -40 us")
+    for delay in (0, 164, -40):
+        line = []
+        for kmh in (10, 18, 26):
+            FINDINGS.clear()
+            m = Motor(v=kmh / 3.6, mass=5000)
+            fw = Firmware(foc_delay_us=delay)
+            rows = run(fw, m, hw_for(m, hall_offset_deg=10), 4.0, lambda t: (8, True), erps_max=600)
+            g = sum(gamma_deg(r) for r in rows[-80:]) / 80
+            line.append(f"{kmh} km/h {g:6.1f} deg")
+        print(f"  delay {delay:3d} us: " + ", ".join(line))
 
     # 4. misplaced hall sensors: torque ripple, learning
     print("\n=== 4. hall sensors not 60 deg apart (+8, -6, +5, -7, +4, -4 deg), 20 km/h, 10 A")

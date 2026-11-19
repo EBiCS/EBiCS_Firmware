@@ -1,7 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/services.dart';
 
 import '../stlink/swim.dart';
 import '../usb/usb_bridge.dart';
+import 'kt_live.dart';
 import 'kt_settings.dart';
 
 /// Result of a SWIM connection check.
@@ -49,6 +52,58 @@ class KtController {
     } catch (_) {
       return false;
     }
+  }
+
+  Map<String, (int, int)>? _liveSyms;
+  UsbTransport? _liveT;
+  Swim? _live;
+
+  /// Live variables of the running firmware (no reset). The addresses are those of the prebuilt firmware
+  /// (assets/firmware/kunteng.sym.json): the controller must run the firmware installed by this app.
+  Future<Map<String, Object>> liveSnapshot() async {
+    _liveSyms ??= {
+      for (final e
+          in (jsonDecode(await bundle.loadString('assets/firmware/kunteng.sym.json')) as Map<String, dynamic>).entries)
+        e.key: ((e.value as List)[0] as int, (e.value as List)[1] as int),
+    };
+    if (_live == null) {
+      final t = _transport();
+      if (t is UsbBridge) {
+        final dev = await UsbBridge.find();
+        if (dev == null) throw SwimException('ST-Link not found');
+        if (!dev.permission && !await UsbBridge.requestPermission()) throw SwimException('no USB permission');
+        await t.open();
+      }
+      final s = Swim(t, sleep: sleep);
+      try {
+        await s.openLive();
+      } catch (e) {
+        if (t is UsbBridge) await t.close();
+        rethrow;
+      }
+      _liveT = t;
+      _live = s;
+    }
+    final out = <String, Object>{};
+    try {
+      for (final v in ktLiveVars) {
+        final sym = _liveSyms![v.name];
+        if (sym == null) continue;
+        out[v.name] = ktDecode(v.type, await _live!.readMem(sym.$1, sym.$2));
+      }
+    } catch (e) {
+      await stopLive();
+      rethrow;
+    }
+    return out;
+  }
+
+  Future<void> stopLive() async {
+    final s = _live, t = _liveT;
+    _live = null;
+    _liveT = null;
+    if (s != null) await s.close();
+    if (t is UsbBridge) await t.close();
   }
 
   Future<T> _session<T>(Future<T> Function(Swim s) f) async {

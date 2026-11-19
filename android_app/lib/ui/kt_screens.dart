@@ -2,6 +2,7 @@ import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../app_state.dart';
+import '../kunteng/kt_live.dart';
 import '../kunteng/kt_settings.dart';
 import 'common.dart';
 
@@ -143,6 +144,8 @@ class _KtHomeScreenState extends State<KtHomeScreen> {
           step(3, 'Settings: controller, battery, current ...', 'Settings', () => _open(const KtSettingsScreen())),
           const SizedBox(height: 8),
           step(4, 'Install the firmware with these settings.', 'Install', _install),
+          const SizedBox(height: 8),
+          step(5, 'Live data: what the controller sees while riding.', 'Live', () => _open(const KtLiveScreen())),
           if (_busy) const Padding(padding: EdgeInsets.only(top: 12), child: LinearProgressIndicator()),
           LogBox(_log, height: 260),
           const SizedBox(height: 8),
@@ -397,6 +400,83 @@ class _KtFieldEditorState extends State<KtFieldEditor> {
                   content: Text(f.help),
                   actions: [TextButton(onPressed: () => Navigator.pop(c), child: const Text('OK'))],
                 ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Live data of the running KT firmware over SWIM (no reset).
+class KtLiveScreen extends StatefulWidget {
+  const KtLiveScreen({super.key});
+  @override
+  State<KtLiveScreen> createState() => _KtLiveScreenState();
+}
+
+class _KtLiveScreenState extends State<KtLiveScreen> {
+  Map<String, Object> _snap = {};
+  String _status = 'Connecting ...';
+  Tone _tone = Tone.busy;
+  bool _running = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loop();
+  }
+
+  @override
+  void dispose() {
+    _running = false;
+    super.dispose();
+  }
+
+  Future<void> _loop() async {
+    final c = AppScope.read(context).ktController;
+    await UsbBridgeKeepAwake.on();
+    while (_running) {
+      try {
+        final s = await c.liveSnapshot();
+        if (!mounted) break;
+        setState(() {
+          _snap = s;
+          _status = 'Live';
+          _tone = Tone.ok;
+        });
+        await Future<void>.delayed(const Duration(milliseconds: 400));
+      } catch (e) {
+        if (!mounted) break;
+        setState(() {
+          _status = 'No connection: $e';
+          _tone = Tone.bad;
+        });
+        await Future<void>.delayed(const Duration(milliseconds: 1500));
+      }
+    }
+    await c.stopLive();
+    await UsbBridgeKeepAwake.off();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Scaffold(
+      appBar: AppBar(title: const Text('KT live data')),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          StatusLine(_status, tone: _tone),
+          const Text('Read over the ST-Link while the controller runs. Needs the firmware installed by this app.'),
+          const SizedBox(height: 8),
+          for (final v in ktLiveVars)
+            ListTile(
+              dense: true,
+              title: Text(v.label),
+              trailing: Text(
+                _snap.containsKey(v.name) ? ktDescribe(v, _snap[v.name]!) : '-',
+                style: theme.textTheme.titleMedium,
               ),
             ),
         ],

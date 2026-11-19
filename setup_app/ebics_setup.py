@@ -19,6 +19,7 @@ from tkinter import ttk, messagebox, filedialog
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import ebics_core as core  # noqa: E402
 import kunteng_core as kt  # noqa: E402
+import kt_live  # noqa: E402
 
 LAST_CONTROLLER_FILE = Path(__file__).resolve().parent / "last_controller.txt"
 
@@ -307,7 +308,8 @@ class App(tk.Tk):
         self.pages, self.nav = {}, {}
         if self.kind == "kunteng":
             pages = (("home", "Home", KtHomePage), ("settings", "Settings", SettingsPage),
-                     ("flash", "Install firmware", KtFlashPage), ("tools", "Tools", KtToolsPage))
+                     ("flash", "Install firmware", KtFlashPage), ("live", "Live data", KtLivePage),
+                     ("tools", "Tools", KtToolsPage))
         else:
             pages = (("home", "Home", HomePage), ("wizard", "First setup", WizardPage),
                      ("settings", "Settings", SettingsPage), ("flash", "Install firmware", FlashPage),
@@ -860,6 +862,82 @@ class KtFlashPage(Page):
             self.result.configure(text="Done - firmware installed. Test with the wheel lifted." if ok else
                                   "Failed - see the log", foreground=OK if ok else BAD)
         self.app.bg(lambda: kt.build_and_flash(self.app.settings, log, compile_first), done)
+
+
+class KtLivePage(Page):
+    """Live data of the running KT firmware over SWIM (no reset). Addresses from the last build's map file:
+    the firmware on the controller must be the one built last on this PC."""
+
+    def __init__(self, master, app):
+        super().__init__(master, app)
+        top = ttk.Frame(self, style="Page.TFrame")
+        top.pack(fill="x")
+        ttk.Label(top, text="Live data", style="H1.TLabel").pack(side="left")
+        self.btn = ttk.Button(top, text="Start", style="Accent.TButton", command=self.toggle)
+        self.btn.pack(side="right")
+        ttk.Label(self, text="Read over the ST-Link while the controller runs (no restart). Needs the firmware "
+                             "built and installed from this PC.", style="Muted.TLabel").pack(anchor="w", pady=(2, 10))
+        self.status = ttk.Label(self, style="H2.TLabel")
+        self.status.pack(anchor="w")
+        self.grid_frame = ttk.Frame(self, style="Card.TFrame", padding=14)
+        self.grid_frame.pack(fill="x", pady=8)
+        self.values = {}
+        for i, (name, typ, label, unit, scale) in enumerate(kt_live.LIVE_VARS):
+            ttk.Label(self.grid_frame, text=label, style="Card.TLabel").grid(row=i // 2, column=(i % 2) * 2,
+                                                                           sticky="w", padx=(0, 12), pady=3)
+            v = ttk.Label(self.grid_frame, text="-", style="Card.TLabel", font=("Segoe UI Semibold", 11))
+            v.grid(row=i // 2, column=(i % 2) * 2 + 1, sticky="w", padx=(0, 40), pady=3)
+            self.values[label] = v
+        self.session = None
+        self.running = False
+
+    def on_hide(self):
+        self.stop()
+
+    def toggle(self):
+        if self.running:
+            self.stop()
+        else:
+            self.start()
+
+    def start(self):
+        syms = kt.live_symbols()
+        if not syms:
+            self.status.configure(text="Build and install the firmware first (no map file of the build found).",
+                                  foreground=BAD)
+            return
+        self.session = kt_live.LiveSession(syms)
+        self.running = True
+        self.btn.configure(text="Stop")
+        self.status.configure(text="Connecting ...", foreground=MUTED)
+        self.poll()
+
+    def stop(self):
+        self.running = False
+        self.btn.configure(text="Start")
+        s, self.session = self.session, None
+        if s:
+            self.app.bg(s.close)
+
+    def poll(self):
+        if not self.running or not self.session:
+            return
+        sess = self.session
+
+        def done(snap):
+            if not self.running or sess is not self.session:
+                return
+            if isinstance(snap, Exception):
+                self.status.configure(text=f"No connection: {snap}", foreground=BAD)
+                sess.open = False
+                self.after(1500, self.poll)
+                return
+            self.status.configure(text="Live", foreground=OK)
+            for label, text in kt_live.describe(snap):
+                if label in self.values:
+                    self.values[label].configure(text=text)
+            self.after(400, self.poll)
+        self.app.bg(sess.snapshot, done)
 
 
 class KtToolsPage(Page):

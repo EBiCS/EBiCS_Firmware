@@ -22,7 +22,7 @@ void eeprom_init (void)
   uint8_t array_default_values [7];
   array_default_values [0] = KEY;
   array_default_values [1] = DEFAULT_VALUE_ASSIST_LEVEL;
-  array_default_values [2] = DEFAULT_VALUE_MOTOR_CHARACTARISTIC;
+  array_default_values [2] = kt_settings.ui8_motor_characteristic;
   array_default_values [3] = kt_settings.ui8_default_wheel_size; // from the setup app settings block
   array_default_values [4] = kt_settings.ui8_default_max_speed;
   array_default_values [5] = DEFAULT_VALUE_POWER_ASSIST_CONTROL_MODE;
@@ -78,6 +78,26 @@ void eeprom_write_if_values_changed (void)
 
     eeprom_write_array (array_values);
   }
+}
+
+// any bytes of the data EEPROM (0x4000 ... 0x43FF). Blocks the caller ~6 ms per byte, the PWM interrupt
+// keeps running (the program runs from flash while the data EEPROM is written)
+void eeprom_write_bytes (uint16_t ui16_address, const uint8_t *p_values, uint8_t ui8_n)
+{
+  FLASH_SetProgrammingTime (FLASH_PROGRAMTIME_STANDARD);
+  FLASH_Unlock (FLASH_MEMTYPE_DATA);
+  while (!FLASH_GetFlagStatus (FLASH_FLAG_DUL)) ;
+  while (ui8_n--)
+  {
+    if (FLASH_ReadByte (ui16_address) != *p_values) // only bytes that changed
+    {
+      FLASH_ProgramByte (ui16_address, *p_values);
+      while (!FLASH_GetFlagStatus (FLASH_FLAG_EOP)) ;
+    }
+    ui16_address++;
+    p_values++;
+  }
+  FLASH_Lock (FLASH_MEMTYPE_DATA);
 }
 
 void eeprom_write_array (uint8_t *array_values)

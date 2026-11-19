@@ -27,6 +27,12 @@ const ktChoices = <String, List<(String, int)>>{
     ('29 inch', 0x1E),
   ],
   'pas_direction': [('Right (normal)', 0), ('Left', 1)],
+  'display': [
+    ('Kunteng KT-LCD3 / LCD5 / LCD8', 0),
+    ('KingMeter 901U / KM5S', 1),
+    ('Bafang LCD (1200 baud)', 2),
+    ('Bafang 850C / 860C (9600 baud)', 3),
+  ],
 };
 
 const ktFields = <KtField>[
@@ -37,6 +43,16 @@ const ktFields = <KtField>[
     1,
     'basic',
     help: 'Which KT controller you have. The 12 MOSFET boards (S12S) allow more current.',
+  ),
+  KtField(
+    'display',
+    'Display',
+    KtKind.choice,
+    0,
+    'basic',
+    help:
+        'Display protocol. Multi protocol displays: set the same in the display menu. KingMeter and Bafang '
+        'assist levels are mapped to the 5 levels.',
   ),
   KtField(
     'cells',
@@ -114,6 +130,23 @@ const ktFields = <KtField>[
   KtField('assist_4', 'Assist level 4', KtKind.decimal, 0.8, 'advanced', unit: 'x', help: '0 ... 1'),
   KtField('assist_5', 'Assist level 5', KtKind.decimal, 1.0, 'advanced', unit: 'x', help: '0 ... 1'),
   KtField(
+    'ramp_s',
+    'Power ramp (time to full power)',
+    KtKind.decimal,
+    0.4,
+    'advanced',
+    unit: 's',
+    help: 'How fast the power comes up. 0.4 s is the old S06S behaviour, longer is gentler.',
+  ),
+  KtField(
+    'motor_characteristic',
+    'Motor constant for non-KT displays',
+    KtKind.integer,
+    202,
+    'advanced',
+    help: 'Like P1 of a KT display: magnets x gear ratio (202 for Q85/Q100). Used with KingMeter/Bafang displays.',
+  ),
+  KtField(
     'over_voltage_protection',
     'Over voltage protection',
     KtKind.boolean,
@@ -132,6 +165,15 @@ const ktFields = <KtField>[
   ),
   KtField('foc_angle_adjust', 'FOC current sample angle', KtKind.integer, 137, 'expert', unit: '/256'),
   KtField('erps_interpolation', 'Speed for sine wave mode', KtKind.integer, 15, 'expert', unit: 'erps'),
+  KtField(
+    'foc_delay_us',
+    'FOC current sample delay compensation',
+    KtKind.integer,
+    0,
+    'expert',
+    unit: 'us',
+    help: 'Moves the FOC sample angle with the speed. 0 = off. Signed, tune it on the bike with Live data.',
+  ),
   KtField(
     'phase_current_limit',
     'Limit phase current at low speed',
@@ -194,6 +236,9 @@ class KtSettings {
       if (i(k) < 0 || i(k) > 255) p.add('${ktFields.firstWhere((f) => f.key == k).label} must be 0 ... 255.');
     }
     if (i('erps_interpolation') < 5 || i('erps_interpolation') > 100) p.add('Speed for sine wave mode: 5 ... 100.');
+    if (d('ramp_s') < 0.1 || d('ramp_s') > 5) p.add('Power ramp must be 0.1 ... 5 s.');
+    if (i('motor_characteristic') < 1 || i('motor_characteristic') > 255) p.add('Motor constant must be 1 ... 255.');
+    if (i('foc_delay_us') < -500 || i('foc_delay_us') > 500) p.add('FOC delay compensation must be -500 ... 500 us.');
     return p;
   }
 
@@ -223,6 +268,10 @@ class KtSettings {
     out[20] = i('wheel');
     out[21] = i('controller');
     out[22] = 25;
+    out[23] = i('display');
+    out[24] = SettingsBlock.pyRound(d('ramp_s') * 10);
+    out[25] = (i('foc_delay_us') ~/ 4) & 0xFF; // int8, truncated toward zero like the desktop app
+    out[26] = i('motor_characteristic');
     var sum = 0;
     for (var n = 0; n < 31; n++) {
       sum += out[n];

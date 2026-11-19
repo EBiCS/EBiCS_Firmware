@@ -211,6 +211,36 @@ class SwimTests(unittest.TestCase):
         self.assertEqual(b[31], (~sum(b[:31])) & 0xFF)
         self.assertEqual(list(b[11:16]), [20, 40, 60, 80, 100])
 
+    def test_live_snapshot_without_reset(self):
+        import struct
+        import kt_live
+        t = FakeStm8StLink()
+        syms = {"ui8_adc_battery_voltage_filtered": [0x51, 1], "i16_motor_current_filtered_10b": [0x4D, 2],
+                "f_wheel_speed": [0x80, 4], "i8_hall_offset": [0x2F, 8], "ui8_motor_controller_state": [0x229, 1]}
+        t.mem[0x51] = 140                                   # 38.1 V
+        t.mem[0x4D:0x4F] = struct.pack(">h", -24)           # -3 A (regen)
+        t.mem[0x80:0x84] = struct.pack(">f", 23.5)
+        t.mem[0x2F:0x37] = bytes([0, 1, 0xFE, 3, 0xFC, 2, 0, 0])
+        t.mem[0x229] = 1 | 2                                # brake
+        live = kt_live.LiveSession(syms, transport=_Reuse(t))
+        snap = live.snapshot()
+        live.close()
+        self.assertAlmostEqual(snap["ui8_adc_battery_voltage_filtered"], 38.08, places=2)
+        self.assertAlmostEqual(snap["i16_motor_current_filtered_10b"], -3.0)
+        self.assertAlmostEqual(snap["f_wheel_speed"], 23.5, places=3)
+        self.assertEqual(snap["i8_hall_offset"][4], -4)
+        self.assertNotIn(swim.SWIM_ASSERT_RESET, t.log)    # live: no reset
+        rows = dict(kt_live.describe(snap))
+        self.assertIn("brake", rows["Controller state"])
+
+    def test_live_symbols_from_map(self):
+        import kt_live
+        mp = os.path.join(os.path.dirname(__file__), "..", "kunteng", "build", "main.map")
+        if not os.path.isfile(mp):
+            self.skipTest("kunteng firmware not built")
+        syms = kt_live.live_symbols(kt_live.read_map(mp))
+        self.assertEqual(len(syms), len(kt_live.LIVE_VARS))   # every live variable found (long names are cut in the map)
+
     def test_firmware_build_output_parses(self):
         ihx = os.path.join(os.path.dirname(__file__), "..", "kunteng", "build", "main.ihx")
         if not os.path.isfile(ihx):

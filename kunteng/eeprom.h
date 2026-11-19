@@ -24,5 +24,6 @@
 
 void eeprom_init (void);
 void eeprom_write_if_values_changed (void);
+void eeprom_write_bytes (uint16_t ui16_address, const uint8_t *p_values, uint8_t ui8_n);
 
 #endif /* _EEPROM_H_ */
