@@ -22,6 +22,7 @@ extern volatile q31_t q31_erps_filtered;      // FOC cycles per electrical revol
 void sensorless_reset(void);                                         // call when PWM is switched on
 void sensorless_startup(MotorState_t* MS_FOC, int16_t target);       // call after the PI control, before inverse Park
 void sensorless_observe(q31_t u_alpha, q31_t u_beta, q31_t i_alpha, q31_t i_beta, int16_t target); // after inverse Park
+int32_t sensorless_q_setpoint(int32_t setpoint);                     // q current setpoint during start / hand-over
 void sensorless_slow(void);                                          // call from the slow loop
 
 #endif /* SENSORLESS_H_ */

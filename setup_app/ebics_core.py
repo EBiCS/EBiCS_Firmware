@@ -241,15 +241,19 @@ FIELDS = [
     ("cal_bat_v", "Battery voltage cal.", "int", 256, "expert", "", ""),
     ("cal_v", "Voltage cal. (mV/count)", "int", 25, "expert", "", ""),
     ("cal_i", "Current cal. (mA/count <<8)", "str", "38LL<<8", "expert", "", "Depends on the shunt resistor."),
-    ("inductance", "Sensorless: inductance", "str", "2", "expert", "uH/100",
-     "Phase inductance for the observer, e.g. 200 uH = 2. Only used in sensorless mode."),
-    ("resistance", "Sensorless: resistance", "str", "120", "expert", "mOhm*512/1000",
-     "Phase resistance for the observer (Shengyi 117 mOhm = 120). Only used in sensorless mode."),
-    ("flux_linkage", "Sensorless: flux linkage", "str", "2400", "expert", "",
-     "Tuned by hand in the branch (BionX 2400, Shengyi 1800). Only used in sensorless mode."),
-    ("gamma", "Sensorless: observer gain (shift)", "str", "13", "expert", "", "Trial and error, 10..13. Only used in sensorless mode."),
-    ("obs_angle_deg", "Sensorless: angle offset", "float", 20.0, "expert", "deg",
-     "Offset between observer and rotor. Change in small steps until the motor runs smooth and efficient."),
+    ("inductance", "Sensorless: inductance", "str", "11", "expert", "",
+     "Observer inductance = phase inductance [uH] x 0.0437 (= L x 65536 / 1.5). Phase value = half of what you "
+     "measure between two motor wires. 250 uH -> 11. Only used in sensorless mode."),
+    ("resistance", "Sensorless: resistance", "str", "51", "expert", "",
+     "Observer resistance = phase resistance [mOhm] x 0.341 (= R x 512 / 1.5). Phase value = half of the "
+     "resistance between two motor wires. 150 mOhm -> 51. Only used in sensorless mode."),
+    ("flux_linkage", "Sensorless: flux linkage", "str", "2560", "expert", "",
+     "Observer flux = flux linkage [mWb] x 256. Flux linkage [Wb] = battery voltage / (1.732 x electrical no-load "
+     "speed in rad/s). 10 mWb -> 2560. Only used in sensorless mode."),
+    ("gamma", "Sensorless: observer gain (shift)", "str", "13", "expert", "", "Observer correction gain as a shift, 12..14. Only used in sensorless mode."),
+    ("obs_angle_deg", "Sensorless: angle offset", "float", 90.0, "expert", "deg",
+     "+90 aligns the observer with the open loop start direction (checked in tools/motor_sim.py; -90 also runs but "
+     "reverses after the start). Fine tune in small steps (+-10) for smooth running. Wrong way: 'Reverse motor direction'."),
     ("spec_angle", "Hall angle offset (unused)", "str", "-715827882", "expert", "", ""),
     ("autodetect_at_boot", "Autodetect at every power-up", "bool", False, "expert", "",
      "Only with the debug display. The app starts calibration over the ST-Link instead."),

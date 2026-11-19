@@ -1039,6 +1039,22 @@ int main(void)
 
 
 			//------------------------------------------------------------------------------------------------------------
+#ifndef SENSORLESS
+			//coast with the switches open when no current is wanted for 100 ms (no braking / uncontrolled charging
+			//of a fast spinning direct drive motor; switched on again below with the speed based PI start value)
+			{
+				static uint32_t ui32_no_current_since = 0;
+				if(MS.i_q_setpoint || brake_flag || ui8_KV_detect_flag || !MS.hall_angle_detect_flag) ui32_no_current_since = HAL_GetTick();
+				else if(READ_BIT(TIM1->BDTR, TIM_BDTR_MOE) && (HAL_GetTick() - ui32_no_current_since) > 100){
+					CLEAR_BIT(TIM1->BDTR, TIM_BDTR_MOE);
+					TIM1->CCR1 = 1023;
+					TIM1->CCR2 = 1023;
+					TIM1->CCR3 = 1023;
+					q31_t_Battery_Current_accumulated = 0; //runPIcontrol doesn't run while coasting: don't show a stale current
+					MS.Battery_Current = 0;
+				}
+			}
+#endif
 			//enable PWM if power is wanted
 			if (MS.i_q_setpoint&&!READ_BIT(TIM1->BDTR, TIM_BDTR_MOE)){
 
@@ -2376,6 +2392,10 @@ int main(void)
 		else return 0;
 	}
 	void autodetect() {
+#ifdef SENSORLESS
+		ui8_setup_state = 4; //no hall sensors to calibrate (saves ~600 bytes, the sensorless builds are close to full)
+		return;
+#endif
 		SET_BIT(TIM1->BDTR, TIM_BDTR_MOE);
 		ui8_setup_state = 1;
 		ui8_setup_progress = 0;
@@ -2557,41 +2577,42 @@ int main(void)
 
 	void runPIcontrol(){
 
-
+		// battery current from the active power P ~ u_q*i_q - u_d*i_d (firmware frame).
+		// 1 voltage unit * 1 current unit = 1/2341 A battery current (u = Vbat/3511 phase volts, P = 1.5*u*i).
+		// The old estimate used u_abs (includes the reactive voltage) and >>11: 15..32 % too high in the simulation,
+		// so the battery current limit cut in at about 11-12 A for a 15 A setting.
+		q31_t q31_power = MS.u_q*MS.i_q - MS.u_d*MS.i_d;
 		q31_t_Battery_Current_accumulated -= q31_t_Battery_Current_accumulated>>8;
-		q31_t_Battery_Current_accumulated += ((MS.i_q*MS.u_abs)>>11)*(uint16_t)(CAL_I>>8);
-
+		q31_t_Battery_Current_accumulated += ((q31_power*7)>>14)*(uint16_t)(CAL_I>>8);
 		MS.Battery_Current = (q31_t_Battery_Current_accumulated>>8)*i8_direction*i8_reverse_flag; //Battery current in mA
-		//Check battery current limit
-		if(MS.Battery_Current>MP.battery_current_max) ui8_BC_limit_flag=1;
-		if(MS.Battery_Current<-RS.regen_current_max) ui8_BC_limit_flag=1;
-		//reset battery current flag with small hysteresis
-		if(brake_flag==0){
-			//if(HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin)){
-			if(((MS.i_q_setpoint*MS.u_abs)>>11)*(uint16_t)(CAL_I>>8)<(MP.battery_current_max*7)>>3)ui8_BC_limit_flag=0;
-		}
-		else{
-			if(((MS.i_q_setpoint*MS.u_abs)>>11)*(uint16_t)(CAL_I>>8)>(-RS.regen_current_max*7)>>3)ui8_BC_limit_flag=0;
+
+		// phase current setpoint in the controller frame
+		int32_t i32_iq_setpoint = i8_direction*i8_reverse_flag*MS.i_q_setpoint;
+#ifdef SENSORLESS
+		i32_iq_setpoint = sensorless_q_setpoint(i32_iq_setpoint); //0 during the open loop start, faded in at the hand-over
+#endif
+		// battery / regen current limit as a clamp of the phase current setpoint: i_q_max = I_bat_max / (k*u_q).
+		// The old code switched the current PI to the (slowly filtered) battery current: it oscillated between
+		// 0 and 2x the limit in the simulation. u_q is low pass filtered (16 ms), unfiltered it oscillates in regen.
+		static q31_t q31_uq_abs_filtered = 0;
+		q31_uq_abs_filtered -= q31_uq_abs_filtered>>8;
+		q31_uq_abs_filtered += (MS.u_q >= 0) ? MS.u_q : -MS.u_q;
+		int32_t i32_uq_abs = q31_uq_abs_filtered>>8;
+		ui8_BC_limit_flag=0;
+		if(i32_uq_abs > 20){
+			//regen limit only while braking (like the old code): otherwise forward torque against a backwards
+			//rolling wheel (negative power) would be clamped to the regen limit, 0 A by default = no torque
+			int32_t i32_bat_limit = brake_flag ? RS.regen_current_max : MP.battery_current_max;
+			if(i32_bat_limit > 131000) i32_bat_limit = 131000; //keeps *16384 inside int32: 32 bit hardware division in the ISR
+			if(i32_bat_limit < 0) i32_bat_limit = 0;
+			int32_t i32_iq_limit = (i32_bat_limit * 16384) / (7 * (int32_t)(CAL_I>>8) * i32_uq_abs);
+			if(i32_iq_setpoint > i32_iq_limit){ i32_iq_setpoint = i32_iq_limit; ui8_BC_limit_flag=1; }
+			if(i32_iq_setpoint < -i32_iq_limit){ i32_iq_setpoint = -i32_iq_limit; ui8_BC_limit_flag=1; }
 		}
 
 		//control iq
-
-		//if
-		if (!ui8_BC_limit_flag){
-			PI_iq.recent_value = MS.i_q;
-			PI_iq.setpoint = i8_direction*i8_reverse_flag*MS.i_q_setpoint;
-		}
-		else{
-			if(brake_flag==0){
-				// if(HAL_GPIO_ReadPin(Brake_GPIO_Port, Brake_Pin)){
-				PI_iq.recent_value=  (MS.Battery_Current>>6)*i8_direction*i8_reverse_flag;
-				PI_iq.setpoint = (MP.battery_current_max>>6)*i8_direction*i8_reverse_flag;
-			}
-			else{
-				PI_iq.recent_value=  (MS.Battery_Current>>6)*i8_direction*i8_reverse_flag;
-				PI_iq.setpoint = (-RS.regen_current_max>>6)*i8_direction*i8_reverse_flag;
-			}
-		}
+		PI_iq.recent_value = MS.i_q;
+		PI_iq.setpoint = i32_iq_setpoint;
 
 		q31_u_q_temp =  PI_control(&PI_iq);
 
